@@ -1,0 +1,6 @@
+[workspace]
+members = [
+    "annis_export_cli",
+    "annis_export_core",
+]
+resolver = "2"

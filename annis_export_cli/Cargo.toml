@@ -1,0 +1,7 @@
+[package]
+name = "annis_export_cli"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+annis_export_core = { path = "../annis_export_core" }
