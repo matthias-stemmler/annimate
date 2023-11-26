@@ -5,3 +5,5 @@ edition = "2021"
 
 [dependencies]
 annis_export_core = { path = "../annis_export_core" }
+anyhow = "1.0.75"
+clap = { version = "4.4.8", features = ["derive"] }
