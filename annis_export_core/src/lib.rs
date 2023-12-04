@@ -1,10 +1,10 @@
 use error::AnnisExportError;
-use format::write_match;
+use format::export;
 use graphannis::{
     corpusstorage::{CacheStrategy, CorpusInfo},
     errors::GraphAnnisError,
 };
-use query::{CorpusRef, MatchesPaginated, Query};
+use query::{CorpusRef, Match, MatchesPage, MatchesPaginated, Query};
 use std::{io::Write, path::Path, vec};
 
 mod error;
@@ -38,7 +38,7 @@ impl CorpusStorage {
         aql_query: &str,
         query_config: QueryConfig,
         format: ExportFormat,
-        mut out: W,
+        out: W,
         mut on_status: F,
     ) -> Result<(), AnnisExportError>
     where
@@ -51,22 +51,15 @@ impl CorpusStorage {
         let total_count = matches_paginated.total_count()?;
         on_status(StatusEvent::Found { count: total_count });
 
-        let mut written_count: u64 = 0;
+        let exportable_matches = ExportableMatches {
+            matches_paginated,
+            matches_page: None,
+            on_status,
+            total_count,
+            fetched_count: 0,
+        };
 
-        for page in matches_paginated {
-            let page = page?;
-            let len = page.len();
-
-            for m in page {
-                write_match(&m?, &mut out, format)?;
-            }
-
-            written_count += u64::try_from(len).unwrap(); // page size fits in a u64
-            on_status(StatusEvent::Written {
-                total_count,
-                written_count,
-            });
-        }
+        export(exportable_matches, out, format)?;
 
         Ok(())
     }
@@ -82,13 +75,55 @@ impl Iterator for CorpusNames {
     }
 }
 
+struct ExportableMatches<'a, F> {
+    matches_paginated: MatchesPaginated<'a>,
+    matches_page: Option<MatchesPage<'a>>,
+    on_status: F,
+    total_count: u64,
+    fetched_count: u64,
+}
+
+impl<'a, F> Iterator for ExportableMatches<'a, F>
+where
+    F: FnMut(StatusEvent),
+{
+    type Item = Result<Match, GraphAnnisError>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        loop {
+            if self.matches_page.is_none() {
+                self.matches_page = match self.matches_paginated.next()? {
+                    Ok(page) => {
+                        self.fetched_count += u64::try_from(page.len()).unwrap(); // page size fits in a u64
+
+                        (self.on_status)(StatusEvent::Fetched {
+                            total_count: self.total_count,
+                            fetched_count: self.fetched_count,
+                        });
+
+                        Some(page)
+                    }
+                    Err(err) => return Some(Err(err)),
+                };
+            }
+
+            if let Some(ref mut page) = &mut self.matches_page {
+                match page.next() {
+                    Some(m) => return Some(m),
+                    None => self.matches_page = None,
+                }
+            }
+        }
+    }
+}
+
 #[derive(Debug)]
 pub enum StatusEvent {
     Found {
         count: u64,
     },
-    Written {
+    Fetched {
         total_count: u64,
-        written_count: u64,
+        fetched_count: u64,
     },
 }

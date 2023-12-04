@@ -1,5 +1,6 @@
 use self::csv::CsvExporter;
 use crate::{error::AnnisExportError, query::Match};
+use graphannis::errors::GraphAnnisError;
 use std::io::Write;
 
 mod csv;
@@ -9,21 +10,23 @@ pub enum ExportFormat {
     Csv,
 }
 
-pub(crate) fn write_match<W>(
-    m: &Match,
+pub(crate) fn export<I, W>(
+    matches: I,
     out: W,
     export_format: ExportFormat,
 ) -> Result<(), AnnisExportError>
 where
+    I: IntoIterator<Item = Result<Match, GraphAnnisError>>,
     W: Write,
 {
     match export_format {
-        ExportFormat::Csv => CsvExporter::write_match(m, out),
+        ExportFormat::Csv => CsvExporter::export(matches, out),
     }
 }
 
 trait Exporter {
-    fn write_match<W>(m: &Match, writer: W) -> Result<(), AnnisExportError>
+    fn export<I, W>(matches: I, writer: W) -> Result<(), AnnisExportError>
     where
+        I: IntoIterator<Item = Result<Match, GraphAnnisError>>,
         W: Write;
 }

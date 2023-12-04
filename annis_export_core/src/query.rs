@@ -182,8 +182,6 @@ fn get_context(
         "tok_anno".into(),
     );
 
-    dbg!(subgraph.get_all_components(None, None));
-
     let graphstorage =
         subgraph
             .get_graphstorage_as_ref(&component)
@@ -223,11 +221,6 @@ fn get_context(
             .rev();
 
         let right_context_tokens = graphstorage.find_connected(match_node_id, 1, Bound::Unbounded);
-
-        dbg!(graphstorage
-            .as_edgecontainer()
-            .get_outgoing_edges(match_node_id)
-            .collect::<Vec<_>>());
 
         for node_id in left_context_tokens
             .chain(Some(Ok(match_node_id)))

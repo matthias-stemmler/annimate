@@ -63,7 +63,8 @@ fn main() -> anyhow::Result<()> {
             let out = File::create(&output_file)
                 .with_context(|| format!("Failed to open output file {}", output_file.display()))?;
 
-            let mut out = BufWriter::new(out);
+            //let mut out = BufWriter::new(out);
+            let mut out = out;
 
             corpus_storage
                 .export_matches(
@@ -77,9 +78,9 @@ fn main() -> anyhow::Result<()> {
                     &mut out,
                     |event| match event {
                         StatusEvent::Found { count } => println!("Found {count} matches"),
-                        StatusEvent::Written {
+                        StatusEvent::Fetched {
                             total_count,
-                            written_count,
+                            fetched_count: written_count,
                         } => println!("Written {written_count} of {total_count} matches"),
                     },
                 )
