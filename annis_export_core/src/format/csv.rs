@@ -10,6 +10,14 @@ impl Exporter for CsvExporter {
     where
         W: Write,
     {
-        Ok(writeln!(out, "{}", m.index())?)
+        write!(out, "{}", m.index)?;
+
+        for context_token in &m.context {
+            write!(out, " <{:?}>", context_token)?;
+        }
+
+        writeln!(out)?;
+
+        Ok(())
     }
 }

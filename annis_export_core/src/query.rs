@@ -1,12 +1,15 @@
 use graphannis::{
     corpusstorage::{QueryLanguage, ResultOrder, SearchQuery},
     errors::GraphAnnisError,
+    graph::Component,
+    model::AnnotationComponentType,
     util::node_names_from_match,
-    AnnotationGraph,
 };
+use graphannis_core::{errors::GraphAnnisCoreError, types::AnnoKey};
 use std::{
+    collections::HashSet,
     iter::{Enumerate, StepBy},
-    ops::RangeFrom,
+    ops::{Bound, RangeFrom},
     slice, vec,
 };
 
@@ -84,7 +87,7 @@ impl<'a> Iterator for MatchesPaginated<'a> {
         );
 
         match result {
-            Ok(match_ids) if match_ids.is_empty() => None,
+            Ok(match_node_names) if match_node_names.is_empty() => None,
             Ok(match_ids) => Some(Ok(MatchesPage::new(
                 self.corpus_ref,
                 self.query.config,
@@ -130,33 +133,129 @@ impl Iterator for MatchesPage<'_> {
 
     fn next(&mut self) -> Option<Self::Item> {
         let (index, match_id) = self.match_ids_iter.next()?;
-        let node_ids = node_names_from_match(&match_id);
-        Some(
-            self.corpus_ref
-                .storage
-                .subgraph(
-                    self.corpus_ref.name,
-                    node_ids,
-                    self.query_config.left_context,
-                    self.query_config.right_context,
-                    None,
-                )
-                .map(|graph| Match::new(self.offset + index, graph)),
-        )
+        let context = get_context(
+            self.corpus_ref,
+            match_id,
+            self.query_config.left_context,
+            self.query_config.right_context,
+        );
+        Some(context.map(|context| Match {
+            index: self.offset + index,
+            context,
+        }))
     }
 }
 
+#[derive(Debug)]
 pub(crate) struct Match {
-    index: usize,
-    graph: AnnotationGraph,
+    pub(crate) index: usize,
+    pub(crate) context: Vec<ContextToken>,
 }
 
-impl Match {
-    fn new(index: usize, graph: AnnotationGraph) -> Self {
-        Self { index, graph }
+#[derive(Debug)]
+pub(crate) enum ContextToken {
+    Match(String),
+    Context(String),
+    Gap,
+}
+
+fn get_context(
+    corpus_ref: CorpusRef<'_>,
+    match_id: String,
+    left_context: usize,
+    right_context: usize,
+) -> Result<Vec<ContextToken>, GraphAnnisError> {
+    let match_node_names = node_names_from_match(&match_id);
+
+    let subgraph = corpus_ref.storage.subgraph(
+        corpus_ref.name,
+        match_node_names.clone(),
+        left_context,
+        right_context,
+        None,
+    )?;
+
+    // TODO make configurable?
+    let component = Component::new(
+        AnnotationComponentType::Ordering,
+        "default_ns".into(),
+        "tok_anno".into(),
+    );
+
+    dbg!(subgraph.get_all_components(None, None));
+
+    let graphstorage =
+        subgraph
+            .get_graphstorage_as_ref(&component)
+            .ok_or(GraphAnnisError::Core(
+                GraphAnnisCoreError::MissingComponent(component.to_string()).into(),
+            ))?;
+
+    let mut seen_node_ids: HashSet<u64> = HashSet::new();
+    let mut context_tokens = Vec::new();
+
+    let match_node_ids: Vec<_> = {
+        let node_annos = subgraph.get_node_annos();
+        match_node_names
+            .into_iter()
+            .map(|node_name| {
+                node_annos
+                    .get_node_id_from_name(&node_name)
+                    .map_err(GraphAnnisError::from)
+                    .and_then(|node_id| node_id.ok_or(GraphAnnisError::NoSuchNodeID(node_name)))
+            })
+            .collect::<Result<_, _>>()
+    }?;
+
+    for match_node_id in match_node_ids.iter().copied() {
+        if seen_node_ids.contains(&match_node_id) {
+            continue;
+        }
+
+        if !context_tokens.is_empty() {
+            context_tokens.push(ContextToken::Gap);
+        }
+
+        let left_context_tokens = graphstorage
+            .find_connected_inverse(match_node_id, 1, Bound::Unbounded)
+            .collect::<Vec<_>>()
+            .into_iter()
+            .rev();
+
+        let right_context_tokens = graphstorage.find_connected(match_node_id, 1, Bound::Unbounded);
+
+        dbg!(graphstorage
+            .as_edgecontainer()
+            .get_outgoing_edges(match_node_id)
+            .collect::<Vec<_>>());
+
+        for node_id in left_context_tokens
+            .chain(Some(Ok(match_node_id)))
+            .chain(right_context_tokens)
+        {
+            let node_id = node_id?;
+            seen_node_ids.insert(node_id);
+
+            let token = subgraph
+                .get_node_annos()
+                .get_value_for_item(
+                    &node_id,
+                    // TODO: Make configurable?
+                    &AnnoKey {
+                        name: "tok_anno".into(),
+                        ns: "default_ns".into(),
+                    },
+                )?
+                .unwrap() // TODO handle error
+                .to_string();
+
+            context_tokens.push(if match_node_ids.contains(&node_id) {
+                ContextToken::Match(token)
+            } else {
+                ContextToken::Context(token)
+            });
+        }
     }
 
-    pub(crate) fn index(&self) -> usize {
-        self.index
-    }
+    Ok(context_tokens)
 }
