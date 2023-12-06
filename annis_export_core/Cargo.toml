@@ -4,6 +4,10 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+csv = "1"
 graphannis = "3"
 graphannis-core = "3"
 thiserror = "1"
+
+[dev-dependencies]
+indoc = "2"

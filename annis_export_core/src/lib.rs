@@ -38,7 +38,7 @@ impl CorpusStorage {
         aql_query: &str,
         query_config: QueryConfig,
         format: ExportFormat,
-        out: W,
+        mut out: W,
         mut on_status: F,
     ) -> Result<(), AnnisExportError>
     where
@@ -59,7 +59,8 @@ impl CorpusStorage {
             fetched_count: 0,
         };
 
-        export(exportable_matches, out, format)?;
+        export(exportable_matches, &mut out, format)?;
+        out.flush()?;
 
         Ok(())
     }

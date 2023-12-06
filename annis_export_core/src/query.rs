@@ -8,7 +8,7 @@ use graphannis::{
 use graphannis_core::{errors::GraphAnnisCoreError, types::AnnoKey};
 use std::{
     collections::HashSet,
-    iter::{Enumerate, StepBy},
+    iter::StepBy,
     ops::{Bound, RangeFrom},
     slice, vec,
 };
@@ -91,7 +91,6 @@ impl<'a> Iterator for MatchesPaginated<'a> {
             Ok(match_ids) => Some(Ok(MatchesPage::new(
                 self.corpus_ref,
                 self.query.config,
-                offset,
                 match_ids,
             ))),
             Err(err) => Some(Err(err)),
@@ -102,24 +101,17 @@ impl<'a> Iterator for MatchesPaginated<'a> {
 pub(crate) struct MatchesPage<'a> {
     corpus_ref: CorpusRef<'a>,
     query_config: QueryConfig,
-    offset: usize,
     len: usize,
-    match_ids_iter: Enumerate<vec::IntoIter<String>>,
+    match_ids_iter: vec::IntoIter<String>,
 }
 
 impl<'a> MatchesPage<'a> {
-    fn new(
-        corpus_ref: CorpusRef<'a>,
-        query_config: QueryConfig,
-        offset: usize,
-        match_ids: Vec<String>,
-    ) -> Self {
+    fn new(corpus_ref: CorpusRef<'a>, query_config: QueryConfig, match_ids: Vec<String>) -> Self {
         Self {
             corpus_ref,
             query_config,
-            offset,
             len: match_ids.len(),
-            match_ids_iter: match_ids.into_iter().enumerate(),
+            match_ids_iter: match_ids.into_iter(),
         }
     }
 
@@ -132,39 +124,54 @@ impl Iterator for MatchesPage<'_> {
     type Item = Result<Match, GraphAnnisError>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        let (index, match_id) = self.match_ids_iter.next()?;
-        let context = get_context(
+        let match_id = self.match_ids_iter.next()?;
+        let parts = get_parts(
             self.corpus_ref,
             match_id,
             self.query_config.left_context,
             self.query_config.right_context,
         );
-        Some(context.map(|context| Match {
-            index: self.offset + index,
-            context,
-        }))
+        Some(parts.map(Match::from_parts))
     }
 }
 
 #[derive(Debug)]
 pub(crate) struct Match {
-    pub(crate) index: usize,
-    pub(crate) context: Vec<ContextToken>,
+    pub(crate) parts: Vec<MatchPart>,
+}
+
+impl Match {
+    pub(crate) fn from_parts(parts: Vec<MatchPart>) -> Self {
+        Self { parts }
+    }
+
+    pub(crate) fn match_token_count(&self) -> usize {
+        self.parts
+            .iter()
+            .filter(|part| part.is_match_token())
+            .count()
+    }
 }
 
 #[derive(Debug)]
-pub(crate) enum ContextToken {
-    Match(String),
-    Context(String),
+pub(crate) enum MatchPart {
+    MatchToken(String),
+    ContextToken(String),
     Gap,
 }
 
-fn get_context(
+impl MatchPart {
+    fn is_match_token(&self) -> bool {
+        matches!(self, MatchPart::MatchToken(..))
+    }
+}
+
+fn get_parts(
     corpus_ref: CorpusRef<'_>,
     match_id: String,
     left_context: usize,
     right_context: usize,
-) -> Result<Vec<ContextToken>, GraphAnnisError> {
+) -> Result<Vec<MatchPart>, GraphAnnisError> {
     let match_node_names = node_names_from_match(&match_id);
 
     let subgraph = corpus_ref.storage.subgraph(
@@ -190,7 +197,7 @@ fn get_context(
             ))?;
 
     let mut seen_node_ids: HashSet<u64> = HashSet::new();
-    let mut context_tokens = Vec::new();
+    let mut parts = Vec::new();
 
     let match_node_ids: Vec<_> = {
         let node_annos = subgraph.get_node_annos();
@@ -210,8 +217,8 @@ fn get_context(
             continue;
         }
 
-        if !context_tokens.is_empty() {
-            context_tokens.push(ContextToken::Gap);
+        if !parts.is_empty() {
+            parts.push(MatchPart::Gap);
         }
 
         let left_context_tokens = graphstorage
@@ -242,13 +249,13 @@ fn get_context(
                 .unwrap() // TODO handle error
                 .to_string();
 
-            context_tokens.push(if match_node_ids.contains(&node_id) {
-                ContextToken::Match(token)
+            parts.push(if match_node_ids.contains(&node_id) {
+                MatchPart::MatchToken(token)
             } else {
-                ContextToken::Context(token)
+                MatchPart::ContextToken(token)
             });
         }
     }
 
-    Ok(context_tokens)
+    Ok(parts)
 }

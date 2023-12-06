@@ -52,8 +52,10 @@ dependencies = [
 name = "annis_export_core"
 version = "0.1.0"
 dependencies = [
+ "csv",
  "graphannis",
  "graphannis-core",
+ "indoc",
  "thiserror",
 ]
 
@@ -682,6 +684,12 @@ dependencies = [
  "equivalent",
  "hashbrown 0.14.3",
 ]
+
+[[package]]
+name = "indoc"
+version = "2.0.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1e186cfbae8084e513daff4240b4797e342f988cecda4fb6c939150f96315fd8"
 
 [[package]]
 name = "inout"
