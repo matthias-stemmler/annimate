@@ -125,25 +125,31 @@ impl Iterator for MatchesPage<'_> {
 
     fn next(&mut self) -> Option<Self::Item> {
         let match_id = self.match_ids_iter.next()?;
-        let parts = get_parts(
-            self.corpus_ref,
-            match_id,
-            self.query_config.left_context,
-            self.query_config.right_context,
-        );
-        Some(parts.map(Match::from_parts))
+        Some(self.match_id_to_match(match_id))
+    }
+}
+
+impl MatchesPage<'_> {
+    fn match_id_to_match(&self, match_id: String) -> Result<Match, GraphAnnisError> {
+        let match_node_names = node_names_from_match(&match_id);
+
+        Ok(Match {
+            doc_name: get_doc_name(&match_node_names[0]).into(),
+            parts: get_parts(
+                self.corpus_ref,
+                match_node_names,
+                self.query_config.left_context,
+                self.query_config.right_context,
+            )?,
+        })
     }
 }
 
 #[derive(Debug)]
 pub(crate) struct Match {
+    // TODO add metadata, also take doc_name from metadata
+    pub(crate) doc_name: String,
     pub(crate) parts: Vec<MatchPart>,
-}
-
-impl Match {
-    pub(crate) fn from_parts(parts: Vec<MatchPart>) -> Self {
-        Self { parts }
-    }
 }
 
 #[derive(Debug)]
@@ -153,14 +159,19 @@ pub(crate) enum MatchPart {
     Gap,
 }
 
+fn get_doc_name(node_name: &str) -> &str {
+    match node_name.rsplit_once('#') {
+        Some((doc_name, _)) => doc_name,
+        None => node_name,
+    }
+}
+
 fn get_parts(
     corpus_ref: CorpusRef<'_>,
-    match_id: String,
+    match_node_names: Vec<String>,
     left_context: usize,
     right_context: usize,
 ) -> Result<Vec<MatchPart>, GraphAnnisError> {
-    let match_node_names = node_names_from_match(&match_id);
-
     let subgraph = corpus_ref.storage.subgraph(
         corpus_ref.name,
         match_node_names.clone(),
