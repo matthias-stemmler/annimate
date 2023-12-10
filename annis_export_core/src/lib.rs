@@ -1,7 +1,7 @@
 use error::AnnisExportError;
 use format::export;
 use graphannis::{
-    corpusstorage::{CacheStrategy, CorpusInfo},
+    corpusstorage::{CacheStrategy, CorpusInfo, QueryLanguage},
     errors::GraphAnnisError,
 };
 use query::{CorpusRef, Match, MatchesPage, MatchesPaginated, Query};
@@ -45,6 +45,8 @@ impl CorpusStorage {
         F: FnMut(StatusEvent),
         W: Write,
     {
+        let node_descriptions = self.0.node_descriptions(aql_query, QueryLanguage::AQL)?;
+
         let corpus_ref = CorpusRef::new(&self.0, corpus_name);
         let matches_paginated =
             MatchesPaginated::new(corpus_ref, Query::new(aql_query, query_config));
@@ -59,7 +61,7 @@ impl CorpusStorage {
             fetched_count: 0,
         };
 
-        export(exportable_matches, &mut out, format)?;
+        export(exportable_matches, node_descriptions, &mut out, format)?;
         out.flush()?;
 
         Ok(())

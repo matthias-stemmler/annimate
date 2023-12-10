@@ -144,13 +144,6 @@ impl Match {
     pub(crate) fn from_parts(parts: Vec<MatchPart>) -> Self {
         Self { parts }
     }
-
-    pub(crate) fn match_token_count(&self) -> usize {
-        self.parts
-            .iter()
-            .filter(|part| part.is_match_token())
-            .count()
-    }
 }
 
 #[derive(Debug)]
@@ -158,12 +151,6 @@ pub(crate) enum MatchPart {
     MatchToken(String),
     ContextToken(String),
     Gap,
-}
-
-impl MatchPart {
-    fn is_match_token(&self) -> bool {
-        matches!(self, MatchPart::MatchToken(..))
-    }
 }
 
 fn get_parts(
