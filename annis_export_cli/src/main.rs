@@ -63,8 +63,7 @@ fn main() -> anyhow::Result<()> {
             let out = File::create(&output_file)
                 .with_context(|| format!("Failed to open output file {}", output_file.display()))?;
 
-            //let mut out = BufWriter::new(out);
-            let mut out = out;
+            let mut out = BufWriter::new(out);
 
             corpus_storage
                 .export_matches(

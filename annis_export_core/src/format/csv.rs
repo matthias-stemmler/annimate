@@ -3,7 +3,7 @@ use crate::{
     error::AnnisExportError,
     query::{Match, MatchPart},
 };
-use graphannis::{corpusstorage::QueryAttributeDescription, errors::GraphAnnisError};
+use graphannis::corpusstorage::QueryAttributeDescription;
 use std::{io::Write, vec};
 
 #[derive(Debug)]
@@ -16,7 +16,7 @@ impl Exporter for CsvExporter {
         out: W,
     ) -> Result<(), AnnisExportError>
     where
-        I: IntoIterator<Item = Result<Match, GraphAnnisError>>,
+        I: IntoIterator<Item = Result<Match, AnnisExportError>>,
         W: Write,
     {
         let mut csv_writer = csv::Writer::from_writer(out);

@@ -45,7 +45,13 @@ impl CorpusStorage {
         F: FnMut(StatusEvent),
         W: Write,
     {
-        let node_descriptions = self.0.node_descriptions(aql_query, QueryLanguage::AQL)?;
+        // TEMP
+        let node_descriptions = self
+            .0
+            .node_descriptions(aql_query, QueryLanguage::AQLQuirksV3)?
+            .into_iter()
+            .take(2)
+            .collect();
 
         let corpus_ref = CorpusRef::new(&self.0, corpus_name);
         let matches_paginated =
@@ -90,7 +96,7 @@ impl<'a, F> Iterator for ExportableMatches<'a, F>
 where
     F: FnMut(StatusEvent),
 {
-    type Item = Result<Match, GraphAnnisError>;
+    type Item = Result<Match, AnnisExportError>;
 
     fn next(&mut self) -> Option<Self::Item> {
         loop {
@@ -106,7 +112,7 @@ where
 
                         Some(page)
                     }
-                    Err(err) => return Some(Err(err)),
+                    Err(err) => return Some(Err(err.into())),
                 };
             }
 
