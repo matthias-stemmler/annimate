@@ -42,7 +42,7 @@ impl Exporter for CsvExporter {
             csv_writer.write_record(
                 [(i + 1).to_string(), doc_name]
                     .into_iter()
-                    .chain(TokenColumns::new(parts)),
+                    .chain(TextColumns::new(parts)),
             )?;
         }
 
@@ -51,12 +51,12 @@ impl Exporter for CsvExporter {
 }
 
 #[derive(Debug)]
-struct TokenColumns {
+struct TextColumns {
     parts: vec::IntoIter<MatchPart>,
     pending_column: Option<Option<String>>,
 }
 
-impl TokenColumns {
+impl TextColumns {
     fn new(parts: Vec<MatchPart>) -> Self {
         Self {
             parts: parts.into_iter(),
@@ -65,7 +65,7 @@ impl TokenColumns {
     }
 }
 
-impl Iterator for TokenColumns {
+impl Iterator for TextColumns {
     type Item = String;
 
     fn next(&mut self) -> Option<String> {
@@ -112,8 +112,8 @@ impl SerializedPart {
 impl From<MatchPart> for SerializedPart {
     fn from(part: MatchPart) -> Self {
         match part {
-            MatchPart::MatchToken(token) => SerializedPart::Match(token),
-            MatchPart::ContextToken(token) => SerializedPart::Context(token),
+            MatchPart::Match(fragments) => SerializedPart::Match(fragments.join(" ")),
+            MatchPart::Context(fragments) => SerializedPart::Context(fragments.join(" ")),
             MatchPart::Gap => SerializedPart::Context("...".into()),
         }
     }
@@ -131,7 +131,7 @@ mod tests {
 
     macro_rules! csv_exporter_test {
         ($(
-            $name:ident: match_token_count = $match_token_count:expr, matches = [
+            $name:ident: match_node_count = $match_node_count:expr, matches = [
                 $({doc_name = $doc_name:expr, parts = [$($part:tt)*]})*
             ] => $expected:expr
         )*) => { $(
@@ -146,7 +146,7 @@ mod tests {
                             parts: [ $(csv_exporter_test!(@expand_part $part)),* ].into_iter().collect(),
                         })),*
                     ],
-                    (0..$match_token_count).map(|_| QueryAttributeDescription {
+                    (0..$match_node_count).map(|_| QueryAttributeDescription {
                         alternative: 0,
                         query_fragment: "".into(),
                         variable: "".into(),
@@ -163,73 +163,80 @@ mod tests {
             }
         )* };
 
-        (@expand_part (C $t:expr)) => { MatchPart::ContextToken($t.into()) };
-        (@expand_part (M $t:expr)) => { MatchPart::MatchToken($t.into()) };
+        (@expand_part (C $($t:expr)*)) => { MatchPart::Context(vec![$($t.into()),*]) };
+        (@expand_part (M $($t:expr)*)) => { MatchPart::Match(vec![$($t.into()),*]) };
         (@expand_part (G)) => { MatchPart::Gap };
     }
 
     csv_exporter_test! {
-        no_match: match_token_count = 1, matches = [] => "
+        no_match: match_node_count = 1, matches = [] => "
             Number,Document,Left context,Match,Right context
         "
 
-        no_match_token_without_context: match_token_count = 0, matches = [
+        no_match_node_without_context: match_node_count = 0, matches = [
             {doc_name = "doc1", parts = []}
         ] => "
             Number,Document,Context
             1,doc1,
         "
 
-        no_match_token_with_context: match_token_count = 0, matches = [
+        no_match_node_with_context: match_node_count = 0, matches = [
             {doc_name = "doc1", parts = [(C "111") (G) (C "222")]}
         ] => "
             Number,Document,Context
             1,doc1,111 ... 222
         "
 
-        one_match_token_without_context: match_token_count = 1, matches = [
+        one_match_node_without_context: match_node_count = 1, matches = [
             {doc_name = "doc1", parts = [(M "abc")]}
         ] => "
             Number,Document,Left context,Match,Right context
             1,doc1,,abc,
         "
 
-        one_match_token_with_context: match_token_count = 1, matches = [
+        one_match_node_with_context: match_node_count = 1, matches = [
             {doc_name = "doc1", parts = [(C "111") (G) (C "222") (M "abc") (C "333") (G) (C "444")]}
         ] => "
             Number,Document,Left context,Match,Right context
             1,doc1,111 ... 222,abc,333 ... 444
         "
 
-        two_match_tokens_without_context: match_token_count = 2, matches = [
+        one_match_node_with_context_and_multiple_fragments: match_node_count = 1, matches = [
+            {doc_name = "doc1", parts = [(C "111" "222") (G) (C "333" "444") (M "abc" "def") (C "555" "666") (G) (C "777" "888")]}
+        ] => "
+            Number,Document,Left context,Match,Right context
+            1,doc1,111 222 ... 333 444,abc def,555 666 ... 777 888
+        "
+
+        two_match_nodes_without_context: match_node_count = 2, matches = [
             {doc_name = "doc1", parts = [(M "abc") (M "def")]}
         ] => "
             Number,Document,Left context,Match 1,Middle context,Match 2,Right context
             1,doc1,,abc,,def,
         "
 
-        two_match_tokens_with_context: match_token_count = 2, matches = [
+        two_match_nodes_with_context: match_node_count = 2, matches = [
             {doc_name = "doc1", parts = [(C "111") (G) (C "222") (M "abc") (C "333") (G) (C "444") (M "def") (C "555") (G) (C "666")]}
         ] => "
             Number,Document,Left context,Match 1,Middle context,Match 2,Right context
             1,doc1,111 ... 222,abc,333 ... 444,def,555 ... 666
         "
 
-        many_match_tokens_without_context: match_token_count = 3, matches = [
+        many_match_nodes_without_context: match_node_count = 3, matches = [
             {doc_name = "doc1", parts = [(M "abc") (M "def") (M "ghi")]}
         ] => "
             Number,Document,Context 1,Match 1,Context 2,Match 2,Context 3,Match 3,Context 4
             1,doc1,,abc,,def,,ghi,
         "
 
-        many_match_tokens_with_context: match_token_count = 3, matches = [
+        many_match_nodes_with_context: match_node_count = 3, matches = [
             {doc_name = "doc1", parts = [(C "111") (G) (C "222") (M "abc") (C "333") (G) (C "444") (M "def") (C "555") (G) (C "666") (M "ghi") (C "777") (G) (C "888")]}
         ] => "
             Number,Document,Context 1,Match 1,Context 2,Match 2,Context 3,Match 3,Context 4
             1,doc1,111 ... 222,abc,333 ... 444,def,555 ... 666,ghi,777 ... 888
         "
 
-        multiple_matches: match_token_count = 1, matches = [
+        multiple_matches: match_node_count = 1, matches = [
             {doc_name = "doc1", parts = [(M "abc")]}
             {doc_name = "doc1", parts = [(C "111") (G) (C "222") (M "def")]}
             {doc_name = "doc2", parts = [(M "ghi") (C "333") (G) (C "444")]}

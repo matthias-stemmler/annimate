@@ -163,8 +163,8 @@ pub(crate) struct Match {
 
 #[derive(Debug)]
 pub(crate) enum MatchPart {
-    MatchToken(String),
-    ContextToken(String),
+    Match(Vec<String>),
+    Context(Vec<String>),
     Gap,
 }
 
@@ -324,9 +324,9 @@ fn get_parts(
                 .to_string();
 
             parts.push(if match_node_ids.contains(&node_id) {
-                MatchPart::MatchToken(token)
+                MatchPart::Match(vec![token])
             } else {
-                MatchPart::ContextToken(token)
+                MatchPart::Context(vec![token])
             });
         }
     }
