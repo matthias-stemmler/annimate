@@ -188,7 +188,7 @@ fn get_parts(
     }
 
     // TODO make configurable
-    let segmentation = String::from("tok_dipl");
+    let segmentation = String::from("tok_anno");
     let anno_key = AnnoKey {
         ns: DEFAULT_NS.into(),
         name: "tok_anno".into(),
@@ -385,14 +385,6 @@ impl<'a> GraphHelper<'a> {
         for storage in &self.coverage_component_storages {
             for covered_node_id in storage.get_outgoing_edges(node_id) {
                 let covered_node_id = covered_node_id?;
-
-                for s in &self.coverage_component_storages {
-                    dbg!((
-                        node_id,
-                        covered_node_id,
-                        s.get_ingoing_edges(covered_node_id).collect::<Vec<_>>()
-                    ));
-                }
 
                 if self.is_token(covered_node_id)? {
                     return Ok(Some(

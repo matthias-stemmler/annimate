@@ -28,9 +28,6 @@ impl Exporter for CsvExporter {
                 (1, 0, 0) => "Left context".into(),
                 (1, 0, 1) => "Right context".into(),
                 (1, 1, 0) => "Match".into(),
-                (2, 0, 0) => "Left context".into(),
-                (2, 0, 1) => "Middle context".into(),
-                (2, 0, 2) => "Right context".into(),
                 (_, 0, i) => format!("Context {}", i + 1),
                 (_, _, i) => format!("Match {}", i + 1),
             })
@@ -211,14 +208,14 @@ mod tests {
         two_match_nodes_without_context: match_node_count = 2, matches = [
             {doc_name = "doc1", parts = [(M "abc") (M "def")]}
         ] => "
-            Number,Document,Left context,Match 1,Middle context,Match 2,Right context
+            Number,Document,Context 1,Match 1,Context 2,Match 2,Context 3
             1,doc1,,abc,,def,
         "
 
         two_match_nodes_with_context: match_node_count = 2, matches = [
             {doc_name = "doc1", parts = [(C "111") (G) (C "222") (M "abc") (C "333") (G) (C "444") (M "def") (C "555") (G) (C "666")]}
         ] => "
-            Number,Document,Left context,Match 1,Middle context,Match 2,Right context
+            Number,Document,Context 1,Match 1,Context 2,Match 2,Context 3
             1,doc1,111 ... 222,abc,333 ... 444,def,555 ... 666
         "
 
