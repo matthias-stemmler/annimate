@@ -13,7 +13,7 @@ use graphannis_core::{
 };
 use std::{
     collections::{HashMap, HashSet},
-    iter::{successors, StepBy},
+    iter::{self, successors, StepBy},
     ops::{Bound, RangeFrom},
     slice,
     sync::OnceLock,
@@ -163,8 +163,13 @@ pub(crate) struct Match {
 
 #[derive(Debug)]
 pub(crate) enum MatchPart {
-    Match(Vec<String>),
-    Context(Vec<String>),
+    Match {
+        index: usize,
+        fragments: Vec<String>,
+    },
+    Context {
+        fragments: Vec<String>,
+    },
     Gap,
 }
 
@@ -183,15 +188,15 @@ fn get_parts(
 ) -> Result<Vec<MatchPart>, AnnisExportError> {
     #[derive(Debug)]
     struct Chain {
-        node_ids: Vec<NodeID>,
+        token_ids: Vec<NodeID>,
         next_chain_id: Option<NodeID>,
     }
 
-    // TODO make configurable
-    let segmentation = String::from("tok_anno");
+    // TODO make both configurable
+    let segmentation = Some(String::from("tok_anno"));
     let anno_key = AnnoKey {
         ns: DEFAULT_NS.into(),
-        name: "tok_anno".into(),
+        name: "tok_dipl".into(),
     };
 
     let subgraph = corpus_ref.storage.subgraph(
@@ -199,7 +204,7 @@ fn get_parts(
         match_node_names.clone(),
         left_context,
         right_context,
-        Some(segmentation.clone()),
+        segmentation.clone(),
     )?;
 
     let graph_helper = GraphHelper::new(&subgraph)?;
@@ -207,8 +212,8 @@ fn get_parts(
     let order_storage = {
         let component = Component::new(
             AnnotationComponentType::Ordering,
-            DEFAULT_NS.into(),
-            segmentation.into(),
+            ANNIS_NS.into(),
+            "".into(),
         );
 
         subgraph
@@ -240,44 +245,40 @@ fn get_parts(
             .collect::<Result<_, _>>()
     }?;
 
-    let mut seen_node_ids = HashSet::<NodeID>::new();
+    let mut seen_token_ids = HashSet::<NodeID>::new();
     let mut chains = HashMap::new();
     let mut chain_ids_with_predecessor = HashSet::new();
 
     for &match_node_id in match_node_ids.iter() {
-        if seen_node_ids.contains(&match_node_id) {
+        let Some(covered_token_id) = graph_helper.get_covered_token_id(match_node_id)? else {
+            continue;
+        };
+
+        if seen_token_ids.contains(&covered_token_id) {
             continue;
         }
 
-        let left_context_tokens = order_storage
-            .find_connected_inverse(match_node_id, 1, Bound::Unbounded)
+        let left_context_token_ids = order_storage
+            .find_connected_inverse(covered_token_id, 1, Bound::Unbounded)
             .collect::<Vec<_>>()
             .into_iter()
             .rev();
 
-        let right_context_tokens = order_storage.find_connected(match_node_id, 1, Bound::Unbounded);
+        let right_context_token_ids =
+            order_storage.find_connected(covered_token_id, 1, Bound::Unbounded);
 
-        let node_ids: Vec<_> = left_context_tokens
-            .chain(Some(Ok(match_node_id)))
-            .chain(right_context_tokens)
+        let token_ids: Vec<_> = left_context_token_ids
+            .chain(Some(Ok(covered_token_id)))
+            .chain(right_context_token_ids)
             .collect::<Result<_, _>>()?;
 
-        seen_node_ids.extend(&node_ids);
+        seen_token_ids.extend(&token_ids);
 
-        let first_node_id = node_ids.first().unwrap();
-        let last_node_id = node_ids.last().unwrap();
-
-        let chain_id = graph_helper
-            .get_first_covered_token_id(*first_node_id)?
-            .ok_or_else(|| AnnisExportError::CoveredNodeNotFound(*first_node_id))?;
+        let chain_id = *token_ids.first().unwrap();
 
         let next_chain_id = if let Some(gap_storage) = gap_storage {
             gap_storage
-                .get_outgoing_edges(
-                    graph_helper
-                        .get_last_covered_token_id(*last_node_id)?
-                        .ok_or_else(|| AnnisExportError::CoveredNodeNotFound(*last_node_id))?,
-                )
+                .get_outgoing_edges(*token_ids.last().unwrap())
                 .next()
                 .transpose()?
         } else {
@@ -287,7 +288,7 @@ fn get_parts(
         chains.insert(
             chain_id,
             Chain {
-                node_ids,
+                token_ids,
                 next_chain_id,
             },
         );
@@ -311,23 +312,107 @@ fn get_parts(
     });
 
     let mut parts = Vec::new();
+    let mut current_part = None;
+    let mut seen_fragment_node_ids = HashSet::new();
 
     for chain in chains_in_order {
         if !parts.is_empty() {
             parts.push(MatchPart::Gap);
         }
 
-        for node_id in chain.node_ids {
-            let token = node_annos
-                .get_value_for_item(&node_id, &anno_key)?
-                .unwrap() // TODO handle error
+        for token_id in chain.token_ids {
+            let Some(fragment_node_id) = graph_helper
+                .get_covering_node_ids(token_id)
+                .find_map(|node_id| {
+                    node_id
+                        .and_then(|node_id| {
+                            Ok(node_annos
+                                .has_value_for_item(&node_id, &anno_key)?
+                                .then_some(node_id))
+                        })
+                        .transpose()
+                })
+                .transpose()?
+            else {
+                continue;
+            };
+
+            // TODO group by fragment first, then treat fragment as match if at least one token in the fragment is covered by a match node
+            // Example: lemma="haben" & pos="VVPP" & #2 ^* #1
+            if !seen_fragment_node_ids.insert(fragment_node_id) {
+                continue;
+            }
+
+            let fragment = node_annos
+                .get_value_for_item(&fragment_node_id, &anno_key)?
+                .unwrap()
                 .to_string();
 
-            parts.push(if match_node_ids.contains(&node_id) {
-                MatchPart::Match(vec![token])
-            } else {
-                MatchPart::Context(vec![token])
+            let match_node_index = graph_helper
+                .get_covering_node_ids(token_id)
+                .find_map(|node_id| {
+                    node_id
+                        .map(|node_id| {
+                            match_node_ids
+                                .iter()
+                                .position(|&match_node_id| match_node_id == node_id)
+                        })
+                        .transpose()
+                })
+                .transpose()?;
+
+            current_part = Some(match (current_part.take(), match_node_index) {
+                (
+                    Some(MatchPart::Match {
+                        index,
+                        mut fragments,
+                    }),
+                    Some(match_node_index),
+                ) if index == match_node_index => MatchPart::Match {
+                    index,
+                    fragments: {
+                        fragments.push(fragment);
+                        fragments
+                    },
+                },
+                (Some(MatchPart::Match { index, fragments }), Some(match_node_index)) => {
+                    parts.push(MatchPart::Match { index, fragments });
+                    MatchPart::Match {
+                        index: match_node_index,
+                        fragments: vec![fragment],
+                    }
+                }
+                (Some(MatchPart::Match { index, fragments }), None) => {
+                    parts.push(MatchPart::Match { index, fragments });
+                    MatchPart::Context {
+                        fragments: vec![fragment],
+                    }
+                }
+                (Some(MatchPart::Context { fragments }), Some(match_node_index)) => {
+                    parts.push(MatchPart::Context { fragments });
+                    MatchPart::Match {
+                        index: match_node_index,
+                        fragments: vec![fragment],
+                    }
+                }
+                (Some(MatchPart::Context { mut fragments }), None) => MatchPart::Context {
+                    fragments: {
+                        fragments.push(fragment);
+                        fragments
+                    },
+                },
+                (_, Some(index)) => MatchPart::Match {
+                    index,
+                    fragments: vec![fragment],
+                },
+                (_, None) => MatchPart::Context {
+                    fragments: vec![fragment],
+                },
             });
+        }
+
+        if let Some(part) = current_part.take() {
+            parts.push(part);
         }
     }
 
@@ -337,7 +422,6 @@ fn get_parts(
 struct GraphHelper<'a> {
     graph: &'a Graph<AnnotationComponentType>,
     coverage_component_storages: Vec<&'a dyn GraphStorage>,
-    ordering_component_storage: &'a dyn GraphStorage,
 }
 
 impl<'a> GraphHelper<'a> {
@@ -355,29 +439,13 @@ impl<'a> GraphHelper<'a> {
             })
             .collect();
 
-        let ordering_component_storage = {
-            let component = Component::new(
-                AnnotationComponentType::Ordering,
-                ANNIS_NS.into(),
-                "".into(),
-            );
-
-            graph
-                .get_graphstorage_as_ref(&component)
-                .ok_or_else(|| GraphAnnisCoreError::MissingComponent(component.to_string()))?
-        };
-
         Ok(Self {
             graph,
             coverage_component_storages,
-            ordering_component_storage,
         })
     }
 
-    fn get_first_covered_token_id(
-        &self,
-        node_id: NodeID,
-    ) -> Result<Option<NodeID>, GraphAnnisError> {
+    fn get_covered_token_id(&self, node_id: NodeID) -> Result<Option<NodeID>, GraphAnnisError> {
         if self.is_token(node_id)? {
             return Ok(Some(node_id));
         }
@@ -387,12 +455,7 @@ impl<'a> GraphHelper<'a> {
                 let covered_node_id = covered_node_id?;
 
                 if self.is_token(covered_node_id)? {
-                    return Ok(Some(
-                        self.ordering_component_storage
-                            .find_connected_inverse(covered_node_id, 0, Bound::Unbounded)
-                            .last()
-                            .unwrap()?,
-                    ));
+                    return Ok(Some(covered_node_id));
                 }
             }
         }
@@ -400,30 +463,15 @@ impl<'a> GraphHelper<'a> {
         Ok(None)
     }
 
-    fn get_last_covered_token_id(
+    fn get_covering_node_ids(
         &self,
         node_id: NodeID,
-    ) -> Result<Option<NodeID>, GraphAnnisError> {
-        if self.is_token(node_id)? {
-            return Ok(Some(node_id));
-        }
-
-        for storage in &self.coverage_component_storages {
-            for covered_node_id in storage.get_outgoing_edges(node_id) {
-                let covered_node_id = covered_node_id?;
-
-                if self.is_token(covered_node_id)? {
-                    return Ok(Some(
-                        self.ordering_component_storage
-                            .find_connected(covered_node_id, 0, Bound::Unbounded)
-                            .last()
-                            .unwrap()?,
-                    ));
-                }
-            }
-        }
-
-        Ok(None)
+    ) -> impl Iterator<Item = Result<NodeID, GraphAnnisCoreError>> + '_ {
+        iter::once(Ok(node_id)).chain(
+            self.coverage_component_storages
+                .iter()
+                .flat_map(move |&gs| gs.get_ingoing_edges(node_id)),
+        )
     }
 
     fn is_token(&self, node_id: NodeID) -> Result<bool, GraphAnnisError> {

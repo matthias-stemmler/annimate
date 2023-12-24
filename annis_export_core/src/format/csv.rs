@@ -109,8 +109,8 @@ impl SerializedPart {
 impl From<MatchPart> for SerializedPart {
     fn from(part: MatchPart) -> Self {
         match part {
-            MatchPart::Match(fragments) => SerializedPart::Match(fragments.join(" ")),
-            MatchPart::Context(fragments) => SerializedPart::Context(fragments.join(" ")),
+            MatchPart::Match { fragments, .. } => SerializedPart::Match(fragments.join(" ")),
+            MatchPart::Context { fragments, .. } => SerializedPart::Context(fragments.join(" ")),
             MatchPart::Gap => SerializedPart::Context("...".into()),
         }
     }
@@ -160,8 +160,8 @@ mod tests {
             }
         )* };
 
-        (@expand_part (C $($t:expr)*)) => { MatchPart::Context(vec![$($t.into()),*]) };
-        (@expand_part (M $($t:expr)*)) => { MatchPart::Match(vec![$($t.into()),*]) };
+        (@expand_part (C $($t:expr)*)) => { MatchPart::Context {fragments: vec![$($t.into()),*] } };
+        (@expand_part (M $($t:expr)*)) => { MatchPart::Match { index: 0, fragments: vec![$($t.into()),*] } };
         (@expand_part (G)) => { MatchPart::Gap };
     }
 
