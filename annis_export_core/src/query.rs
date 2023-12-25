@@ -1,6 +1,6 @@
 use crate::{error::AnnisExportError, util::group_by};
 use graphannis::{
-    corpusstorage::{QueryLanguage, ResultOrder, SearchQuery},
+    corpusstorage::{ResultOrder, SearchQuery},
     errors::GraphAnnisError,
     graph::{Component, GraphStorage},
     model::AnnotationComponentType,
@@ -20,6 +20,8 @@ use std::{
     sync::OnceLock,
     vec,
 };
+
+pub use graphannis::corpusstorage::QueryLanguage;
 
 const PAGE_SIZE: usize = 10;
 
@@ -51,6 +53,7 @@ impl<'a> Query<'a> {
 pub struct QueryConfig {
     pub left_context: usize,
     pub right_context: usize,
+    pub query_language: QueryLanguage,
 }
 
 pub(crate) struct MatchesPaginated<'a> {
@@ -76,7 +79,7 @@ impl<'a> MatchesPaginated<'a> {
         SearchQuery {
             corpus_names: slice::from_ref(&self.corpus_ref.name),
             query: self.query.aql_query,
-            query_language: QueryLanguage::AQLQuirksV3,
+            query_language: self.query.config.query_language,
             timeout: None,
         }
     }

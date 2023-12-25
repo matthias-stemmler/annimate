@@ -1,7 +1,7 @@
 use error::AnnisExportError;
 use format::export;
 use graphannis::{
-    corpusstorage::{CacheStrategy, CorpusInfo, QueryLanguage},
+    corpusstorage::{CacheStrategy, CorpusInfo},
     errors::GraphAnnisError,
 };
 use query::{CorpusRef, Match, MatchesPage, MatchesPaginated, Query};
@@ -14,6 +14,7 @@ mod util;
 
 pub use format::ExportFormat;
 pub use query::QueryConfig;
+pub use query::QueryLanguage;
 
 pub struct CorpusStorage(graphannis::CorpusStorage);
 
@@ -49,7 +50,7 @@ impl CorpusStorage {
         // TEMP
         let node_descriptions = self
             .0
-            .node_descriptions(aql_query, QueryLanguage::AQLQuirksV3)?
+            .node_descriptions(aql_query, query_config.query_language)?
             .into_iter()
             .take(2)
             .collect();

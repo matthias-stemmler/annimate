@@ -1,38 +1,92 @@
 use annis_export_core::{CorpusStorage, ExportFormat, QueryConfig, StatusEvent};
-use anyhow::Context;
-use clap::{Parser, Subcommand};
+use anyhow::{anyhow, Context};
+use clap::{Parser, Subcommand, ValueEnum};
 use std::{
     env,
     fs::File,
     io::{BufWriter, Write},
     path::PathBuf,
+    str::FromStr,
 };
 
-#[derive(Parser, Debug)]
+#[derive(Parser)]
 struct Cli {
     #[command(subcommand)]
     command: Commands,
 }
 
-#[derive(Debug, Subcommand)]
+#[derive(Subcommand)]
 enum Commands {
     /// List all corpora
     ListCorpora,
 
-    /// Run query and export results
+    /// Run AQL query and export results
     Query {
+        /// Name of the corpus to run AQL query on
         corpus_name: String,
+
+        /// AQL query to run
         query: String,
 
+        /// Path of output file, relative to the current working directory
         #[arg(short, long, default_value = "out.csv")]
         output_file: PathBuf,
 
+        /// Context size, where e.g. "10,5" means 10 nodes to the left and 5 to the right and "10" means 10 tokens in both directions
         #[arg(short, long, default_value = "10")]
-        left_context: usize,
+        context: ContextSize,
 
-        #[arg(short, long, default_value = "10")]
-        right_context: usize,
+        /// Query language to use
+        #[arg(short, long, value_enum, default_value_t = QueryLanguage::AQL)]
+        language: QueryLanguage,
     },
+}
+
+#[derive(Clone, Copy)]
+struct ContextSize {
+    left: usize,
+    right: usize,
+}
+
+impl ContextSize {
+    fn symmetric(size: usize) -> Self {
+        Self::left_right(size, size)
+    }
+
+    fn left_right(left: usize, right: usize) -> Self {
+        Self { left, right }
+    }
+}
+
+impl FromStr for ContextSize {
+    type Err = anyhow::Error;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        if let Ok(size) = s.parse() {
+            Ok(Self::symmetric(size))
+        } else if let Some((Ok(left), Ok(right))) =
+            s.split_once(',').map(|(l, r)| (l.parse(), r.parse()))
+        {
+            Ok(Self::left_right(left, right))
+        } else {
+            Err(anyhow!("Context must be specified either as a single number (e.g. \"10\") or two comma-separated numbers (e.g. \"10,5\")"))
+        }
+    }
+}
+
+#[derive(Clone, Copy, ValueEnum)]
+enum QueryLanguage {
+    AQL,
+    AQLQuirksV3,
+}
+
+impl From<QueryLanguage> for annis_export_core::QueryLanguage {
+    fn from(value: QueryLanguage) -> Self {
+        match value {
+            QueryLanguage::AQL => annis_export_core::QueryLanguage::AQL,
+            QueryLanguage::AQLQuirksV3 => annis_export_core::QueryLanguage::AQLQuirksV3,
+        }
+    }
 }
 
 fn main() -> anyhow::Result<()> {
@@ -57,8 +111,8 @@ fn main() -> anyhow::Result<()> {
             corpus_name,
             query,
             output_file,
-            left_context,
-            right_context,
+            context,
+            language,
         } => {
             let out = File::create(&output_file)
                 .with_context(|| format!("Failed to open output file {}", output_file.display()))?;
@@ -70,8 +124,9 @@ fn main() -> anyhow::Result<()> {
                     &corpus_name,
                     &query,
                     QueryConfig {
-                        left_context,
-                        right_context,
+                        left_context: context.left,
+                        right_context: context.right,
+                        query_language: language.into(),
                     },
                     ExportFormat::Csv,
                     &mut out,
