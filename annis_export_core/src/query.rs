@@ -1,3 +1,4 @@
+use crate::{error::AnnisExportError, util::group_by};
 use graphannis::{
     corpusstorage::{QueryLanguage, ResultOrder, SearchQuery},
     errors::GraphAnnisError,
@@ -19,8 +20,6 @@ use std::{
     sync::OnceLock,
     vec,
 };
-
-use crate::error::AnnisExportError;
 
 const PAGE_SIZE: usize = 10;
 
@@ -308,48 +307,35 @@ fn get_parts(
     };
 
     let chains_in_order = successors(Some(first_chain), |chain| {
-        chain.next_chain_id.map(|id| chains.remove(&id)).flatten()
+        chain.next_chain_id.and_then(|id| chains.remove(&id))
     });
 
     let mut parts = Vec::new();
     let mut current_part = None;
-    let mut seen_fragment_node_ids = HashSet::new();
 
     for chain in chains_in_order {
         if !parts.is_empty() {
             parts.push(MatchPart::Gap);
         }
 
-        for token_id in chain.token_ids {
-            let Some(fragment_node_id) = graph_helper
-                .get_covering_node_ids(token_id)
+        let get_fragment = |token_id: &NodeID| {
+            graph_helper
+                .get_covering_node_ids(*token_id)
                 .find_map(|node_id| {
                     node_id
-                        .and_then(|node_id| {
-                            Ok(node_annos
-                                .has_value_for_item(&node_id, &anno_key)?
-                                .then_some(node_id))
-                        })
+                        .and_then(|node_id| node_annos.get_value_for_item(&node_id, &anno_key))
                         .transpose()
                 })
-                .transpose()?
-            else {
-                continue;
-            };
+                .transpose()
+        };
 
-            // TODO group by fragment first, then treat fragment as match if at least one token in the fragment is covered by a match node
-            // Example: lemma="haben" & pos="VVPP" & #2 ^* #1
-            if !seen_fragment_node_ids.insert(fragment_node_id) {
-                continue;
-            }
+        for group in group_by(&chain.token_ids, get_fragment) {
+            let (fragment, token_ids) = group?;
+            let fragment = fragment.to_string();
 
-            let fragment = node_annos
-                .get_value_for_item(&fragment_node_id, &anno_key)?
-                .unwrap()
-                .to_string();
-
-            let match_node_index = graph_helper
-                .get_covering_node_ids(token_id)
+            let match_node_index = token_ids
+                .iter()
+                .flat_map(|token_id| graph_helper.get_covering_node_ids(*token_id))
                 .find_map(|node_id| {
                     node_id
                         .map(|node_id| {

@@ -10,6 +10,7 @@ use std::{io::Write, path::Path, vec};
 mod error;
 mod format;
 mod query;
+mod util;
 
 pub use format::ExportFormat;
 pub use query::QueryConfig;
