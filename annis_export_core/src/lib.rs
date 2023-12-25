@@ -2,7 +2,7 @@ use error::AnnisExportError;
 use format::export;
 use graphannis::{
     corpusstorage::{CacheStrategy, CorpusInfo},
-    errors::GraphAnnisError,
+    errors::{AQLError, GraphAnnisError},
 };
 use query::{CorpusRef, Match, MatchesPage, MatchesPaginated, Query};
 use std::{io::Write, path::Path, vec};
@@ -74,6 +74,25 @@ impl CorpusStorage {
 
         Ok(())
     }
+
+    pub fn validate_query(
+        &self,
+        corpus_name: &str,
+        aql_query: &str,
+        query_language: QueryLanguage,
+    ) -> Result<QueryValidationResult, GraphAnnisError> {
+        match self
+            .0
+            .validate_query(&[corpus_name], aql_query, query_language)
+        {
+            Ok(true) => Ok(QueryValidationResult::Valid),
+            Ok(false) => unreachable!("Cannot occur according to docs"),
+            Err(GraphAnnisError::AQLSyntaxError(err) | GraphAnnisError::AQLSemanticError(err)) => {
+                Ok(QueryValidationResult::Invalid(err))
+            }
+            Err(err) => Err(err),
+        }
+    }
 }
 
 pub struct CorpusNames(vec::IntoIter<CorpusInfo>);
@@ -137,4 +156,10 @@ pub enum StatusEvent {
         total_count: u64,
         fetched_count: u64,
     },
+}
+
+#[derive(Debug)]
+pub enum QueryValidationResult {
+    Valid,
+    Invalid(AQLError),
 }

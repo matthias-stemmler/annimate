@@ -1,13 +1,10 @@
 use graphannis::errors::GraphAnnisError;
-use graphannis_core::{errors::GraphAnnisCoreError, types::NodeID};
+use graphannis_core::errors::GraphAnnisCoreError;
 use std::io;
 use thiserror::Error;
 
 #[derive(Debug, Error)]
 pub enum AnnisExportError {
-    #[error("failed to find covered node for {0}")]
-    CoveredNodeNotFound(NodeID),
-
     #[error(transparent)]
     Annis(#[from] GraphAnnisError),
 

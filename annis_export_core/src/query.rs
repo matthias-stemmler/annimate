@@ -98,7 +98,7 @@ impl<'a> Iterator for MatchesPaginated<'a> {
         );
 
         match result {
-            Ok(match_node_names) if match_node_names.is_empty() => None,
+            Ok(match_ids) if match_ids.is_empty() => None,
             Ok(match_ids) => Some(Ok(MatchesPage::new(
                 self.corpus_ref,
                 self.query.config,

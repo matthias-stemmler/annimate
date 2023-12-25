@@ -1,4 +1,6 @@
-use annis_export_core::{CorpusStorage, ExportFormat, QueryConfig, StatusEvent};
+use annis_export_core::{
+    CorpusStorage, ExportFormat, QueryConfig, QueryValidationResult, StatusEvent,
+};
 use anyhow::{anyhow, Context};
 use clap::{Parser, Subcommand, ValueEnum};
 use std::{
@@ -37,7 +39,20 @@ enum Commands {
         context: ContextSize,
 
         /// Query language to use
-        #[arg(short, long, value_enum, default_value_t = QueryLanguage::AQL)]
+        #[arg(short, long, value_enum, default_value_t = QueryLanguage::Aql)]
+        language: QueryLanguage,
+    },
+
+    /// Validate AQL query
+    ValidateQuery {
+        /// Name of the corpus to validate AQL query against
+        corpus_name: String,
+
+        /// AQL query to validate
+        query: String,
+
+        /// Query language to use
+        #[arg(short, long, value_enum, default_value_t = QueryLanguage::Aql)]
         language: QueryLanguage,
     },
 }
@@ -76,15 +91,15 @@ impl FromStr for ContextSize {
 
 #[derive(Clone, Copy, ValueEnum)]
 enum QueryLanguage {
-    AQL,
-    AQLQuirksV3,
+    Aql,
+    AqlQuirksV3,
 }
 
 impl From<QueryLanguage> for annis_export_core::QueryLanguage {
     fn from(value: QueryLanguage) -> Self {
         match value {
-            QueryLanguage::AQL => annis_export_core::QueryLanguage::AQL,
-            QueryLanguage::AQLQuirksV3 => annis_export_core::QueryLanguage::AQLQuirksV3,
+            QueryLanguage::Aql => annis_export_core::QueryLanguage::AQL,
+            QueryLanguage::AqlQuirksV3 => annis_export_core::QueryLanguage::AQLQuirksV3,
         }
     }
 }
@@ -142,6 +157,19 @@ fn main() -> anyhow::Result<()> {
 
             out.flush()
                 .with_context(|| format!("Failed to open output file {}", output_file.display()))?;
+        }
+        Commands::ValidateQuery {
+            corpus_name,
+            query,
+            language,
+        } => {
+            let result = corpus_storage
+                .validate_query(&corpus_name, &query, language.into())
+                .context("Failed to validate query")?;
+            match result {
+                QueryValidationResult::Valid => println!("Query is valid"),
+                QueryValidationResult::Invalid(err) => println!("Query is invalid\n{err}"),
+            }
         }
     }
 
