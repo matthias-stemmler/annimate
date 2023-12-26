@@ -3,13 +3,7 @@ use annis_export_core::{
 };
 use anyhow::{anyhow, Context};
 use clap::{Parser, Subcommand, ValueEnum};
-use std::{
-    env,
-    fs::File,
-    io::{BufWriter, Write},
-    path::PathBuf,
-    str::FromStr,
-};
+use std::{env, fs::File, io::Write, path::PathBuf, str::FromStr};
 
 #[derive(Parser)]
 struct Cli {
@@ -129,10 +123,8 @@ fn main() -> anyhow::Result<()> {
             context,
             language,
         } => {
-            let out = File::create(&output_file)
+            let mut out = File::create(&output_file)
                 .with_context(|| format!("Failed to open output file {}", output_file.display()))?;
-
-            let mut out = BufWriter::new(out);
 
             corpus_storage
                 .export_matches(
