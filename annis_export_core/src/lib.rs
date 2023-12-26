@@ -59,17 +59,24 @@ impl CorpusStorage {
         let matches_paginated =
             MatchesPaginated::new(corpus_ref, Query::new(aql_query, query_config));
         let total_count = matches_paginated.total_count()?;
+        let total_count = total_count
+            .try_into()
+            .map_err(|_| AnnisExportError::TooManyResults(total_count))?;
         on_status(StatusEvent::Found { count: total_count });
 
         let exportable_matches = ExportableMatches {
             matches_paginated,
             matches_page: None,
-            on_status,
             total_count,
-            fetched_count: 0,
         };
 
-        export(exportable_matches, node_descriptions, &mut out, format)?;
+        export(
+            format,
+            exportable_matches,
+            node_descriptions,
+            &mut out,
+            |progress| on_status(StatusEvent::Exported { progress }),
+        )?;
         out.flush()?;
 
         Ok(())
@@ -105,34 +112,20 @@ impl Iterator for CorpusNames {
     }
 }
 
-struct ExportableMatches<'a, F> {
+struct ExportableMatches<'a> {
     matches_paginated: MatchesPaginated<'a>,
     matches_page: Option<MatchesPage<'a>>,
-    on_status: F,
-    total_count: u64,
-    fetched_count: u64,
+    total_count: usize,
 }
 
-impl<'a, F> Iterator for ExportableMatches<'a, F>
-where
-    F: FnMut(StatusEvent),
-{
+impl Iterator for ExportableMatches<'_> {
     type Item = Result<Match, AnnisExportError>;
 
     fn next(&mut self) -> Option<Self::Item> {
         loop {
             if self.matches_page.is_none() {
                 self.matches_page = match self.matches_paginated.next()? {
-                    Ok(page) => {
-                        self.fetched_count += u64::try_from(page.len()).unwrap(); // page size fits in a u64
-
-                        (self.on_status)(StatusEvent::Fetched {
-                            total_count: self.total_count,
-                            fetched_count: self.fetched_count,
-                        });
-
-                        Some(page)
-                    }
+                    Ok(page) => Some(page),
                     Err(err) => return Some(Err(err.into())),
                 };
             }
@@ -145,17 +138,18 @@ where
             }
         }
     }
+
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        (self.total_count, Some(self.total_count))
+    }
 }
+
+impl ExactSizeIterator for ExportableMatches<'_> {}
 
 #[derive(Debug)]
 pub enum StatusEvent {
-    Found {
-        count: u64,
-    },
-    Fetched {
-        total_count: u64,
-        fetched_count: u64,
-    },
+    Found { count: usize },
+    Exported { progress: f32 },
 }
 
 #[derive(Debug)]

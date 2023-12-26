@@ -3,6 +3,7 @@ use annis_export_core::{
 };
 use anyhow::{anyhow, Context};
 use clap::{Parser, Subcommand, ValueEnum};
+use indicatif::{ProgressBar, ProgressStyle};
 use std::{env, fs::File, io::Write, path::PathBuf, str::FromStr};
 
 #[derive(Parser)]
@@ -126,6 +127,9 @@ fn main() -> anyhow::Result<()> {
             let mut out = File::create(&output_file)
                 .with_context(|| format!("Failed to open output file {}", output_file.display()))?;
 
+            let progress_bar = ProgressBar::new(100)
+                .with_style(ProgressStyle::with_template("{wide_bar} {percent:>3}%").unwrap());
+
             corpus_storage
                 .export_matches(
                     &corpus_name,
@@ -139,16 +143,17 @@ fn main() -> anyhow::Result<()> {
                     &mut out,
                     |event| match event {
                         StatusEvent::Found { count } => println!("Found {count} matches"),
-                        StatusEvent::Fetched {
-                            total_count,
-                            fetched_count: written_count,
-                        } => println!("Written {written_count} of {total_count} matches"),
+                        StatusEvent::Exported { progress } => {
+                            progress_bar.set_position((progress * 100.0) as u64);
+                        }
                     },
                 )
                 .context("Failed to export matches")?;
 
             out.flush()
                 .with_context(|| format!("Failed to open output file {}", output_file.display()))?;
+
+            progress_bar.finish();
         }
         Commands::ValidateQuery {
             corpus_name,

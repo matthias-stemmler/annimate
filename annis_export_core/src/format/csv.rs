@@ -10,13 +10,16 @@ use std::{io::Write, vec};
 pub(super) struct CsvExporter;
 
 impl Exporter for CsvExporter {
-    fn export<I, W>(
+    fn export<F, I, W>(
         matches: I,
         node_descriptions: Vec<QueryAttributeDescription>,
         out: W,
+        mut on_progress: F,
     ) -> Result<(), AnnisExportError>
     where
+        F: FnMut(f32),
         I: IntoIterator<Item = Result<Match, AnnisExportError>>,
+        I::IntoIter: ExactSizeIterator,
         W: Write,
     {
         let mut csv_writer = csv::Writer::from_writer(out);
@@ -33,14 +36,20 @@ impl Exporter for CsvExporter {
             })
         }))?;
 
-        for (i, m) in matches.into_iter().enumerate() {
+        let matches = matches.into_iter();
+        let count = matches.len();
+
+        for (i, m) in matches.enumerate() {
             let Match { doc_name, parts } = m?;
+            let number = i + 1;
 
             csv_writer.write_record(
-                [(i + 1).to_string(), doc_name]
+                [number.to_string(), doc_name]
                     .into_iter()
                     .chain(TextColumns::new(parts)),
             )?;
+
+            on_progress(number as f32 / count as f32)
         }
 
         Ok(())
@@ -151,6 +160,7 @@ mod tests {
                         optional: false,
                     }).collect(),
                     &mut result,
+                    |_| (),
                 ).unwrap();
 
                 assert_eq!(

@@ -112,7 +112,6 @@ impl<'a> Iterator for MatchesPaginated<'a> {
 pub(crate) struct MatchesPage<'a> {
     corpus_ref: CorpusRef<'a>,
     query_config: QueryConfig,
-    len: usize,
     match_ids_iter: vec::IntoIter<String>,
 }
 
@@ -121,13 +120,8 @@ impl<'a> MatchesPage<'a> {
         Self {
             corpus_ref,
             query_config,
-            len: match_ids.len(),
             match_ids_iter: match_ids.into_iter(),
         }
-    }
-
-    pub(crate) fn len(&self) -> usize {
-        self.len
     }
 }
 

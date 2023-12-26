@@ -10,28 +10,34 @@ pub enum ExportFormat {
     Csv,
 }
 
-pub(crate) fn export<I, W>(
+pub(crate) fn export<F, I, W>(
+    export_format: ExportFormat,
     matches: I,
     node_descriptions: Vec<QueryAttributeDescription>,
     out: W,
-    export_format: ExportFormat,
+    on_progress: F,
 ) -> Result<(), AnnisExportError>
 where
+    F: FnMut(f32),
     I: IntoIterator<Item = Result<Match, AnnisExportError>>,
+    I::IntoIter: ExactSizeIterator,
     W: Write,
 {
     match export_format {
-        ExportFormat::Csv => CsvExporter::export(matches, node_descriptions, out),
+        ExportFormat::Csv => CsvExporter::export(matches, node_descriptions, out, on_progress),
     }
 }
 
 trait Exporter {
-    fn export<I, W>(
+    fn export<F, I, W>(
         matches: I,
         node_descriptions: Vec<QueryAttributeDescription>,
-        writer: W,
+        out: W,
+        on_progress: F,
     ) -> Result<(), AnnisExportError>
     where
+        F: FnMut(f32),
         I: IntoIterator<Item = Result<Match, AnnisExportError>>,
+        I::IntoIter: ExactSizeIterator,
         W: Write;
 }
