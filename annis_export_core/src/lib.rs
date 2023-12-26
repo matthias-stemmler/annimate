@@ -4,7 +4,7 @@ use graphannis::{
     corpusstorage::{CacheStrategy, CorpusInfo},
     errors::{AQLError, GraphAnnisError},
 };
-use query::{CorpusRef, Match, MatchesPage, MatchesPaginated, Query};
+use query::{CorpusRef, Match, MatchesPage, MatchesPaginated, MatchesPaginatedIter, Query};
 use std::{io::Write, path::Path, vec};
 
 mod error;
@@ -47,36 +47,19 @@ impl CorpusStorage {
         F: FnMut(StatusEvent),
         W: Write,
     {
-        // TEMP
-        let node_descriptions = self
-            .0
-            .node_descriptions(aql_query, query_config.query_language)?
-            .into_iter()
-            .take(2)
-            .collect();
-
-        let corpus_ref = CorpusRef::new(&self.0, corpus_name);
-        let matches_paginated =
-            MatchesPaginated::new(corpus_ref, Query::new(aql_query, query_config));
-        let total_count = matches_paginated.total_count()?;
-        let total_count = total_count
-            .try_into()
-            .map_err(|_| AnnisExportError::TooManyResults(total_count))?;
-        on_status(StatusEvent::Found { count: total_count });
-
-        let exportable_matches = ExportableMatches {
-            matches_paginated,
-            matches_page: None,
-            total_count,
-        };
-
-        export(
-            format,
-            exportable_matches,
-            node_descriptions,
-            &mut out,
-            |progress| on_status(StatusEvent::Exported { progress }),
+        let exportable_matches = ExportableMatches::new(
+            CorpusRef::new(&self.0, corpus_name),
+            aql_query,
+            query_config,
         )?;
+
+        on_status(StatusEvent::Found {
+            count: exportable_matches.total_count,
+        });
+
+        export(format, exportable_matches, &mut out, |progress| {
+            on_status(StatusEvent::Exported { progress })
+        })?;
         out.flush()?;
 
         Ok(())
@@ -112,19 +95,65 @@ impl Iterator for CorpusNames {
     }
 }
 
+#[derive(Clone, Copy)]
 struct ExportableMatches<'a> {
     matches_paginated: MatchesPaginated<'a>,
+    aql_query: &'a str,
+    query_config: QueryConfig,
+    total_count: usize,
+}
+
+impl<'a> ExportableMatches<'a> {
+    fn new(
+        corpus_ref: CorpusRef<'a>,
+        aql_query: &'a str,
+        query_config: QueryConfig,
+    ) -> Result<Self, AnnisExportError> {
+        let matches_paginated =
+            MatchesPaginated::new(corpus_ref, Query::new(aql_query, query_config));
+
+        let total_count = {
+            let total_count = matches_paginated.total_count()?;
+            total_count
+                .try_into()
+                .map_err(|_| AnnisExportError::TooManyResults(total_count))?
+        };
+
+        Ok(Self {
+            matches_paginated,
+            aql_query,
+            query_config,
+            total_count,
+        })
+    }
+}
+
+impl<'a> IntoIterator for ExportableMatches<'a> {
+    type Item = Result<Match, AnnisExportError>;
+    type IntoIter = ExportableMatchesIter<'a>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        ExportableMatchesIter {
+            matches_paginated_iter: self.matches_paginated.into_iter(),
+            matches_page: None,
+            total_count: self.total_count,
+        }
+    }
+}
+
+struct ExportableMatchesIter<'a> {
+    matches_paginated_iter: MatchesPaginatedIter<'a>,
     matches_page: Option<MatchesPage<'a>>,
     total_count: usize,
 }
 
-impl Iterator for ExportableMatches<'_> {
+impl Iterator for ExportableMatchesIter<'_> {
     type Item = Result<Match, AnnisExportError>;
 
     fn next(&mut self) -> Option<Self::Item> {
         loop {
             if self.matches_page.is_none() {
-                self.matches_page = match self.matches_paginated.next()? {
+                self.matches_page = match self.matches_paginated_iter.next()? {
                     Ok(page) => Some(page),
                     Err(err) => return Some(Err(err.into())),
                 };
@@ -144,7 +173,7 @@ impl Iterator for ExportableMatches<'_> {
     }
 }
 
-impl ExactSizeIterator for ExportableMatches<'_> {}
+impl ExactSizeIterator for ExportableMatchesIter<'_> {}
 
 #[derive(Debug)]
 pub enum StatusEvent {

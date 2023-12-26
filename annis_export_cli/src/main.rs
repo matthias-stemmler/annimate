@@ -5,11 +5,16 @@ use anyhow::{anyhow, Context};
 use clap::{Parser, Subcommand, ValueEnum};
 use indicatif::{ProgressBar, ProgressStyle};
 use std::{env, fs::File, io::Write, path::PathBuf, str::FromStr};
+use tracing::info;
 
 #[derive(Parser)]
 struct Cli {
     #[command(subcommand)]
     command: Commands,
+
+    /// Show debug information
+    #[arg(short, long)]
+    debug: bool,
 }
 
 #[derive(Subcommand)]
@@ -102,6 +107,10 @@ impl From<QueryLanguage> for annis_export_core::QueryLanguage {
 fn main() -> anyhow::Result<()> {
     let cli = Cli::parse();
 
+    if cli.debug {
+        tracing_subscriber::fmt::init();
+    }
+
     let db_dir =
         env::var("ANNIS_DB_DIR").context("Environment variable `ANNIS_DB_DIR` is not set")?;
 
@@ -127,8 +136,7 @@ fn main() -> anyhow::Result<()> {
             let mut out = File::create(&output_file)
                 .with_context(|| format!("Failed to open output file {}", output_file.display()))?;
 
-            let progress_bar = ProgressBar::new(100)
-                .with_style(ProgressStyle::with_template("{wide_bar} {percent:>3}%").unwrap());
+            let progress_reporter = ProgressReporter::new(cli.debug);
 
             corpus_storage
                 .export_matches(
@@ -144,7 +152,7 @@ fn main() -> anyhow::Result<()> {
                     |event| match event {
                         StatusEvent::Found { count } => println!("Found {count} matches"),
                         StatusEvent::Exported { progress } => {
-                            progress_bar.set_position((progress * 100.0) as u64);
+                            progress_reporter.report(progress);
                         }
                     },
                 )
@@ -153,7 +161,7 @@ fn main() -> anyhow::Result<()> {
             out.flush()
                 .with_context(|| format!("Failed to open output file {}", output_file.display()))?;
 
-            progress_bar.finish();
+            progress_reporter.finish();
         }
         Commands::ValidateQuery {
             corpus_name,
@@ -171,4 +179,38 @@ fn main() -> anyhow::Result<()> {
     }
 
     Ok(())
+}
+
+enum ProgressReporter {
+    ProgressBar(ProgressBar),
+    Text,
+}
+
+impl ProgressReporter {
+    fn new(debug: bool) -> Self {
+        if debug {
+            Self::Text
+        } else {
+            Self::ProgressBar(
+                ProgressBar::new(100)
+                    .with_style(ProgressStyle::with_template("{wide_bar} {percent:>3}%").unwrap()),
+            )
+        }
+    }
+
+    fn report(&self, progress: f32) {
+        let progress = (progress * 100.0) as u64;
+
+        match self {
+            Self::Text => info!("Progress: {}%", progress),
+            Self::ProgressBar(progress_bar) => progress_bar.set_position(progress),
+        }
+    }
+
+    fn finish(&self) {
+        match self {
+            Self::Text => info!("Progress: finished"),
+            Self::ProgressBar(progress_bar) => progress_bar.finish(),
+        }
+    }
 }

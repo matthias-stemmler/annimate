@@ -56,19 +56,15 @@ pub struct QueryConfig {
     pub query_language: QueryLanguage,
 }
 
+#[derive(Clone, Copy)]
 pub(crate) struct MatchesPaginated<'a> {
     corpus_ref: CorpusRef<'a>,
     query: Query<'a>,
-    offset_iter: StepBy<RangeFrom<usize>>,
 }
 
 impl<'a> MatchesPaginated<'a> {
     pub(crate) fn new(corpus_ref: CorpusRef<'a>, query: Query<'a>) -> Self {
-        Self {
-            corpus_ref,
-            query,
-            offset_iter: (0..).step_by(PAGE_SIZE),
-        }
+        Self { corpus_ref, query }
     }
 
     pub(crate) fn total_count(&self) -> Result<u64, GraphAnnisError> {
@@ -85,13 +81,30 @@ impl<'a> MatchesPaginated<'a> {
     }
 }
 
-impl<'a> Iterator for MatchesPaginated<'a> {
+impl<'a> IntoIterator for MatchesPaginated<'a> {
+    type Item = Result<MatchesPage<'a>, GraphAnnisError>;
+    type IntoIter = MatchesPaginatedIter<'a>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        MatchesPaginatedIter {
+            matches_paginated: self,
+            offset_iter: (0..).step_by(PAGE_SIZE),
+        }
+    }
+}
+
+pub(crate) struct MatchesPaginatedIter<'a> {
+    matches_paginated: MatchesPaginated<'a>,
+    offset_iter: StepBy<RangeFrom<usize>>,
+}
+
+impl<'a> Iterator for MatchesPaginatedIter<'a> {
     type Item = Result<MatchesPage<'a>, GraphAnnisError>;
 
     fn next(&mut self) -> Option<Self::Item> {
         let offset = self.offset_iter.next()?;
-        let result = self.corpus_ref.storage.find(
-            self.search_query(),
+        let result = self.matches_paginated.corpus_ref.storage.find(
+            self.matches_paginated.search_query(),
             offset,
             Some(PAGE_SIZE),
             ResultOrder::Normal,
@@ -100,8 +113,8 @@ impl<'a> Iterator for MatchesPaginated<'a> {
         match result {
             Ok(match_ids) if match_ids.is_empty() => None,
             Ok(match_ids) => Some(Ok(MatchesPage::new(
-                self.corpus_ref,
-                self.query.config,
+                self.matches_paginated.corpus_ref,
+                self.matches_paginated.query.config,
                 match_ids,
             ))),
             Err(err) => Some(Err(err)),
@@ -167,6 +180,12 @@ pub(crate) enum MatchPart {
         fragments: Vec<String>,
     },
     Gap,
+}
+
+impl MatchPart {
+    pub(crate) fn is_match(&self) -> bool {
+        matches!(self, MatchPart::Match { .. })
+    }
 }
 
 fn get_doc_name(node_name: &str) -> &str {
