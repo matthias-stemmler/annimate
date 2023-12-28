@@ -5,7 +5,7 @@ use thiserror::Error;
 
 #[derive(Debug, Error)]
 pub enum AnnisExportError {
-    #[error("query produced too many results: {0}")]
+    #[error("Query produced too many results: {0}")]
     TooManyResults(u64),
 
     #[error(transparent)]

@@ -313,16 +313,13 @@ fn get_parts(
         }
     }
 
-    let first_chain = {
-        let &id = chains
-            .keys()
-            .find(|chain_id| !chain_ids_with_predecessor.contains(chain_id))
-            .unwrap();
+    let first_chain = chains
+        .keys()
+        .find(|id| !chain_ids_with_predecessor.contains(id))
+        .copied()
+        .and_then(|id| chains.remove(&id));
 
-        chains.remove(&id).unwrap()
-    };
-
-    let chains_in_order = successors(Some(first_chain), |chain| {
+    let chains_in_order = successors(first_chain, |chain| {
         chain.next_chain_id.and_then(|id| chains.remove(&id))
     });
 
