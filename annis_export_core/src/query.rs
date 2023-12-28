@@ -39,8 +39,8 @@ impl<'a> CorpusRef<'a> {
 
 #[derive(Clone, Copy, Debug)]
 pub(crate) struct Query<'a> {
-    aql_query: &'a str,
-    config: QueryConfig,
+    pub(crate) aql_query: &'a str,
+    pub(crate) config: QueryConfig,
 }
 
 impl<'a> Query<'a> {
@@ -49,7 +49,7 @@ impl<'a> Query<'a> {
     }
 }
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, Default)]
 pub struct QueryConfig {
     pub left_context: usize,
     pub right_context: usize,
@@ -163,14 +163,14 @@ impl MatchesPage<'_> {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub(crate) struct Match {
     // TODO add metadata, also take doc_name from metadata
     pub(crate) doc_name: String,
     pub(crate) parts: Vec<MatchPart>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub(crate) enum MatchPart {
     Match {
         index: usize,
@@ -231,9 +231,7 @@ fn get_parts(
             "".into(),
         );
 
-        subgraph
-            .get_graphstorage_as_ref(&component)
-            .ok_or_else(|| GraphAnnisCoreError::MissingComponent(component.to_string()))?
+        subgraph.get_graphstorage_as_ref(&component)
     };
 
     let gap_storage = {
@@ -273,14 +271,16 @@ fn get_parts(
             continue;
         }
 
-        let left_context_token_ids = order_storage
-            .find_connected_inverse(covered_token_id, 1, Bound::Unbounded)
-            .collect::<Vec<_>>()
-            .into_iter()
-            .rev();
+        let left_context_token_ids = order_storage.into_iter().flat_map(|s| {
+            s.find_connected_inverse(covered_token_id, 1, Bound::Unbounded)
+                .collect::<Vec<_>>()
+                .into_iter()
+                .rev()
+        });
 
-        let right_context_token_ids =
-            order_storage.find_connected(covered_token_id, 1, Bound::Unbounded);
+        let right_context_token_ids = order_storage
+            .into_iter()
+            .flat_map(|s| s.find_connected(covered_token_id, 1, Bound::Unbounded));
 
         let token_ids: Vec<_> = left_context_token_ids
             .chain(Some(Ok(covered_token_id)))

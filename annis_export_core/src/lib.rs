@@ -47,19 +47,17 @@ impl CorpusStorage {
         F: FnMut(StatusEvent),
         W: Write,
     {
-        let exportable_matches = ExportableMatches::new(
-            CorpusRef::new(&self.0, corpus_name),
-            aql_query,
-            query_config,
-        )?;
+        let query = Query::new(aql_query, query_config);
+        let matches = ExportableMatches::new(CorpusRef::new(&self.0, corpus_name), query)?;
 
         on_status(StatusEvent::Found {
-            count: exportable_matches.total_count,
+            count: matches.total_count,
         });
 
-        export(format, exportable_matches, &mut out, |progress| {
+        export(format, query, matches, &mut out, |progress| {
             on_status(StatusEvent::Exported { progress })
         })?;
+
         out.flush()?;
 
         Ok(())
@@ -98,19 +96,12 @@ impl Iterator for CorpusNames {
 #[derive(Clone, Copy)]
 struct ExportableMatches<'a> {
     matches_paginated: MatchesPaginated<'a>,
-    aql_query: &'a str,
-    query_config: QueryConfig,
     total_count: usize,
 }
 
 impl<'a> ExportableMatches<'a> {
-    fn new(
-        corpus_ref: CorpusRef<'a>,
-        aql_query: &'a str,
-        query_config: QueryConfig,
-    ) -> Result<Self, AnnisExportError> {
-        let matches_paginated =
-            MatchesPaginated::new(corpus_ref, Query::new(aql_query, query_config));
+    fn new(corpus_ref: CorpusRef<'a>, query: Query<'a>) -> Result<Self, AnnisExportError> {
+        let matches_paginated = MatchesPaginated::new(corpus_ref, query);
 
         let total_count = {
             let total_count = matches_paginated.total_count()?;
@@ -121,8 +112,6 @@ impl<'a> ExportableMatches<'a> {
 
         Ok(Self {
             matches_paginated,
-            aql_query,
-            query_config,
             total_count,
         })
     }
