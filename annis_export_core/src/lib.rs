@@ -2,16 +2,19 @@ use error::AnnisExportError;
 use format::export;
 use graphannis::{
     corpusstorage::{CacheStrategy, CorpusInfo},
-    errors::{AQLError, GraphAnnisError},
+    errors::GraphAnnisError,
 };
 use query::{CorpusRef, Match, MatchesPage, MatchesPaginated, MatchesPaginatedIter, Query};
 use std::{io::Write, path::Path, vec};
 
+mod aql;
 mod error;
 mod format;
 mod query;
 mod util;
 
+pub use aql::QueryNode;
+pub use aql::QueryValidationResult;
 pub use format::ExportFormat;
 pub use query::QueryConfig;
 pub use query::QueryLanguage;
@@ -32,6 +35,23 @@ impl CorpusStorage {
 
     pub fn corpus_names(&self) -> Result<CorpusNames, GraphAnnisError> {
         Ok(CorpusNames(self.0.list()?.into_iter()))
+    }
+
+    pub fn validate_query(
+        &self,
+        corpus_name: &str,
+        aql_query: &str,
+        query_language: QueryLanguage,
+    ) -> Result<QueryValidationResult, GraphAnnisError> {
+        aql::validate_query(&self.0, corpus_name, aql_query, query_language)
+    }
+
+    pub fn query_nodes(
+        &self,
+        aql_query: &str,
+        query_language: QueryLanguage,
+    ) -> Result<Vec<Vec<QueryNode>>, GraphAnnisError> {
+        aql::query_nodes(&self.0, aql_query, query_language)
     }
 
     pub fn export_matches<F, W>(
@@ -61,25 +81,6 @@ impl CorpusStorage {
         out.flush()?;
 
         Ok(())
-    }
-
-    pub fn validate_query(
-        &self,
-        corpus_name: &str,
-        aql_query: &str,
-        query_language: QueryLanguage,
-    ) -> Result<QueryValidationResult, GraphAnnisError> {
-        match self
-            .0
-            .validate_query(&[corpus_name], aql_query, query_language)
-        {
-            Ok(true) => Ok(QueryValidationResult::Valid),
-            Ok(false) => unreachable!("Cannot occur according to docs"),
-            Err(GraphAnnisError::AQLSyntaxError(err) | GraphAnnisError::AQLSemanticError(err)) => {
-                Ok(QueryValidationResult::Invalid(err))
-            }
-            Err(err) => Err(err),
-        }
     }
 }
 
@@ -168,10 +169,4 @@ impl ExactSizeIterator for ExportableMatchesIter<'_> {}
 pub enum StatusEvent {
     Found { count: usize },
     Exported { progress: f32 },
-}
-
-#[derive(Debug)]
-pub enum QueryValidationResult {
-    Valid,
-    Invalid(AQLError),
 }

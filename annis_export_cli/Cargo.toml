@@ -8,5 +8,6 @@ annis_export_core = { path = "../annis_export_core" }
 anyhow = "1.0.75"
 clap = { version = "4.4.8", features = ["derive"] }
 indicatif = "0.17"
+itertools = "0.12"
 tracing = "0.1"
 tracing-subscriber = "0.3"

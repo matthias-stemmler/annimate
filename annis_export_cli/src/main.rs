@@ -1,9 +1,10 @@
 use annis_export_core::{
-    CorpusStorage, ExportFormat, QueryConfig, QueryValidationResult, StatusEvent,
+    CorpusStorage, ExportFormat, QueryConfig, QueryNode, QueryValidationResult, StatusEvent,
 };
 use anyhow::{anyhow, Context};
 use clap::{Parser, Subcommand, ValueEnum};
 use indicatif::{ProgressBar, ProgressStyle};
+use itertools::Itertools;
 use std::{env, fs::File, io::Write, path::PathBuf, str::FromStr};
 use tracing::info;
 
@@ -19,6 +20,16 @@ struct Cli {
 
 #[derive(Subcommand)]
 enum Commands {
+    /// Describe the nodes of an AQL query
+    DescribeQuery {
+        /// AQL query to describe
+        query: String,
+
+        /// Query language to use
+        #[arg(short, long, value_enum, default_value_t = QueryLanguage::Aql)]
+        language: QueryLanguage,
+    },
+
     /// List all corpora
     ListCorpora,
 
@@ -118,6 +129,27 @@ fn main() -> anyhow::Result<()> {
         .with_context(|| format!("Failed to open corpus storage from {db_dir}"))?;
 
     match cli.command {
+        Commands::DescribeQuery { query, language } => {
+            for (index, nodes) in corpus_storage
+                .query_nodes(&query, language.into())
+                .context("Failed to determine query nodes")?
+                .into_iter()
+                .enumerate()
+            {
+                println!(
+                    "{index}: {}",
+                    nodes
+                        .into_iter()
+                        .map(
+                            |QueryNode {
+                                 query_fragment,
+                                 variable,
+                             }| format!("#{variable} {query_fragment}"),
+                        )
+                        .join(" | ")
+                );
+            }
+        }
         Commands::ListCorpora => {
             for name in corpus_storage
                 .corpus_names()

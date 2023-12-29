@@ -7,7 +7,10 @@ edition = "2021"
 csv = "1"
 graphannis = "3"
 graphannis-core = "3"
+itertools = "0.12"
+regex = "1"
 thiserror = "1"
 
 [dev-dependencies]
 indoc = "2"
+tempfile = "3"
