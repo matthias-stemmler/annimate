@@ -30,6 +30,12 @@ enum Commands {
         language: QueryLanguage,
     },
 
+    /// Import corpora from a ZIP file
+    ImportCorpora {
+        /// Path to ZIP file to import corpora from
+        path: PathBuf,
+    },
+
     /// List all corpora
     ListCorpora,
 
@@ -148,6 +154,20 @@ fn main() -> anyhow::Result<()> {
                         )
                         .join(" | ")
                 );
+            }
+        }
+        Commands::ImportCorpora { path } => {
+            let corpus_names = corpus_storage
+                .import_corpora_from_zip(
+                    File::open(&path)
+                        .with_context(|| format!("Failed to open file {}", path.display()))?,
+                    |message| println!("{message}"),
+                )
+                .context("Failed to import corpora")?;
+
+            println!("Corpora imported successfully:");
+            for corpus_name in corpus_names {
+                println!("{corpus_name}");
             }
         }
         Commands::ListCorpora => {

@@ -5,7 +5,11 @@ use graphannis::{
     errors::GraphAnnisError,
 };
 use query::{CorpusRef, Match, MatchesPage, MatchesPaginated, MatchesPaginatedIter, Query};
-use std::{io::Write, path::Path, vec};
+use std::{
+    io::{Read, Seek, Write},
+    path::Path,
+    vec,
+};
 
 mod aql;
 mod error;
@@ -35,6 +39,18 @@ impl CorpusStorage {
 
     pub fn corpus_names(&self) -> Result<CorpusNames, GraphAnnisError> {
         Ok(CorpusNames(self.0.list()?.into_iter()))
+    }
+
+    pub fn import_corpora_from_zip<F, R>(
+        &self,
+        zip: R,
+        on_status: F,
+    ) -> Result<Vec<String>, GraphAnnisError>
+    where
+        F: Fn(&str),
+        R: Read + Seek,
+    {
+        self.0.import_all_from_zip(zip, false, false, on_status)
     }
 
     pub fn validate_query(
