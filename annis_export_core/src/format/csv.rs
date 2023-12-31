@@ -96,13 +96,10 @@ impl Iterator for TextColumnsAligned {
     fn next(&mut self) -> Option<Self::Item> {
         use ColumnType::*;
 
-        let column_type = self.column_types.next().map(|(c, _)| c)?;
+        let (column_type, _) = self.column_types.next()?;
 
         loop {
-            match (
-                column_type,
-                self.text_columns.peek().map(|(c, _)| c).copied(),
-            ) {
+            match (column_type, self.text_columns.peek().map(|(c, _)| *c)) {
                 (Match, Some(Match)) | (Context, Some(Context)) => {
                     return self.text_columns.next().map(|(_, f)| f);
                 }

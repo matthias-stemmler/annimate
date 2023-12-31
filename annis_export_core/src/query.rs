@@ -1,26 +1,29 @@
 use crate::{
-    anno::get_anno_key_for_segmentation, corpus::CorpusRef, error::AnnisExportError, util::group_by,
+    anno::{
+        default_ordering_component, gap_ordering_component, get_anno_key_for_segmentation,
+        token_anno_key,
+    },
+    corpus::CorpusRef,
+    error::AnnisExportError,
+    util::group_by,
 };
 use graphannis::{
     corpusstorage::{ResultOrder, SearchQuery},
     errors::GraphAnnisError,
-    graph::{Component, GraphStorage},
+    graph::GraphStorage,
     model::AnnotationComponentType,
     util::node_names_from_match,
     Graph,
 };
 use graphannis_core::{
     errors::GraphAnnisCoreError,
-    graph::ANNIS_NS,
     types::{AnnoKey, NodeID},
 };
 use std::{
     collections::{HashMap, HashSet},
     iter::{self, successors, StepBy},
     ops::{Bound, RangeFrom},
-    slice,
-    sync::OnceLock,
-    vec,
+    slice, vec,
 };
 
 pub use graphannis::corpusstorage::QueryLanguage;
@@ -230,27 +233,8 @@ fn get_parts(
     )?;
 
     let graph_helper = GraphHelper::new(&subgraph)?;
-
-    let order_storage = {
-        let component = Component::new(
-            AnnotationComponentType::Ordering,
-            ANNIS_NS.into(),
-            "".into(),
-        );
-
-        subgraph.get_graphstorage_as_ref(&component)
-    };
-
-    let gap_storage = {
-        let component = Component::new(
-            AnnotationComponentType::Ordering,
-            ANNIS_NS.into(),
-            "datasource-gap".into(),
-        );
-
-        subgraph.get_graphstorage_as_ref(&component)
-    };
-
+    let order_storage = subgraph.get_graphstorage_as_ref(default_ordering_component());
+    let gap_storage = subgraph.get_graphstorage_as_ref(gap_ordering_component());
     let node_annos = subgraph.get_node_annos();
 
     let match_node_ids: Vec<_> = {
@@ -490,7 +474,7 @@ impl<'a> GraphHelper<'a> {
         Ok(self
             .graph
             .get_node_annos()
-            .has_value_for_item(&node_id, token_key())?)
+            .has_value_for_item(&node_id, token_anno_key())?)
     }
 
     fn has_outgoing_coverage_edges(&self, node_id: NodeID) -> Result<bool, GraphAnnisError> {
@@ -502,13 +486,4 @@ impl<'a> GraphHelper<'a> {
 
         Ok(false)
     }
-}
-
-fn token_key() -> &'static AnnoKey {
-    static TOKEN_KEY: OnceLock<AnnoKey> = OnceLock::new();
-
-    TOKEN_KEY.get_or_init(|| AnnoKey {
-        ns: ANNIS_NS.into(),
-        name: "tok".into(),
-    })
 }
