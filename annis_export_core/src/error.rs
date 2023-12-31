@@ -5,6 +5,9 @@ use thiserror::Error;
 
 #[derive(Debug, Error)]
 pub enum AnnisExportError {
+    #[error("Annotation corresponding to segmentation {0} not found")]
+    MissingAnnotationForSegmentation(String),
+
     #[error("Query produced too many results: {0}")]
     TooManyResults(u64),
 

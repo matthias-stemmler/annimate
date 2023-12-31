@@ -1,4 +1,6 @@
-use crate::{error::AnnisExportError, util::group_by};
+use crate::{
+    anno::get_anno_key_for_segmentation, corpus::CorpusRef, error::AnnisExportError, util::group_by,
+};
 use graphannis::{
     corpusstorage::{ResultOrder, SearchQuery},
     errors::GraphAnnisError,
@@ -9,7 +11,7 @@ use graphannis::{
 };
 use graphannis_core::{
     errors::GraphAnnisCoreError,
-    graph::{ANNIS_NS, DEFAULT_NS},
+    graph::ANNIS_NS,
     types::{AnnoKey, NodeID},
 };
 use std::{
@@ -25,19 +27,7 @@ pub use graphannis::corpusstorage::QueryLanguage;
 
 const PAGE_SIZE: usize = 10;
 
-#[derive(Clone, Copy)]
-pub(crate) struct CorpusRef<'a> {
-    storage: &'a graphannis::CorpusStorage,
-    name: &'a str,
-}
-
-impl<'a> CorpusRef<'a> {
-    pub(crate) fn new(storage: &'a graphannis::CorpusStorage, name: &'a str) -> Self {
-        Self { storage, name }
-    }
-}
-
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Debug)]
 pub(crate) struct Query<'a> {
     pub(crate) aql_query: &'a str,
     pub(crate) config: QueryConfig,
@@ -49,22 +39,34 @@ impl<'a> Query<'a> {
     }
 }
 
-#[derive(Clone, Copy, Debug, Default)]
+#[derive(Clone, Debug, Default)]
 pub struct QueryConfig {
     pub left_context: usize,
     pub right_context: usize,
     pub query_language: QueryLanguage,
+    pub segmentation: Option<String>,
 }
 
-#[derive(Clone, Copy)]
+#[derive(Clone)]
 pub(crate) struct MatchesPaginated<'a> {
     corpus_ref: CorpusRef<'a>,
     query: Query<'a>,
+    fragment_anno_key: AnnoKey,
 }
 
 impl<'a> MatchesPaginated<'a> {
-    pub(crate) fn new(corpus_ref: CorpusRef<'a>, query: Query<'a>) -> Self {
-        Self { corpus_ref, query }
+    pub(crate) fn new(
+        corpus_ref: CorpusRef<'a>,
+        query: Query<'a>,
+    ) -> Result<Self, AnnisExportError> {
+        let fragment_anno_key =
+            get_anno_key_for_segmentation(corpus_ref, query.config.segmentation.as_deref())?;
+
+        Ok(Self {
+            corpus_ref,
+            query,
+            fragment_anno_key,
+        })
     }
 
     pub(crate) fn total_count(&self) -> Result<u64, GraphAnnisError> {
@@ -114,7 +116,8 @@ impl<'a> Iterator for MatchesPaginatedIter<'a> {
             Ok(match_ids) if match_ids.is_empty() => None,
             Ok(match_ids) => Some(Ok(MatchesPage::new(
                 self.matches_paginated.corpus_ref,
-                self.matches_paginated.query.config,
+                self.matches_paginated.query.config.clone(),
+                self.matches_paginated.fragment_anno_key.clone(),
                 match_ids,
             ))),
             Err(err) => Some(Err(err)),
@@ -125,14 +128,21 @@ impl<'a> Iterator for MatchesPaginatedIter<'a> {
 pub(crate) struct MatchesPage<'a> {
     corpus_ref: CorpusRef<'a>,
     query_config: QueryConfig,
+    fragment_anno_key: AnnoKey,
     match_ids_iter: vec::IntoIter<String>,
 }
 
 impl<'a> MatchesPage<'a> {
-    fn new(corpus_ref: CorpusRef<'a>, query_config: QueryConfig, match_ids: Vec<String>) -> Self {
+    fn new(
+        corpus_ref: CorpusRef<'a>,
+        query_config: QueryConfig,
+        fragment_anno_key: AnnoKey,
+        match_ids: Vec<String>,
+    ) -> Self {
         Self {
             corpus_ref,
             query_config,
+            fragment_anno_key,
             match_ids_iter: match_ids.into_iter(),
         }
     }
@@ -158,6 +168,8 @@ impl MatchesPage<'_> {
                 match_node_names,
                 self.query_config.left_context,
                 self.query_config.right_context,
+                self.query_config.segmentation.clone(),
+                self.fragment_anno_key.clone(),
             )?,
         })
     }
@@ -200,6 +212,8 @@ fn get_parts(
     match_node_names: Vec<String>,
     left_context: usize,
     right_context: usize,
+    segmentation: Option<String>,
+    fragment_anno_key: AnnoKey,
 ) -> Result<Vec<MatchPart>, AnnisExportError> {
     #[derive(Debug)]
     struct Chain {
@@ -207,19 +221,12 @@ fn get_parts(
         next_chain_id: Option<NodeID>,
     }
 
-    // TODO make both configurable
-    let segmentation = Some(String::from("tok_anno"));
-    let anno_key = AnnoKey {
-        ns: DEFAULT_NS.into(),
-        name: "tok_dipl".into(),
-    };
-
     let subgraph = corpus_ref.storage.subgraph(
         corpus_ref.name,
         match_node_names.clone(),
         left_context,
         right_context,
-        segmentation.clone(),
+        segmentation,
     )?;
 
     let graph_helper = GraphHelper::new(&subgraph)?;
@@ -336,7 +343,9 @@ fn get_parts(
                 .get_covering_node_ids(*token_id)
                 .find_map(|node_id| {
                     node_id
-                        .and_then(|node_id| node_annos.get_value_for_item(&node_id, &anno_key))
+                        .and_then(|node_id| {
+                            node_annos.get_value_for_item(&node_id, &fragment_anno_key)
+                        })
                         .transpose()
                 })
                 .transpose()

@@ -39,6 +39,12 @@ enum Commands {
     /// List all corpora
     ListCorpora,
 
+    /// List all segmentations
+    ListSegmentations {
+        /// Name of the corpus to list segmentations for
+        corpus_name: String,
+    },
+
     /// Run AQL query and export results
     Query {
         /// Name of the corpus to run AQL query on
@@ -54,6 +60,10 @@ enum Commands {
         /// Context size, where e.g. "10,5" means 10 nodes to the left and 5 to the right and "10" means 10 tokens in both directions
         #[arg(short, long, default_value = "10")]
         context: ContextSize,
+
+        /// Segmentation to use for defining the context, use the `list-segmentations` command to list all options [default: use tokens]
+        #[arg(short, long)]
+        segmentation: Option<String>,
 
         /// Query language to use
         #[arg(short, long, value_enum, default_value_t = QueryLanguage::Aql)]
@@ -178,12 +188,21 @@ fn main() -> anyhow::Result<()> {
                 println!("{name}");
             }
         }
+        Commands::ListSegmentations { corpus_name } => {
+            for name in corpus_storage
+                .segmentations(&corpus_name)
+                .context("Failed to list segmentations")?
+            {
+                println!("{name}");
+            }
+        }
         Commands::Query {
             corpus_name,
             query,
             output_file,
             context,
             language,
+            segmentation,
         } => {
             let mut out = File::create(&output_file)
                 .with_context(|| format!("Failed to open output file {}", output_file.display()))?;
@@ -198,6 +217,7 @@ fn main() -> anyhow::Result<()> {
                         left_context: context.left,
                         right_context: context.right,
                         query_language: language.into(),
+                        segmentation,
                     },
                     ExportFormat::Csv,
                     &mut out,

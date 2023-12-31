@@ -1,3 +1,4 @@
+use crate::corpus::CorpusRef;
 use graphannis::{
     corpusstorage::{QueryAttributeDescription, QueryLanguage},
     errors::{AQLError, GraphAnnisError},
@@ -7,12 +8,14 @@ use regex::Regex;
 use std::{collections::BTreeMap, sync::OnceLock};
 
 pub fn validate_query(
-    storage: &graphannis::CorpusStorage,
-    corpus_name: &str,
+    corpus_ref: CorpusRef,
     aql_query: &str,
     query_language: QueryLanguage,
 ) -> Result<QueryValidationResult, GraphAnnisError> {
-    match storage.validate_query(&[corpus_name], aql_query, query_language) {
+    match corpus_ref
+        .storage
+        .validate_query(&[corpus_ref.name], aql_query, query_language)
+    {
         Ok(true) => Ok(QueryValidationResult::Valid),
         Ok(false) => unreachable!("Cannot occur according to docs"),
         Err(GraphAnnisError::AQLSyntaxError(err) | GraphAnnisError::AQLSemanticError(err)) => {

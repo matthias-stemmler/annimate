@@ -1,17 +1,17 @@
+use corpus::CorpusRef;
 use error::AnnisExportError;
 use format::export;
-use graphannis::{
-    corpusstorage::{CacheStrategy, CorpusInfo},
-    errors::GraphAnnisError,
-};
-use query::{CorpusRef, Match, MatchesPage, MatchesPaginated, MatchesPaginatedIter, Query};
+use graphannis::{corpusstorage::CacheStrategy, errors::GraphAnnisError};
+use itertools::Itertools;
+use query::{Match, MatchesPage, MatchesPaginated, MatchesPaginatedIter, Query};
 use std::{
     io::{Read, Seek, Write},
     path::Path,
-    vec,
 };
 
+mod anno;
 mod aql;
+mod corpus;
 mod error;
 mod format;
 mod query;
@@ -37,8 +37,14 @@ impl CorpusStorage {
         )?))
     }
 
-    pub fn corpus_names(&self) -> Result<CorpusNames, GraphAnnisError> {
-        Ok(CorpusNames(self.0.list()?.into_iter()))
+    pub fn corpus_names(&self) -> Result<Vec<String>, GraphAnnisError> {
+        Ok(self
+            .0
+            .list()?
+            .into_iter()
+            .map(|c| c.name)
+            .sorted()
+            .collect())
     }
 
     pub fn import_corpora_from_zip<F, R>(
@@ -59,7 +65,7 @@ impl CorpusStorage {
         aql_query: &str,
         query_language: QueryLanguage,
     ) -> Result<QueryValidationResult, GraphAnnisError> {
-        aql::validate_query(&self.0, corpus_name, aql_query, query_language)
+        aql::validate_query(self.corpus_ref(corpus_name), aql_query, query_language)
     }
 
     pub fn query_nodes(
@@ -68,6 +74,10 @@ impl CorpusStorage {
         query_language: QueryLanguage,
     ) -> Result<Vec<Vec<QueryNode>>, GraphAnnisError> {
         aql::query_nodes(&self.0, aql_query, query_language)
+    }
+
+    pub fn segmentations(&self, corpus_name: &str) -> Result<Vec<String>, GraphAnnisError> {
+        anno::segmentations(self.corpus_ref(corpus_name))
     }
 
     pub fn export_matches<F, W>(
@@ -84,7 +94,7 @@ impl CorpusStorage {
         W: Write,
     {
         let query = Query::new(aql_query, query_config);
-        let matches = ExportableMatches::new(CorpusRef::new(&self.0, corpus_name), query)?;
+        let matches = ExportableMatches::new(self.corpus_ref(corpus_name), query.clone())?;
 
         on_status(StatusEvent::Found {
             count: matches.total_count,
@@ -98,19 +108,13 @@ impl CorpusStorage {
 
         Ok(())
     }
-}
 
-pub struct CorpusNames(vec::IntoIter<CorpusInfo>);
-
-impl Iterator for CorpusNames {
-    type Item = String;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        Some(self.0.next()?.name)
+    fn corpus_ref<'a>(&'a self, corpus_name: &'a str) -> CorpusRef<'a> {
+        CorpusRef::new(&self.0, corpus_name)
     }
 }
 
-#[derive(Clone, Copy)]
+#[derive(Clone)]
 struct ExportableMatches<'a> {
     matches_paginated: MatchesPaginated<'a>,
     total_count: usize,
@@ -118,7 +122,7 @@ struct ExportableMatches<'a> {
 
 impl<'a> ExportableMatches<'a> {
     fn new(corpus_ref: CorpusRef<'a>, query: Query<'a>) -> Result<Self, AnnisExportError> {
-        let matches_paginated = MatchesPaginated::new(corpus_ref, query);
+        let matches_paginated = MatchesPaginated::new(corpus_ref, query)?;
 
         let total_count = {
             let total_count = matches_paginated.total_count()?;
