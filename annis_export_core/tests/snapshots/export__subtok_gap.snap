@@ -1,0 +1,15 @@
+---
+source: annis_export_core/tests/export.rs
+info:
+  corpus_path: subtok.demo_relANNIS.zip
+  corpus_name: subtok.demo
+  aql_query: "pos=\"DT\" .5,5 pos=\"DT\""
+  query_config:
+    left_context: 1
+    right_context: 1
+    query_language: AQL
+    segmentation: ~
+---
+Number,Document,Context 1,Match 1,Context 2,Match 2,Context 3
+1,subtok.demo/subtok.demo.doc01,,T his,is ... of,a,sub-
+

@@ -1,0 +1,17 @@
+---
+source: annis_export_core/tests/export.rs
+info:
+  corpus_path: subtok.demo_relANNIS.zip
+  corpus_name: subtok.demo
+  aql_query: "pos=\"DT\""
+  query_config:
+    left_context: 4
+    right_context: 4
+    query_language: AQL
+    segmentation: norm
+---
+Number,Document,Left context,Match,Right context
+1,subtok.demo/subtok.demo.doc01,,This,is an example of
+2,subtok.demo/subtok.demo.doc01,This is,an,example of a subtokenized
+3,subtok.demo/subtok.demo.doc01,is an example of,a,subtokenized corpus .
+

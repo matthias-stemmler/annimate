@@ -175,9 +175,13 @@ fn main() -> anyhow::Result<()> {
                 )
                 .context("Failed to import corpora")?;
 
-            println!("Corpora imported successfully:");
-            for corpus_name in corpus_names {
-                println!("{corpus_name}");
+            if corpus_names.is_empty() {
+                println!("No corpora found");
+            } else {
+                println!("Corpora imported successfully:");
+                for corpus_name in corpus_names {
+                    println!("{corpus_name}");
+                }
             }
         }
         Commands::ListCorpora => {
