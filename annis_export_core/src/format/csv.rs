@@ -114,13 +114,15 @@ impl Iterator for TextColumnsAligned {
 
 #[derive(Debug)]
 struct TextColumns {
-    parts: Peekable<vec::IntoIter<MatchPart>>,
+    parts: vec::IntoIter<MatchPart>,
+    pending_column: Option<(ColumnType, String)>,
 }
 
 impl TextColumns {
     fn new(parts: Vec<MatchPart>) -> Self {
         Self {
-            parts: parts.into_iter().peekable(),
+            parts: parts.into_iter(),
+            pending_column: None,
         }
     }
 }
@@ -129,17 +131,21 @@ impl Iterator for TextColumns {
     type Item = (ColumnType, String);
 
     fn next(&mut self) -> Option<(ColumnType, String)> {
-        let mut context_col: Option<String> = None;
+        if let Some(column) = self.pending_column.take() {
+            return Some(column);
+        }
 
-        while self.parts.peek().map(|p| !p.is_match()).unwrap_or(false) {
+        let mut context_column: Option<String> = None;
+
+        let match_column = loop {
             let serialized_part = match self.parts.next() {
+                Some(MatchPart::Match { fragments, .. }) => break Some(fragments.join(" ")),
                 Some(MatchPart::Context { fragments }) => fragments.join(" "),
                 Some(MatchPart::Gap) => "(...)".into(),
-                // TODO use itertools?
-                _ => unreachable!(),
+                None => break None,
             };
 
-            context_col = Some(match context_col.take() {
+            context_column = Some(match context_column.take() {
                 None => serialized_part,
                 Some(mut c) => {
                     c.push(' ');
@@ -147,17 +153,17 @@ impl Iterator for TextColumns {
                     c
                 }
             });
-        }
-
-        if let Some(context_col) = context_col {
-            return Some((ColumnType::Context, context_col));
-        }
-
-        let MatchPart::Match { fragments, .. } = self.parts.next()? else {
-            unreachable!();
         };
 
-        Some((ColumnType::Match, fragments.join(" ")))
+        let context_column = context_column.map(|c| (ColumnType::Context, c));
+        let match_column = match_column.map(|c| (ColumnType::Match, c));
+
+        if let Some(context_column) = context_column {
+            self.pending_column = match_column;
+            Some(context_column)
+        } else {
+            match_column
+        }
     }
 }
 
