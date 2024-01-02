@@ -3,15 +3,18 @@ source: annis_export_core/tests/export.rs
 info:
   corpus_paths:
     - subtok.demo_relANNIS.zip
+    - subtok.demo2_relANNIS.zip
   corpus_names:
     - subtok.demo
+    - subtok.demo2
   aql_query: "pos=\"DT\" .5,5 pos=\"DT\""
   query_config:
     left_context: 1
     right_context: 1
     query_language: AQL
-    segmentation: ~
+    segmentation: diplomatic
 ---
 Number,Document,Context 1,Match 1,Context 2,Match 2,Context 3
-1,subtok.demo/subtok.demo.doc01,,T his,is (...) of,a,sub-
+1,subtok.demo/subtok.demo.doc01,,T his,is (...) of,a,ſub⸗
+2,subtok.demo2/subtok.demo2.doc01,,T his,is (...) of,a,ſub⸗
 

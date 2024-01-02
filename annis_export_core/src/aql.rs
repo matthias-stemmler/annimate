@@ -7,14 +7,17 @@ use itertools::{Itertools, Position};
 use regex::Regex;
 use std::{collections::BTreeMap, sync::OnceLock};
 
-pub fn validate_query(
-    corpus_ref: CorpusRef,
+pub fn validate_query<S>(
+    corpus_ref: CorpusRef<S>,
     aql_query: &str,
     query_language: QueryLanguage,
-) -> Result<QueryValidationResult, GraphAnnisError> {
+) -> Result<QueryValidationResult, GraphAnnisError>
+where
+    S: AsRef<str>,
+{
     match corpus_ref
         .storage
-        .validate_query(&[corpus_ref.name], aql_query, query_language)
+        .validate_query(corpus_ref.names, aql_query, query_language)
     {
         Ok(true) => Ok(QueryValidationResult::Valid),
         Ok(false) => unreachable!("Cannot occur according to docs"),

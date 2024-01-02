@@ -1,11 +1,18 @@
-#[derive(Clone, Copy)]
-pub(crate) struct CorpusRef<'a> {
+pub(crate) struct CorpusRef<'a, S> {
     pub(crate) storage: &'a graphannis::CorpusStorage,
-    pub(crate) name: &'a str,
+    pub(crate) names: &'a [S],
 }
 
-impl<'a> CorpusRef<'a> {
-    pub(crate) fn new(storage: &'a graphannis::CorpusStorage, name: &'a str) -> Self {
-        Self { storage, name }
+impl<S> Copy for CorpusRef<'_, S> {}
+
+impl<S> Clone for CorpusRef<'_, S> {
+    fn clone(&self) -> Self {
+        *self
+    }
+}
+
+impl<'a, S> CorpusRef<'a, S> {
+    pub(crate) fn new(storage: &'a graphannis::CorpusStorage, names: &'a [S]) -> Self {
+        Self { storage, names }
     }
 }

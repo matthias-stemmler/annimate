@@ -5,7 +5,7 @@ info:
     - subtok.demo_relANNIS.zip
   corpus_names:
     - subtok.demo
-  aql_query: "pos=\"DT\" .5,5 pos=\"DT\""
+  aql_query: "(pos=\"DT\" .5,5 pos=\"DT\") | pos=\"NN\""
   query_config:
     left_context: 1
     right_context: 1
@@ -14,4 +14,6 @@ info:
 ---
 Number,Document,Context 1,Match 1,Context 2,Match 2,Context 3
 1,subtok.demo/subtok.demo.doc01,,T his,is (...) of,a,sub-
+2,subtok.demo/subtok.demo.doc01,an,example,of,,
+3,subtok.demo/subtok.demo.doc01,tokenized,corpus,.,,
 

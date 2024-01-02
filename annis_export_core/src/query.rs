@@ -5,6 +5,7 @@ use crate::{
     },
     corpus::CorpusRef,
     error::AnnisExportError,
+    node_name,
     util::group_by,
 };
 use graphannis::{
@@ -23,7 +24,7 @@ use std::{
     collections::{HashMap, HashSet},
     iter::{self, successors, StepBy},
     ops::{Bound, RangeFrom},
-    slice, vec,
+    vec,
 };
 
 pub use graphannis::corpusstorage::QueryLanguage;
@@ -50,16 +51,28 @@ pub struct QueryConfig {
     pub segmentation: Option<String>,
 }
 
-#[derive(Clone)]
-pub(crate) struct MatchesPaginated<'a> {
-    corpus_ref: CorpusRef<'a>,
+pub(crate) struct MatchesPaginated<'a, S> {
+    corpus_ref: CorpusRef<'a, S>,
     query: Query<'a>,
     fragment_anno_key: AnnoKey,
 }
 
-impl<'a> MatchesPaginated<'a> {
+impl<S> Clone for MatchesPaginated<'_, S> {
+    fn clone(&self) -> Self {
+        Self {
+            corpus_ref: self.corpus_ref,
+            query: self.query.clone(),
+            fragment_anno_key: self.fragment_anno_key.clone(),
+        }
+    }
+}
+
+impl<'a, S> MatchesPaginated<'a, S>
+where
+    S: AsRef<str>,
+{
     pub(crate) fn new(
-        corpus_ref: CorpusRef<'a>,
+        corpus_ref: CorpusRef<'a, S>,
         query: Query<'a>,
     ) -> Result<Self, AnnisExportError> {
         let fragment_anno_key =
@@ -76,9 +89,9 @@ impl<'a> MatchesPaginated<'a> {
         self.corpus_ref.storage.count(self.search_query())
     }
 
-    fn search_query(&'a self) -> SearchQuery<'a, &'a str> {
+    fn search_query(&'a self) -> SearchQuery<'a, S> {
         SearchQuery {
-            corpus_names: slice::from_ref(&self.corpus_ref.name),
+            corpus_names: self.corpus_ref.names,
             query: self.query.aql_query,
             query_language: self.query.config.query_language,
             timeout: None,
@@ -86,9 +99,12 @@ impl<'a> MatchesPaginated<'a> {
     }
 }
 
-impl<'a> IntoIterator for MatchesPaginated<'a> {
-    type Item = Result<MatchesPage<'a>, GraphAnnisError>;
-    type IntoIter = MatchesPaginatedIter<'a>;
+impl<'a, S> IntoIterator for MatchesPaginated<'a, S>
+where
+    S: AsRef<str>,
+{
+    type Item = Result<MatchesPage<'a, S>, GraphAnnisError>;
+    type IntoIter = MatchesPaginatedIter<'a, S>;
 
     fn into_iter(self) -> Self::IntoIter {
         MatchesPaginatedIter {
@@ -98,13 +114,16 @@ impl<'a> IntoIterator for MatchesPaginated<'a> {
     }
 }
 
-pub(crate) struct MatchesPaginatedIter<'a> {
-    matches_paginated: MatchesPaginated<'a>,
+pub(crate) struct MatchesPaginatedIter<'a, S> {
+    matches_paginated: MatchesPaginated<'a, S>,
     offset_iter: StepBy<RangeFrom<usize>>,
 }
 
-impl<'a> Iterator for MatchesPaginatedIter<'a> {
-    type Item = Result<MatchesPage<'a>, GraphAnnisError>;
+impl<'a, S> Iterator for MatchesPaginatedIter<'a, S>
+where
+    S: AsRef<str>,
+{
+    type Item = Result<MatchesPage<'a, S>, GraphAnnisError>;
 
     fn next(&mut self) -> Option<Self::Item> {
         let offset = self.offset_iter.next()?;
@@ -128,16 +147,16 @@ impl<'a> Iterator for MatchesPaginatedIter<'a> {
     }
 }
 
-pub(crate) struct MatchesPage<'a> {
-    corpus_ref: CorpusRef<'a>,
+pub(crate) struct MatchesPage<'a, S> {
+    corpus_ref: CorpusRef<'a, S>,
     query_config: QueryConfig,
     fragment_anno_key: AnnoKey,
     match_ids_iter: vec::IntoIter<String>,
 }
 
-impl<'a> MatchesPage<'a> {
+impl<'a, S> MatchesPage<'a, S> {
     fn new(
-        corpus_ref: CorpusRef<'a>,
+        corpus_ref: CorpusRef<'a, S>,
         query_config: QueryConfig,
         fragment_anno_key: AnnoKey,
         match_ids: Vec<String>,
@@ -151,7 +170,7 @@ impl<'a> MatchesPage<'a> {
     }
 }
 
-impl Iterator for MatchesPage<'_> {
+impl<S> Iterator for MatchesPage<'_, S> {
     type Item = Result<Match, AnnisExportError>;
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -160,12 +179,12 @@ impl Iterator for MatchesPage<'_> {
     }
 }
 
-impl MatchesPage<'_> {
+impl<S> MatchesPage<'_, S> {
     fn match_id_to_match(&self, match_id: String) -> Result<Match, AnnisExportError> {
         let match_node_names = node_names_from_match(&match_id);
 
         Ok(Match {
-            doc_name: get_doc_name(&match_node_names[0]).into(),
+            doc_name: node_name::get_doc_name(&match_node_names[0]).into(),
             parts: get_parts(
                 self.corpus_ref,
                 match_node_names,
@@ -203,15 +222,8 @@ impl MatchPart {
     }
 }
 
-fn get_doc_name(node_name: &str) -> &str {
-    match node_name.rsplit_once('#') {
-        Some((doc_name, _)) => doc_name,
-        None => node_name,
-    }
-}
-
-fn get_parts(
-    corpus_ref: CorpusRef<'_>,
+fn get_parts<S>(
+    corpus_ref: CorpusRef<S>,
     match_node_names: Vec<String>,
     left_context: usize,
     right_context: usize,
@@ -224,8 +236,15 @@ fn get_parts(
         next_chain_id: Option<NodeID>,
     }
 
+    let corpus_name = {
+        let Some(node_name) = match_node_names.first() else {
+            return Ok(Vec::new());
+        };
+        node_name::get_corpus_name(node_name)
+    };
+
     let subgraph = corpus_ref.storage.subgraph(
-        corpus_ref.name,
+        corpus_name,
         match_node_names.clone(),
         left_context,
         right_context,

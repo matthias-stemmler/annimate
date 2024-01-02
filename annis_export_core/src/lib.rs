@@ -14,6 +14,7 @@ mod aql;
 mod corpus;
 mod error;
 mod format;
+mod node_name;
 mod query;
 mod util;
 
@@ -59,13 +60,16 @@ impl CorpusStorage {
         self.0.import_all_from_zip(zip, false, false, on_status)
     }
 
-    pub fn validate_query(
+    pub fn validate_query<S>(
         &self,
-        corpus_name: &str,
+        corpus_names: &[S],
         aql_query: &str,
         query_language: QueryLanguage,
-    ) -> Result<QueryValidationResult, GraphAnnisError> {
-        aql::validate_query(self.corpus_ref(corpus_name), aql_query, query_language)
+    ) -> Result<QueryValidationResult, GraphAnnisError>
+    where
+        S: AsRef<str>,
+    {
+        aql::validate_query(self.corpus_ref(corpus_names), aql_query, query_language)
     }
 
     pub fn query_nodes(
@@ -76,13 +80,16 @@ impl CorpusStorage {
         aql::query_nodes(&self.0, aql_query, query_language)
     }
 
-    pub fn segmentations(&self, corpus_name: &str) -> Result<Vec<String>, GraphAnnisError> {
-        anno::segmentations(self.corpus_ref(corpus_name))
+    pub fn segmentations<S>(&self, corpus_names: &[S]) -> Result<Vec<String>, GraphAnnisError>
+    where
+        S: AsRef<str>,
+    {
+        anno::segmentations(self.corpus_ref(corpus_names))
     }
 
-    pub fn export_matches<F, W>(
+    pub fn export_matches<F, S, W>(
         &self,
-        corpus_name: &str,
+        corpus_names: &[S],
         aql_query: &str,
         query_config: QueryConfig,
         format: ExportFormat,
@@ -91,10 +98,11 @@ impl CorpusStorage {
     ) -> Result<(), AnnisExportError>
     where
         F: FnMut(StatusEvent),
+        S: AsRef<str>,
         W: Write,
     {
         let query = Query::new(aql_query, query_config);
-        let matches = ExportableMatches::new(self.corpus_ref(corpus_name), query.clone())?;
+        let matches = ExportableMatches::new(self.corpus_ref(corpus_names), query.clone())?;
 
         on_status(StatusEvent::Found {
             count: matches.total_count,
@@ -109,19 +117,30 @@ impl CorpusStorage {
         Ok(())
     }
 
-    fn corpus_ref<'a>(&'a self, corpus_name: &'a str) -> CorpusRef<'a> {
-        CorpusRef::new(&self.0, corpus_name)
+    fn corpus_ref<'a, S>(&'a self, corpus_names: &'a [S]) -> CorpusRef<'a, S> {
+        CorpusRef::new(&self.0, corpus_names)
     }
 }
 
-#[derive(Clone)]
-struct ExportableMatches<'a> {
-    matches_paginated: MatchesPaginated<'a>,
+struct ExportableMatches<'a, S> {
+    matches_paginated: MatchesPaginated<'a, S>,
     total_count: usize,
 }
 
-impl<'a> ExportableMatches<'a> {
-    fn new(corpus_ref: CorpusRef<'a>, query: Query<'a>) -> Result<Self, AnnisExportError> {
+impl<S> Clone for ExportableMatches<'_, S> {
+    fn clone(&self) -> Self {
+        Self {
+            matches_paginated: self.matches_paginated.clone(),
+            total_count: self.total_count,
+        }
+    }
+}
+
+impl<'a, S> ExportableMatches<'a, S>
+where
+    S: AsRef<str>,
+{
+    fn new(corpus_ref: CorpusRef<'a, S>, query: Query<'a>) -> Result<Self, AnnisExportError> {
         let matches_paginated = MatchesPaginated::new(corpus_ref, query)?;
 
         let total_count = {
@@ -138,9 +157,12 @@ impl<'a> ExportableMatches<'a> {
     }
 }
 
-impl<'a> IntoIterator for ExportableMatches<'a> {
+impl<'a, S> IntoIterator for ExportableMatches<'a, S>
+where
+    S: AsRef<str>,
+{
     type Item = Result<Match, AnnisExportError>;
-    type IntoIter = ExportableMatchesIter<'a>;
+    type IntoIter = ExportableMatchesIter<'a, S>;
 
     fn into_iter(self) -> Self::IntoIter {
         ExportableMatchesIter {
@@ -151,13 +173,16 @@ impl<'a> IntoIterator for ExportableMatches<'a> {
     }
 }
 
-struct ExportableMatchesIter<'a> {
-    matches_paginated_iter: MatchesPaginatedIter<'a>,
-    matches_page: Option<MatchesPage<'a>>,
+struct ExportableMatchesIter<'a, S> {
+    matches_paginated_iter: MatchesPaginatedIter<'a, S>,
+    matches_page: Option<MatchesPage<'a, S>>,
     total_count: usize,
 }
 
-impl Iterator for ExportableMatchesIter<'_> {
+impl<S> Iterator for ExportableMatchesIter<'_, S>
+where
+    S: AsRef<str>,
+{
     type Item = Result<Match, AnnisExportError>;
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -183,7 +208,7 @@ impl Iterator for ExportableMatchesIter<'_> {
     }
 }
 
-impl ExactSizeIterator for ExportableMatchesIter<'_> {}
+impl<S> ExactSizeIterator for ExportableMatchesIter<'_, S> where S: AsRef<str> {}
 
 #[derive(Debug)]
 pub enum StatusEvent {

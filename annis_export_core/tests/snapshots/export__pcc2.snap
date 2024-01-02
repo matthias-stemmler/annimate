@@ -1,9 +1,11 @@
 ---
 source: annis_export_core/tests/export.rs
 info:
-  corpus_path: pcc2_v7_relANNIS.zip
-  corpus_name: pcc2
-  aql_query: Sent _o_ NP
+  corpus_paths:
+    - pcc2_v7_relANNIS.zip
+  corpus_names:
+    - pcc2
+  aql_query: Sent _i_ NP
   query_config:
     left_context: 10
     right_context: 10

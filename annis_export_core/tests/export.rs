@@ -1,12 +1,13 @@
 use annis_export_core::{CorpusStorage, ExportFormat, QueryConfig, QueryLanguage};
 use serde::Serialize;
 use std::fs::File;
+use std::path::Path;
 
 macro_rules! export_test {
     ($(
         $name:ident: {
-            corpus_path: $corpus_path:expr,
-            corpus_name: $corpus_name:expr,
+            corpus_paths: $corpus_paths:expr,
+            corpus_names: $corpus_names:expr,
             aql_query: $aql_query:expr,
             query_config: {
                 left_context: $left_context:expr,
@@ -20,8 +21,8 @@ macro_rules! export_test {
             #[test]
             fn $name() {
                 let test_data = TestData {
-                    corpus_path: $corpus_path,
-                    corpus_name: $corpus_name,
+                    corpus_paths: &$corpus_paths,
+                    corpus_names: &$corpus_names,
                     aql_query: $aql_query,
                     query_config: TestQueryConfig {
                         left_context: $left_context,
@@ -36,18 +37,20 @@ macro_rules! export_test {
 
                 let storage = CorpusStorage::from_db_dir(tempfile::tempdir().unwrap()).unwrap();
 
-                storage
-                    .import_corpora_from_zip(
-                        File::open(concat!(env!("CARGO_MANIFEST_DIR"), "/tests/data/", $corpus_path)).unwrap(),
-                        |_| (),
-                    )
-                    .unwrap();
+                for corpus_path in $corpus_paths {
+                    storage
+                        .import_corpora_from_zip(
+                            File::open(Path::new(concat!(env!("CARGO_MANIFEST_DIR"), "/tests/data")).join(corpus_path)).unwrap(),
+                            |_| (),
+                        )
+                        .unwrap();
+                }
 
                 let mut export_bytes = Vec::new();
 
                 storage
                     .export_matches(
-                        $corpus_name,
+                        &$corpus_names,
                         $aql_query,
                         QueryConfig {
                             left_context: $left_context,
@@ -80,8 +83,8 @@ macro_rules! export_test {
 
 export_test! {
     subtok_segmentation_tokens: {
-        corpus_path: "subtok.demo_relANNIS.zip",
-        corpus_name: "subtok.demo",
+        corpus_paths: ["subtok.demo_relANNIS.zip"],
+        corpus_names: ["subtok.demo"],
         aql_query: "pos=\"DT\"",
         query_config: {
             left_context: 4,
@@ -91,8 +94,8 @@ export_test! {
         },
     }
     subtok_segmentation_diplomatic: {
-        corpus_path: "subtok.demo_relANNIS.zip",
-        corpus_name: "subtok.demo",
+        corpus_paths: ["subtok.demo_relANNIS.zip"],
+        corpus_names: ["subtok.demo"],
         aql_query: "pos=\"DT\"",
         query_config: {
             left_context: 4,
@@ -102,8 +105,8 @@ export_test! {
         },
     }
     subtok_segmentation_norm: {
-        corpus_path: "subtok.demo_relANNIS.zip",
-        corpus_name: "subtok.demo",
+        corpus_paths: ["subtok.demo_relANNIS.zip"],
+        corpus_names: ["subtok.demo"],
         aql_query: "pos=\"DT\"",
         query_config: {
             left_context: 4,
@@ -113,8 +116,8 @@ export_test! {
         },
     }
     subtok_gap: {
-        corpus_path: "subtok.demo_relANNIS.zip",
-        corpus_name: "subtok.demo",
+        corpus_paths: ["subtok.demo_relANNIS.zip"],
+        corpus_names: ["subtok.demo"],
         aql_query: "pos=\"DT\" .5,5 pos=\"DT\"",
         query_config: {
             left_context: 1,
@@ -123,9 +126,31 @@ export_test! {
             segmentation: None,
         },
     }
+    subtok_varying_number_of_match_nodes: {
+        corpus_paths: ["subtok.demo_relANNIS.zip"],
+        corpus_names: ["subtok.demo"],
+        aql_query: "(pos=\"DT\" .5,5 pos=\"DT\") | pos=\"NN\"",
+        query_config: {
+            left_context: 1,
+            right_context: 1,
+            query_language: AQL,
+            segmentation: None,
+        },
+    }
+    subtok_multiple_corpora: {
+        corpus_paths: ["subtok.demo_relANNIS.zip", "subtok.demo2_relANNIS.zip"],
+        corpus_names: ["subtok.demo", "subtok.demo2"],
+        aql_query: "pos=\"DT\" .5,5 pos=\"DT\"",
+        query_config: {
+            left_context: 1,
+            right_context: 1,
+            query_language: AQL,
+            segmentation: Some("diplomatic"),
+        },
+    }
     pcc2: {
-        corpus_path: "pcc2_v7_relANNIS.zip",
-        corpus_name: "pcc2",
+        corpus_paths: ["pcc2_v7_relANNIS.zip"],
+        corpus_names: ["pcc2"],
         aql_query: "Sent _i_ NP",
         query_config: {
             left_context: 10,
@@ -138,8 +163,8 @@ export_test! {
 
 #[derive(Serialize)]
 struct TestData {
-    corpus_path: &'static str,
-    corpus_name: &'static str,
+    corpus_paths: &'static [&'static str],
+    corpus_names: &'static [&'static str],
     aql_query: &'static str,
     query_config: TestQueryConfig,
 }

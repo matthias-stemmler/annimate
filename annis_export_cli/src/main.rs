@@ -5,7 +5,7 @@ use anyhow::{anyhow, Context};
 use clap::{Parser, Subcommand, ValueEnum};
 use indicatif::{ProgressBar, ProgressStyle};
 use itertools::Itertools;
-use std::{env, fs::File, io::Write, path::PathBuf, str::FromStr};
+use std::{convert::Infallible, env, fs::File, io::Write, ops::Deref, path::PathBuf, str::FromStr};
 use tracing::info;
 
 #[derive(Parser)]
@@ -41,14 +41,14 @@ enum Commands {
 
     /// List all segmentations
     ListSegmentations {
-        /// Name of the corpus to list segmentations for
-        corpus_name: String,
+        /// Names of the corpora (comma-separated) to list segmentations for
+        corpus_names: CorpusNames,
     },
 
     /// Run AQL query and export results
     Query {
-        /// Name of the corpus to run AQL query on
-        corpus_name: String,
+        /// Names of the corpora (comma-separated) to run AQL query on
+        corpus_names: CorpusNames,
 
         /// AQL query to run
         query: String,
@@ -72,8 +72,8 @@ enum Commands {
 
     /// Validate AQL query
     ValidateQuery {
-        /// Name of the corpus to validate AQL query against
-        corpus_name: String,
+        /// Names of the corpora (comma-separated) to validate AQL query against
+        corpus_names: CorpusNames,
 
         /// AQL query to validate
         query: String,
@@ -82,6 +82,25 @@ enum Commands {
         #[arg(short, long, value_enum, default_value_t = QueryLanguage::Aql)]
         language: QueryLanguage,
     },
+}
+
+#[derive(Clone)]
+struct CorpusNames(Vec<String>);
+
+impl Deref for CorpusNames {
+    type Target = [String];
+
+    fn deref(&self) -> &[String] {
+        &self.0
+    }
+}
+
+impl FromStr for CorpusNames {
+    type Err = Infallible;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        Ok(CorpusNames(s.split(',').map(ToString::to_string).collect()))
+    }
 }
 
 #[derive(Clone, Copy)]
@@ -192,16 +211,16 @@ fn main() -> anyhow::Result<()> {
                 println!("{name}");
             }
         }
-        Commands::ListSegmentations { corpus_name } => {
+        Commands::ListSegmentations { corpus_names } => {
             for name in corpus_storage
-                .segmentations(&corpus_name)
+                .segmentations(&corpus_names)
                 .context("Failed to list segmentations")?
             {
                 println!("{name}");
             }
         }
         Commands::Query {
-            corpus_name,
+            corpus_names,
             query,
             output_file,
             context,
@@ -215,7 +234,7 @@ fn main() -> anyhow::Result<()> {
 
             corpus_storage
                 .export_matches(
-                    &corpus_name,
+                    &corpus_names,
                     &query,
                     QueryConfig {
                         left_context: context.left,
@@ -240,12 +259,12 @@ fn main() -> anyhow::Result<()> {
             progress_reporter.finish();
         }
         Commands::ValidateQuery {
-            corpus_name,
+            corpus_names,
             query,
             language,
         } => {
             let result = corpus_storage
-                .validate_query(&corpus_name, &query, language.into())
+                .validate_query(&corpus_names, &query, language.into())
                 .context("Failed to validate query")?;
             match result {
                 QueryValidationResult::Valid => println!("Query is valid"),

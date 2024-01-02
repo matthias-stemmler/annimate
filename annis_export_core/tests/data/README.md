@@ -1,6 +1,12 @@
 # Test corpora
 
-The test corpora were downloaded from the [Demo Corpora for download](https://corpus-tools.org/annis/corpora.html) on the ANNIS website.
-
-- [pcc2](https://corpus-tools.org/corpora/pcc2_v7_relANNIS.zip): Potsdam Commentary Corpus 2
-- [subtok.demo](https://corpus-tools.org/corpora/subtok.demo_relANNIS.zip): Subtoken Demo
+- `pcc2`
+  - Name: : Potsdam Commentary Corpus 2
+  - Source: <https://corpus-tools.org/corpora/pcc2_v7_relANNIS.zip>
+- `subtok.demo`
+  - Name: Subtoken Demo
+  - Source: <https://corpus-tools.org/corpora/subtok.demo_relANNIS.zip>
+- `subtok.demo2`
+  - Name: Subtoken Demo (adapted)
+  - Original source: <https://corpus-tools.org/corpora/subtok.demo_relANNIS.zip>
+  - Adaptation: Renamed corpus and document

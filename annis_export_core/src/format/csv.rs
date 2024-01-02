@@ -134,7 +134,7 @@ impl Iterator for TextColumns {
         while self.parts.peek().map(|p| !p.is_match()).unwrap_or(false) {
             let serialized_part = match self.parts.next() {
                 Some(MatchPart::Context { fragments }) => fragments.join(" "),
-                Some(MatchPart::Gap) => "...".into(),
+                Some(MatchPart::Gap) => "(...)".into(),
                 // TODO use itertools?
                 _ => unreachable!(),
             };
@@ -310,28 +310,28 @@ mod tests {
             {doc_name = "doc1", parts = [(C "111") (G) (C "222") (M "abc") (C "333") (G) (C "444")]}
         ] => "
             Number,Document,Left context,Match
-            1,doc1,111 ... 222,abc
+            1,doc1,111 (...) 222,abc
         "
 
         one_match_node_right_context: context=(0, 1), matches = [
             {doc_name = "doc1", parts = [(C "111") (G) (C "222") (M "abc") (C "333") (G) (C "444")]}
         ] => "
             Number,Document,Match,Right context
-            1,doc1,abc,333 ... 444
+            1,doc1,abc,333 (...) 444
         "
 
         one_match_node_both_contexts: context=(1, 1), matches = [
             {doc_name = "doc1", parts = [(C "111") (G) (C "222") (M "abc") (C "333") (G) (C "444")]}
         ] => "
             Number,Document,Left context,Match,Right context
-            1,doc1,111 ... 222,abc,333 ... 444
+            1,doc1,111 (...) 222,abc,333 (...) 444
         "
 
         one_match_node_multiple_fragments: context=(1, 1), matches = [
             {doc_name = "doc1", parts = [(C "111" "222") (G) (C "333" "444") (M "abc" "def") (C "555" "666") (G) (C "777" "888")]}
         ] => "
             Number,Document,Left context,Match,Right context
-            1,doc1,111 222 ... 333 444,abc def,555 666 ... 777 888
+            1,doc1,111 222 (...) 333 444,abc def,555 666 (...) 777 888
         "
 
         multiple_match_nodes_no_context: context=(0, 0), matches = [
@@ -345,21 +345,21 @@ mod tests {
             {doc_name = "doc1", parts = [(C "111") (G) (C "222") (M "abc") (C "333") (G) (C "444") (M "def") (C "555") (G) (C "666")]}
         ] => "
             Number,Document,Context 1,Match 1,Context 2,Match 2
-            1,doc1,111 ... 222,abc,333 ... 444,def
+            1,doc1,111 (...) 222,abc,333 (...) 444,def
         "
 
         multiple_match_nodes_right_context: context=(0, 1), matches = [
             {doc_name = "doc1", parts = [(C "111") (G) (C "222") (M "abc") (C "333") (G) (C "444") (M "def") (C "555") (G) (C "666")]}
         ] => "
             Number,Document,Match 1,Context 1,Match 2,Context 2
-            1,doc1,abc,333 ... 444,def,555 ... 666
+            1,doc1,abc,333 (...) 444,def,555 (...) 666
         "
 
         multiple_match_nodes_both_contexts: context=(1, 1), matches = [
             {doc_name = "doc1", parts = [(C "111") (G) (C "222") (M "abc") (C "333") (G) (C "444") (M "def") (C "555") (G) (C "666")]}
         ] => "
             Number,Document,Context 1,Match 1,Context 2,Match 2,Context 3
-            1,doc1,111 ... 222,abc,333 ... 444,def,555 ... 666
+            1,doc1,111 (...) 222,abc,333 (...) 444,def,555 (...) 666
         "
 
         multiple_matches_same_number_of_match_nodes: context=(1, 1), matches = [
@@ -368,7 +368,7 @@ mod tests {
         ] => "
             Number,Document,Left context,Match,Right context
             1,doc1,,abc,
-            2,doc2,111 ... 222,def,333 ... 444
+            2,doc2,111 (...) 222,def,333 (...) 444
         "
 
         multiple_matches_different_number_of_match_nodes: context=(1, 1), matches = [
@@ -379,9 +379,9 @@ mod tests {
         ] => "
             Number,Document,Context 1,Match 1,Context 2,Match 2,Context 3
             1,doc1,,abc,,,
-            2,doc1,111 ... 222,def,333 ... 444,,
+            2,doc1,111 (...) 222,def,333 (...) 444,,
             3,doc2,,ghi,,jkl,
-            4,doc2,555 ... 666,mno,777 ... 888,pqr,999 ... 000
+            4,doc2,555 (...) 666,mno,777 (...) 888,pqr,999 (...) 000
         "
     }
 

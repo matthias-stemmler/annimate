@@ -1,8 +1,10 @@
 ---
 source: annis_export_core/tests/export.rs
 info:
-  corpus_path: subtok.demo_relANNIS.zip
-  corpus_name: subtok.demo
+  corpus_paths:
+    - subtok.demo_relANNIS.zip
+  corpus_names:
+    - subtok.demo
   aql_query: "pos=\"DT\""
   query_config:
     left_context: 4
