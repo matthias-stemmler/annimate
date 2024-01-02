@@ -3,7 +3,16 @@ use crate::{
     error::AnnisExportError,
     query::{Match, MatchPart, Query},
 };
-use std::{io::Write, iter::Peekable, ops::Range, vec};
+use itertools::{put_back, PutBack};
+use std::{io::Write, ops::Range, vec};
+
+#[derive(Clone, Copy, Debug)]
+enum ColumnType {
+    Match,
+    Context,
+}
+
+use ColumnType::*;
 
 #[derive(Debug)]
 pub(super) struct CsvExporter;
@@ -21,38 +30,37 @@ impl Exporter for CsvExporter {
         I::IntoIter: ExactSizeIterator,
         W: Write,
     {
-        let max_match_part_count = {
+        let max_match_parts = {
             let matches = matches.clone().into_iter();
             let count = matches.len();
+            let mut max_match_parts = 0;
 
-            let mut max_match_part_count = 0;
-            for (i, m) in matches.into_iter().enumerate() {
-                let match_part_count = m?.parts.into_iter().filter(|p| p.is_match()).count();
-                if match_part_count > max_match_part_count {
-                    max_match_part_count = match_part_count;
+            for (i, m) in matches.enumerate() {
+                let match_parts = m?.parts.into_iter().filter(|p| p.is_match()).count();
+
+                if match_parts > max_match_parts {
+                    max_match_parts = match_parts;
                 }
+
                 on_progress(0.5 * (i + 1) as f32 / count as f32)
             }
-            max_match_part_count
+
+            max_match_parts
         };
 
         let has_left_context = query.config.left_context > 0;
         let has_right_context = query.config.right_context > 0;
-
-        let column_types =
-            ColumnTypes::new(max_match_part_count, has_left_context, has_right_context);
+        let column_types = ColumnTypes::new(max_match_parts, has_left_context, has_right_context);
 
         let mut csv_writer = csv::Writer::from_writer(out);
 
         csv_writer.write_record(["Number".into(), "Document".into()].into_iter().chain(
             column_types.into_iter().map(|c| match c {
-                (ColumnType::Match, _) if max_match_part_count <= 1 => "Match".into(),
-                (ColumnType::Match, i) => format!("Match {}", i + 1),
-                (ColumnType::Context, 0) if max_match_part_count <= 1 && has_left_context => {
-                    "Left context".into()
-                }
-                (ColumnType::Context, _) if max_match_part_count <= 1 => "Right context".into(),
-                (ColumnType::Context, i) => format!("Context {}", i + 1),
+                (Match, _) if max_match_parts <= 1 => "Match".into(),
+                (Match, i) => format!("Match {}", i + 1),
+                (Context, 0) if max_match_parts <= 1 && has_left_context => "Left context".into(),
+                (Context, _) if max_match_parts <= 1 => "Right context".into(),
+                (Context, i) => format!("Context {}", i + 1),
             }),
         ))?;
 
@@ -77,14 +85,14 @@ impl Exporter for CsvExporter {
 
 #[derive(Debug)]
 struct TextColumnsAligned {
-    text_columns: Peekable<TextColumns>,
+    text_columns: PutBack<TextColumns>,
     column_types: ColumnTypesIter,
 }
 
 impl TextColumnsAligned {
     fn new(parts: Vec<MatchPart>, column_types: ColumnTypes) -> Self {
         Self {
-            text_columns: TextColumns::new(parts).peekable(),
+            text_columns: put_back(TextColumns::new(parts)),
             column_types: column_types.into_iter(),
         }
     }
@@ -94,20 +102,18 @@ impl Iterator for TextColumnsAligned {
     type Item = String;
 
     fn next(&mut self) -> Option<Self::Item> {
-        use ColumnType::*;
-
-        let (column_type, _) = self.column_types.next()?;
+        let (required_column_type, _) = self.column_types.next()?;
 
         loop {
-            match (column_type, self.text_columns.peek().map(|(c, _)| *c)) {
-                (Match, Some(Match)) | (Context, Some(Context)) => {
-                    return self.text_columns.next().map(|(_, f)| f);
+            return match (required_column_type, self.text_columns.next()) {
+                (Match, Some((Context, _))) => continue,
+                (Match, Some((Match, f))) | (Context, Some((Context, f))) => Some(f),
+                (Context, Some((Match, f))) => {
+                    self.text_columns.put_back((Match, f));
+                    Some("".into())
                 }
-                (_, None) | (Context, Some(Match)) => return Some("".into()),
-                (Match, Some(Context)) => {
-                    self.text_columns.next();
-                }
-            }
+                (Match | Context, None) => Some("".into()),
+            };
         }
     }
 }
@@ -155,8 +161,8 @@ impl Iterator for TextColumns {
             });
         };
 
-        let context_column = context_column.map(|c| (ColumnType::Context, c));
-        let match_column = match_column.map(|c| (ColumnType::Match, c));
+        let context_column = context_column.map(|c| (Context, c));
+        let match_column = match_column.map(|c| (Match, c));
 
         if let Some(context_column) = context_column {
             self.pending_column = match_column;
@@ -165,12 +171,6 @@ impl Iterator for TextColumns {
             match_column
         }
     }
-}
-
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-enum ColumnType {
-    Match,
-    Context,
 }
 
 #[derive(Clone, Copy, Debug)]
@@ -229,9 +229,9 @@ impl Iterator for ColumnTypesIter {
                 self.has_right_context,
                 column_index % 2,
             ) {
-                (false, false, _) => (ColumnType::Match, column_index),
-                (false, _, 0) | (true, _, 1) => (ColumnType::Match, column_index / 2),
-                _ => (ColumnType::Context, column_index / 2),
+                (false, false, _) => (Match, column_index),
+                (false, _, 0) | (true, _, 1) => (Match, column_index / 2),
+                _ => (Context, column_index / 2),
             },
         )
     }
