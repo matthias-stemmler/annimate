@@ -18,11 +18,9 @@ mod node_name;
 mod query;
 mod util;
 
-pub use aql::QueryNode;
-pub use aql::QueryValidationResult;
-pub use format::ExportFormat;
-pub use query::QueryConfig;
-pub use query::QueryLanguage;
+pub use aql::{QueryNode, QueryValidationResult};
+pub use format::{CsvExportColumn, CsvExportConfig, ExportFormat};
+pub use query::{ExportData, ExportDataText, QueryConfig, QueryLanguage};
 
 pub struct CorpusStorage(graphannis::CorpusStorage);
 
@@ -108,7 +106,7 @@ impl CorpusStorage {
             count: matches.total_count,
         });
 
-        export(format, query, matches, &mut out, |progress| {
+        export(format, matches, &mut out, |progress| {
             on_status(StatusEvent::Exported { progress })
         })?;
 

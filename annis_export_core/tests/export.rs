@@ -1,4 +1,7 @@
-use annis_export_core::{CorpusStorage, ExportFormat, QueryConfig, QueryLanguage};
+use annis_export_core::{
+    CorpusStorage, CsvExportColumn, CsvExportConfig, ExportData, ExportDataText, ExportFormat,
+    QueryConfig, QueryLanguage,
+};
 use serde::Serialize;
 use std::fs::File;
 use std::path::Path;
@@ -61,7 +64,16 @@ macro_rules! export_test {
                             },
                             segmentation: $segmentation.map(|s: &str| s.to_string()),
                         },
-                        ExportFormat::Csv,
+                        ExportFormat::Csv(CsvExportConfig {
+                            columns: vec![
+                                CsvExportColumn::Number,
+                                CsvExportColumn::Data(ExportData::DocName),
+                                CsvExportColumn::Data(ExportData::Text(ExportDataText {
+                                    left_context: $left_context,
+                                    right_context: $right_context,
+                                })),
+                            ],
+                        }),
                         &mut export_bytes,
                         |_| (),
                     )

@@ -1,5 +1,6 @@
 use annis_export_core::{
-    CorpusStorage, ExportFormat, QueryConfig, QueryNode, QueryValidationResult, StatusEvent,
+    CorpusStorage, CsvExportColumn, CsvExportConfig, ExportData, ExportDataText, ExportFormat,
+    QueryConfig, QueryNode, QueryValidationResult, StatusEvent,
 };
 use anyhow::{anyhow, Context};
 use clap::{Parser, Subcommand, ValueEnum};
@@ -242,7 +243,16 @@ fn main() -> anyhow::Result<()> {
                         query_language: language.into(),
                         segmentation,
                     },
-                    ExportFormat::Csv,
+                    ExportFormat::Csv(CsvExportConfig {
+                        columns: vec![
+                            CsvExportColumn::Number,
+                            CsvExportColumn::Data(ExportData::DocName),
+                            CsvExportColumn::Data(ExportData::Text(ExportDataText {
+                                left_context: context.left,
+                                right_context: context.right,
+                            })),
+                        ],
+                    }),
                     &mut out,
                     |event| match event {
                         StatusEvent::Found { count } => println!("Found {count} matches"),

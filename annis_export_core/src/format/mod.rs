@@ -1,20 +1,18 @@
 use self::csv::CsvExporter;
-use crate::{
-    error::AnnisExportError,
-    query::{Match, Query},
-};
+use crate::{error::AnnisExportError, query::Match};
 use std::io::Write;
 
 mod csv;
 
-#[derive(Clone, Copy, Debug)]
+pub use csv::{CsvExportColumn, CsvExportConfig};
+
+#[derive(Debug)]
 pub enum ExportFormat {
-    Csv,
+    Csv(CsvExportConfig),
 }
 
 pub(crate) fn export<F, I, W>(
     export_format: ExportFormat,
-    query: Query,
     matches: I,
     out: W,
     on_progress: F,
@@ -26,13 +24,15 @@ where
     W: Write,
 {
     match export_format {
-        ExportFormat::Csv => CsvExporter::export(query, matches, out, on_progress),
+        ExportFormat::Csv(config) => CsvExporter::export(config, matches, out, on_progress),
     }
 }
 
 trait Exporter {
+    type Config;
+
     fn export<F, I, W>(
-        query: Query,
+        config: Self::Config,
         matches: I,
         out: W,
         on_progress: F,

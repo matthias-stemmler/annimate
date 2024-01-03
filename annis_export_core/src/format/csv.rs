@@ -1,7 +1,7 @@
 use super::Exporter;
 use crate::{
     error::AnnisExportError,
-    query::{Match, MatchPart, Query},
+    query::{ExportData, ExportDataText, Match, MatchPart},
 };
 use itertools::{put_back, PutBack};
 use std::{io::Write, ops::Range, vec};
@@ -17,9 +17,22 @@ use ColumnType::*;
 #[derive(Debug)]
 pub(super) struct CsvExporter;
 
+#[derive(Debug)]
+pub struct CsvExportConfig {
+    pub columns: Vec<CsvExportColumn>,
+}
+
+#[derive(Debug)]
+pub enum CsvExportColumn {
+    Number,
+    Data(ExportData),
+}
+
 impl Exporter for CsvExporter {
+    type Config = CsvExportConfig;
+
     fn export<F, I, W>(
-        query: Query,
+        config: CsvExportConfig,
         matches: I,
         out: W,
         mut on_progress: F,
@@ -48,21 +61,28 @@ impl Exporter for CsvExporter {
             max_match_parts
         };
 
-        let has_left_context = query.config.left_context > 0;
-        let has_right_context = query.config.right_context > 0;
-        let column_types = ColumnTypes::new(max_match_parts, has_left_context, has_right_context);
-
         let mut csv_writer = csv::Writer::from_writer(out);
 
-        csv_writer.write_record(["Number".into(), "Document".into()].into_iter().chain(
-            column_types.into_iter().map(|c| match c {
-                (Match, _) if max_match_parts <= 1 => "Match".into(),
-                (Match, i) => format!("Match {}", i + 1),
-                (Context, 0) if max_match_parts <= 1 && has_left_context => "Left context".into(),
-                (Context, _) if max_match_parts <= 1 => "Right context".into(),
-                (Context, i) => format!("Context {}", i + 1),
-            }),
-        ))?;
+        csv_writer.write_record(config.columns.iter().flat_map(|c| match c {
+            CsvExportColumn::Number => vec!["Number".into()],
+            CsvExportColumn::Data(ExportData::DocName) => vec!["Document".into()],
+            CsvExportColumn::Data(ExportData::Text(data)) => {
+                let column_types = ColumnTypes::new(max_match_parts, data);
+
+                column_types
+                    .into_iter()
+                    .map(|c| match c {
+                        (Match, _) if max_match_parts <= 1 => "Match".into(),
+                        (Match, i) => format!("Match {}", i + 1),
+                        (Context, 0) if max_match_parts <= 1 && data.has_left_context() => {
+                            "Left context".into()
+                        }
+                        (Context, _) if max_match_parts <= 1 => "Right context".into(),
+                        (Context, i) => format!("Context {}", i + 1),
+                    })
+                    .collect()
+            }
+        }))?;
 
         let matches = matches.into_iter();
         let count = matches.len();
@@ -70,11 +90,14 @@ impl Exporter for CsvExporter {
         for (i, m) in matches.enumerate() {
             let Match { doc_name, parts } = m?;
 
-            csv_writer.write_record(
-                [(i + 1).to_string(), doc_name]
-                    .into_iter()
-                    .chain(TextColumnsAligned::new(parts, column_types)),
-            )?;
+            csv_writer.write_record(config.columns.iter().flat_map(|c| match c {
+                CsvExportColumn::Number => vec![(i + 1).to_string()],
+                CsvExportColumn::Data(ExportData::DocName) => vec![doc_name.clone()],
+                CsvExportColumn::Data(ExportData::Text(export_data_text)) => {
+                    let column_types = ColumnTypes::new(max_match_parts, export_data_text);
+                    TextColumnsAligned::new(parts.clone(), column_types).collect()
+                }
+            }))?;
 
             on_progress(0.5 + 0.5 * (i + 1) as f32 / count as f32)
         }
@@ -181,7 +204,10 @@ struct ColumnTypes {
 }
 
 impl ColumnTypes {
-    fn new(match_count: usize, has_left_context: bool, has_right_context: bool) -> Self {
+    fn new(match_count: usize, data: &ExportDataText) -> Self {
+        let has_left_context = data.has_left_context();
+        let has_right_context = data.has_right_context();
+
         let column_count = match (match_count, has_left_context, has_right_context) {
             (0, _, _) => 0,
             (n, false, false) => n,
@@ -259,11 +285,16 @@ mod tests {
                 let mut result = Vec::new();
 
                 CsvExporter::export(
-                    Query::new("", crate::QueryConfig {
-                        left_context: $left_context,
-                        right_context: $right_context,
-                        ..Default::default()
-                    }),
+                    CsvExportConfig {
+                        columns: vec![
+                            CsvExportColumn::Number,
+                            CsvExportColumn::Data(ExportData::DocName),
+                            CsvExportColumn::Data(ExportData::Text(ExportDataText {
+                                left_context: $left_context,
+                                right_context: $right_context,
+                            })),
+                        ],
+                    },
                     TestMatches([
                         $(Match {
                             doc_name: $doc_name.into(),

@@ -31,6 +31,28 @@ pub use graphannis::corpusstorage::QueryLanguage;
 
 const PAGE_SIZE: usize = 10;
 
+#[derive(Debug)]
+pub enum ExportData {
+    DocName,
+    Text(ExportDataText),
+}
+
+#[derive(Debug)]
+pub struct ExportDataText {
+    pub left_context: usize,
+    pub right_context: usize,
+}
+
+impl ExportDataText {
+    pub(crate) fn has_left_context(&self) -> bool {
+        self.left_context > 0
+    }
+
+    pub(crate) fn has_right_context(&self) -> bool {
+        self.right_context > 0
+    }
+}
+
 #[derive(Clone, Debug)]
 pub(crate) struct Query<'a> {
     pub(crate) aql_query: &'a str,
