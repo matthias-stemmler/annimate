@@ -1,7 +1,8 @@
 use annis_export_core::{
-    CorpusStorage, CsvExportColumn, CsvExportConfig, ExportData, ExportDataText, ExportFormat,
-    QueryConfig, QueryLanguage,
+    CorpusStorage, CsvExportColumn, CsvExportConfig, ExportData, ExportDataAnno, ExportDataText,
+    ExportFormat, QueryLanguage,
 };
+use itertools::Itertools;
 use serde::Serialize;
 use std::fs::File;
 use std::path::Path;
@@ -12,12 +13,8 @@ macro_rules! export_test {
             corpus_paths: $corpus_paths:expr,
             corpus_names: $corpus_names:expr,
             aql_query: $aql_query:expr,
-            query_config: {
-                left_context: $left_context:expr,
-                right_context: $right_context:expr,
-                query_language: $query_language:expr,
-                segmentation: $segmentation:expr,
-            },
+            query_language: $query_language:expr,
+            export_columns: [$($export_columns:expr,)*],
         }
     )*) => {
         $(
@@ -27,20 +24,20 @@ macro_rules! export_test {
                     corpus_paths: &$corpus_paths,
                     corpus_names: &$corpus_names,
                     aql_query: $aql_query,
-                    query_config: TestQueryConfig {
-                        left_context: $left_context,
-                        right_context: $right_context,
-                        query_language: {
-                            use QueryLanguage::*;
-                            $query_language
-                        },
-                        segmentation: $segmentation,
-                    }
+                    query_language: {
+                        use QueryLanguage::*;
+                        $query_language
+                    },
+                    export_columns: {
+                        use TestCsvExportColumn::*;
+                        use TestExportData::*;
+                        vec![$($export_columns,)*]
+                    },
                 };
 
                 let storage = CorpusStorage::from_db_dir(tempfile::tempdir().unwrap()).unwrap();
 
-                for corpus_path in $corpus_paths {
+                for corpus_path in test_data.corpus_paths {
                     storage
                         .import_corpora_from_zip(
                             File::open(Path::new(concat!(env!("CARGO_MANIFEST_DIR"), "/tests/data")).join(corpus_path)).unwrap(),
@@ -53,26 +50,11 @@ macro_rules! export_test {
 
                 storage
                     .export_matches(
-                        &$corpus_names,
-                        $aql_query,
-                        QueryConfig {
-                            left_context: $left_context,
-                            right_context: $right_context,
-                            query_language: {
-                                use QueryLanguage::*;
-                                $query_language
-                            },
-                            segmentation: $segmentation.map(|s: &str| s.to_string()),
-                        },
+                        test_data.corpus_names,
+                        test_data.aql_query,
+                        test_data.query_language,
                         ExportFormat::Csv(CsvExportConfig {
-                            columns: vec![
-                                CsvExportColumn::Number,
-                                CsvExportColumn::Data(ExportData::DocName),
-                                CsvExportColumn::Data(ExportData::Text(ExportDataText {
-                                    left_context: $left_context,
-                                    right_context: $right_context,
-                                })),
-                            ],
+                            columns: test_data.export_columns.clone().into_iter().map_into().collect(),
                         }),
                         &mut export_bytes,
                         |_| (),
@@ -98,78 +80,106 @@ export_test! {
         corpus_paths: ["subtok.demo_relANNIS.zip"],
         corpus_names: ["subtok.demo"],
         aql_query: "pos=\"DT\"",
-        query_config: {
-            left_context: 4,
-            right_context: 4,
-            query_language: AQL,
-            segmentation: None,
-        },
+        query_language: AQL,
+        export_columns: [
+            Number,
+            Data(Anno(TestExportDataAnno::DocName)),
+            Data(Text(TestExportDataText {
+                left_context: 4,
+                right_context: 4,
+                segmentation: None,
+            })),
+        ],
     }
     subtok_segmentation_diplomatic: {
         corpus_paths: ["subtok.demo_relANNIS.zip"],
         corpus_names: ["subtok.demo"],
         aql_query: "pos=\"DT\"",
-        query_config: {
-            left_context: 4,
-            right_context: 4,
-            query_language: AQL,
-            segmentation: Some("diplomatic"),
-        },
+        query_language: AQL,
+        export_columns: [
+            Number,
+            Data(Anno(TestExportDataAnno::DocName)),
+            Data(Text(TestExportDataText {
+                left_context: 4,
+                right_context: 4,
+                segmentation: Some("diplomatic"),
+            })),
+        ],
     }
     subtok_segmentation_norm: {
         corpus_paths: ["subtok.demo_relANNIS.zip"],
         corpus_names: ["subtok.demo"],
         aql_query: "pos=\"DT\"",
-        query_config: {
-            left_context: 4,
-            right_context: 4,
-            query_language: AQL,
-            segmentation: Some("norm"),
-        },
+        query_language: AQL,
+        export_columns: [
+            Number,
+            Data(Anno(TestExportDataAnno::DocName)),
+            Data(Text(TestExportDataText {
+                left_context: 4,
+                right_context: 4,
+                segmentation: Some("norm"),
+            })),
+        ],
     }
     subtok_gap: {
         corpus_paths: ["subtok.demo_relANNIS.zip"],
         corpus_names: ["subtok.demo"],
         aql_query: "pos=\"DT\" .5,5 pos=\"DT\"",
-        query_config: {
-            left_context: 1,
-            right_context: 1,
-            query_language: AQL,
-            segmentation: None,
-        },
+        query_language: AQL,
+        export_columns: [
+            Number,
+            Data(Anno(TestExportDataAnno::DocName)),
+            Data(Text(TestExportDataText {
+                left_context: 1,
+                right_context: 1,
+                segmentation: None,
+            })),
+        ],
     }
     subtok_varying_number_of_match_nodes: {
         corpus_paths: ["subtok.demo_relANNIS.zip"],
         corpus_names: ["subtok.demo"],
         aql_query: "(pos=\"DT\" .5,5 pos=\"DT\") | pos=\"NN\"",
-        query_config: {
-            left_context: 1,
-            right_context: 1,
-            query_language: AQL,
-            segmentation: None,
-        },
+        query_language: AQL,
+        export_columns: [
+            Number,
+            Data(Anno(TestExportDataAnno::DocName)),
+            Data(Text(TestExportDataText {
+                left_context: 1,
+                right_context: 1,
+                segmentation: None,
+            })),
+        ],
     }
     subtok_multiple_corpora: {
         corpus_paths: ["subtok.demo_relANNIS.zip", "subtok.demo2_relANNIS.zip"],
         corpus_names: ["subtok.demo", "subtok.demo2"],
         aql_query: "pos=\"DT\" .5,5 pos=\"DT\"",
-        query_config: {
-            left_context: 1,
-            right_context: 1,
-            query_language: AQL,
-            segmentation: Some("diplomatic"),
-        },
+        query_language: AQL,
+        export_columns: [
+            Number,
+            Data(Anno(TestExportDataAnno::DocName)),
+            Data(Text(TestExportDataText {
+                left_context: 1,
+                right_context: 1,
+                segmentation: Some("diplomatic"),
+            })),
+        ],
     }
     pcc2: {
         corpus_paths: ["pcc2_v7_relANNIS.zip"],
         corpus_names: ["pcc2"],
         aql_query: "Sent _i_ NP",
-        query_config: {
-            left_context: 10,
-            right_context: 10,
-            query_language: AQL,
-            segmentation: None,
-        },
+        query_language: AQL,
+        export_columns: [
+            Number,
+            Data(Anno(TestExportDataAnno::DocName)),
+            Data(Text(TestExportDataText {
+                left_context: 10,
+                right_context: 10,
+                segmentation: None,
+            })),
+        ],
     }
 }
 
@@ -178,13 +188,52 @@ struct TestData {
     corpus_paths: &'static [&'static str],
     corpus_names: &'static [&'static str],
     aql_query: &'static str,
-    query_config: TestQueryConfig,
+    query_language: QueryLanguage,
+    export_columns: Vec<TestCsvExportColumn>,
 }
 
-#[derive(Serialize)]
-struct TestQueryConfig {
-    left_context: usize,
-    right_context: usize,
-    query_language: QueryLanguage,
-    segmentation: Option<&'static str>,
+#[derive(Clone, Serialize)]
+enum TestCsvExportColumn {
+    Number,
+    Data(TestExportData),
+}
+
+#[derive(Clone, Serialize)]
+enum TestExportData {
+    Anno(TestExportDataAnno),
+    Text(TestExportDataText),
+}
+
+#[derive(Clone, Serialize)]
+enum TestExportDataAnno {
+    DocName,
+}
+
+#[derive(Clone, Serialize)]
+struct TestExportDataText {
+    pub left_context: usize,
+    pub right_context: usize,
+    pub segmentation: Option<&'static str>,
+}
+
+impl From<TestCsvExportColumn> for CsvExportColumn {
+    fn from(column: TestCsvExportColumn) -> Self {
+        match column {
+            TestCsvExportColumn::Number => CsvExportColumn::Number,
+            TestCsvExportColumn::Data(data) => CsvExportColumn::Data(match data {
+                TestExportData::Anno(TestExportDataAnno::DocName) => {
+                    ExportData::Anno(ExportDataAnno::DocName)
+                }
+                TestExportData::Text(TestExportDataText {
+                    left_context,
+                    right_context,
+                    segmentation,
+                }) => ExportData::Text(ExportDataText {
+                    left_context,
+                    right_context,
+                    segmentation: segmentation.map(|s| s.to_string()),
+                }),
+            }),
+        }
+    }
 }

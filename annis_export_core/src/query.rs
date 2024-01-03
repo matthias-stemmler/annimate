@@ -31,16 +31,22 @@ pub use graphannis::corpusstorage::QueryLanguage;
 
 const PAGE_SIZE: usize = 10;
 
-#[derive(Debug)]
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub enum ExportData {
-    DocName,
+    Anno(ExportDataAnno),
     Text(ExportDataText),
 }
 
-#[derive(Debug)]
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
+pub enum ExportDataAnno {
+    DocName,
+}
+
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct ExportDataText {
     pub left_context: usize,
     pub right_context: usize,
+    pub segmentation: Option<String>,
 }
 
 impl ExportDataText {
@@ -53,38 +59,22 @@ impl ExportDataText {
     }
 }
 
-#[derive(Clone, Debug)]
-pub(crate) struct Query<'a> {
-    pub(crate) aql_query: &'a str,
-    pub(crate) config: QueryConfig,
-}
-
-impl<'a> Query<'a> {
-    pub(crate) fn new(aql_query: &'a str, config: QueryConfig) -> Self {
-        Self { aql_query, config }
-    }
-}
-
-#[derive(Clone, Debug, Default)]
-pub struct QueryConfig {
-    pub left_context: usize,
-    pub right_context: usize,
-    pub query_language: QueryLanguage,
-    pub segmentation: Option<String>,
-}
-
 pub(crate) struct MatchesPaginated<'a, S> {
     corpus_ref: CorpusRef<'a, S>,
-    query: Query<'a>,
-    fragment_anno_key: AnnoKey,
+    aql_query: &'a str,
+    query_language: QueryLanguage,
+    export_data: HashSet<ExportData>,
+    fragment_anno_keys: HashMap<Option<String>, AnnoKey>,
 }
 
 impl<S> Clone for MatchesPaginated<'_, S> {
     fn clone(&self) -> Self {
         Self {
             corpus_ref: self.corpus_ref,
-            query: self.query.clone(),
-            fragment_anno_key: self.fragment_anno_key.clone(),
+            aql_query: self.aql_query,
+            query_language: self.query_language,
+            export_data: self.export_data.clone(),
+            fragment_anno_keys: self.fragment_anno_keys.clone(),
         }
     }
 }
@@ -95,15 +85,29 @@ where
 {
     pub(crate) fn new(
         corpus_ref: CorpusRef<'a, S>,
-        query: Query<'a>,
+        aql_query: &'a str,
+        query_language: QueryLanguage,
+        export_data: HashSet<ExportData>,
     ) -> Result<Self, AnnisExportError> {
-        let fragment_anno_key =
-            get_anno_key_for_segmentation(corpus_ref, query.config.segmentation.as_deref())?;
+        let mut fragment_anno_keys = HashMap::new();
+
+        for data in &export_data {
+            if let ExportData::Text(text) = data {
+                if !fragment_anno_keys.contains_key(&text.segmentation) {
+                    fragment_anno_keys.insert(
+                        text.segmentation.clone(),
+                        get_anno_key_for_segmentation(corpus_ref, text.segmentation.as_deref())?,
+                    );
+                }
+            }
+        }
 
         Ok(Self {
             corpus_ref,
-            query,
-            fragment_anno_key,
+            aql_query,
+            query_language,
+            export_data,
+            fragment_anno_keys,
         })
     }
 
@@ -114,8 +118,8 @@ where
     fn search_query(&'a self) -> SearchQuery<'a, S> {
         SearchQuery {
             corpus_names: self.corpus_ref.names,
-            query: self.query.aql_query,
-            query_language: self.query.config.query_language,
+            query: self.aql_query,
+            query_language: self.query_language,
             timeout: None,
         }
     }
@@ -158,12 +162,12 @@ where
 
         match result {
             Ok(match_ids) if match_ids.is_empty() => None,
-            Ok(match_ids) => Some(Ok(MatchesPage::new(
-                self.matches_paginated.corpus_ref,
-                self.matches_paginated.query.config.clone(),
-                self.matches_paginated.fragment_anno_key.clone(),
-                match_ids,
-            ))),
+            Ok(match_ids) => Some(Ok(MatchesPage {
+                corpus_ref: self.matches_paginated.corpus_ref,
+                export_data: self.matches_paginated.export_data.clone(),
+                fragment_anno_keys: self.matches_paginated.fragment_anno_keys.clone(),
+                match_ids_iter: match_ids.into_iter(),
+            })),
             Err(err) => Some(Err(err)),
         }
     }
@@ -171,25 +175,9 @@ where
 
 pub(crate) struct MatchesPage<'a, S> {
     corpus_ref: CorpusRef<'a, S>,
-    query_config: QueryConfig,
-    fragment_anno_key: AnnoKey,
+    export_data: HashSet<ExportData>,
+    fragment_anno_keys: HashMap<Option<String>, AnnoKey>,
     match_ids_iter: vec::IntoIter<String>,
-}
-
-impl<'a, S> MatchesPage<'a, S> {
-    fn new(
-        corpus_ref: CorpusRef<'a, S>,
-        query_config: QueryConfig,
-        fragment_anno_key: AnnoKey,
-        match_ids: Vec<String>,
-    ) -> Self {
-        Self {
-            corpus_ref,
-            query_config,
-            fragment_anno_key,
-            match_ids_iter: match_ids.into_iter(),
-        }
-    }
 }
 
 impl<S> Iterator for MatchesPage<'_, S> {
@@ -205,29 +193,45 @@ impl<S> MatchesPage<'_, S> {
     fn match_id_to_match(&self, match_id: String) -> Result<Match, AnnisExportError> {
         let match_node_names = node_names_from_match(&match_id);
 
-        Ok(Match {
-            doc_name: node_name::get_doc_name(&match_node_names[0]).into(),
-            parts: get_parts(
-                self.corpus_ref,
-                match_node_names,
-                self.query_config.left_context,
-                self.query_config.right_context,
-                self.query_config.segmentation.clone(),
-                self.fragment_anno_key.clone(),
-            )?,
-        })
+        let mut annos = HashMap::new();
+        let mut texts = HashMap::new();
+
+        for d in &self.export_data {
+            match d {
+                ExportData::Anno(ExportDataAnno::DocName) => {
+                    annos.insert(
+                        ExportDataAnno::DocName,
+                        node_name::get_doc_name(&match_node_names[0]).into(),
+                    );
+                }
+                ExportData::Text(text) => {
+                    texts.insert(
+                        text.clone(),
+                        get_parts(
+                            self.corpus_ref,
+                            match_node_names.clone(),
+                            text.left_context,
+                            text.right_context,
+                            text.segmentation.clone(),
+                            self.fragment_anno_keys.get(&text.segmentation).unwrap(),
+                        )?,
+                    );
+                }
+            }
+        }
+
+        Ok(Match { annos, texts })
     }
 }
 
 #[derive(Debug, Clone)]
 pub(crate) struct Match {
-    // TODO add metadata, also take doc_name from metadata
-    pub(crate) doc_name: String,
-    pub(crate) parts: Vec<MatchPart>,
+    pub(crate) annos: HashMap<ExportDataAnno, String>,
+    pub(crate) texts: HashMap<ExportDataText, Vec<TextPart>>,
 }
 
 #[derive(Debug, Clone)]
-pub(crate) enum MatchPart {
+pub(crate) enum TextPart {
     Match {
         index: usize,
         fragments: Vec<String>,
@@ -238,9 +242,9 @@ pub(crate) enum MatchPart {
     Gap,
 }
 
-impl MatchPart {
+impl TextPart {
     pub(crate) fn is_match(&self) -> bool {
-        matches!(self, MatchPart::Match { .. })
+        matches!(self, TextPart::Match { .. })
     }
 }
 
@@ -250,8 +254,8 @@ fn get_parts<S>(
     left_context: usize,
     right_context: usize,
     segmentation: Option<String>,
-    fragment_anno_key: AnnoKey,
-) -> Result<Vec<MatchPart>, AnnisExportError> {
+    fragment_anno_key: &AnnoKey,
+) -> Result<Vec<TextPart>, AnnisExportError> {
     #[derive(Debug)]
     struct Chain {
         token_ids: Vec<NodeID>,
@@ -360,7 +364,7 @@ fn get_parts<S>(
 
     for chain in chains_in_order {
         if !parts.is_empty() {
-            parts.push(MatchPart::Gap);
+            parts.push(TextPart::Gap);
         }
 
         let get_fragment = |token_id: &NodeID| {
@@ -369,7 +373,7 @@ fn get_parts<S>(
                 .find_map(|node_id| {
                     node_id
                         .and_then(|node_id| {
-                            node_annos.get_value_for_item(&node_id, &fragment_anno_key)
+                            node_annos.get_value_for_item(&node_id, fragment_anno_key)
                         })
                         .transpose()
                 })
@@ -396,49 +400,49 @@ fn get_parts<S>(
 
             current_part = Some(match (current_part.take(), match_node_index) {
                 (
-                    Some(MatchPart::Match {
+                    Some(TextPart::Match {
                         index,
                         mut fragments,
                     }),
                     Some(match_node_index),
-                ) if index == match_node_index => MatchPart::Match {
+                ) if index == match_node_index => TextPart::Match {
                     index,
                     fragments: {
                         fragments.push(fragment);
                         fragments
                     },
                 },
-                (Some(MatchPart::Match { index, fragments }), Some(match_node_index)) => {
-                    parts.push(MatchPart::Match { index, fragments });
-                    MatchPart::Match {
+                (Some(TextPart::Match { index, fragments }), Some(match_node_index)) => {
+                    parts.push(TextPart::Match { index, fragments });
+                    TextPart::Match {
                         index: match_node_index,
                         fragments: vec![fragment],
                     }
                 }
-                (Some(MatchPart::Match { index, fragments }), None) => {
-                    parts.push(MatchPart::Match { index, fragments });
-                    MatchPart::Context {
+                (Some(TextPart::Match { index, fragments }), None) => {
+                    parts.push(TextPart::Match { index, fragments });
+                    TextPart::Context {
                         fragments: vec![fragment],
                     }
                 }
-                (Some(MatchPart::Context { fragments }), Some(match_node_index)) => {
-                    parts.push(MatchPart::Context { fragments });
-                    MatchPart::Match {
+                (Some(TextPart::Context { fragments }), Some(match_node_index)) => {
+                    parts.push(TextPart::Context { fragments });
+                    TextPart::Match {
                         index: match_node_index,
                         fragments: vec![fragment],
                     }
                 }
-                (Some(MatchPart::Context { mut fragments }), None) => MatchPart::Context {
+                (Some(TextPart::Context { mut fragments }), None) => TextPart::Context {
                     fragments: {
                         fragments.push(fragment);
                         fragments
                     },
                 },
-                (_, Some(index)) => MatchPart::Match {
+                (_, Some(index)) => TextPart::Match {
                     index,
                     fragments: vec![fragment],
                 },
-                (_, None) => MatchPart::Context {
+                (_, None) => TextPart::Context {
                     fragments: vec![fragment],
                 },
             });

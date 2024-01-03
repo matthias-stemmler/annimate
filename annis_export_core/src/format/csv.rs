@@ -1,10 +1,10 @@
 use super::Exporter;
 use crate::{
     error::AnnisExportError,
-    query::{ExportData, ExportDataText, Match, MatchPart},
+    query::{ExportData, ExportDataAnno, ExportDataText, Match, TextPart},
 };
 use itertools::{put_back, PutBack};
-use std::{io::Write, ops::Range, vec};
+use std::{collections::HashMap, io::Write, ops::Range, vec};
 
 #[derive(Clone, Copy, Debug)]
 enum ColumnType {
@@ -28,11 +28,27 @@ pub enum CsvExportColumn {
     Data(ExportData),
 }
 
+impl CsvExportColumn {
+    fn unwrap_data(&self) -> Option<&ExportData> {
+        match self {
+            CsvExportColumn::Data(data) => Some(data),
+            _ => None,
+        }
+    }
+}
+
 impl Exporter for CsvExporter {
     type Config = CsvExportConfig;
 
+    fn get_export_data(config: &CsvExportConfig) -> impl Iterator<Item = &ExportData> {
+        config
+            .columns
+            .iter()
+            .filter_map(CsvExportColumn::unwrap_data)
+    }
+
     fn export<F, I, W>(
-        config: CsvExportConfig,
+        config: &CsvExportConfig,
         matches: I,
         out: W,
         mut on_progress: F,
@@ -43,42 +59,53 @@ impl Exporter for CsvExporter {
         I::IntoIter: ExactSizeIterator,
         W: Write,
     {
-        let max_match_parts = {
+        let max_match_parts_by_text = {
             let matches = matches.clone().into_iter();
             let count = matches.len();
-            let mut max_match_parts = 0;
+            let mut max_match_parts_by_text = HashMap::new();
 
             for (i, m) in matches.enumerate() {
-                let match_parts = m?.parts.into_iter().filter(|p| p.is_match()).count();
-
-                if match_parts > max_match_parts {
-                    max_match_parts = match_parts;
+                for (text, parts) in m?.texts {
+                    let match_parts = parts.into_iter().filter(|p| p.is_match()).count();
+                    let max_match_parts = max_match_parts_by_text.entry(text).or_insert(0);
+                    if match_parts > *max_match_parts {
+                        *max_match_parts = match_parts;
+                    }
                 }
 
                 on_progress(0.5 * (i + 1) as f32 / count as f32)
             }
 
-            max_match_parts
+            max_match_parts_by_text
         };
 
         let mut csv_writer = csv::Writer::from_writer(out);
 
         csv_writer.write_record(config.columns.iter().flat_map(|c| match c {
             CsvExportColumn::Number => vec!["Number".into()],
-            CsvExportColumn::Data(ExportData::DocName) => vec!["Document".into()],
-            CsvExportColumn::Data(ExportData::Text(data)) => {
-                let column_types = ColumnTypes::new(max_match_parts, data);
+            CsvExportColumn::Data(ExportData::Anno(ExportDataAnno::DocName)) => {
+                vec!["Document".into()]
+            }
+            CsvExportColumn::Data(ExportData::Text(text)) => {
+                let max_match_parts = *max_match_parts_by_text.get(text).unwrap_or(&0);
+                let column_types = ColumnTypes::new(max_match_parts, text);
 
                 column_types
                     .into_iter()
-                    .map(|c| match c {
-                        (Match, _) if max_match_parts <= 1 => "Match".into(),
-                        (Match, i) => format!("Match {}", i + 1),
-                        (Context, 0) if max_match_parts <= 1 && data.has_left_context() => {
-                            "Left context".into()
-                        }
-                        (Context, _) if max_match_parts <= 1 => "Right context".into(),
-                        (Context, i) => format!("Context {}", i + 1),
+                    .map(|c| {
+                        format!(
+                            "{} ({})",
+                            match c {
+                                (Match, _) if max_match_parts <= 1 => "Match".into(),
+                                (Match, i) => format!("Match {}", i + 1),
+                                (Context, 0) if max_match_parts <= 1 && text.has_left_context() => {
+                                    "Left context".into()
+                                }
+                                (Context, _) if max_match_parts <= 1 => "Right context".into(),
+                                (Context, i) => format!("Context {}", i + 1),
+                            },
+                            text.segmentation.as_deref().unwrap_or("tokens")
+                        )
                     })
                     .collect()
             }
@@ -88,14 +115,18 @@ impl Exporter for CsvExporter {
         let count = matches.len();
 
         for (i, m) in matches.enumerate() {
-            let Match { doc_name, parts } = m?;
+            let Match { annos, texts } = m?;
 
             csv_writer.write_record(config.columns.iter().flat_map(|c| match c {
                 CsvExportColumn::Number => vec![(i + 1).to_string()],
-                CsvExportColumn::Data(ExportData::DocName) => vec![doc_name.clone()],
-                CsvExportColumn::Data(ExportData::Text(export_data_text)) => {
-                    let column_types = ColumnTypes::new(max_match_parts, export_data_text);
-                    TextColumnsAligned::new(parts.clone(), column_types).collect()
+                CsvExportColumn::Data(ExportData::Anno(anno)) => {
+                    vec![annos.get(anno).unwrap().clone()]
+                }
+                CsvExportColumn::Data(ExportData::Text(text)) => {
+                    let max_match_parts = *max_match_parts_by_text.get(text).unwrap();
+                    let parts = texts.get(text).unwrap().clone();
+                    let column_types = ColumnTypes::new(max_match_parts, text);
+                    TextColumnsAligned::new(parts, column_types).collect()
                 }
             }))?;
 
@@ -113,7 +144,7 @@ struct TextColumnsAligned {
 }
 
 impl TextColumnsAligned {
-    fn new(parts: Vec<MatchPart>, column_types: ColumnTypes) -> Self {
+    fn new(parts: Vec<TextPart>, column_types: ColumnTypes) -> Self {
         Self {
             text_columns: put_back(TextColumns::new(parts)),
             column_types: column_types.into_iter(),
@@ -143,12 +174,12 @@ impl Iterator for TextColumnsAligned {
 
 #[derive(Debug)]
 struct TextColumns {
-    parts: vec::IntoIter<MatchPart>,
+    parts: vec::IntoIter<TextPart>,
     pending_column: Option<(ColumnType, String)>,
 }
 
 impl TextColumns {
-    fn new(parts: Vec<MatchPart>) -> Self {
+    fn new(parts: Vec<TextPart>) -> Self {
         Self {
             parts: parts.into_iter(),
             pending_column: None,
@@ -168,9 +199,9 @@ impl Iterator for TextColumns {
 
         let match_column = loop {
             let serialized_part = match self.parts.next() {
-                Some(MatchPart::Match { fragments, .. }) => break Some(fragments.join(" ")),
-                Some(MatchPart::Context { fragments }) => fragments.join(" "),
-                Some(MatchPart::Gap) => "(...)".into(),
+                Some(TextPart::Match { fragments, .. }) => break Some(fragments.join(" ")),
+                Some(TextPart::Context { fragments }) => fragments.join(" "),
+                Some(TextPart::Gap) => "(...)".into(),
                 None => break None,
             };
 
@@ -284,21 +315,24 @@ mod tests {
             fn $name() {
                 let mut result = Vec::new();
 
+                let text = ExportDataText {
+                    left_context: $left_context,
+                    right_context: $right_context,
+                    segmentation: None,
+                };
+
                 CsvExporter::export(
-                    CsvExportConfig {
+                    &CsvExportConfig {
                         columns: vec![
                             CsvExportColumn::Number,
-                            CsvExportColumn::Data(ExportData::DocName),
-                            CsvExportColumn::Data(ExportData::Text(ExportDataText {
-                                left_context: $left_context,
-                                right_context: $right_context,
-                            })),
+                            CsvExportColumn::Data(ExportData::Anno(ExportDataAnno::DocName)),
+                            CsvExportColumn::Data(ExportData::Text(text.clone())),
                         ],
                     },
                     TestMatches([
                         $(Match {
-                            doc_name: $doc_name.into(),
-                            parts: [ $(csv_exporter_test!(@expand_part $part)),* ].into_iter().collect(),
+                            annos: [(ExportDataAnno::DocName, $doc_name.into())].into(),
+                            texts: [(text.clone(), [ $(csv_exporter_test!(@expand_part $part)),* ].into())].into(),
                         }),*
                     ]),
                     &mut result,
@@ -312,9 +346,9 @@ mod tests {
             }
         )* };
 
-        (@expand_part (C $($t:expr)*)) => { MatchPart::Context { fragments: vec![$($t.into()),*] } };
-        (@expand_part (M $($t:expr)*)) => { MatchPart::Match { index: 0, fragments: vec![$($t.into()),*] } };
-        (@expand_part (G)) => { MatchPart::Gap };
+        (@expand_part (C $($t:expr)*)) => { TextPart::Context { fragments: vec![$($t.into()),*] } };
+        (@expand_part (M $($t:expr)*)) => { TextPart::Match { index: 0, fragments: vec![$($t.into()),*] } };
+        (@expand_part (G)) => { TextPart::Gap };
     }
 
     csv_exporter_test! {
@@ -339,63 +373,63 @@ mod tests {
         one_match_node_no_context: context=(0, 0), matches = [
             {doc_name = "doc1", parts = [(C "111") (G) (C "222") (M "abc") (C "333") (G) (C "444")]}
         ] => "
-            Number,Document,Match
+            Number,Document,Match (tokens)
             1,doc1,abc
         "
 
         one_match_node_left_context: context=(1, 0), matches = [
             {doc_name = "doc1", parts = [(C "111") (G) (C "222") (M "abc") (C "333") (G) (C "444")]}
         ] => "
-            Number,Document,Left context,Match
+            Number,Document,Left context (tokens),Match (tokens)
             1,doc1,111 (...) 222,abc
         "
 
         one_match_node_right_context: context=(0, 1), matches = [
             {doc_name = "doc1", parts = [(C "111") (G) (C "222") (M "abc") (C "333") (G) (C "444")]}
         ] => "
-            Number,Document,Match,Right context
+            Number,Document,Match (tokens),Right context (tokens)
             1,doc1,abc,333 (...) 444
         "
 
         one_match_node_both_contexts: context=(1, 1), matches = [
             {doc_name = "doc1", parts = [(C "111") (G) (C "222") (M "abc") (C "333") (G) (C "444")]}
         ] => "
-            Number,Document,Left context,Match,Right context
+            Number,Document,Left context (tokens),Match (tokens),Right context (tokens)
             1,doc1,111 (...) 222,abc,333 (...) 444
         "
 
         one_match_node_multiple_fragments: context=(1, 1), matches = [
             {doc_name = "doc1", parts = [(C "111" "222") (G) (C "333" "444") (M "abc" "def") (C "555" "666") (G) (C "777" "888")]}
         ] => "
-            Number,Document,Left context,Match,Right context
+            Number,Document,Left context (tokens),Match (tokens),Right context (tokens)
             1,doc1,111 222 (...) 333 444,abc def,555 666 (...) 777 888
         "
 
         multiple_match_nodes_no_context: context=(0, 0), matches = [
             {doc_name = "doc1", parts = [(C "111") (G) (C "222") (M "abc") (C "333") (G) (C "444") (M "def") (C "555") (G) (C "666")]}
         ] => "
-            Number,Document,Match 1,Match 2
+            Number,Document,Match 1 (tokens),Match 2 (tokens)
             1,doc1,abc,def
         "
 
         multiple_match_nodes_left_context: context=(1, 0), matches = [
             {doc_name = "doc1", parts = [(C "111") (G) (C "222") (M "abc") (C "333") (G) (C "444") (M "def") (C "555") (G) (C "666")]}
         ] => "
-            Number,Document,Context 1,Match 1,Context 2,Match 2
+            Number,Document,Context 1 (tokens),Match 1 (tokens),Context 2 (tokens),Match 2 (tokens)
             1,doc1,111 (...) 222,abc,333 (...) 444,def
         "
 
         multiple_match_nodes_right_context: context=(0, 1), matches = [
             {doc_name = "doc1", parts = [(C "111") (G) (C "222") (M "abc") (C "333") (G) (C "444") (M "def") (C "555") (G) (C "666")]}
         ] => "
-            Number,Document,Match 1,Context 1,Match 2,Context 2
+            Number,Document,Match 1 (tokens),Context 1 (tokens),Match 2 (tokens),Context 2 (tokens)
             1,doc1,abc,333 (...) 444,def,555 (...) 666
         "
 
         multiple_match_nodes_both_contexts: context=(1, 1), matches = [
             {doc_name = "doc1", parts = [(C "111") (G) (C "222") (M "abc") (C "333") (G) (C "444") (M "def") (C "555") (G) (C "666")]}
         ] => "
-            Number,Document,Context 1,Match 1,Context 2,Match 2,Context 3
+            Number,Document,Context 1 (tokens),Match 1 (tokens),Context 2 (tokens),Match 2 (tokens),Context 3 (tokens)
             1,doc1,111 (...) 222,abc,333 (...) 444,def,555 (...) 666
         "
 
@@ -403,7 +437,7 @@ mod tests {
             {doc_name = "doc1", parts = [(M "abc")]}
             {doc_name = "doc2", parts = [(C "111") (G) (C "222") (M "def") (C "333") (G) (C "444")]}
         ] => "
-            Number,Document,Left context,Match,Right context
+            Number,Document,Left context (tokens),Match (tokens),Right context (tokens)
             1,doc1,,abc,
             2,doc2,111 (...) 222,def,333 (...) 444
         "
@@ -414,7 +448,7 @@ mod tests {
             {doc_name = "doc2", parts = [(M "ghi") (M "jkl")]}
             {doc_name = "doc2", parts = [(C "555") (G) (C "666") (M "mno") (C "777") (G) (C "888") (M "pqr") (C "999") (G) (C "000")]}
         ] => "
-            Number,Document,Context 1,Match 1,Context 2,Match 2,Context 3
+            Number,Document,Context 1 (tokens),Match 1 (tokens),Context 2 (tokens),Match 2 (tokens),Context 3 (tokens)
             1,doc1,,abc,,,
             2,doc1,111 (...) 222,def,333 (...) 444,,
             3,doc2,,ghi,,jkl,

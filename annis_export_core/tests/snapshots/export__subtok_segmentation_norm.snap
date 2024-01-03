@@ -6,13 +6,18 @@ info:
   corpus_names:
     - subtok.demo
   aql_query: "pos=\"DT\""
-  query_config:
-    left_context: 4
-    right_context: 4
-    query_language: AQL
-    segmentation: norm
+  query_language: AQL
+  export_columns:
+    - Number
+    - Data:
+        Anno: DocName
+    - Data:
+        Text:
+          left_context: 4
+          right_context: 4
+          segmentation: norm
 ---
-Number,Document,Left context,Match,Right context
+Number,Document,Left context (norm),Match (norm),Right context (norm)
 1,subtok.demo/subtok.demo.doc01,,This,is an example of
 2,subtok.demo/subtok.demo.doc01,This is,an,example of a subtokenized
 3,subtok.demo/subtok.demo.doc01,is an example of,a,subtokenized corpus .

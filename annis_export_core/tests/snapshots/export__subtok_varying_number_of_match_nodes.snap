@@ -6,13 +6,18 @@ info:
   corpus_names:
     - subtok.demo
   aql_query: "(pos=\"DT\" .5,5 pos=\"DT\") | pos=\"NN\""
-  query_config:
-    left_context: 1
-    right_context: 1
-    query_language: AQL
-    segmentation: ~
+  query_language: AQL
+  export_columns:
+    - Number
+    - Data:
+        Anno: DocName
+    - Data:
+        Text:
+          left_context: 1
+          right_context: 1
+          segmentation: ~
 ---
-Number,Document,Context 1,Match 1,Context 2,Match 2,Context 3
+Number,Document,Context 1 (tokens),Match 1 (tokens),Context 2 (tokens),Match 2 (tokens),Context 3 (tokens)
 1,subtok.demo/subtok.demo.doc01,,T his,is (...) of,a,sub-
 2,subtok.demo/subtok.demo.doc01,an,example,of,,
 3,subtok.demo/subtok.demo.doc01,tokenized,corpus,.,,

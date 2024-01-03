@@ -1,6 +1,6 @@
 use annis_export_core::{
-    CorpusStorage, CsvExportColumn, CsvExportConfig, ExportData, ExportDataText, ExportFormat,
-    QueryConfig, QueryNode, QueryValidationResult, StatusEvent,
+    CorpusStorage, CsvExportColumn, CsvExportConfig, ExportData, ExportDataAnno, ExportDataText,
+    ExportFormat, QueryNode, QueryValidationResult, StatusEvent,
 };
 use anyhow::{anyhow, Context};
 use clap::{Parser, Subcommand, ValueEnum};
@@ -237,19 +237,15 @@ fn main() -> anyhow::Result<()> {
                 .export_matches(
                     &corpus_names,
                     &query,
-                    QueryConfig {
-                        left_context: context.left,
-                        right_context: context.right,
-                        query_language: language.into(),
-                        segmentation,
-                    },
+                    language.into(),
                     ExportFormat::Csv(CsvExportConfig {
                         columns: vec![
                             CsvExportColumn::Number,
-                            CsvExportColumn::Data(ExportData::DocName),
+                            CsvExportColumn::Data(ExportData::Anno(ExportDataAnno::DocName)),
                             CsvExportColumn::Data(ExportData::Text(ExportDataText {
                                 left_context: context.left,
                                 right_context: context.right,
+                                segmentation,
                             })),
                         ],
                     }),

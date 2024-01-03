@@ -3,8 +3,9 @@ use error::AnnisExportError;
 use format::export;
 use graphannis::{corpusstorage::CacheStrategy, errors::GraphAnnisError};
 use itertools::Itertools;
-use query::{Match, MatchesPage, MatchesPaginated, MatchesPaginatedIter, Query};
+use query::{Match, MatchesPage, MatchesPaginated, MatchesPaginatedIter};
 use std::{
+    collections::HashSet,
     io::{Read, Seek, Write},
     path::Path,
 };
@@ -20,7 +21,7 @@ mod util;
 
 pub use aql::{QueryNode, QueryValidationResult};
 pub use format::{CsvExportColumn, CsvExportConfig, ExportFormat};
-pub use query::{ExportData, ExportDataText, QueryConfig, QueryLanguage};
+pub use query::{ExportData, ExportDataAnno, ExportDataText, QueryLanguage};
 
 pub struct CorpusStorage(graphannis::CorpusStorage);
 
@@ -89,7 +90,7 @@ impl CorpusStorage {
         &self,
         corpus_names: &[S],
         aql_query: &str,
-        query_config: QueryConfig,
+        query_language: QueryLanguage,
         format: ExportFormat,
         mut out: W,
         mut on_status: F,
@@ -99,8 +100,12 @@ impl CorpusStorage {
         S: AsRef<str>,
         W: Write,
     {
-        let query = Query::new(aql_query, query_config);
-        let matches = ExportableMatches::new(self.corpus_ref(corpus_names), query.clone())?;
+        let matches = ExportableMatches::new(
+            self.corpus_ref(corpus_names),
+            aql_query,
+            query_language,
+            format.get_export_data().cloned().collect(),
+        )?;
 
         on_status(StatusEvent::Found {
             count: matches.total_count,
@@ -138,8 +143,14 @@ impl<'a, S> ExportableMatches<'a, S>
 where
     S: AsRef<str>,
 {
-    fn new(corpus_ref: CorpusRef<'a, S>, query: Query<'a>) -> Result<Self, AnnisExportError> {
-        let matches_paginated = MatchesPaginated::new(corpus_ref, query)?;
+    fn new(
+        corpus_ref: CorpusRef<'a, S>,
+        aql_query: &'a str,
+        query_language: QueryLanguage,
+        export_data: HashSet<ExportData>,
+    ) -> Result<Self, AnnisExportError> {
+        let matches_paginated =
+            MatchesPaginated::new(corpus_ref, aql_query, query_language, export_data)?;
 
         let total_count = {
             let total_count = matches_paginated.total_count()?;

@@ -6,13 +6,18 @@ info:
   corpus_names:
     - pcc2
   aql_query: Sent _i_ NP
-  query_config:
-    left_context: 10
-    right_context: 10
-    query_language: AQL
-    segmentation: ~
+  query_language: AQL
+  export_columns:
+    - Number
+    - Data:
+        Anno: DocName
+    - Data:
+        Text:
+          left_context: 10
+          right_context: 10
+          segmentation: ~
 ---
-Number,Document,Context 1,Match 1,Context 2,Match 2,Context 3,Match 3,Context 4
+Number,Document,Context 1 (tokens),Match 1 (tokens),Context 2 (tokens),Match 2 (tokens),Context 3 (tokens),Match 3 (tokens),Context 4 (tokens)
 1,pcc2/11299,Feigenblatt,Die Jugendlichen,,in Zossen wollen ein Musikcafé .,Das forderten sie bei der ersten Zossener Runde am Dienstagabend,,
 2,pcc2/11299,Feigenblatt,Die Jugendlichen in,,Zossen,,wollen ein Musikcafé .,Das forderten sie bei der ersten Zossener Runde am Dienstagabend
 3,pcc2/11299,Feigenblatt,Die Jugendlichen in Zossen wollen,,ein Musikcafé,,.,Das forderten sie bei der ersten Zossener Runde am Dienstagabend
