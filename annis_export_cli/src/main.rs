@@ -2,7 +2,7 @@ use annis_export_core::{
     CorpusStorage, CsvExportColumn, CsvExportConfig, ExportData, ExportDataAnno, ExportDataText,
     ExportFormat, QueryNode, QueryValidationResult, StatusEvent,
 };
-use anyhow::{anyhow, Context};
+use anyhow::{bail, Context};
 use clap::{Parser, Subcommand, ValueEnum};
 use indicatif::{ProgressBar, ProgressStyle};
 use itertools::Itertools;
@@ -54,21 +54,16 @@ enum Commands {
         /// AQL query to run
         query: String,
 
-        /// Path of output file, relative to the current working directory
-        #[arg(short, long, default_value = "out.csv")]
-        output_file: PathBuf,
-
-        /// Context size, where e.g. "10,5" means 10 nodes to the left and 5 to the right and "10" means 10 tokens in both directions
-        #[arg(short, long, default_value = "10")]
-        context: ContextSize,
-
-        /// Segmentation to use for defining the context, use the `list-segmentations` command to list all options [default: use tokens]
-        #[arg(short, long)]
-        segmentation: Option<String>,
+        /// List of columns (comma-separated) to be exported
+        columns: Columns,
 
         /// Query language to use
         #[arg(short, long, value_enum, default_value_t = QueryLanguage::Aql)]
         language: QueryLanguage,
+
+        /// Path of output file, relative to the current working directory
+        #[arg(short, long, default_value = "out.csv")]
+        output_file: PathBuf,
     },
 
     /// Validate AQL query
@@ -103,39 +98,6 @@ impl FromStr for CorpusNames {
         Ok(CorpusNames(s.split(',').map(ToString::to_string).collect()))
     }
 }
-
-#[derive(Clone, Copy)]
-struct ContextSize {
-    left: usize,
-    right: usize,
-}
-
-impl ContextSize {
-    fn symmetric(size: usize) -> Self {
-        Self::left_right(size, size)
-    }
-
-    fn left_right(left: usize, right: usize) -> Self {
-        Self { left, right }
-    }
-}
-
-impl FromStr for ContextSize {
-    type Err = anyhow::Error;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        if let Ok(size) = s.parse() {
-            Ok(Self::symmetric(size))
-        } else if let Some((Ok(left), Ok(right))) =
-            s.split_once(',').map(|(l, r)| (l.parse(), r.parse()))
-        {
-            Ok(Self::left_right(left, right))
-        } else {
-            Err(anyhow!("Context must be specified either as a single number (e.g. \"10\") or two comma-separated numbers (e.g. \"10,5\")"))
-        }
-    }
-}
-
 #[derive(Clone, Copy, ValueEnum)]
 enum QueryLanguage {
     Aql,
@@ -148,6 +110,58 @@ impl From<QueryLanguage> for annis_export_core::QueryLanguage {
             QueryLanguage::Aql => annis_export_core::QueryLanguage::AQL,
             QueryLanguage::AqlQuirksV3 => annis_export_core::QueryLanguage::AQLQuirksV3,
         }
+    }
+}
+
+#[derive(Clone)]
+struct Columns(Vec<CsvExportColumn>);
+
+impl Columns {
+    fn into_inner(self) -> Vec<CsvExportColumn> {
+        self.0
+    }
+}
+
+impl FromStr for Columns {
+    type Err = anyhow::Error;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        s.split(',')
+            .map(parse_csv_export_column)
+            .collect::<Result<_, _>>()
+            .map(Columns)
+    }
+}
+
+fn parse_csv_export_column(s: &str) -> anyhow::Result<CsvExportColumn> {
+    if s == "n" {
+        Ok(CsvExportColumn::Number)
+    } else if let Some(_) = s.strip_prefix("d:") {
+        Ok(CsvExportColumn::Data(ExportData::Anno(
+            ExportDataAnno::DocName,
+        )))
+    } else if let Some(rest) = s.strip_prefix("t:") {
+        let Some((segmentation, left_context, right_context)) = rest.split(';').collect_tuple()
+        else {
+            bail!("Right-hand side of 't:' column definition must be of the form <segmentation>;<left context>;<right context>");
+        };
+
+        let segmentation = if segmentation == "~" {
+            None
+        } else {
+            Some(segmentation.into())
+        };
+
+        let left_context = left_context.parse()?;
+        let right_context = right_context.parse()?;
+
+        Ok(CsvExportColumn::Data(ExportData::Text(ExportDataText {
+            left_context,
+            right_context,
+            segmentation,
+        })))
+    } else {
+        bail!("Column definition must be one of 'n', 'd:' or 't:<text column definition>'");
     }
 }
 
@@ -223,10 +237,9 @@ fn main() -> anyhow::Result<()> {
         Commands::Query {
             corpus_names,
             query,
-            output_file,
-            context,
             language,
-            segmentation,
+            output_file,
+            columns,
         } => {
             let mut out = File::create(&output_file)
                 .with_context(|| format!("Failed to open output file {}", output_file.display()))?;
@@ -239,15 +252,7 @@ fn main() -> anyhow::Result<()> {
                     &query,
                     language.into(),
                     ExportFormat::Csv(CsvExportConfig {
-                        columns: vec![
-                            CsvExportColumn::Number,
-                            CsvExportColumn::Data(ExportData::Anno(ExportDataAnno::DocName)),
-                            CsvExportColumn::Data(ExportData::Text(ExportDataText {
-                                left_context: context.left,
-                                right_context: context.right,
-                                segmentation,
-                            })),
-                        ],
+                        columns: columns.into_inner(),
                     }),
                     &mut out,
                     |event| match event {

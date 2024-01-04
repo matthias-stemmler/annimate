@@ -22,7 +22,7 @@ pub struct CsvExportConfig {
     pub columns: Vec<CsvExportColumn>,
 }
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub enum CsvExportColumn {
     Number,
     Data(ExportData),
