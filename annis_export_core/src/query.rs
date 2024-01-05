@@ -39,11 +39,30 @@ pub enum ExportData {
     Text(ExportDataText),
 }
 
+impl ExportData {
+    pub(crate) fn anno_key(&self) -> Option<&AnnoKey> {
+        match self {
+            ExportData::Anno(anno) => Some(anno.anno_key()),
+            _ => None,
+        }
+    }
+}
+
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub enum ExportDataAnno {
     Corpus { anno_key: AnnoKey },
     Document { anno_key: AnnoKey },
     MatchNode { anno_key: AnnoKey, index: usize },
+}
+
+impl ExportDataAnno {
+    fn anno_key(&self) -> &AnnoKey {
+        match self {
+            ExportDataAnno::Corpus { anno_key }
+            | ExportDataAnno::Document { anno_key }
+            | ExportDataAnno::MatchNode { anno_key, .. } => anno_key,
+        }
+    }
 }
 
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]

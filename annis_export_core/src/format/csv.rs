@@ -1,5 +1,6 @@
 use super::Exporter;
 use crate::{
+    anno::AnnoKeyFormat,
     error::AnnisExportError,
     query::{ExportData, ExportDataAnno, ExportDataText, Match, TextPart},
     QueryNode,
@@ -66,6 +67,13 @@ impl Exporter for CsvExporter {
         I::IntoIter: ExactSizeIterator,
         W: Write,
     {
+        let anno_key_format = AnnoKeyFormat::new(
+            config
+                .columns
+                .iter()
+                .flat_map(|c| c.unwrap_data().and_then(ExportData::anno_key)),
+        );
+
         let max_match_parts_by_text = {
             let matches = matches.clone().into_iter();
             let count = matches.len();
@@ -91,10 +99,10 @@ impl Exporter for CsvExporter {
         csv_writer.write_record(config.columns.iter().flat_map(|c| match c {
             CsvExportColumn::Number => vec!["Number".into()],
             CsvExportColumn::Data(ExportData::Anno(ExportDataAnno::Corpus { anno_key })) => {
-                vec![format!("Corpus {}", anno_key.name)]
+                vec![format!("Corpus {}", anno_key_format.display(anno_key))]
             }
             CsvExportColumn::Data(ExportData::Anno(ExportDataAnno::Document { anno_key })) => {
-                vec![format!("Document {}", anno_key.name)]
+                vec![format!("Document {}", anno_key_format.display(anno_key))]
             }
             CsvExportColumn::Data(ExportData::Anno(ExportDataAnno::MatchNode {
                 anno_key,
@@ -110,7 +118,7 @@ impl Exporter for CsvExporter {
                         .collect::<BTreeSet<_>>()
                         .into_iter()
                         .format_with("|", |elt, f| f(&format_args!("#{elt}"))),
-                    anno_key.name
+                    anno_key_format.display(anno_key)
                 )]
             }
             CsvExportColumn::Data(ExportData::Text(text)) => {

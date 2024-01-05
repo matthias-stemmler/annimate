@@ -5,7 +5,11 @@ use graphannis_core::{
     types::{AnnoKey, Component},
 };
 use itertools::Itertools;
-use std::{collections::BTreeSet, sync::OnceLock};
+use std::{
+    collections::{BTreeSet, HashSet},
+    fmt::{self, Display, Formatter},
+    sync::OnceLock,
+};
 
 pub(crate) fn token_anno_key() -> &'static AnnoKey {
     static ANNO_KEY: OnceLock<AnnoKey> = OnceLock::new();
@@ -122,4 +126,113 @@ where
     }
 
     Ok(anno_keys.into_iter().next())
+}
+
+#[derive(Debug)]
+pub(crate) struct AnnoKeyFormat<'a> {
+    ambiguous_anno_names: HashSet<&'a str>,
+}
+
+impl<'a> AnnoKeyFormat<'a> {
+    pub(crate) fn new<I>(anno_keys: I) -> Self
+    where
+        I: IntoIterator<Item = &'a AnnoKey>,
+    {
+        Self {
+            ambiguous_anno_names: anno_keys
+                .into_iter()
+                .collect::<HashSet<_>>()
+                .into_iter()
+                .map(|anno_key| &*anno_key.name)
+                .duplicates()
+                .collect(),
+        }
+    }
+
+    pub(crate) fn display(&'a self, anno_key: &'a AnnoKey) -> AnnoKeyDisplay<'a> {
+        AnnoKeyDisplay {
+            format: self,
+            anno_key,
+        }
+    }
+}
+
+#[derive(Debug)]
+pub(crate) struct AnnoKeyDisplay<'a> {
+    format: &'a AnnoKeyFormat<'a>,
+    anno_key: &'a AnnoKey,
+}
+
+impl Display for AnnoKeyDisplay<'_> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        if !self.anno_key.ns.is_empty()
+            && self
+                .format
+                .ambiguous_anno_names
+                .contains(&*self.anno_key.name)
+        {
+            write!(f, "{}:{}", self.anno_key.ns, self.anno_key.name)
+        } else {
+            write!(f, "{}", self.anno_key.name)
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn anno_key_format() {
+        let ambiguous1 = AnnoKey {
+            ns: "ns1".into(),
+            name: "ambiguous_name".into(),
+        };
+        let ambiguous2 = AnnoKey {
+            ns: "ns2".into(),
+            name: "ambiguous_name".into(),
+        };
+        let unambiguous = AnnoKey {
+            ns: "ns1".into(),
+            name: "unambiguous_name".into(),
+        };
+        let empty_ns_ambiguous = AnnoKey {
+            ns: "".into(),
+            name: "ambiguous_name".into(),
+        };
+        let empty_ns_unambiguous = AnnoKey {
+            ns: "".into(),
+            name: "empty_ns_unambiguous_name".into(),
+        };
+
+        let format = AnnoKeyFormat::new(
+            [
+                &ambiguous1,
+                &unambiguous,
+                &ambiguous2,
+                &unambiguous,
+                &empty_ns_ambiguous,
+                &empty_ns_unambiguous,
+            ]
+            .into_iter(),
+        );
+
+        assert_eq!(
+            format.display(&ambiguous1).to_string(),
+            "ns1:ambiguous_name"
+        );
+        assert_eq!(
+            format.display(&ambiguous2).to_string(),
+            "ns2:ambiguous_name"
+        );
+        assert_eq!(format.display(&unambiguous).to_string(), "unambiguous_name");
+        assert_eq!(
+            format.display(&empty_ns_ambiguous).to_string(),
+            "ambiguous_name"
+        );
+        assert_eq!(
+            format.display(&empty_ns_unambiguous).to_string(),
+            "empty_ns_unambiguous_name"
+        );
+    }
 }
