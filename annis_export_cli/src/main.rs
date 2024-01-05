@@ -1,12 +1,16 @@
 use annis_export_core::{
-    CorpusStorage, CsvExportColumn, CsvExportConfig, ExportData, ExportDataAnno, ExportDataText,
-    ExportFormat, QueryNode, QueryValidationResult, StatusEvent,
+    AnnoKey, CorpusStorage, CsvExportColumn, CsvExportConfig, ExportData, ExportDataAnno,
+    ExportDataText, ExportFormat, QueryNode, QueryValidationResult, StatusEvent,
 };
-use anyhow::{bail, Context};
+use anyhow::{anyhow, Context};
 use clap::{Parser, Subcommand, ValueEnum};
 use indicatif::{ProgressBar, ProgressStyle};
 use itertools::Itertools;
-use std::{convert::Infallible, env, fs::File, io::Write, ops::Deref, path::PathBuf, str::FromStr};
+use regex::Regex;
+use std::{
+    convert::Infallible, env, fs::File, io::Write, ops::Deref, path::PathBuf, str::FromStr,
+    sync::OnceLock,
+};
 use tracing::info;
 
 #[derive(Parser)]
@@ -136,32 +140,64 @@ impl FromStr for Columns {
 fn parse_csv_export_column(s: &str) -> anyhow::Result<CsvExportColumn> {
     if s == "n" {
         Ok(CsvExportColumn::Number)
-    } else if let Some(_) = s.strip_prefix("d:") {
+    } else if let Some(anno_key) = s.strip_prefix("c:") {
         Ok(CsvExportColumn::Data(ExportData::Anno(
-            ExportDataAnno::DocName,
+            ExportDataAnno::Corpus {
+                anno_key: parse_anno_key(anno_key),
+            },
+        )))
+    } else if let Some(anno_key) = s.strip_prefix("d:") {
+        Ok(CsvExportColumn::Data(ExportData::Anno(
+            ExportDataAnno::Document {
+                anno_key: parse_anno_key(anno_key),
+            },
+        )))
+    } else if let Some(captures) = match_anno_regex().captures(s) {
+        let (_match, index, anno_key) = captures
+            .iter()
+            .map(|c| c.expect("All capture groups are mandatory"))
+            .collect_tuple()
+            .expect("All matches have exactly two captures groups");
+
+        Ok(CsvExportColumn::Data(ExportData::Anno(
+            ExportDataAnno::MatchNode {
+                anno_key: parse_anno_key(anno_key.as_str()),
+                index: index.as_str().parse()?,
+            },
         )))
     } else if let Some(rest) = s.strip_prefix("t:") {
-        let Some((segmentation, left_context, right_context)) = rest.split(';').collect_tuple()
-        else {
-            bail!("Right-hand side of 't:' column definition must be of the form <segmentation>;<left context>;<right context>");
-        };
-
-        let segmentation = if segmentation == "~" {
-            None
-        } else {
-            Some(segmentation.into())
-        };
-
-        let left_context = left_context.parse()?;
-        let right_context = right_context.parse()?;
+        let (segmentation, left_context, right_context) =
+            rest.split(';').collect_tuple().ok_or(anyhow!(concat!(
+                "'t:' column definition must be of the form ",
+                "<segmentation>;<left context>;<right context>"
+            )))?;
 
         Ok(CsvExportColumn::Data(ExportData::Text(ExportDataText {
-            left_context,
-            right_context,
-            segmentation,
+            segmentation: match segmentation {
+                "~" => None,
+                s => Some(s.into()),
+            },
+            left_context: left_context.parse()?,
+            right_context: right_context.parse()?,
         })))
     } else {
-        bail!("Column definition must be one of 'n', 'd:' or 't:<text column definition>'");
+        Err(anyhow!(concat!(
+            "Column definition must be one of ",
+            "'n', ",
+            "'c:<definition>', ",
+            "'d:<definition>', ",
+            "'<match node index>:<definition>', or ",
+            "'t:<definition>'"
+        )))
+    }
+}
+
+fn parse_anno_key(s: &str) -> AnnoKey {
+    let (ns, name) = s.split_once(':').unwrap_or(("", s));
+
+    AnnoKey {
+        ns: ns.into(),
+        name: name.into(),
     }
 }
 
@@ -319,4 +355,9 @@ impl ProgressReporter {
             Self::ProgressBar(progress_bar) => progress_bar.finish(),
         }
     }
+}
+
+fn match_anno_regex() -> &'static Regex {
+    static REGEX: OnceLock<Regex> = OnceLock::new();
+    REGEX.get_or_init(|| Regex::new(r"^(\d+):(.*)").unwrap())
 }

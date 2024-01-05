@@ -39,7 +39,9 @@ pub enum ExportData {
 
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub enum ExportDataAnno {
-    DocName,
+    Corpus { anno_key: AnnoKey },
+    Document { anno_key: AnnoKey },
+    MatchNode { anno_key: AnnoKey, index: usize },
 }
 
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
@@ -192,23 +194,59 @@ impl<S> Iterator for MatchesPage<'_, S> {
 impl<S> MatchesPage<'_, S> {
     fn match_id_to_match(&self, match_id: String) -> Result<Match, AnnisExportError> {
         let match_node_names = node_names_from_match(&match_id);
+        let first_node_name = match_node_names
+            .first()
+            .ok_or(AnnisExportError::MatchWithoutNodes)?;
+        let corpus_name = node_name::get_corpus_name(first_node_name);
+        let doc_name = node_name::get_doc_name(first_node_name);
 
         let mut annos = HashMap::new();
         let mut texts = HashMap::new();
 
         for d in &self.export_data {
             match d {
-                ExportData::Anno(ExportDataAnno::DocName) => {
-                    annos.insert(
-                        ExportDataAnno::DocName,
-                        node_name::get_doc_name(&match_node_names[0]).into(),
-                    );
-                }
+                ExportData::Anno(anno) => match anno {
+                    ExportDataAnno::Corpus { anno_key } => {
+                        if let Some(value) = get_meta_anno(
+                            self.corpus_ref.storage,
+                            corpus_name,
+                            corpus_name,
+                            anno_key,
+                        )? {
+                            annos.insert(anno.clone(), value);
+                        }
+                    }
+                    ExportDataAnno::Document { anno_key } => {
+                        if let Some(value) =
+                            get_meta_anno(self.corpus_ref.storage, corpus_name, doc_name, anno_key)?
+                        {
+                            annos.insert(anno.clone(), value);
+                        }
+                    }
+                    ExportDataAnno::MatchNode { anno_key, index } => {
+                        if let Some(value) = match_node_names
+                            .get(*index)
+                            .map(|node_name| {
+                                get_node_anno(
+                                    self.corpus_ref.storage,
+                                    corpus_name,
+                                    node_name,
+                                    anno_key,
+                                )
+                            })
+                            .transpose()?
+                            .flatten()
+                        {
+                            annos.insert(anno.clone(), value);
+                        }
+                    }
+                },
                 ExportData::Text(text) => {
                     texts.insert(
                         text.clone(),
                         get_parts(
-                            self.corpus_ref,
+                            self.corpus_ref.storage,
+                            corpus_name,
                             match_node_names.clone(),
                             text.left_context,
                             text.right_context,
@@ -248,8 +286,47 @@ impl TextPart {
     }
 }
 
-fn get_parts<S>(
-    corpus_ref: CorpusRef<S>,
+fn get_meta_anno(
+    storage: &graphannis::CorpusStorage,
+    corpus_name: &str,
+    node_name: &str,
+    anno_key: &AnnoKey,
+) -> Result<Option<String>, GraphAnnisError> {
+    let subgraph = storage.corpus_graph(corpus_name)?;
+    let node_annos = subgraph.get_node_annos();
+
+    let node_id = node_annos
+        .get_node_id_from_name(node_name)
+        .map_err(GraphAnnisError::from)
+        .and_then(|node_id| node_id.ok_or(GraphAnnisError::NoSuchNodeID(node_name.into())))?;
+
+    Ok(node_annos
+        .get_value_for_item(&node_id, anno_key)?
+        .map(|s| s.into()))
+}
+
+fn get_node_anno(
+    storage: &graphannis::CorpusStorage,
+    corpus_name: &str,
+    node_name: &str,
+    anno_key: &AnnoKey,
+) -> Result<Option<String>, GraphAnnisError> {
+    let subgraph = storage.subgraph(corpus_name, vec![node_name.into()], 0, 0, None)?;
+    let node_annos = subgraph.get_node_annos();
+
+    let node_id = node_annos
+        .get_node_id_from_name(node_name)
+        .map_err(GraphAnnisError::from)
+        .and_then(|node_id| node_id.ok_or(GraphAnnisError::NoSuchNodeID(node_name.into())))?;
+
+    Ok(node_annos
+        .get_value_for_item(&node_id, anno_key)?
+        .map(|s| s.into()))
+}
+
+fn get_parts(
+    storage: &graphannis::CorpusStorage,
+    corpus_name: &str,
     match_node_names: Vec<String>,
     left_context: usize,
     right_context: usize,
@@ -262,14 +339,7 @@ fn get_parts<S>(
         next_chain_id: Option<NodeID>,
     }
 
-    let corpus_name = {
-        let Some(node_name) = match_node_names.first() else {
-            return Ok(Vec::new());
-        };
-        node_name::get_corpus_name(node_name)
-    };
-
-    let subgraph = corpus_ref.storage.subgraph(
+    let subgraph = storage.subgraph(
         corpus_name,
         match_node_names.clone(),
         left_context,

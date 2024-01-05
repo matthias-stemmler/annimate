@@ -5,20 +5,37 @@ info:
     - subtok.demo_relANNIS.zip
   corpus_names:
     - subtok.demo
-  aql_query: "pos=\"DT\""
+  aql_query: "pos=\"DT\" _=_ lemma"
   query_language: AQL
   export_columns:
     - Number
     - Data:
-        Anno: DocName
+        Anno:
+          Corpus:
+            anno_key:
+              - ""
+              - language
+    - Data:
+        Anno:
+          Document:
+            anno_key:
+              - annis
+              - doc
+    - Data:
+        Anno:
+          MatchNode:
+            anno_key:
+              - grammar
+              - lemma
+            index: 1
     - Data:
         Text:
           left_context: 4
           right_context: 4
           segmentation: norm
 ---
-Number,Document,Left context (norm),Match (norm),Right context (norm)
-1,subtok.demo/subtok.demo.doc01,,This,is an example of
-2,subtok.demo/subtok.demo.doc01,This is,an,example of a subtokenized
-3,subtok.demo/subtok.demo.doc01,is an example of,a,subtokenized corpus .
+Number,Corpus language,Document doc,Match node 2 lemma,Left context (norm),Match (norm),Right context (norm)
+1,English,subtok.demo.doc01,This,,This,is an example of
+2,English,subtok.demo.doc01,a,This is,an,example of a subtokenized
+3,English,subtok.demo.doc01,a,is an example of,a,subtokenized corpus .
 

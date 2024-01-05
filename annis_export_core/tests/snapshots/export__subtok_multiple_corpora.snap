@@ -7,19 +7,33 @@ info:
   corpus_names:
     - subtok.demo
     - subtok.demo2
-  aql_query: "pos=\"DT\" .5,5 pos=\"DT\""
+  aql_query: "pos=\"DT\""
   query_language: AQL
   export_columns:
     - Number
     - Data:
-        Anno: DocName
+        Anno:
+          Corpus:
+            anno_key:
+              - ""
+              - language
+    - Data:
+        Anno:
+          Document:
+            anno_key:
+              - annis
+              - doc
     - Data:
         Text:
           left_context: 1
           right_context: 1
           segmentation: diplomatic
 ---
-Number,Document,Context 1 (diplomatic),Match 1 (diplomatic),Context 2 (diplomatic),Match 2 (diplomatic),Context 3 (diplomatic)
-1,subtok.demo/subtok.demo.doc01,,T his,is (...) of,a,ſub⸗
-2,subtok.demo2/subtok.demo2.doc01,,T his,is (...) of,a,ſub⸗
+Number,Corpus language,Document doc,Left context (diplomatic),Match (diplomatic),Right context (diplomatic)
+1,English,subtok.demo.doc01,,T his,is
+2,English,subtok.demo.doc01,is,an,example
+3,English,subtok.demo.doc01,of,a,ſub⸗
+4,English2,subtok.demo2.doc01,,T his,is
+5,English2,subtok.demo2.doc01,is,an,example
+6,English2,subtok.demo2.doc01,of,a,ſub⸗
 

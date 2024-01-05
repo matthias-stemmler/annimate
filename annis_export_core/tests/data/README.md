@@ -9,4 +9,4 @@
 - `subtok.demo2`
   - Name: Subtoken Demo (adapted)
   - Original source: <https://corpus-tools.org/corpora/subtok.demo_relANNIS.zip>
-  - Adaptation: Renamed corpus and document
+  - Adaptation: Renamed corpus, document and language

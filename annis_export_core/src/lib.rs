@@ -21,6 +21,7 @@ mod util;
 
 pub use aql::{QueryNode, QueryValidationResult};
 pub use format::{CsvExportColumn, CsvExportConfig, ExportFormat};
+pub use graphannis::graph::AnnoKey;
 pub use query::{ExportData, ExportDataAnno, ExportDataText, QueryLanguage};
 
 pub struct CorpusStorage(graphannis::CorpusStorage);

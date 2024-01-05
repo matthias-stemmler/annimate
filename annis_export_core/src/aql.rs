@@ -98,8 +98,8 @@ impl From<QueryAttributeDescription> for QueryNode {
 }
 
 fn meta_regex() -> &'static Regex {
-    static META_REGEX: OnceLock<Regex> = OnceLock::new();
-    META_REGEX.get_or_init(|| {
+    static REGEX: OnceLock<Regex> = OnceLock::new();
+    REGEX.get_or_init(|| {
         Regex::new(
             r"meta::((?:[a-zA-Z_%](?:[a-zA-Z0-9_\-%])*:)?(?:[a-zA-Z_%](?:[a-zA-Z0-9_\-%])*))",
         )

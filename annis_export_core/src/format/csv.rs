@@ -83,8 +83,17 @@ impl Exporter for CsvExporter {
 
         csv_writer.write_record(config.columns.iter().flat_map(|c| match c {
             CsvExportColumn::Number => vec!["Number".into()],
-            CsvExportColumn::Data(ExportData::Anno(ExportDataAnno::DocName)) => {
-                vec!["Document".into()]
+            CsvExportColumn::Data(ExportData::Anno(ExportDataAnno::Corpus { anno_key })) => {
+                vec![format!("Corpus {}", anno_key.name)]
+            }
+            CsvExportColumn::Data(ExportData::Anno(ExportDataAnno::Document { anno_key })) => {
+                vec![format!("Document {}", anno_key.name)]
+            }
+            CsvExportColumn::Data(ExportData::Anno(ExportDataAnno::MatchNode {
+                anno_key,
+                index,
+            })) => {
+                vec![format!("Match node {} {}", index + 1, anno_key.name)]
             }
             CsvExportColumn::Data(ExportData::Text(text)) => {
                 let max_match_parts = *max_match_parts_by_text.get(text).unwrap_or(&0);
@@ -120,7 +129,10 @@ impl Exporter for CsvExporter {
             csv_writer.write_record(config.columns.iter().flat_map(|c| match c {
                 CsvExportColumn::Number => vec![(i + 1).to_string()],
                 CsvExportColumn::Data(ExportData::Anno(anno)) => {
-                    vec![annos.get(anno).unwrap().clone()]
+                    vec![annos
+                        .get(anno)
+                        .map(|s| s.trim().to_string())
+                        .unwrap_or_default()]
                 }
                 CsvExportColumn::Data(ExportData::Text(text)) => {
                     let max_match_parts = *max_match_parts_by_text.get(text).unwrap();
@@ -303,6 +315,7 @@ impl From<csv::Error> for AnnisExportError {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use graphannis_core::{graph::ANNIS_NS, types::AnnoKey};
     use std::array;
 
     macro_rules! csv_exporter_test {
@@ -321,17 +334,24 @@ mod tests {
                     segmentation: None,
                 };
 
+                let export_data_anno_doc = ExportDataAnno::Document {
+                    anno_key: AnnoKey {
+                        ns: ANNIS_NS.into(),
+                        name: "doc".into(),
+                    },
+                };
+
                 CsvExporter::export(
                     &CsvExportConfig {
                         columns: vec![
                             CsvExportColumn::Number,
-                            CsvExportColumn::Data(ExportData::Anno(ExportDataAnno::DocName)),
+                            CsvExportColumn::Data(ExportData::Anno(export_data_anno_doc.clone())),
                             CsvExportColumn::Data(ExportData::Text(text.clone())),
                         ],
                     },
                     TestMatches([
                         $(Match {
-                            annos: [(ExportDataAnno::DocName, $doc_name.into())].into(),
+                            annos: [(export_data_anno_doc.clone(), $doc_name.into())].into(),
                             texts: [(text.clone(), [ $(csv_exporter_test!(@expand_part $part)),* ].into())].into(),
                         }),*
                     ]),
@@ -353,83 +373,83 @@ mod tests {
 
     csv_exporter_test! {
         no_match_both_contexts: context=(1, 1), matches = [] => "
-            Number,Document
+            Number,Document doc
         "
 
         no_match_node_both_contexts_no_parts: context=(1, 1), matches = [
             {doc_name = "doc1", parts = []}
         ] => "
-            Number,Document
+            Number,Document doc
             1,doc1
         "
 
         no_match_node_both_contexts_some_parts: context=(1, 1), matches = [
             {doc_name = "doc1", parts = [(C "111") (G) (C "222")]}
         ] => "
-            Number,Document
+            Number,Document doc
             1,doc1
         "
 
         one_match_node_no_context: context=(0, 0), matches = [
             {doc_name = "doc1", parts = [(C "111") (G) (C "222") (M "abc") (C "333") (G) (C "444")]}
         ] => "
-            Number,Document,Match (tokens)
+            Number,Document doc,Match (tokens)
             1,doc1,abc
         "
 
         one_match_node_left_context: context=(1, 0), matches = [
             {doc_name = "doc1", parts = [(C "111") (G) (C "222") (M "abc") (C "333") (G) (C "444")]}
         ] => "
-            Number,Document,Left context (tokens),Match (tokens)
+            Number,Document doc,Left context (tokens),Match (tokens)
             1,doc1,111 (...) 222,abc
         "
 
         one_match_node_right_context: context=(0, 1), matches = [
             {doc_name = "doc1", parts = [(C "111") (G) (C "222") (M "abc") (C "333") (G) (C "444")]}
         ] => "
-            Number,Document,Match (tokens),Right context (tokens)
+            Number,Document doc,Match (tokens),Right context (tokens)
             1,doc1,abc,333 (...) 444
         "
 
         one_match_node_both_contexts: context=(1, 1), matches = [
             {doc_name = "doc1", parts = [(C "111") (G) (C "222") (M "abc") (C "333") (G) (C "444")]}
         ] => "
-            Number,Document,Left context (tokens),Match (tokens),Right context (tokens)
+            Number,Document doc,Left context (tokens),Match (tokens),Right context (tokens)
             1,doc1,111 (...) 222,abc,333 (...) 444
         "
 
         one_match_node_multiple_fragments: context=(1, 1), matches = [
             {doc_name = "doc1", parts = [(C "111" "222") (G) (C "333" "444") (M "abc" "def") (C "555" "666") (G) (C "777" "888")]}
         ] => "
-            Number,Document,Left context (tokens),Match (tokens),Right context (tokens)
+            Number,Document doc,Left context (tokens),Match (tokens),Right context (tokens)
             1,doc1,111 222 (...) 333 444,abc def,555 666 (...) 777 888
         "
 
         multiple_match_nodes_no_context: context=(0, 0), matches = [
             {doc_name = "doc1", parts = [(C "111") (G) (C "222") (M "abc") (C "333") (G) (C "444") (M "def") (C "555") (G) (C "666")]}
         ] => "
-            Number,Document,Match 1 (tokens),Match 2 (tokens)
+            Number,Document doc,Match 1 (tokens),Match 2 (tokens)
             1,doc1,abc,def
         "
 
         multiple_match_nodes_left_context: context=(1, 0), matches = [
             {doc_name = "doc1", parts = [(C "111") (G) (C "222") (M "abc") (C "333") (G) (C "444") (M "def") (C "555") (G) (C "666")]}
         ] => "
-            Number,Document,Context 1 (tokens),Match 1 (tokens),Context 2 (tokens),Match 2 (tokens)
+            Number,Document doc,Context 1 (tokens),Match 1 (tokens),Context 2 (tokens),Match 2 (tokens)
             1,doc1,111 (...) 222,abc,333 (...) 444,def
         "
 
         multiple_match_nodes_right_context: context=(0, 1), matches = [
             {doc_name = "doc1", parts = [(C "111") (G) (C "222") (M "abc") (C "333") (G) (C "444") (M "def") (C "555") (G) (C "666")]}
         ] => "
-            Number,Document,Match 1 (tokens),Context 1 (tokens),Match 2 (tokens),Context 2 (tokens)
+            Number,Document doc,Match 1 (tokens),Context 1 (tokens),Match 2 (tokens),Context 2 (tokens)
             1,doc1,abc,333 (...) 444,def,555 (...) 666
         "
 
         multiple_match_nodes_both_contexts: context=(1, 1), matches = [
             {doc_name = "doc1", parts = [(C "111") (G) (C "222") (M "abc") (C "333") (G) (C "444") (M "def") (C "555") (G) (C "666")]}
         ] => "
-            Number,Document,Context 1 (tokens),Match 1 (tokens),Context 2 (tokens),Match 2 (tokens),Context 3 (tokens)
+            Number,Document doc,Context 1 (tokens),Match 1 (tokens),Context 2 (tokens),Match 2 (tokens),Context 3 (tokens)
             1,doc1,111 (...) 222,abc,333 (...) 444,def,555 (...) 666
         "
 
@@ -437,7 +457,7 @@ mod tests {
             {doc_name = "doc1", parts = [(M "abc")]}
             {doc_name = "doc2", parts = [(C "111") (G) (C "222") (M "def") (C "333") (G) (C "444")]}
         ] => "
-            Number,Document,Left context (tokens),Match (tokens),Right context (tokens)
+            Number,Document doc,Left context (tokens),Match (tokens),Right context (tokens)
             1,doc1,,abc,
             2,doc2,111 (...) 222,def,333 (...) 444
         "
@@ -448,7 +468,7 @@ mod tests {
             {doc_name = "doc2", parts = [(M "ghi") (M "jkl")]}
             {doc_name = "doc2", parts = [(C "555") (G) (C "666") (M "mno") (C "777") (G) (C "888") (M "pqr") (C "999") (G) (C "000")]}
         ] => "
-            Number,Document,Context 1 (tokens),Match 1 (tokens),Context 2 (tokens),Match 2 (tokens),Context 3 (tokens)
+            Number,Document doc,Context 1 (tokens),Match 1 (tokens),Context 2 (tokens),Match 2 (tokens),Context 3 (tokens)
             1,doc1,,abc,,,
             2,doc1,111 (...) 222,def,333 (...) 444,,
             3,doc2,,ghi,,jkl,

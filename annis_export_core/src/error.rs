@@ -5,6 +5,9 @@ use thiserror::Error;
 
 #[derive(Debug, Error)]
 pub enum AnnisExportError {
+    #[error("Match has no nodes")]
+    MatchWithoutNodes,
+
     #[error("Annotation corresponding to segmentation {0} not found")]
     MissingAnnotationForSegmentation(String),
 
