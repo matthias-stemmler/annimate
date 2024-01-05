@@ -3,10 +3,12 @@ use crate::{
         default_ordering_component, gap_ordering_component, get_anno_key_for_segmentation,
         token_anno_key,
     },
+    aql,
     corpus::CorpusRef,
     error::AnnisExportError,
     node_name,
     util::group_by,
+    QueryNode,
 };
 use graphannis::{
     corpusstorage::{ResultOrder, SearchQuery},
@@ -60,6 +62,148 @@ impl ExportDataText {
         self.right_context > 0
     }
 }
+
+pub(crate) struct Query<'a, S> {
+    corpus_ref: CorpusRef<'a, S>,
+    aql_query: &'a str,
+    query_language: QueryLanguage,
+    nodes: Vec<Vec<QueryNode>>,
+}
+
+impl<'a, S> Query<'a, S> {
+    pub(crate) fn new(
+        corpus_ref: CorpusRef<'a, S>,
+        aql_query: &'a str,
+        query_language: QueryLanguage,
+    ) -> Result<Self, GraphAnnisError> {
+        Ok(Self {
+            corpus_ref,
+            aql_query,
+            query_language,
+            nodes: aql::query_nodes(corpus_ref.storage, aql_query, query_language)?,
+        })
+    }
+
+    pub(crate) fn nodes(&self) -> &[Vec<QueryNode>] {
+        &self.nodes
+    }
+
+    pub(crate) fn find<I>(
+        &self,
+        export_data: I,
+    ) -> Result<ExportableMatches<'a, S>, AnnisExportError>
+    where
+        I: IntoIterator<Item = ExportData>,
+        S: AsRef<str>,
+    {
+        // TODO validate export_data (match node indices, annotations)
+
+        ExportableMatches::new(
+            self.corpus_ref,
+            self.aql_query,
+            self.query_language,
+            export_data.into_iter().collect(),
+        )
+    }
+}
+
+pub(crate) struct ExportableMatches<'a, S> {
+    matches_paginated: MatchesPaginated<'a, S>,
+    total_count: usize,
+}
+
+impl<S> Clone for ExportableMatches<'_, S> {
+    fn clone(&self) -> Self {
+        Self {
+            matches_paginated: self.matches_paginated.clone(),
+            total_count: self.total_count,
+        }
+    }
+}
+
+impl<'a, S> ExportableMatches<'a, S>
+where
+    S: AsRef<str>,
+{
+    fn new(
+        corpus_ref: CorpusRef<'a, S>,
+        aql_query: &'a str,
+        query_language: QueryLanguage,
+        export_data: HashSet<ExportData>,
+    ) -> Result<Self, AnnisExportError> {
+        let matches_paginated =
+            MatchesPaginated::new(corpus_ref, aql_query, query_language, export_data)?;
+
+        let total_count = {
+            let total_count = matches_paginated.total_count()?;
+            total_count
+                .try_into()
+                .map_err(|_| AnnisExportError::TooManyResults(total_count))?
+        };
+
+        Ok(Self {
+            matches_paginated,
+            total_count,
+        })
+    }
+
+    pub(crate) fn total_count(&self) -> usize {
+        self.total_count
+    }
+}
+
+impl<'a, S> IntoIterator for ExportableMatches<'a, S>
+where
+    S: AsRef<str>,
+{
+    type Item = Result<Match, AnnisExportError>;
+    type IntoIter = ExportableMatchesIter<'a, S>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        ExportableMatchesIter {
+            matches_paginated_iter: self.matches_paginated.into_iter(),
+            matches_page: None,
+            total_count: self.total_count,
+        }
+    }
+}
+
+pub(crate) struct ExportableMatchesIter<'a, S> {
+    matches_paginated_iter: MatchesPaginatedIter<'a, S>,
+    matches_page: Option<MatchesPage<'a, S>>,
+    total_count: usize,
+}
+
+impl<S> Iterator for ExportableMatchesIter<'_, S>
+where
+    S: AsRef<str>,
+{
+    type Item = Result<Match, AnnisExportError>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        loop {
+            if self.matches_page.is_none() {
+                self.matches_page = match self.matches_paginated_iter.next()? {
+                    Ok(page) => Some(page),
+                    Err(err) => return Some(Err(err.into())),
+                };
+            }
+
+            if let Some(ref mut page) = &mut self.matches_page {
+                match page.next() {
+                    Some(m) => return Some(m),
+                    None => self.matches_page = None,
+                }
+            }
+        }
+    }
+
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        (self.total_count, Some(self.total_count))
+    }
+}
+
+impl<S> ExactSizeIterator for ExportableMatchesIter<'_, S> where S: AsRef<str> {}
 
 pub(crate) struct MatchesPaginated<'a, S> {
     corpus_ref: CorpusRef<'a, S>,
