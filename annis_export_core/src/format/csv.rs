@@ -100,19 +100,18 @@ impl Exporter for CsvExporter {
                 anno_key,
                 index,
             })) => {
-                let node_description = query_nodes
-                    .get(*index)
-                    .map(|n| {
-                        n.iter()
-                            .map(|n| &n.variable)
-                            .collect::<BTreeSet<_>>()
-                            .into_iter()
-                            .map(|s| format!("#{}", s))
-                            .join("|")
-                    })
-                    .unwrap_or_else(|| format!("Node {}", index + 1));
-
-                vec![format!("{node_description} {}", anno_key.name)]
+                vec![format!(
+                    "{} {}",
+                    query_nodes
+                        .get(*index)
+                        .expect("Query node index is assumed to be valid")
+                        .iter()
+                        .map(|n| &n.variable)
+                        .collect::<BTreeSet<_>>()
+                        .into_iter()
+                        .format_with("|", |elt, f| f(&format_args!("#{elt}"))),
+                    anno_key.name
+                )]
             }
             CsvExportColumn::Data(ExportData::Text(text)) => {
                 let max_match_parts = *max_match_parts_by_text.get(text).unwrap_or(&0);
