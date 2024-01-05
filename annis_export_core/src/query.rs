@@ -16,7 +16,7 @@ use graphannis::{
     graph::GraphStorage,
     model::AnnotationComponentType,
     util::node_names_from_match,
-    Graph,
+    AnnotationGraph, Graph,
 };
 use graphannis_core::{
     errors::GraphAnnisCoreError,
@@ -351,19 +351,14 @@ impl<S> MatchesPage<'_, S> {
             match d {
                 ExportData::Anno(anno) => match anno {
                     ExportDataAnno::Corpus { anno_key } => {
-                        if let Some(value) = get_meta_anno(
-                            self.corpus_ref.storage,
-                            corpus_name,
-                            corpus_name,
-                            anno_key,
-                        )? {
+                        let graph = self.corpus_ref.storage.corpus_graph(corpus_name)?;
+                        if let Some(value) = get_anno(&graph, corpus_name, anno_key)? {
                             annos.insert(anno.clone(), value);
                         }
                     }
                     ExportDataAnno::Document { anno_key } => {
-                        if let Some(value) =
-                            get_meta_anno(self.corpus_ref.storage, corpus_name, doc_name, anno_key)?
-                        {
+                        let graph = self.corpus_ref.storage.corpus_graph(corpus_name)?;
+                        if let Some(value) = get_anno(&graph, doc_name, anno_key)? {
                             annos.insert(anno.clone(), value);
                         }
                     }
@@ -371,12 +366,14 @@ impl<S> MatchesPage<'_, S> {
                         if let Some(value) = match_node_names
                             .get(*index)
                             .map(|node_name| {
-                                get_node_anno(
-                                    self.corpus_ref.storage,
+                                let graph = self.corpus_ref.storage.subgraph(
                                     corpus_name,
-                                    node_name,
-                                    anno_key,
-                                )
+                                    vec![node_name.into()],
+                                    0,
+                                    0,
+                                    None,
+                                )?;
+                                get_anno(&graph, node_name, anno_key)
                             })
                             .transpose()?
                             .flatten()
@@ -430,33 +427,12 @@ impl TextPart {
     }
 }
 
-fn get_meta_anno(
-    storage: &graphannis::CorpusStorage,
-    corpus_name: &str,
+fn get_anno(
+    graph: &AnnotationGraph,
     node_name: &str,
     anno_key: &AnnoKey,
 ) -> Result<Option<String>, GraphAnnisError> {
-    let subgraph = storage.corpus_graph(corpus_name)?;
-    let node_annos = subgraph.get_node_annos();
-
-    let node_id = node_annos
-        .get_node_id_from_name(node_name)
-        .map_err(GraphAnnisError::from)
-        .and_then(|node_id| node_id.ok_or(GraphAnnisError::NoSuchNodeID(node_name.into())))?;
-
-    Ok(node_annos
-        .get_value_for_item(&node_id, anno_key)?
-        .map(|s| s.into()))
-}
-
-fn get_node_anno(
-    storage: &graphannis::CorpusStorage,
-    corpus_name: &str,
-    node_name: &str,
-    anno_key: &AnnoKey,
-) -> Result<Option<String>, GraphAnnisError> {
-    let subgraph = storage.subgraph(corpus_name, vec![node_name.into()], 0, 0, None)?;
-    let node_annos = subgraph.get_node_annos();
+    let node_annos = graph.get_node_annos();
 
     let node_id = node_annos
         .get_node_id_from_name(node_name)
