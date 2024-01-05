@@ -34,7 +34,7 @@ info:
           right_context: 10
           segmentation: ~
 ---
-Number,Corpus language,Document doc,Match node 3 Inf-Stat,Context 1 (tokens),Match 1 (tokens),Context 2 (tokens),Match 2 (tokens),Context 3 (tokens),Match 3 (tokens),Context 4 (tokens)
+Number,Corpus language,Document doc,#3 Inf-Stat,Context 1 (tokens),Match 1 (tokens),Context 2 (tokens),Match 2 (tokens),Context 3 (tokens),Match 3 (tokens),Context 4 (tokens)
 1,German,11299,new,Feigenblatt,Die Jugendlichen,,in Zossen wollen ein Musikcafé .,Das forderten sie bei der ersten Zossener Runde am Dienstagabend,,
 2,German,11299,new,Feigenblatt,Die Jugendlichen in,,Zossen,,wollen ein Musikcafé .,Das forderten sie bei der ersten Zossener Runde am Dienstagabend
 3,German,11299,new,Feigenblatt,Die Jugendlichen in Zossen wollen,,ein Musikcafé,,.,Das forderten sie bei der ersten Zossener Runde am Dienstagabend

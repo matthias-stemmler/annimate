@@ -191,6 +191,10 @@ export_test! {
             })),
             Data(Anno(TestExportDataAnno::MatchNode {
                 anno_key: ("grammar", "pos"),
+                index: 0,
+            })),
+            Data(Anno(TestExportDataAnno::MatchNode {
+                anno_key: ("grammar", "pos"),
                 index: 1,
             })),
             Data(Text(TestExportDataText {

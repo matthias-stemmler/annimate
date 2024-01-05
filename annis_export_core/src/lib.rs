@@ -101,6 +101,8 @@ impl CorpusStorage {
         S: AsRef<str>,
         W: Write,
     {
+        let query_nodes = aql::query_nodes(&self.0, aql_query, query_language)?;
+
         let matches = ExportableMatches::new(
             self.corpus_ref(corpus_names),
             aql_query,
@@ -112,7 +114,7 @@ impl CorpusStorage {
             count: matches.total_count,
         });
 
-        export(format, matches, &mut out, |progress| {
+        export(format, matches, &query_nodes, &mut out, |progress| {
             on_status(StatusEvent::Exported { progress })
         })?;
 

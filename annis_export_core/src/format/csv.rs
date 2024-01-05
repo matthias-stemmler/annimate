@@ -2,9 +2,15 @@ use super::Exporter;
 use crate::{
     error::AnnisExportError,
     query::{ExportData, ExportDataAnno, ExportDataText, Match, TextPart},
+    QueryNode,
 };
-use itertools::{put_back, PutBack};
-use std::{collections::HashMap, io::Write, ops::Range, vec};
+use itertools::{put_back, Itertools, PutBack};
+use std::{
+    collections::{BTreeSet, HashMap},
+    io::Write,
+    ops::Range,
+    vec,
+};
 
 #[derive(Clone, Copy, Debug)]
 enum ColumnType {
@@ -50,6 +56,7 @@ impl Exporter for CsvExporter {
     fn export<F, I, W>(
         config: &CsvExportConfig,
         matches: I,
+        query_nodes: &[Vec<QueryNode>],
         out: W,
         mut on_progress: F,
     ) -> Result<(), AnnisExportError>
@@ -93,7 +100,19 @@ impl Exporter for CsvExporter {
                 anno_key,
                 index,
             })) => {
-                vec![format!("Match node {} {}", index + 1, anno_key.name)]
+                let node_description = query_nodes
+                    .get(*index)
+                    .map(|n| {
+                        n.iter()
+                            .map(|n| &n.variable)
+                            .collect::<BTreeSet<_>>()
+                            .into_iter()
+                            .map(|s| format!("#{}", s))
+                            .join("|")
+                    })
+                    .unwrap_or_else(|| format!("Node {}", index + 1));
+
+                vec![format!("{node_description} {}", anno_key.name)]
             }
             CsvExportColumn::Data(ExportData::Text(text)) => {
                 let max_match_parts = *max_match_parts_by_text.get(text).unwrap_or(&0);
@@ -355,6 +374,7 @@ mod tests {
                             texts: [(text.clone(), [ $(csv_exporter_test!(@expand_part $part)),* ].into())].into(),
                         }),*
                     ]),
+                    &[vec![]],
                     &mut result,
                     |_| (),
                 ).unwrap();
