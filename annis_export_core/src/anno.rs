@@ -1,7 +1,7 @@
 use crate::{corpus::CorpusRef, error::AnnisExportError};
 use graphannis::{errors::GraphAnnisError, model::AnnotationComponentType};
 use graphannis_core::{
-    graph::{ANNIS_NS, DEFAULT_NS},
+    graph::{ANNIS_NS, DEFAULT_NS, NODE_NAME, NODE_TYPE},
     types::{AnnoKey, Component},
 };
 use itertools::Itertools;
@@ -175,6 +175,51 @@ impl Display for AnnoKeyDisplay<'_> {
         } else {
             write!(f, "{}", self.anno_key.name)
         }
+    }
+}
+
+#[derive(Clone, Copy, Debug)]
+pub(crate) enum BuiltinAnnoKey {
+    Doc,
+    File,
+    Layer,
+    NodeName,
+    NodeType,
+    RelannisVersion,
+}
+
+impl BuiltinAnnoKey {
+    pub(crate) fn try_from_anno_key(anno_key: &AnnoKey) -> Option<Self> {
+        if anno_key.ns != ANNIS_NS {
+            return None;
+        }
+
+        match &*anno_key.name {
+            "doc" => Some(BuiltinAnnoKey::Doc),
+            "file" => Some(BuiltinAnnoKey::File),
+            "layer" => Some(BuiltinAnnoKey::Layer),
+            NODE_NAME => Some(BuiltinAnnoKey::NodeName),
+            NODE_TYPE => Some(BuiltinAnnoKey::NodeType),
+            "relannis-version" => Some(BuiltinAnnoKey::RelannisVersion),
+            _ => None,
+        }
+    }
+}
+
+impl Display for BuiltinAnnoKey {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "{}",
+            match self {
+                BuiltinAnnoKey::Doc => "Document",
+                BuiltinAnnoKey::File => "File",
+                BuiltinAnnoKey::Layer => "Layer",
+                BuiltinAnnoKey::NodeName => "Node Name",
+                BuiltinAnnoKey::NodeType => "Node Type",
+                BuiltinAnnoKey::RelannisVersion => "relANNIS Version",
+            }
+        )
     }
 }
 

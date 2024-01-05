@@ -34,7 +34,7 @@ info:
           right_context: 4
           segmentation: diplomatic
 ---
-Number,Corpus language,Document doc,#2 lemma,Left context (diplomatic),Match (diplomatic),Right context (diplomatic)
+Number,Corpus language,Document,#2 lemma,Left context (diplomatic),Match (diplomatic),Right context (diplomatic)
 1,English,subtok.demo.doc01,This,,T his,is an example of
 2,English,subtok.demo.doc01,a,T his is,an,example of a ſub⸗
 3,English,subtok.demo.doc01,a,is an example of,a,ſub⸗ tokenized corpus .

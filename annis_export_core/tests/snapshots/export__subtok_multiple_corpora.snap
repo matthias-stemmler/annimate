@@ -29,7 +29,7 @@ info:
           right_context: 1
           segmentation: diplomatic
 ---
-Number,Corpus language,Document doc,Left context (diplomatic),Match (diplomatic),Right context (diplomatic)
+Number,Corpus language,Document,Left context (diplomatic),Match (diplomatic),Right context (diplomatic)
 1,English,subtok.demo.doc01,,T his,is
 2,English,subtok.demo.doc01,is,an,example
 3,English,subtok.demo.doc01,of,a,ſub⸗
