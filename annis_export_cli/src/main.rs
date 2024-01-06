@@ -1,6 +1,6 @@
 use annis_export_core::{
     AnnoKey, CorpusStorage, CsvExportColumn, CsvExportConfig, ExportData, ExportDataAnno,
-    ExportDataText, ExportFormat, QueryNode, QueryValidationResult, StatusEvent,
+    ExportDataText, ExportFormat, ExportableAnnoKey, QueryNode, QueryValidationResult, StatusEvent,
 };
 use anyhow::{anyhow, Context};
 use clap::{Parser, Subcommand, ValueEnum};
@@ -39,6 +39,12 @@ enum Commands {
     ImportCorpora {
         /// Path to ZIP file to import corpora from
         path: PathBuf,
+    },
+
+    /// List all exportable annotation keys
+    ListAnnoKeys {
+        /// Names of the corpora (comma-separated) to list annotation keys for
+        corpus_names: CorpusNames,
     },
 
     /// List all corpora
@@ -253,6 +259,34 @@ fn main() -> anyhow::Result<()> {
                     println!("{corpus_name}");
                 }
             }
+        }
+        Commands::ListAnnoKeys { corpus_names } => {
+            fn print_exportable_anno_keys(exportable_anno_keys: &[ExportableAnnoKey]) {
+                for ExportableAnnoKey {
+                    anno_key,
+                    display_name,
+                } in exportable_anno_keys
+                {
+                    if anno_key.ns.is_empty() {
+                        println!("  {}", display_name);
+                    } else {
+                        println!("  {} ({}:{})", display_name, anno_key.ns, anno_key.name);
+                    }
+                }
+            }
+
+            let anno_keys = corpus_storage
+                .exportable_anno_keys(&corpus_names)
+                .context("Failed to list annotation keys")?;
+
+            println!("Corpus annotation keys");
+            print_exportable_anno_keys(&anno_keys.corpus);
+
+            println!("\nDocument annotation keys");
+            print_exportable_anno_keys(&anno_keys.doc);
+
+            println!("\nNode annotation keys");
+            print_exportable_anno_keys(&anno_keys.node);
         }
         Commands::ListCorpora => {
             for name in corpus_storage

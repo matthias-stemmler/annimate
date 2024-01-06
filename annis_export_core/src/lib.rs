@@ -1,3 +1,4 @@
+use anno::AnnoKeys;
 use corpus::CorpusRef;
 use error::AnnisExportError;
 use format::export;
@@ -18,6 +19,7 @@ mod node_name;
 mod query;
 mod util;
 
+pub use anno::{ExportableAnnoKey, ExportableAnnoKeys};
 pub use aql::{QueryNode, QueryValidationResult};
 pub use format::{CsvExportColumn, CsvExportConfig, ExportFormat};
 pub use graphannis::graph::AnnoKey;
@@ -79,6 +81,16 @@ impl CorpusStorage {
         aql::query_nodes(&self.0, aql_query, query_language)
     }
 
+    pub fn exportable_anno_keys<S>(
+        &self,
+        corpus_names: &[S],
+    ) -> Result<ExportableAnnoKeys, GraphAnnisError>
+    where
+        S: AsRef<str>,
+    {
+        AnnoKeys::new(self.corpus_ref(corpus_names)).map(AnnoKeys::into_exportable)
+    }
+
     pub fn segmentations<S>(&self, corpus_names: &[S]) -> Result<Vec<String>, GraphAnnisError>
     where
         S: AsRef<str>,
@@ -100,6 +112,7 @@ impl CorpusStorage {
         S: AsRef<str>,
         W: Write,
     {
+        let anno_keys = AnnoKeys::new(self.corpus_ref(corpus_names))?;
         let query = Query::new(self.corpus_ref(corpus_names), aql_query, query_language)?;
         let matches = query.find(format.get_export_data().cloned())?;
 
@@ -107,9 +120,14 @@ impl CorpusStorage {
             count: matches.total_count(),
         });
 
-        export(format, matches, query.nodes(), &mut out, |progress| {
-            on_status(StatusEvent::Exported { progress })
-        })?;
+        export(
+            format,
+            matches,
+            query.nodes(),
+            anno_keys.format(),
+            &mut out,
+            |progress| on_status(StatusEvent::Exported { progress }),
+        )?;
 
         out.flush()?;
 

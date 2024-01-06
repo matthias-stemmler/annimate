@@ -1,6 +1,6 @@
 use crate::{
     anno::{
-        default_ordering_component, gap_ordering_component, get_anno_key_for_segmentation,
+        self, default_ordering_component, gap_ordering_component, get_anno_key_for_segmentation,
         token_anno_key,
     },
     aql,
@@ -41,13 +41,6 @@ pub enum ExportData {
 }
 
 impl ExportData {
-    pub(crate) fn anno_key(&self) -> Option<&AnnoKey> {
-        match self {
-            ExportData::Anno(anno) => Some(anno.anno_key()),
-            _ => None,
-        }
-    }
-
     pub(crate) fn match_node_index(&self) -> Option<usize> {
         match self {
             ExportData::Anno(anno) => anno.match_node_index(),
@@ -64,14 +57,6 @@ pub enum ExportDataAnno {
 }
 
 impl ExportDataAnno {
-    fn anno_key(&self) -> &AnnoKey {
-        match self {
-            ExportDataAnno::Corpus { anno_key }
-            | ExportDataAnno::Document { anno_key }
-            | ExportDataAnno::MatchNode { anno_key, .. } => anno_key,
-        }
-    }
-
     fn match_node_index(&self) -> Option<usize> {
         match self {
             ExportDataAnno::MatchNode { index, .. } => Some(*index),
@@ -399,13 +384,13 @@ impl<S> MatchesPage<'_, S> {
                 ExportData::Anno(anno) => match anno {
                     ExportDataAnno::Corpus { anno_key } => {
                         if let Some(value) =
-                            get_anno(self.corpus_ref.storage, corpus_name, None, anno_key)?
+                            anno::get_anno(self.corpus_ref.storage, corpus_name, None, anno_key)?
                         {
                             annos.insert(anno.clone(), value);
                         }
                     }
                     ExportDataAnno::Document { anno_key } => {
-                        if let Some(value) = get_anno(
+                        if let Some(value) = anno::get_anno(
                             self.corpus_ref.storage,
                             corpus_name,
                             Some(doc_name),
@@ -418,7 +403,7 @@ impl<S> MatchesPage<'_, S> {
                         if let Some(value) = match_node_names
                             .get(*index)
                             .map(|node_name| {
-                                get_anno(
+                                anno::get_anno(
                                     self.corpus_ref.storage,
                                     corpus_name,
                                     Some(node_name),
@@ -475,31 +460,6 @@ impl TextPart {
     pub(crate) fn is_match(&self) -> bool {
         matches!(self, TextPart::Match { .. })
     }
-}
-
-fn get_anno(
-    storage: &graphannis::CorpusStorage,
-    corpus_name: &str,
-    node_name: Option<&str>,
-    anno_key: &AnnoKey,
-) -> Result<Option<String>, GraphAnnisError> {
-    let graph = match node_name {
-        Some(node_name) => storage.subgraph(corpus_name, vec![node_name.into()], 0, 0, None)?,
-        None => storage.corpus_graph(corpus_name)?,
-    };
-    let node_annos = graph.get_node_annos();
-
-    let node_id = {
-        let node_name = node_name.unwrap_or(corpus_name);
-        node_annos
-            .get_node_id_from_name(node_name)
-            .map_err(GraphAnnisError::from)
-            .and_then(|node_id| node_id.ok_or(GraphAnnisError::NoSuchNodeID(node_name.into())))?
-    };
-
-    Ok(node_annos
-        .get_value_for_item(&node_id, anno_key)?
-        .map(|s| s.into()))
 }
 
 fn get_parts(

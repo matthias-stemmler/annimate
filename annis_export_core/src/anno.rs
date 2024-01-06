@@ -1,8 +1,13 @@
 use crate::{corpus::CorpusRef, error::AnnisExportError};
-use graphannis::{errors::GraphAnnisError, model::AnnotationComponentType};
+use graphannis::{
+    corpusstorage::{QueryLanguage, ResultOrder, SearchQuery},
+    errors::GraphAnnisError,
+    model::AnnotationComponentType,
+    AnnotationGraph,
+};
 use graphannis_core::{
     graph::{ANNIS_NS, DEFAULT_NS},
-    types::{AnnoKey, Component},
+    types::{AnnoKey, Component, NodeID},
 };
 use itertools::Itertools;
 use std::{
@@ -128,54 +133,258 @@ where
     Ok(anno_keys.into_iter().next())
 }
 
-#[derive(Debug)]
-pub(crate) struct AnnoKeyFormat<'a> {
-    ambiguous_anno_names: HashSet<&'a str>,
+pub(crate) fn get_anno(
+    storage: &graphannis::CorpusStorage,
+    corpus_name: &str,
+    node_name: Option<&str>,
+    anno_key: &AnnoKey,
+) -> Result<Option<String>, GraphAnnisError> {
+    let graph = match node_name {
+        Some(node_name) => storage.subgraph(corpus_name, vec![node_name.into()], 0, 0, None)?,
+        None => storage.corpus_graph(corpus_name)?,
+    };
+
+    let node_id = node_name_to_node_id(&graph, node_name.unwrap_or(corpus_name))?;
+
+    Ok(graph
+        .get_node_annos()
+        .get_value_for_item(&node_id, anno_key)?
+        .map(|s| s.into()))
 }
 
-impl<'a> AnnoKeyFormat<'a> {
+fn node_name_to_node_id(
+    graph: &AnnotationGraph,
+    node_name: &str,
+) -> Result<NodeID, GraphAnnisError> {
+    graph
+        .get_node_annos()
+        .get_node_id_from_name(node_name)
+        .map_err(GraphAnnisError::from)
+        .and_then(|node_id| node_id.ok_or(GraphAnnisError::NoSuchNodeID(node_name.into())))
+}
+
+#[derive(Debug)]
+pub(crate) struct AnnoKeys {
+    corpus_anno_keys: HashSet<AnnoKey>,
+    doc_anno_keys: HashSet<AnnoKey>,
+    node_anno_keys: HashSet<AnnoKey>,
+    format: AnnoKeyFormat,
+}
+
+impl AnnoKeys {
+    pub(crate) fn new<S>(corpus_ref: CorpusRef<S>) -> Result<Self, GraphAnnisError>
+    where
+        S: AsRef<str>,
+    {
+        let corpus_anno_keys: HashSet<_> = corpus_ref
+            .names
+            .iter()
+            .map::<Result<_, GraphAnnisError>, _>(|corpus_name| {
+                let corpus_name = corpus_name.as_ref();
+                let graph = corpus_ref.storage.corpus_graph(corpus_name)?;
+                let corpus_node_id = node_name_to_node_id(&graph, corpus_name)?;
+                Ok(graph
+                    .get_node_annos()
+                    .get_all_keys_for_item(&corpus_node_id, None, None)?
+                    .into_iter()
+                    .map(|anno_key| (*anno_key).clone()))
+            })
+            .flatten_ok()
+            .try_collect()?;
+
+        let all_anno_keys: HashSet<_> = corpus_ref
+            .names
+            .iter()
+            .map::<Result<_, GraphAnnisError>, _>(|corpus_name| {
+                Ok(corpus_ref
+                    .storage
+                    .list_node_annotations(corpus_name.as_ref(), false, false)?
+                    .into_iter()
+                    .map(|a| a.key))
+            })
+            .flatten_ok()
+            .try_collect()?;
+
+        // Anno keys with name "tok" are invalid in AQL queries,
+        // so we just assume those don't appear on the corpus and document levels, but they do appear on the node level
+
+        let doc_anno_keys = filter_anno_keys_by_query(
+            corpus_ref,
+            all_anno_keys
+                .iter()
+                .filter(|anno_key| anno_key.name != "tok"),
+            |anno_key| {
+                format!(
+                    "annis:node_type=\"corpus\" _ident_ annis:doc _ident_ {}",
+                    AnnoKeyDisplay::fully_qualified(anno_key)
+                )
+            },
+        )?;
+
+        let mut node_anno_keys = filter_anno_keys_by_query(
+            corpus_ref,
+            all_anno_keys
+                .iter()
+                .filter(|anno_key| anno_key.name != "tok"),
+            |anno_key| {
+                format!(
+                    "annis:node_type!=\"corpus\" _ident_ {}",
+                    AnnoKeyDisplay::fully_qualified(anno_key)
+                )
+            },
+        )?;
+
+        node_anno_keys.extend(
+            all_anno_keys
+                .iter()
+                .filter(|anno_key| anno_key.name == "tok")
+                .cloned(),
+        );
+
+        let format = AnnoKeyFormat::new(all_anno_keys);
+
+        Ok(Self {
+            corpus_anno_keys,
+            doc_anno_keys,
+            node_anno_keys,
+            format,
+        })
+    }
+
+    pub(crate) fn format(&self) -> &AnnoKeyFormat {
+        &self.format
+    }
+
+    pub(crate) fn into_exportable(self) -> ExportableAnnoKeys {
+        let map = |anno_keys: HashSet<AnnoKey>| {
+            anno_keys
+                .into_iter()
+                .map(|anno_key| ExportableAnnoKey {
+                    display_name: self.format.display(&anno_key).to_string(),
+                    anno_key,
+                })
+                .sorted_by(|a, b| a.display_name.cmp(&b.display_name))
+                .collect()
+        };
+
+        ExportableAnnoKeys {
+            corpus: map(self.corpus_anno_keys),
+            doc: map(self.doc_anno_keys),
+            node: map(self.node_anno_keys),
+        }
+    }
+}
+
+fn filter_anno_keys_by_query<'a, F, I, S>(
+    corpus_ref: CorpusRef<S>,
+    anno_keys: I,
+    mut get_query: F,
+) -> Result<HashSet<AnnoKey>, GraphAnnisError>
+where
+    F: FnMut(&AnnoKey) -> String,
+    I: IntoIterator<Item = &'a AnnoKey>,
+    S: AsRef<str>,
+{
+    anno_keys
+        .into_iter()
+        .map(|anno_key| {
+            has_match(corpus_ref, &get_query(anno_key)).map(|has_match| (anno_key, has_match))
+        })
+        .filter_map_ok(|(anno_key, has_match)| has_match.then_some(anno_key.clone()))
+        .try_collect()
+}
+
+fn has_match<S>(corpus_ref: CorpusRef<S>, query: &str) -> Result<bool, GraphAnnisError>
+where
+    S: AsRef<str>,
+{
+    let matches = corpus_ref.storage.find(
+        SearchQuery {
+            corpus_names: corpus_ref.names,
+            query,
+            query_language: QueryLanguage::AQL,
+            timeout: None,
+        },
+        0,
+        Some(1),
+        ResultOrder::NotSorted,
+    )?;
+
+    Ok(!matches.is_empty())
+}
+
+#[derive(Debug)]
+pub(crate) struct AnnoKeyFormat {
+    ambiguous_names: HashSet<String>,
+}
+
+impl AnnoKeyFormat {
     pub(crate) fn new<I>(anno_keys: I) -> Self
     where
-        I: IntoIterator<Item = &'a AnnoKey>,
+        I: IntoIterator<Item = AnnoKey>,
     {
         Self {
-            ambiguous_anno_names: anno_keys
+            ambiguous_names: anno_keys
                 .into_iter()
                 .collect::<HashSet<_>>()
                 .into_iter()
-                .map(|anno_key| &*anno_key.name)
+                .map(|anno_key| anno_key.name.to_string())
                 .duplicates()
                 .collect(),
         }
     }
 
-    pub(crate) fn display(&'a self, anno_key: &'a AnnoKey) -> AnnoKeyDisplay<'a> {
-        AnnoKeyDisplay {
-            format: self,
-            anno_key,
+    pub(crate) fn display<'a>(&'a self, anno_key: &'a AnnoKey) -> AnnoKeyDisplay<'a> {
+        if self.ambiguous_names.contains(&*anno_key.name) {
+            AnnoKeyDisplay::fully_qualified(anno_key)
+        } else {
+            AnnoKeyDisplay::name_only(anno_key)
         }
     }
 }
 
 #[derive(Debug)]
 pub(crate) struct AnnoKeyDisplay<'a> {
-    format: &'a AnnoKeyFormat<'a>,
-    anno_key: &'a AnnoKey,
+    name: &'a str,
+    ns: Option<&'a str>,
+}
+
+impl<'a> AnnoKeyDisplay<'a> {
+    fn fully_qualified(anno_key: &'a AnnoKey) -> Self {
+        Self {
+            name: &anno_key.name,
+            ns: (!anno_key.ns.is_empty()).then_some(&anno_key.ns),
+        }
+    }
+
+    fn name_only(anno_key: &'a AnnoKey) -> Self {
+        Self {
+            name: &anno_key.name,
+            ns: None,
+        }
+    }
 }
 
 impl Display for AnnoKeyDisplay<'_> {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        if !self.anno_key.ns.is_empty()
-            && self
-                .format
-                .ambiguous_anno_names
-                .contains(&*self.anno_key.name)
-        {
-            write!(f, "{}:{}", self.anno_key.ns, self.anno_key.name)
-        } else {
-            write!(f, "{}", self.anno_key.name)
+        match (self.ns, self.name) {
+            (Some(ns), name) => write!(f, "{ns}:{name}"),
+            (None, name) => write!(f, "{name}"),
         }
     }
+}
+
+#[derive(Debug)]
+pub struct ExportableAnnoKeys {
+    pub corpus: Vec<ExportableAnnoKey>,
+    pub doc: Vec<ExportableAnnoKey>,
+    pub node: Vec<ExportableAnnoKey>,
+}
+
+#[derive(Debug)]
+pub struct ExportableAnnoKey {
+    pub anno_key: AnnoKey,
+    pub display_name: String,
 }
 
 pub(crate) fn is_doc_anno_key(anno_key: &AnnoKey) -> bool {
@@ -211,12 +420,12 @@ mod tests {
 
         let format = AnnoKeyFormat::new(
             [
-                &ambiguous1,
-                &unambiguous,
-                &ambiguous2,
-                &unambiguous,
-                &empty_ns_ambiguous,
-                &empty_ns_unambiguous,
+                ambiguous1.clone(),
+                unambiguous.clone(),
+                ambiguous2.clone(),
+                unambiguous.clone(),
+                empty_ns_ambiguous.clone(),
+                empty_ns_unambiguous.clone(),
             ]
             .into_iter(),
         );

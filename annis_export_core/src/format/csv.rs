@@ -58,6 +58,7 @@ impl Exporter for CsvExporter {
         config: &CsvExportConfig,
         matches: I,
         query_nodes: &[Vec<QueryNode>],
+        anno_key_format: &AnnoKeyFormat,
         out: W,
         mut on_progress: F,
     ) -> Result<(), AnnisExportError>
@@ -67,13 +68,6 @@ impl Exporter for CsvExporter {
         I::IntoIter: ExactSizeIterator,
         W: Write,
     {
-        let anno_key_format = AnnoKeyFormat::new(
-            config
-                .columns
-                .iter()
-                .flat_map(|c| c.unwrap_data().and_then(ExportData::anno_key)),
-        );
-
         let max_match_parts_by_text = {
             let matches = matches.clone().into_iter();
             let count = matches.len();
@@ -386,6 +380,7 @@ mod tests {
                         }),*
                     ]),
                     &[vec![]],
+                    &AnnoKeyFormat::new([]),
                     &mut result,
                     |_| (),
                 ).unwrap();

@@ -1,5 +1,5 @@
 use self::csv::CsvExporter;
-use crate::{error::AnnisExportError, query::Match, ExportData, QueryNode};
+use crate::{anno::AnnoKeyFormat, error::AnnisExportError, query::Match, ExportData, QueryNode};
 use std::io::Write;
 
 mod csv;
@@ -23,6 +23,7 @@ pub(crate) fn export<F, I, W>(
     export_format: ExportFormat,
     matches: I,
     query_nodes: &[Vec<QueryNode>],
+    anno_key_format: &AnnoKeyFormat,
     out: W,
     on_progress: F,
 ) -> Result<(), AnnisExportError>
@@ -33,9 +34,14 @@ where
     W: Write,
 {
     match export_format {
-        ExportFormat::Csv(config) => {
-            CsvExporter::export(&config, matches, query_nodes, out, on_progress)
-        }
+        ExportFormat::Csv(config) => CsvExporter::export(
+            &config,
+            matches,
+            query_nodes,
+            anno_key_format,
+            out,
+            on_progress,
+        ),
     }
 }
 
@@ -48,6 +54,7 @@ trait Exporter {
         config: &Self::Config,
         matches: I,
         query_nodes: &[Vec<QueryNode>],
+        anno_key_format: &AnnoKeyFormat,
         out: W,
         on_progress: F,
     ) -> Result<(), AnnisExportError>
