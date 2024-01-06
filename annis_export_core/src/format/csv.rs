@@ -1,15 +1,13 @@
 use super::Exporter;
 use crate::{
-    anno::{AnnoKeyFormat, BuiltinAnnoKey},
+    anno::{is_doc_anno_key, AnnoKeyFormat},
     error::AnnisExportError,
     query::{ExportData, ExportDataAnno, ExportDataText, Match, TextPart},
     QueryNode,
 };
-use graphannis_core::types::AnnoKey;
 use itertools::{put_back, Itertools, PutBack};
 use std::{
     collections::{BTreeSet, HashMap},
-    fmt::Display,
     io::Write,
     ops::Range,
     vec,
@@ -101,18 +99,21 @@ impl Exporter for CsvExporter {
         csv_writer.write_record(config.columns.iter().flat_map(|c| match c {
             CsvExportColumn::Number => vec!["Number".into()],
             CsvExportColumn::Data(ExportData::Anno(ExportDataAnno::Corpus { anno_key })) => {
-                vec![format_anno_key(&anno_key_format, anno_key, "Corpus")]
+                vec![format!("Corpus {}", anno_key_format.display(anno_key))]
             }
             CsvExportColumn::Data(ExportData::Anno(ExportDataAnno::Document { anno_key })) => {
-                vec![format_anno_key(&anno_key_format, anno_key, "Document")]
+                if is_doc_anno_key(anno_key) {
+                    vec!["Document".into()]
+                } else {
+                    vec![format!("Document {}", anno_key_format.display(anno_key))]
+                }
             }
             CsvExportColumn::Data(ExportData::Anno(ExportDataAnno::MatchNode {
                 anno_key,
                 index,
             })) => {
-                vec![format_anno_key(
-                    &anno_key_format,
-                    anno_key,
+                vec![format!(
+                    "{} {}",
                     query_nodes
                         .get(*index)
                         .expect("Query node index is assumed to be valid")
@@ -121,6 +122,7 @@ impl Exporter for CsvExporter {
                         .collect::<BTreeSet<_>>()
                         .into_iter()
                         .format_with("|", |elt, f| f(&format_args!("#{elt}"))),
+                    anno_key_format.display(anno_key)
                 )]
             }
             CsvExportColumn::Data(ExportData::Text(text)) => {
@@ -174,14 +176,6 @@ impl Exporter for CsvExporter {
         }
 
         Ok(())
-    }
-}
-
-fn format_anno_key(format: &AnnoKeyFormat, anno_key: &AnnoKey, prefix: impl Display) -> String {
-    match BuiltinAnnoKey::try_from_anno_key(anno_key) {
-        Some(k @ BuiltinAnnoKey::Doc | k @ BuiltinAnnoKey::RelannisVersion) => format!("{k}"),
-        Some(k) => format!("{prefix} {k}"),
-        None => format!("{prefix} {}", format.display(anno_key)),
     }
 }
 
