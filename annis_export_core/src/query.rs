@@ -22,6 +22,7 @@ use graphannis_core::{
     errors::GraphAnnisCoreError,
     types::{AnnoKey, NodeID},
 };
+use itertools::Itertools;
 use std::{
     collections::{HashMap, HashSet},
     iter::{self, successors, StepBy},
@@ -46,6 +47,13 @@ impl ExportData {
             _ => None,
         }
     }
+
+    pub(crate) fn match_node_index(&self) -> Option<usize> {
+        match self {
+            ExportData::Anno(anno) => anno.match_node_index(),
+            _ => None,
+        }
+    }
 }
 
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
@@ -61,6 +69,13 @@ impl ExportDataAnno {
             ExportDataAnno::Corpus { anno_key }
             | ExportDataAnno::Document { anno_key }
             | ExportDataAnno::MatchNode { anno_key, .. } => anno_key,
+        }
+    }
+
+    fn match_node_index(&self) -> Option<usize> {
+        match self {
+            ExportDataAnno::MatchNode { index, .. } => Some(*index),
+            _ => None,
         }
     }
 }
@@ -115,13 +130,26 @@ impl<'a, S> Query<'a, S> {
         I: IntoIterator<Item = ExportData>,
         S: AsRef<str>,
     {
-        // TODO validate export_data (match node indices, annotations)
+        let export_data: HashSet<_> = export_data.into_iter().collect();
+
+        export_data
+            .iter()
+            .flat_map(ExportData::match_node_index)
+            .map(|index| {
+                let max_index = self.nodes.len() - 1;
+                if index > max_index {
+                    Err(AnnisExportError::MatchNodeIndexOutOfBounds { index, max_index })
+                } else {
+                    Ok(())
+                }
+            })
+            .try_collect()?;
 
         ExportableMatches::new(
             self.corpus_ref,
             self.aql_query,
             self.query_language,
-            export_data.into_iter().collect(),
+            export_data,
         )
     }
 }

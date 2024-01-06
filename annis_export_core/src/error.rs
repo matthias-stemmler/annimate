@@ -5,6 +5,9 @@ use thiserror::Error;
 
 #[derive(Debug, Error)]
 pub enum AnnisExportError {
+    #[error("Match node index {index} out of bounds, may be at most {max_index}")]
+    MatchNodeIndexOutOfBounds { index: usize, max_index: usize },
+
     #[error("Match has no nodes")]
     MatchWithoutNodes,
 
