@@ -1,15 +1,18 @@
 pub(crate) fn group_by<F, T>(items: &[T], key_fn: F) -> Groups<F, T> {
-    Groups {
+    Groups(Some(GroupsInner {
         items,
-        key_fn: Some(key_fn),
+        key_fn,
         next_index: 0,
-    }
+    }))
 }
 
 #[derive(Debug)]
-pub(crate) struct Groups<'a, F, T> {
+pub(crate) struct Groups<'a, F, T>(Option<GroupsInner<'a, F, T>>);
+
+#[derive(Debug)]
+struct GroupsInner<'a, F, T> {
     items: &'a [T],
-    key_fn: Option<F>,
+    key_fn: F,
     next_index: usize,
 }
 
@@ -21,31 +24,36 @@ where
     type Item = Result<(K, &'a [T]), E>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        let mut key_fn = self.key_fn.take()?;
+        let GroupsInner {
+            items,
+            mut key_fn,
+            next_index,
+        } = self.0.take()?;
 
-        let (key, index) = match (self.next_index..self.items.len()).find_map(|i| {
-            key_fn(&self.items[i])
-                .map(|k| k.map(|k| (k, i)))
-                .transpose()
-        })? {
-            Ok((_, i)) if i >= self.items.len() => return None,
+        let (key, index) = match (next_index..items.len())
+            .find_map(|i| key_fn(&items[i]).map(|k| k.map(|k| (k, i))).transpose())?
+        {
             Ok((k, i)) => (k, i),
             Err(err) => return Some(Err(err)),
         };
 
-        self.next_index =
-            match (index + 1..self.items.len()).find_map(|i| match key_fn(&self.items[i]) {
-                Ok(Some(k)) if k == key => None,
-                Ok(..) => Some(Ok(i)),
-                Err(err) => Some(Err(err)),
-            }) {
-                Some(Ok(i)) => i,
-                Some(Err(err)) => return Some(Err(err)),
-                None => self.items.len(),
-            };
+        let next_index = match (index + 1..items.len()).find_map(|i| match key_fn(&items[i]) {
+            Ok(Some(k)) if k == key => None,
+            Ok(_) => Some(Ok(i)),
+            Err(err) => Some(Err(err)),
+        }) {
+            Some(Ok(i)) => i,
+            Some(Err(err)) => return Some(Err(err)),
+            None => items.len(),
+        };
 
-        self.key_fn = Some(key_fn);
-        Some(Ok((key, &self.items[index..self.next_index])))
+        self.0 = Some(GroupsInner {
+            items,
+            key_fn,
+            next_index,
+        });
+
+        Some(Ok((key, &items[index..next_index])))
     }
 }
 

@@ -64,17 +64,18 @@ where
             })
     });
 
-    let mut segmentations: BTreeSet<_> = match segmentations_by_corpus.next() {
+    let mut segmentations_present_in_all_corpora: BTreeSet<_> = match segmentations_by_corpus.next()
+    {
         Some(segmentations) => segmentations?.collect(),
         None => return Ok(Vec::new()),
     };
 
-    for segmentations_of_corpus in segmentations_by_corpus {
-        let mut segmentations_of_corpus = segmentations_of_corpus?;
-        segmentations.retain(|component| segmentations_of_corpus.contains(component));
+    for segmentations in segmentations_by_corpus {
+        let mut segmentations = segmentations?;
+        segmentations_present_in_all_corpora.retain(|component| segmentations.contains(component));
     }
 
-    segmentations
+    segmentations_present_in_all_corpora
         .into_iter()
         .map(|name| {
             get_anno_key_for_segmentation_if_exists(corpus_ref, &name)
@@ -120,17 +121,17 @@ where
             })
     });
 
-    let mut anno_keys: BTreeSet<_> = match anno_keys_by_corpus.next() {
+    let mut anno_keys_present_in_all_corpora: BTreeSet<_> = match anno_keys_by_corpus.next() {
         Some(anno_keys) => anno_keys?.collect(),
         None => return Ok(None),
     };
 
-    for anno_keys_of_corpus in anno_keys_by_corpus {
-        let mut anno_keys_of_corpus = anno_keys_of_corpus?;
-        anno_keys.retain(|anno_key| anno_keys_of_corpus.contains(anno_key));
+    for anno_keys in anno_keys_by_corpus {
+        let mut anno_keys = anno_keys?;
+        anno_keys_present_in_all_corpora.retain(|anno_key| anno_keys.contains(anno_key));
     }
 
-    Ok(anno_keys.into_iter().next())
+    Ok(anno_keys_present_in_all_corpora.into_iter().next())
 }
 
 pub(crate) fn get_anno(
