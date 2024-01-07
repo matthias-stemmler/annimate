@@ -1,4 +1,4 @@
-pub(crate) fn group_by<F, S>(items: &[S], key_fn: F) -> Groups<F, S> {
+pub(crate) fn group_by<F, T>(items: &[T], key_fn: F) -> Groups<F, T> {
     Groups {
         items,
         key_fn: Some(key_fn),
@@ -7,18 +7,18 @@ pub(crate) fn group_by<F, S>(items: &[S], key_fn: F) -> Groups<F, S> {
 }
 
 #[derive(Debug)]
-pub(crate) struct Groups<'a, F, S> {
-    items: &'a [S],
+pub(crate) struct Groups<'a, F, T> {
+    items: &'a [T],
     key_fn: Option<F>,
     next_index: usize,
 }
 
-impl<'a, E, F, S, T> Iterator for Groups<'a, F, S>
+impl<'a, E, F, K, T> Iterator for Groups<'a, F, T>
 where
-    F: FnMut(&S) -> Result<Option<T>, E>,
-    T: PartialEq,
+    F: FnMut(&T) -> Result<Option<K>, E>,
+    K: PartialEq,
 {
-    type Item = Result<(T, &'a [S]), E>;
+    type Item = Result<(K, &'a [T]), E>;
 
     fn next(&mut self) -> Option<Self::Item> {
         let mut key_fn = self.key_fn.take()?;
