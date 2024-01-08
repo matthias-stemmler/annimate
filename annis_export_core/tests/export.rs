@@ -35,12 +35,20 @@ macro_rules! export_test {
                     },
                 };
 
-                let storage = CorpusStorage::from_db_dir(tempfile::tempdir().unwrap()).unwrap();
+                let storage = CorpusStorage::from_db_dir(concat!(
+                    env!("CARGO_TARGET_TMPDIR"),
+                    "/tests/export/",
+                    stringify!($name)
+                ))
+                .unwrap();
 
                 for corpus_path in test_data.corpus_paths {
                     storage
                         .import_corpora_from_zip(
-                            File::open(Path::new(concat!(env!("CARGO_MANIFEST_DIR"), "/tests/data")).join(corpus_path)).unwrap(),
+                            File::open(
+                                Path::new(concat!(env!("CARGO_MANIFEST_DIR"), "/tests/data")).join(corpus_path),
+                            )
+                            .unwrap(),
                             |_| (),
                         )
                         .unwrap();
@@ -54,7 +62,12 @@ macro_rules! export_test {
                         test_data.aql_query,
                         test_data.query_language,
                         ExportFormat::Csv(CsvExportConfig {
-                            columns: test_data.export_columns.clone().into_iter().map_into().collect(),
+                            columns: test_data
+                                .export_columns
+                                .clone()
+                                .into_iter()
+                                .map_into()
+                                .collect(),
                         }),
                         &mut export_bytes,
                         |_| (),
