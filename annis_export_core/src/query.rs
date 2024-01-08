@@ -597,16 +597,12 @@ fn get_parts(
                 .expect("Value is present by choice of fragment_node_id")
                 .to_string();
 
-            let match_node_index = token_ids
-                .iter()
-                .flat_map(|token_id| graph_helper.get_covering_node_ids(*token_id))
-                .find_map(|node_id| {
-                    node_id
-                        .map(|node_id| {
-                            match_node_ids
-                                .iter()
-                                .position(|&match_node_id| match_node_id == node_id)
-                        })
+            let match_node_index = (0..match_node_ids.len())
+                .cartesian_product(token_ids.iter())
+                .find_map(|(match_node_index, &token_id)| {
+                    graph_helper
+                        .is_covering_node_id(match_node_ids[match_node_index], token_id)
+                        .map(|is_covering| is_covering.then_some(match_node_index))
                         .transpose()
                 })
                 .transpose()?;
@@ -722,6 +718,17 @@ impl<'a> GraphHelper<'a> {
                 .iter()
                 .flat_map(move |&gs| gs.get_ingoing_edges(node_id)),
         )
+    }
+
+    fn is_covering_node_id(
+        &self,
+        source: NodeID,
+        target: NodeID,
+    ) -> Result<bool, GraphAnnisCoreError> {
+        self.coverage_component_storages
+            .iter()
+            .map(|gs| gs.is_connected(source, target, 0, Bound::Included(1)))
+            .fold_ok(false, |a, b| a || b)
     }
 
     fn is_token(&self, node_id: NodeID) -> Result<bool, GraphAnnisError> {
