@@ -575,22 +575,27 @@ fn get_parts(
             parts.push(TextPart::Gap);
         }
 
-        let get_fragment = |token_id: &NodeID| {
+        let get_fragment_node_id = |token_id: &NodeID| {
             graph_helper
                 .get_covering_node_ids(*token_id)
                 .find_map(|node_id| {
                     node_id
                         .and_then(|node_id| {
-                            node_annos.get_value_for_item(&node_id, fragment_anno_key)
+                            node_annos
+                                .has_value_for_item(&node_id, fragment_anno_key)
+                                .map(|has_fragment| has_fragment.then_some(node_id))
                         })
                         .transpose()
                 })
                 .transpose()
         };
 
-        for group in group_by(&chain.token_ids, get_fragment) {
-            let (fragment, token_ids) = group?;
-            let fragment = fragment.to_string();
+        for group in group_by(&chain.token_ids, get_fragment_node_id) {
+            let (fragment_node_id, token_ids) = group?;
+            let fragment = node_annos
+                .get_value_for_item(&fragment_node_id, fragment_anno_key)?
+                .expect("Value is present by choice of fragment_node_id")
+                .to_string();
 
             let match_node_index = token_ids
                 .iter()
