@@ -535,14 +535,13 @@ fn get_parts(
 
         let chain_id = *token_ids.first().unwrap();
 
-        let next_chain_id = if let Some(gap_storage) = gap_storage {
-            gap_storage
-                .get_outgoing_edges(*token_ids.last().unwrap())
-                .next()
-                .transpose()?
-        } else {
-            None
-        };
+        let next_chain_id = gap_storage
+            .and_then(|gs| gs.get_outgoing_edges(*token_ids.last().unwrap()).next())
+            .transpose()?;
+
+        if let Some(next_chain_id) = next_chain_id {
+            chain_ids_with_predecessor.insert(next_chain_id);
+        }
 
         chains.insert(
             chain_id,
@@ -551,10 +550,6 @@ fn get_parts(
                 next_chain_id,
             },
         );
-
-        if let Some(next_chain_id) = next_chain_id {
-            chain_ids_with_predecessor.insert(next_chain_id);
-        }
     }
 
     let first_chain = chains
