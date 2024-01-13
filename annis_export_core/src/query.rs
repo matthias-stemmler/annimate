@@ -6,7 +6,7 @@ use crate::{
     aql,
     corpus::CorpusRef,
     error::AnnisExportError,
-    node_name,
+    node_name::{self, node_name_to_node_id},
     util::group_by,
     QueryNode,
 };
@@ -501,13 +501,7 @@ fn get_parts(
     let primary_match_node_ids_with_index: Vec<_> = {
         primary_node_indices
             .map(|node_index| {
-                let node_name = &match_node_names[node_index];
-                node_annos
-                    .get_node_id_from_name(node_name)
-                    .map_err(GraphAnnisError::from)
-                    .and_then(|node_id| {
-                        node_id.ok_or(GraphAnnisError::NoSuchNodeID(node_name.clone()))
-                    })
+                node_name_to_node_id(&subgraph, &match_node_names[node_index])
                     .map(|node_id| (node_id, node_index))
             })
             .collect::<Result<_, _>>()

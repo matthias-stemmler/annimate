@@ -1,3 +1,6 @@
+use graphannis::{errors::GraphAnnisError, AnnotationGraph};
+use graphannis_core::types::NodeID;
+
 pub(crate) fn get_corpus_name(node_name: &str) -> &str {
     match node_name.split_once('/') {
         Some((corpus_name, _)) => corpus_name,
@@ -10,6 +13,17 @@ pub(crate) fn get_doc_name(node_name: &str) -> &str {
         Some((doc_name, _)) => doc_name,
         None => node_name,
     }
+}
+
+pub(crate) fn node_name_to_node_id(
+    graph: &AnnotationGraph,
+    node_name: &str,
+) -> Result<NodeID, GraphAnnisError> {
+    graph
+        .get_node_annos()
+        .get_node_id_from_name(node_name)
+        .map_err(GraphAnnisError::from)
+        .and_then(|node_id| node_id.ok_or(GraphAnnisError::NoSuchNodeID(node_name.into())))
 }
 
 #[cfg(test)]

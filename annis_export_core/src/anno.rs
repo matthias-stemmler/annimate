@@ -1,13 +1,12 @@
-use crate::{corpus::CorpusRef, error::AnnisExportError};
+use crate::{corpus::CorpusRef, error::AnnisExportError, node_name::node_name_to_node_id};
 use graphannis::{
     corpusstorage::{QueryLanguage, ResultOrder, SearchQuery},
     errors::GraphAnnisError,
     model::AnnotationComponentType,
-    AnnotationGraph,
 };
 use graphannis_core::{
     graph::{ANNIS_NS, DEFAULT_NS},
-    types::{AnnoKey, Component, NodeID},
+    types::{AnnoKey, Component},
 };
 use itertools::Itertools;
 use std::{
@@ -151,17 +150,6 @@ pub(crate) fn get_anno(
         .get_node_annos()
         .get_value_for_item(&node_id, anno_key)?
         .map(|s| s.into()))
-}
-
-fn node_name_to_node_id(
-    graph: &AnnotationGraph,
-    node_name: &str,
-) -> Result<NodeID, GraphAnnisError> {
-    graph
-        .get_node_annos()
-        .get_node_id_from_name(node_name)
-        .map_err(GraphAnnisError::from)
-        .and_then(|node_id| node_id.ok_or(GraphAnnisError::NoSuchNodeID(node_name.into())))
 }
 
 #[derive(Debug)]
