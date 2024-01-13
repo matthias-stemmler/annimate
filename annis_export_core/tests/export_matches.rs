@@ -7,7 +7,7 @@ use serde::Serialize;
 use std::fs::File;
 use std::path::Path;
 
-macro_rules! export_test {
+macro_rules! export_matches_test {
     ($(
         $name:ident: {
             corpus_paths: $corpus_paths:expr,
@@ -88,7 +88,7 @@ macro_rules! export_test {
     };
 }
 
-export_test! {
+export_matches_test! {
     subtok_segmentation_tokens: {
         corpus_paths: ["subtok.demo_relANNIS.zip"],
         corpus_names: ["subtok.demo"],

@@ -1,5 +1,5 @@
 ---
-source: annis_export_core/tests/export.rs
+source: annis_export_core/tests/export_matches.rs
 info:
   corpus_paths:
     - pcc2_v7_relANNIS.zip

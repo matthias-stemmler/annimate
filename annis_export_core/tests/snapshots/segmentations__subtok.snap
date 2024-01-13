@@ -1,0 +1,12 @@
+---
+source: annis_export_core/tests/segmentations.rs
+info:
+  corpus_paths:
+    - subtok.demo_relANNIS.zip
+  corpus_names:
+    - subtok.demo
+---
+[
+    "diplomatic",
+    "norm",
+]

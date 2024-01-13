@@ -1,5 +1,5 @@
 ---
-source: annis_export_core/tests/export.rs
+source: annis_export_core/tests/export_matches.rs
 info:
   corpus_paths:
     - subtok.demo_relANNIS.zip
@@ -28,6 +28,7 @@ info:
           left_context: 1
           right_context: 1
           segmentation: diplomatic
+          primary_node_indices: []
 ---
 Number,Corpus language,Document,Left context (diplomatic),Match (diplomatic),Right context (diplomatic)
 1,English,subtok.demo.doc01,,T his,is

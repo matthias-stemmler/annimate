@@ -1,5 +1,5 @@
 ---
-source: annis_export_core/tests/export.rs
+source: annis_export_core/tests/export_matches.rs
 info:
   corpus_paths:
     - subtok.demo_relANNIS.zip
@@ -33,6 +33,7 @@ info:
           left_context: 4
           right_context: 4
           segmentation: norm
+          primary_node_indices: []
 ---
 Number,Corpus language,Document,#2 lemma,Left context (norm),Match (norm),Right context (norm)
 1,English,subtok.demo.doc01,This,,This,is an example of
