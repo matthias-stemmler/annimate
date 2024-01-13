@@ -22,7 +22,7 @@ mod util;
 pub use anno::{ExportableAnnoKey, ExportableAnnoKeys};
 pub use aql::{QueryNode, QueryValidationResult};
 pub use format::{CsvExportColumn, CsvExportConfig, ExportFormat};
-pub use graphannis::graph::AnnoKey;
+pub use graphannis::{corpusstorage::CorpusInfo, graph::AnnoKey};
 pub use query::{ExportData, ExportDataAnno, ExportDataText, QueryLanguage};
 
 pub struct CorpusStorage(graphannis::CorpusStorage);
@@ -39,13 +39,12 @@ impl CorpusStorage {
         )?))
     }
 
-    pub fn corpus_names(&self) -> Result<Vec<String>, GraphAnnisError> {
+    pub fn corpus_infos(&self) -> Result<Vec<CorpusInfo>, GraphAnnisError> {
         Ok(self
             .0
             .list()?
             .into_iter()
-            .map(|c| c.name)
-            .sorted()
+            .sorted_by(|a, b| a.name.cmp(&b.name))
             .collect())
     }
 

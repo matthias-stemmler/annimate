@@ -1,6 +1,7 @@
 use annis_export_core::{
-    AnnoKey, CorpusStorage, CsvExportColumn, CsvExportConfig, ExportData, ExportDataAnno,
-    ExportDataText, ExportFormat, ExportableAnnoKey, QueryNode, QueryValidationResult, StatusEvent,
+    AnnoKey, CorpusInfo, CorpusStorage, CsvExportColumn, CsvExportConfig, ExportData,
+    ExportDataAnno, ExportDataText, ExportFormat, ExportableAnnoKey, QueryNode,
+    QueryValidationResult, StatusEvent,
 };
 use anyhow::{anyhow, Context};
 use clap::{Parser, Subcommand, ValueEnum};
@@ -12,6 +13,7 @@ use std::{
     sync::OnceLock,
 };
 use tracing::info;
+use wildmatch::WildMatch;
 
 #[derive(Parser)]
 struct Cli {
@@ -35,6 +37,13 @@ enum Commands {
         language: QueryLanguage,
     },
 
+    /// Get information about corpora
+    GetCorpusInfo {
+        /// Names of the corpora (comma-separated, may contain wildcards * and ?) to get information about
+        #[arg(short, long, default_value = "*")]
+        corpus_name_patterns: CorpusNamePatterns,
+    },
+
     /// Import corpora from a ZIP file
     ImportCorpora {
         /// Path to ZIP file to import corpora from
@@ -43,23 +52,20 @@ enum Commands {
 
     /// List all exportable annotation keys
     ListAnnoKeys {
-        /// Names of the corpora (comma-separated) to list annotation keys for
-        corpus_names: CorpusNames,
+        /// Names of the corpora (comma-separated, may contain wildcards * and ?) to list annotation keys for
+        corpus_name_patterns: CorpusNamePatterns,
     },
-
-    /// List all corpora
-    ListCorpora,
 
     /// List all segmentations
     ListSegmentations {
-        /// Names of the corpora (comma-separated) to list segmentations for
-        corpus_names: CorpusNames,
+        /// Names of the corpora (comma-separated, may contain wildcards * and ?) to list segmentations for
+        corpus_name_patterns: CorpusNamePatterns,
     },
 
     /// Run AQL query and export results
     Query {
-        /// Names of the corpora (comma-separated) to run AQL query on
-        corpus_names: CorpusNames,
+        /// Names of the corpora (comma-separated, may contain wildcards * and ?) to run AQL query on
+        corpus_name_patterns: CorpusNamePatterns,
 
         /// AQL query to run
         query: String,
@@ -78,8 +84,8 @@ enum Commands {
 
     /// Validate AQL query
     ValidateQuery {
-        /// Names of the corpora (comma-separated) to validate AQL query against
-        corpus_names: CorpusNames,
+        /// Names of the corpora (comma-separated, may contain wildcards * and ?) to validate AQL query against
+        corpus_name_patterns: CorpusNamePatterns,
 
         /// AQL query to validate
         query: String,
@@ -91,9 +97,9 @@ enum Commands {
 }
 
 #[derive(Clone)]
-struct CorpusNames(Vec<String>);
+struct CorpusNamePatterns(Vec<String>);
 
-impl Deref for CorpusNames {
+impl Deref for CorpusNamePatterns {
     type Target = [String];
 
     fn deref(&self) -> &[String] {
@@ -101,11 +107,13 @@ impl Deref for CorpusNames {
     }
 }
 
-impl FromStr for CorpusNames {
+impl FromStr for CorpusNamePatterns {
     type Err = Infallible;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        Ok(CorpusNames(s.split(',').map(ToString::to_string).collect()))
+        Ok(CorpusNamePatterns(
+            s.split(',').map(ToString::to_string).collect(),
+        ))
     }
 }
 #[derive(Clone, Copy, ValueEnum)]
@@ -254,6 +262,34 @@ fn main() -> anyhow::Result<()> {
                 );
             }
         }
+        Commands::GetCorpusInfo {
+            corpus_name_patterns,
+        } => {
+            let corpus_infos: Vec<_> =
+                matching_corpus_infos(&corpus_storage, &corpus_name_patterns)?.collect();
+            let max_name_len = corpus_infos.iter().map(|c| c.name.len()).max().unwrap_or(0);
+
+            for corpus_info in corpus_infos {
+                println!(
+                    "{:name_width$}    Segmentation: {}, Contexts: {} (default: {}, max: {})",
+                    corpus_info.name,
+                    corpus_info
+                        .config
+                        .context
+                        .segmentation
+                        .unwrap_or_else(|| "~".into()),
+                    corpus_info.config.context.sizes.into_iter().format(", "),
+                    corpus_info.config.context.default,
+                    corpus_info
+                        .config
+                        .context
+                        .max
+                        .map(|c| c.to_string())
+                        .unwrap_or_else(|| "~".into()),
+                    name_width = max_name_len,
+                );
+            }
+        }
         Commands::ImportCorpora { path } => {
             let corpus_names = corpus_storage
                 .import_corpora_from_zip(
@@ -272,7 +308,9 @@ fn main() -> anyhow::Result<()> {
                 }
             }
         }
-        Commands::ListAnnoKeys { corpus_names } => {
+        Commands::ListAnnoKeys {
+            corpus_name_patterns,
+        } => {
             fn print_exportable_anno_keys(exportable_anno_keys: &[ExportableAnnoKey]) {
                 for ExportableAnnoKey {
                     anno_key,
@@ -288,7 +326,10 @@ fn main() -> anyhow::Result<()> {
             }
 
             let anno_keys = corpus_storage
-                .exportable_anno_keys(&corpus_names)
+                .exportable_anno_keys(&matching_corpus_names(
+                    &corpus_storage,
+                    &corpus_name_patterns,
+                )?)
                 .context("Failed to list annotation keys")?;
 
             println!("Corpus annotation keys");
@@ -300,24 +341,21 @@ fn main() -> anyhow::Result<()> {
             println!("\nNode annotation keys");
             print_exportable_anno_keys(&anno_keys.node);
         }
-        Commands::ListCorpora => {
-            for name in corpus_storage
-                .corpus_names()
-                .context("Failed to list corpora")?
-            {
-                println!("{name}");
-            }
-        }
-        Commands::ListSegmentations { corpus_names } => {
+        Commands::ListSegmentations {
+            corpus_name_patterns,
+        } => {
             for segmentation in corpus_storage
-                .segmentations(&corpus_names)
+                .segmentations(&matching_corpus_names(
+                    &corpus_storage,
+                    &corpus_name_patterns,
+                )?)
                 .context("Failed to list segmentations")?
             {
                 println!("{segmentation}");
             }
         }
         Commands::Query {
-            corpus_names,
+            corpus_name_patterns,
             query,
             language,
             output_file,
@@ -330,7 +368,7 @@ fn main() -> anyhow::Result<()> {
 
             corpus_storage
                 .export_matches(
-                    &corpus_names,
+                    &matching_corpus_names(&corpus_storage, &corpus_name_patterns)?,
                     &query,
                     language.into(),
                     ExportFormat::Csv(CsvExportConfig {
@@ -352,12 +390,16 @@ fn main() -> anyhow::Result<()> {
             progress_reporter.finish();
         }
         Commands::ValidateQuery {
-            corpus_names,
+            corpus_name_patterns,
             query,
             language,
         } => {
             let result = corpus_storage
-                .validate_query(&corpus_names, &query, language.into())
+                .validate_query(
+                    &matching_corpus_names(&corpus_storage, &corpus_name_patterns)?,
+                    &query,
+                    language.into(),
+                )
                 .context("Failed to validate query")?;
             match result {
                 QueryValidationResult::Valid => println!("Query is valid"),
@@ -367,6 +409,35 @@ fn main() -> anyhow::Result<()> {
     }
 
     Ok(())
+}
+
+fn matching_corpus_names<S>(
+    corpus_storage: &CorpusStorage,
+    patterns: &[S],
+) -> anyhow::Result<Vec<String>>
+where
+    S: AsRef<str>,
+{
+    matching_corpus_infos(corpus_storage, patterns).map(|c| c.map(|c| c.name).collect())
+}
+
+fn matching_corpus_infos<S>(
+    corpus_storage: &CorpusStorage,
+    patterns: &[S],
+) -> anyhow::Result<impl Iterator<Item = CorpusInfo>>
+where
+    S: AsRef<str>,
+{
+    let patterns: Vec<_> = patterns
+        .iter()
+        .map(|p| WildMatch::new(p.as_ref()))
+        .collect();
+
+    Ok(corpus_storage
+        .corpus_infos()
+        .context("Failed to determine list of corpora")?
+        .into_iter()
+        .filter(move |c| patterns.iter().any(|pattern| pattern.matches(&c.name))))
 }
 
 enum ProgressReporter {
