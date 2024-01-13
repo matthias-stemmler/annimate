@@ -356,6 +356,7 @@ mod tests {
                     left_context: $left_context,
                     right_context: $right_context,
                     segmentation: None,
+                    primary_node_indices: Vec::new(),
                 };
 
                 let export_data_anno_doc = ExportDataAnno::Document {

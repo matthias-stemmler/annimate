@@ -22,12 +22,12 @@ use graphannis_core::{
     errors::GraphAnnisCoreError,
     types::{AnnoKey, NodeID},
 };
-use itertools::Itertools;
+use itertools::{Either, Itertools};
 use std::{
     collections::{HashMap, HashSet},
     iter::{self, successors, StepBy},
     ops::{Bound, RangeFrom},
-    vec,
+    slice, vec,
 };
 
 pub use graphannis::corpusstorage::QueryLanguage;
@@ -41,10 +41,11 @@ pub enum ExportData {
 }
 
 impl ExportData {
-    pub(crate) fn match_node_index(&self) -> Option<usize> {
+    pub(crate) fn node_indices(&self) -> &[usize] {
         match self {
-            ExportData::Anno(anno) => anno.match_node_index(),
-            _ => None,
+            ExportData::Anno(ExportDataAnno::MatchNode { index, .. }) => slice::from_ref(index),
+            ExportData::Text(text) => &text.primary_node_indices,
+            _ => &[],
         }
     }
 }
@@ -56,20 +57,12 @@ pub enum ExportDataAnno {
     MatchNode { anno_key: AnnoKey, index: usize },
 }
 
-impl ExportDataAnno {
-    fn match_node_index(&self) -> Option<usize> {
-        match self {
-            ExportDataAnno::MatchNode { index, .. } => Some(*index),
-            _ => None,
-        }
-    }
-}
-
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct ExportDataText {
     pub left_context: usize,
     pub right_context: usize,
     pub segmentation: Option<String>,
+    pub primary_node_indices: Vec<usize>,
 }
 
 impl ExportDataText {
@@ -119,8 +112,8 @@ impl<'a, S> Query<'a, S> {
 
         export_data
             .iter()
-            .flat_map(ExportData::match_node_index)
-            .map(|index| {
+            .flat_map(ExportData::node_indices)
+            .map(|&index| {
                 let max_index = self.nodes.len() - 1;
                 if index > max_index {
                     Err(AnnisExportError::MatchNodeIndexOutOfBounds { index, max_index })
@@ -424,9 +417,7 @@ impl<S> MatchesPage<'_, S> {
                             self.corpus_ref.storage,
                             corpus_name,
                             match_node_names.clone(),
-                            text.left_context,
-                            text.right_context,
-                            text.segmentation.clone(),
+                            text,
                             self.fragment_anno_keys.get(&text.segmentation).unwrap(),
                         )?,
                     );
@@ -466,9 +457,7 @@ fn get_parts(
     storage: &graphannis::CorpusStorage,
     corpus_name: &str,
     match_node_names: Vec<String>,
-    left_context: usize,
-    right_context: usize,
-    segmentation: Option<String>,
+    export_data: &ExportDataText,
     fragment_anno_key: &AnnoKey,
 ) -> Result<Vec<TextPart>, AnnisExportError> {
     #[derive(Debug)]
@@ -477,12 +466,31 @@ fn get_parts(
         next_chain_id: Option<NodeID>,
     }
 
-    let subgraph = storage.subgraph(
-        corpus_name,
-        match_node_names.clone(),
+    let ExportDataText {
         left_context,
         right_context,
         segmentation,
+        primary_node_indices,
+    } = export_data;
+
+    let primary_node_indices = if primary_node_indices.is_empty() {
+        Either::Left(0..match_node_names.len())
+    } else {
+        Either::Right(primary_node_indices.iter().copied())
+    };
+
+    let primary_match_node_names = primary_node_indices
+        .clone()
+        .into_iter()
+        .map(|i| match_node_names[i].clone())
+        .collect();
+
+    let subgraph = storage.subgraph(
+        corpus_name,
+        primary_match_node_names,
+        *left_context,
+        *right_context,
+        segmentation.clone(),
     )?;
 
     let graph_helper = GraphHelper::new(&subgraph)?;
@@ -490,14 +498,17 @@ fn get_parts(
     let gap_storage = subgraph.get_graphstorage_as_ref(gap_ordering_component());
     let node_annos = subgraph.get_node_annos();
 
-    let match_node_ids: Vec<_> = {
-        match_node_names
-            .into_iter()
-            .map(|node_name| {
+    let primary_match_node_ids_with_index: Vec<_> = {
+        primary_node_indices
+            .map(|node_index| {
+                let node_name = &match_node_names[node_index];
                 node_annos
-                    .get_node_id_from_name(&node_name)
+                    .get_node_id_from_name(node_name)
                     .map_err(GraphAnnisError::from)
-                    .and_then(|node_id| node_id.ok_or(GraphAnnisError::NoSuchNodeID(node_name)))
+                    .and_then(|node_id| {
+                        node_id.ok_or(GraphAnnisError::NoSuchNodeID(node_name.clone()))
+                    })
+                    .map(|node_id| (node_id, node_index))
             })
             .collect::<Result<_, _>>()
     }?;
@@ -506,7 +517,7 @@ fn get_parts(
     let mut chains = HashMap::new();
     let mut chain_ids_with_predecessor = HashSet::new();
 
-    for &match_node_id in match_node_ids.iter() {
+    for &(match_node_id, _) in &primary_match_node_ids_with_index {
         let Some(covered_token_id) = graph_helper.get_covered_token_id(match_node_id)? else {
             continue;
         };
@@ -592,12 +603,14 @@ fn get_parts(
                 .expect("Value is present by choice of fragment_node_id")
                 .to_string();
 
-            let match_node_index = (0..match_node_ids.len())
+            let match_node_index = primary_match_node_ids_with_index
+                .clone()
+                .into_iter()
                 .cartesian_product(token_ids.iter())
-                .find_map(|(match_node_index, &token_id)| {
+                .find_map(|((match_node_id, node_index), &token_id)| {
                     graph_helper
-                        .is_covering_node_id(match_node_ids[match_node_index], token_id)
-                        .map(|is_covering| is_covering.then_some(match_node_index))
+                        .is_covering_node_id(match_node_id, token_id)
+                        .map(|is_covering| is_covering.then_some(node_index))
                         .transpose()
                 })
                 .transpose()?;

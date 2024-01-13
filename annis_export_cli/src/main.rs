@@ -172,10 +172,13 @@ fn parse_csv_export_column(s: &str) -> anyhow::Result<CsvExportColumn> {
             },
         )))
     } else if let Some(rest) = s.strip_prefix("t:") {
-        let (segmentation, left_context, right_context) =
-            rest.split(';').collect_tuple().ok_or(anyhow!(concat!(
+        let (segmentation, left_context, right_context, primary_node_indices) = rest
+            .split(';')
+            .pad_using(4, |_| "")
+            .collect_tuple()
+            .ok_or(anyhow!(concat!(
                 "'t:' column definition must be of the form ",
-                "<segmentation>;<left context>;<right context>"
+                "<segmentation>;<left context>;<right context>[;<primary node indices>]"
             )))?;
 
         Ok(CsvExportColumn::Data(ExportData::Text(ExportDataText {
@@ -183,8 +186,17 @@ fn parse_csv_export_column(s: &str) -> anyhow::Result<CsvExportColumn> {
                 "~" => None,
                 s => Some(s.into()),
             },
-            left_context: left_context.parse()?,
-            right_context: right_context.parse()?,
+            left_context: left_context.parse().context("invalid left context")?,
+            right_context: right_context.parse().context("invalid right context")?,
+            primary_node_indices: if primary_node_indices.is_empty() {
+                Vec::new()
+            } else {
+                primary_node_indices
+                    .split('>')
+                    .map(|i| i.parse())
+                    .try_collect()
+                    .context("invalid primary node indices")?
+            },
         })))
     } else {
         Err(anyhow!(concat!(
@@ -297,11 +309,11 @@ fn main() -> anyhow::Result<()> {
             }
         }
         Commands::ListSegmentations { corpus_names } => {
-            for name in corpus_storage
+            for segmentation in corpus_storage
                 .segmentations(&corpus_names)
                 .context("Failed to list segmentations")?
             {
-                println!("{name}");
+                println!("{segmentation}");
             }
         }
         Commands::Query {

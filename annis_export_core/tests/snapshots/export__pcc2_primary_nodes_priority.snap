@@ -1,0 +1,119 @@
+---
+source: annis_export_core/tests/export.rs
+info:
+  corpus_paths:
+    - pcc2_v7_relANNIS.zip
+  corpus_names:
+    - pcc2
+  aql_query: "Sent _i_ NP & Inf-Stat & #2 _=_ #3"
+  query_language: AQL
+  export_columns:
+    - Number
+    - Data:
+        Anno:
+          Corpus:
+            anno_key:
+              - ""
+              - language
+    - Data:
+        Anno:
+          Document:
+            anno_key:
+              - annis
+              - doc
+    - Data:
+        Anno:
+          MatchNode:
+            anno_key:
+              - exmaralda
+              - Inf-Stat
+            index: 2
+    - Data:
+        Text:
+          left_context: 10
+          right_context: 10
+          segmentation: ~
+          primary_node_indices:
+            - 1
+            - 0
+---
+Number,Corpus language,Document,#3 Inf-Stat,Context 1 (tokens),Match 1 (tokens),Context 2 (tokens),Match 2 (tokens),Context 3 (tokens),Match 3 (tokens),Context 4 (tokens)
+1,German,11299,new,Feigenblatt,Die Jugendlichen,,in Zossen wollen ein Musikcafé .,Das forderten sie bei der ersten Zossener Runde am Dienstagabend,,
+2,German,11299,new,Feigenblatt,Die Jugendlichen in,,Zossen,,wollen ein Musikcafé .,Das forderten sie bei der ersten Zossener Runde am Dienstagabend
+3,German,11299,new,Feigenblatt,Die Jugendlichen in Zossen wollen,,ein Musikcafé,,.,Das forderten sie bei der ersten Zossener Runde am Dienstagabend
+4,German,11299,giv-active,Feigenblatt Die Jugendlichen in Zossen wollen ein Musikcafé .,Das,,forderten sie bei der ersten Zossener Runde am Dienstagabend .,"Dass die Politiker der Stadt dafür Verständnis haben , ist",,
+5,German,11299,giv-active,Feigenblatt Die Jugendlichen in Zossen wollen ein Musikcafé .,Das forderten,,sie,,bei der ersten Zossener Runde am Dienstagabend .,"Dass die Politiker der Stadt dafür Verständnis haben , ist"
+6,German,11299,new,Feigenblatt Die Jugendlichen in Zossen wollen ein Musikcafé .,Das forderten sie bei,,der ersten Zossener Runde,,am Dienstagabend .,"Dass die Politiker der Stadt dafür Verständnis haben , ist"
+7,German,11299,new,forderten sie bei der ersten Zossener Runde am Dienstagabend .,Dass,,die Politiker,,"der Stadt dafür Verständnis haben , ist löblich .",Mit dem Treffen im Rathaus ist somit auch ein Dialog
+8,German,11299,giv-active,forderten sie bei der ersten Zossener Runde am Dienstagabend .,Dass die Politiker,,der Stadt,,"dafür Verständnis haben , ist löblich .",Mit dem Treffen im Rathaus ist somit auch ein Dialog
+9,German,11299,giv-active,forderten sie bei der ersten Zossener Runde am Dienstagabend .,Dass die Politiker der Stadt,,dafür,,"Verständnis haben , ist löblich .",Mit dem Treffen im Rathaus ist somit auch ein Dialog
+10,German,11299,giv-active,"Politiker der Stadt dafür Verständnis haben , ist löblich .",Mit,,dem Treffen,,im Rathaus ist somit auch ein Dialog zwischen den Generationen angestoßen .,Dass die beiden geladenen Jugendlichen im Laufe des Abends immer
+11,German,11299,acc-gen,"Politiker der Stadt dafür Verständnis haben , ist löblich .",Mit dem Treffen im,,Rathaus,,ist somit auch ein Dialog zwischen den Generationen angestoßen .,Dass die beiden geladenen Jugendlichen im Laufe des Abends immer
+12,German,11299,acc-inf,"Politiker der Stadt dafür Verständnis haben , ist löblich .",Mit dem Treffen im Rathaus ist somit auch,,ein Dialog,,zwischen den Generationen angestoßen .,Dass die beiden geladenen Jugendlichen im Laufe des Abends immer
+13,German,11299,acc-inf,"Politiker der Stadt dafür Verständnis haben , ist löblich .",Mit dem Treffen im Rathaus ist somit auch ein Dialog zwischen,,den Generationen,,angestoßen .,Dass die beiden geladenen Jugendlichen im Laufe des Abends immer
+14,German,11299,giv-active,ist somit auch ein Dialog zwischen den Generationen angestoßen .,Dass,,die beiden geladenen Jugendlichen,,"im Laufe des Abends immer weniger zu Wort kamen , war sicher keine böse Absicht , ärgerlich ist es trotzdem .","Und aberwitzig dazu . Es entbehrt nicht der Komik ,"
+15,German,11299,giv-inactive,ist somit auch ein Dialog zwischen den Generationen angestoßen .,Dass die beiden geladenen Jugendlichen im Laufe,,des Abends,,"immer weniger zu Wort kamen , war sicher keine böse Absicht , ärgerlich ist es trotzdem .","Und aberwitzig dazu . Es entbehrt nicht der Komik ,"
+16,German,11299,idiom,ist somit auch ein Dialog zwischen den Generationen angestoßen .,"Dass die beiden geladenen Jugendlichen im Laufe des Abends immer weniger zu Wort kamen , war sicher",,keine böse Absicht,,", ärgerlich ist es trotzdem .","Und aberwitzig dazu . Es entbehrt nicht der Komik ,"
+17,German,11299,idiom,", ärgerlich ist es trotzdem . Und aberwitzig dazu .",Es,,"entbehrt nicht der Komik , wenn sich drei Erwachsene - Karola Andrae ( Bürgerbündnis/FDP ) , Susanne Michler ( CDU ) und Joachim Zanow ( SPD ) - darüber streiten , was Jugendliche wollen und brauchen , ohne auf die Idee zu kommen , sie selbst zu fragen .","Und das , obwohl sie ihnen gegenüber sitzen . Die",,
+18,German,11299,idiom,", ärgerlich ist es trotzdem . Und aberwitzig dazu .",Es entbehrt nicht,,der Komik,,", wenn sich drei Erwachsene - Karola Andrae ( Bürgerbündnis/FDP ) , Susanne Michler ( CDU ) und Joachim Zanow ( SPD ) - darüber streiten , was Jugendliche wollen und brauchen , ohne auf die Idee zu kommen , sie selbst zu fragen .","Und das , obwohl sie ihnen gegenüber sitzen . Die"
+19,German,11299,giv-inacitve,", ärgerlich ist es trotzdem . Und aberwitzig dazu .","Es entbehrt nicht der Komik , wenn sich",,drei Erwachsene,,"- Karola Andrae ( Bürgerbündnis/FDP ) , Susanne Michler ( CDU ) und Joachim Zanow ( SPD ) - darüber streiten , was Jugendliche wollen und brauchen , ohne auf die Idee zu kommen , sie selbst zu fragen .","Und das , obwohl sie ihnen gegenüber sitzen . Die"
+20,German,11299,acc-gen,", ärgerlich ist es trotzdem . Und aberwitzig dazu .","Es entbehrt nicht der Komik , wenn sich drei Erwachsene -",,Karola Andrae,,"( Bürgerbündnis/FDP ) , Susanne Michler ( CDU ) und Joachim Zanow ( SPD ) - darüber streiten , was Jugendliche wollen und brauchen , ohne auf die Idee zu kommen , sie selbst zu fragen .","Und das , obwohl sie ihnen gegenüber sitzen . Die"
+21,German,11299,acc-gen,", ärgerlich ist es trotzdem . Und aberwitzig dazu .","Es entbehrt nicht der Komik , wenn sich drei Erwachsene - Karola Andrae",,( Bürgerbündnis/FDP ),,", Susanne Michler ( CDU ) und Joachim Zanow ( SPD ) - darüber streiten , was Jugendliche wollen und brauchen , ohne auf die Idee zu kommen , sie selbst zu fragen .","Und das , obwohl sie ihnen gegenüber sitzen . Die"
+22,German,11299,acc-gen,", ärgerlich ist es trotzdem . Und aberwitzig dazu .","Es entbehrt nicht der Komik , wenn sich drei Erwachsene - Karola Andrae ( Bürgerbündnis/FDP ) ,",,Susanne Michler,,"( CDU ) und Joachim Zanow ( SPD ) - darüber streiten , was Jugendliche wollen und brauchen , ohne auf die Idee zu kommen , sie selbst zu fragen .","Und das , obwohl sie ihnen gegenüber sitzen . Die"
+23,German,11299,acc-gen,", ärgerlich ist es trotzdem . Und aberwitzig dazu .","Es entbehrt nicht der Komik , wenn sich drei Erwachsene - Karola Andrae ( Bürgerbündnis/FDP ) , Susanne Michler",,( CDU ),,"und Joachim Zanow ( SPD ) - darüber streiten , was Jugendliche wollen und brauchen , ohne auf die Idee zu kommen , sie selbst zu fragen .","Und das , obwohl sie ihnen gegenüber sitzen . Die"
+24,German,11299,acc-gen,", ärgerlich ist es trotzdem . Und aberwitzig dazu .","Es entbehrt nicht der Komik , wenn sich drei Erwachsene - Karola Andrae ( Bürgerbündnis/FDP ) , Susanne Michler ( CDU ) und",,Joachim Zanow,,"( SPD ) - darüber streiten , was Jugendliche wollen und brauchen , ohne auf die Idee zu kommen , sie selbst zu fragen .","Und das , obwohl sie ihnen gegenüber sitzen . Die"
+25,German,11299,acc-gen,", ärgerlich ist es trotzdem . Und aberwitzig dazu .","Es entbehrt nicht der Komik , wenn sich drei Erwachsene - Karola Andrae ( Bürgerbündnis/FDP ) , Susanne Michler ( CDU ) und Joachim Zanow",,( SPD ),,"- darüber streiten , was Jugendliche wollen und brauchen , ohne auf die Idee zu kommen , sie selbst zu fragen .","Und das , obwohl sie ihnen gegenüber sitzen . Die"
+26,German,11299,giv-inactive,", ärgerlich ist es trotzdem . Und aberwitzig dazu .","Es entbehrt nicht der Komik , wenn sich drei Erwachsene - Karola Andrae ( Bürgerbündnis/FDP ) , Susanne Michler ( CDU ) und Joachim Zanow ( SPD ) - darüber streiten , was",,Jugendliche,,"wollen und brauchen , ohne auf die Idee zu kommen , sie selbst zu fragen .","Und das , obwohl sie ihnen gegenüber sitzen . Die"
+27,German,11299,giv-active,", ärgerlich ist es trotzdem . Und aberwitzig dazu .","Es entbehrt nicht der Komik , wenn sich drei Erwachsene - Karola Andrae ( Bürgerbündnis/FDP ) , Susanne Michler ( CDU ) und Joachim Zanow ( SPD ) - darüber streiten , was Jugendliche wollen und brauchen , ohne auf die Idee zu kommen ,",,sie,,selbst zu fragen .,"Und das , obwohl sie ihnen gegenüber sitzen . Die"
+28,German,11299,giv-active,"die Idee zu kommen , sie selbst zu fragen .","Und das , obwohl",,sie,,ihnen gegenüber sitzen .,Die Jugendlichen wurden somit zum bloßen Feigenblatt degradiert . Nicht
+29,German,11299,giv-active,"die Idee zu kommen , sie selbst zu fragen .","Und das , obwohl sie",,ihnen,,gegenüber sitzen .,Die Jugendlichen wurden somit zum bloßen Feigenblatt degradiert . Nicht
+30,German,11299,giv-active,". Und das , obwohl sie ihnen gegenüber sitzen .",Die Jugendlichen,,wurden somit zum bloßen Feigenblatt degradiert .,Nicht über sondern mit ihnen hätten die Politiker reden sollen,,
+31,German,11299,idiom,". Und das , obwohl sie ihnen gegenüber sitzen .",Die Jugendlichen wurden somit zum,,bloßen Feigenblatt,,degradiert .,Nicht über sondern mit ihnen hätten die Politiker reden sollen
+32,German,11299,giv-active,. Die Jugendlichen wurden somit zum bloßen Feigenblatt degradiert .,Nicht über sondern mit,,ihnen,,hätten die Politiker reden sollen .,Damit ist eine große Chance vertan . Vielleicht klappt es
+33,German,11299,giv-active,. Die Jugendlichen wurden somit zum bloßen Feigenblatt degradiert .,Nicht über sondern mit ihnen hätten,,die Politiker,,reden sollen .,Damit ist eine große Chance vertan . Vielleicht klappt es
+34,German,11299,giv-inactive,reden sollen . Damit ist eine große Chance vertan .,Vielleicht klappt es bei,,der nächsten Runde,,Anfang 2002 .,Dann werden auch mehr Jugendliche eingeladen . In der Gruppe
+35,German,11299,acc-inf,Vielleicht klappt es bei der nächsten Runde Anfang 2002 .,Dann werden auch,,mehr Jugendliche,,eingeladen .,In der Gruppe können sie sich hoffentlich mehr Gehör verschaffen
+36,German,11299,acc-inf,Anfang 2002 . Dann werden auch mehr Jugendliche eingeladen .,In,,der Gruppe,,können sie sich hoffentlich mehr Gehör verschaffen .,Vielleicht finden dann auch Vertreter von PDS und Gewerbeverein ihren
+37,German,11299,giv-active,Anfang 2002 . Dann werden auch mehr Jugendliche eingeladen .,In der Gruppe können,,sie,,sich hoffentlich mehr Gehör verschaffen .,Vielleicht finden dann auch Vertreter von PDS und Gewerbeverein ihren
+38,German,11299,idiom,Anfang 2002 . Dann werden auch mehr Jugendliche eingeladen .,In der Gruppe können sie sich hoffentlich,,mehr Gehör,,verschaffen .,Vielleicht finden dann auch Vertreter von PDS und Gewerbeverein ihren
+39,German,11299,acc-inf,der Gruppe können sie sich hoffentlich mehr Gehör verschaffen .,Vielleicht finden dann auch,,Vertreter,,von PDS und Gewerbeverein ihren Weg ins Rathaus .,Die glänzten diesmal noch mit Abwesenheit .
+40,German,11299,acc-gen,der Gruppe können sie sich hoffentlich mehr Gehör verschaffen .,Vielleicht finden dann auch Vertreter von,,PDS,,und Gewerbeverein ihren Weg ins Rathaus .,Die glänzten diesmal noch mit Abwesenheit .
+41,German,11299,acc-gen,der Gruppe können sie sich hoffentlich mehr Gehör verschaffen .,Vielleicht finden dann auch Vertreter von PDS und,,Gewerbeverein,,ihren Weg ins Rathaus .,Die glänzten diesmal noch mit Abwesenheit .
+42,German,11299,giv-inactive,der Gruppe können sie sich hoffentlich mehr Gehör verschaffen .,Vielleicht finden dann auch Vertreter von PDS und Gewerbeverein ihren Weg ins,,Rathaus,,.,Die glänzten diesmal noch mit Abwesenheit .
+43,German,11299,giv-active,Vertreter von PDS und Gewerbeverein ihren Weg ins Rathaus .,Die,,glänzten diesmal noch mit Abwesenheit,.,,
+44,German,11299,idiom,Vertreter von PDS und Gewerbeverein ihren Weg ins Rathaus .,Die glänzten diesmal noch mit,,Abwesenheit,.,,
+45,German,4282,idiom,Steilpass,Wunder,,gibt es immer wieder !,Erst spielen die Dallgower Gemeindevertreter so statisch und verzagt wie,,
+46,German,4282,new,Steilpass Wunder gibt es immer wieder !,Erst spielen,,die Dallgower Gemeindevertreter,,so statisch und verzagt wie die deutsche Abwehrreihe der Fußballkicker .,Und dann kommt aus der Tiefe solch ein fulminanter Steilpass
+47,German,4282,acc-inf,Steilpass Wunder gibt es immer wieder !,Erst spielen die Dallgower Gemeindevertreter so statisch und verzagt wie,,die deutsche Abwehrreihe der Fußballkicker,,.,Und dann kommt aus der Tiefe solch ein fulminanter Steilpass
+48,German,4282,idiom,statisch und verzagt wie die deutsche Abwehrreihe der Fußballkicker .,Und dann kommt aus,,der Tiefe,,"solch ein fulminanter Steilpass , von dem man hofft , dass die Seeburger oder Groß-Glienicker Mitspieler ihn aufnehmen können .","Ein Befreiungsschlag ist es allerdings nicht , weil es vorerst"
+49,German,4282,new,statisch und verzagt wie die deutsche Abwehrreihe der Fußballkicker .,Und dann kommt aus der Tiefe solch,,ein fulminanter Steilpass,,", von dem man hofft , dass die Seeburger oder Groß-Glienicker Mitspieler ihn aufnehmen können .","Ein Befreiungsschlag ist es allerdings nicht , weil es vorerst"
+50,German,4282,giv-active,statisch und verzagt wie die deutsche Abwehrreihe der Fußballkicker .,"Und dann kommt aus der Tiefe solch ein fulminanter Steilpass , von",,dem,,"man hofft , dass die Seeburger oder Groß-Glienicker Mitspieler ihn aufnehmen können .","Ein Befreiungsschlag ist es allerdings nicht , weil es vorerst"
+51,German,4282,acc-sit,statisch und verzagt wie die deutsche Abwehrreihe der Fußballkicker .,"Und dann kommt aus der Tiefe solch ein fulminanter Steilpass , von dem",,man,,"hofft , dass die Seeburger oder Groß-Glienicker Mitspieler ihn aufnehmen können .","Ein Befreiungsschlag ist es allerdings nicht , weil es vorerst"
+52,German,4282,new,statisch und verzagt wie die deutsche Abwehrreihe der Fußballkicker .,"Und dann kommt aus der Tiefe solch ein fulminanter Steilpass , von dem man hofft , dass",,die Seeburger oder Groß-Glienicker Mitspieler,,ihn aufnehmen können .,"Ein Befreiungsschlag ist es allerdings nicht , weil es vorerst"
+53,German,4282,giv-active,statisch und verzagt wie die deutsche Abwehrreihe der Fußballkicker .,"Und dann kommt aus der Tiefe solch ein fulminanter Steilpass , von dem man hofft , dass die Seeburger oder Groß-Glienicker Mitspieler",,ihn,,aufnehmen können .,"Ein Befreiungsschlag ist es allerdings nicht , weil es vorerst"
+54,German,4282,acc-inf,dass die Seeburger oder Groß-Glienicker Mitspieler ihn aufnehmen können .,Ein Befreiungsschlag,,"ist es allerdings nicht , weil es vorerst keine Gefahr fürs Dallgower Tor gab .",Die Seeburger und einige Groß-Glienicker haben den Ball erst zurückgespielt,,
+55,German,4282,idiom,dass die Seeburger oder Groß-Glienicker Mitspieler ihn aufnehmen können .,"Ein Befreiungsschlag ist es allerdings nicht , weil es vorerst",,keine Gefahr,,fürs Dallgower Tor gab .,Die Seeburger und einige Groß-Glienicker haben den Ball erst zurückgespielt
+56,German,4282,acc-inf,dass die Seeburger oder Groß-Glienicker Mitspieler ihn aufnehmen können .,"Ein Befreiungsschlag ist es allerdings nicht , weil es vorerst keine Gefahr fürs",,Dallgower Tor,,gab .,Die Seeburger und einige Groß-Glienicker haben den Ball erst zurückgespielt
+57,German,4282,giv-inactive,weil es vorerst keine Gefahr fürs Dallgower Tor gab .,Die Seeburger,,und einige Groß-Glienicker haben den Ball erst zurückgespielt und dann um so drängender wieder gefordert .,"Nun sollen sie zeigen , wie sie die Chance verwerten",,
+58,German,4282,giv-inactive,weil es vorerst keine Gefahr fürs Dallgower Tor gab .,Die Seeburger und,,einige Groß-Glienicker,,haben den Ball erst zurückgespielt und dann um so drängender wieder gefordert .,"Nun sollen sie zeigen , wie sie die Chance verwerten"
+59,German,4282,acc-inf,weil es vorerst keine Gefahr fürs Dallgower Tor gab .,Die Seeburger und einige Groß-Glienicker haben,,den Ball,,erst zurückgespielt und dann um so drängender wieder gefordert .,"Nun sollen sie zeigen , wie sie die Chance verwerten"
+60,German,4282,giv-active,erst zurückgespielt und dann um so drängender wieder gefordert .,Nun sollen,,sie,,"zeigen , wie sie die Chance verwerten .","Eine Diskussion , wo künftig die Trainerkabine stehen soll ,"
+61,German,4282,giv-acitve,erst zurückgespielt und dann um so drängender wieder gefordert .,"Nun sollen sie zeigen , wie",,sie,,die Chance verwerten .,"Eine Diskussion , wo künftig die Trainerkabine stehen soll ,"
+62,German,4282,acc-inf,erst zurückgespielt und dann um so drängender wieder gefordert .,"Nun sollen sie zeigen , wie sie",,die Chance,,verwerten .,"Eine Diskussion , wo künftig die Trainerkabine stehen soll ,"
+63,German,4282,new,"sollen sie zeigen , wie sie die Chance verwerten .",Eine Diskussion,,", wo künftig die Trainerkabine stehen soll , wäre in der jetzigen Spielsituation verheerend .",Und eine Parallele zu den deutschen Grotten-Kickern gibt es immer,,
+64,German,4282,new,"sollen sie zeigen , wie sie die Chance verwerten .","Eine Diskussion , wo künftig",,die Trainerkabine,,"stehen soll , wäre in der jetzigen Spielsituation verheerend .",Und eine Parallele zu den deutschen Grotten-Kickern gibt es immer
+65,German,4282,new,"sollen sie zeigen , wie sie die Chance verwerten .","Eine Diskussion , wo künftig die Trainerkabine stehen soll , wäre in",,der jetzigen Spielsituation,,verheerend .,Und eine Parallele zu den deutschen Grotten-Kickern gibt es immer
+66,German,4282,idiom,"stehen soll , wäre in der jetzigen Spielsituation verheerend .",Und,,eine Parallele,,zu den deutschen Grotten-Kickern gibt es immer noch .,Auch wenn die Spieler aus den verschiedenen Vereinen zusammengewürfelt sind
+67,German,4282,giv-inactive,"stehen soll , wäre in der jetzigen Spielsituation verheerend .",Und eine Parallele zu,,den deutschen Grotten-Kickern,,gibt es immer noch .,Auch wenn die Spieler aus den verschiedenen Vereinen zusammengewürfelt sind
+68,German,4282,acc-aggr,Parallele zu den deutschen Grotten-Kickern gibt es immer noch .,Auch wenn,,die Spieler,,"aus den verschiedenen Vereinen zusammengewürfelt sind , sie müssen sich daran gewöhnen , dass sie nun in einer Mannschaft "" Döberitzer Heide "" spielen .",Und das heißt gemeinsam und nicht gegeneinander . Ermahnungen von
+69,German,4282,giv-inactive,Parallele zu den deutschen Grotten-Kickern gibt es immer noch .,Auch wenn die Spieler aus,,den verschiedenen Vereinen,,"zusammengewürfelt sind , sie müssen sich daran gewöhnen , dass sie nun in einer Mannschaft "" Döberitzer Heide "" spielen .",Und das heißt gemeinsam und nicht gegeneinander . Ermahnungen von
+70,German,4282,giv-active,Parallele zu den deutschen Grotten-Kickern gibt es immer noch .,"Auch wenn die Spieler aus den verschiedenen Vereinen zusammengewürfelt sind ,",,sie,,"müssen sich daran gewöhnen , dass sie nun in einer Mannschaft "" Döberitzer Heide "" spielen .",Und das heißt gemeinsam und nicht gegeneinander . Ermahnungen von
+71,German,4282,acc-aggr,Parallele zu den deutschen Grotten-Kickern gibt es immer noch .,"Auch wenn die Spieler aus den verschiedenen Vereinen zusammengewürfelt sind , sie müssen",,sich,,"daran gewöhnen , dass sie nun in einer Mannschaft "" Döberitzer Heide "" spielen .",Und das heißt gemeinsam und nicht gegeneinander . Ermahnungen von
+72,German,4282,giv-active,Parallele zu den deutschen Grotten-Kickern gibt es immer noch .,"Auch wenn die Spieler aus den verschiedenen Vereinen zusammengewürfelt sind , sie müssen sich daran gewöhnen , dass",,sie,,"nun in einer Mannschaft "" Döberitzer Heide "" spielen .",Und das heißt gemeinsam und nicht gegeneinander . Ermahnungen von
+73,German,4282,acc-inf,Parallele zu den deutschen Grotten-Kickern gibt es immer noch .,"Auch wenn die Spieler aus den verschiedenen Vereinen zusammengewürfelt sind , sie müssen sich daran gewöhnen , dass sie nun in",,"einer Mannschaft "" Döberitzer Heide """,,spielen .,Und das heißt gemeinsam und nicht gegeneinander . Ermahnungen von
+74,German,4282,giv-active,"nun in einer Mannschaft "" Döberitzer Heide "" spielen .",Und,,das,,heißt gemeinsam und nicht gegeneinander .,"Ermahnungen von der Seitenlinie , miteinander fair umzugehen und sich"
+75,German,4282,new,spielen . Und das heißt gemeinsam und nicht gegeneinander .,Ermahnungen,,"von der Seitenlinie , miteinander fair umzugehen und sich nicht beim kleinsten Schubser gegenseitig zu zerfleischen , sind normalerweise überflüssig .",Vorerst allerdings hilfreich .,,
+76,German,4282,acc-inf,spielen . Und das heißt gemeinsam und nicht gegeneinander .,Ermahnungen von,,der Seitenlinie,,", miteinander fair umzugehen und sich nicht beim kleinsten Schubser gegenseitig zu zerfleischen , sind normalerweise überflüssig .",Vorerst allerdings hilfreich .
+77,German,4282,acc-aggr,spielen . Und das heißt gemeinsam und nicht gegeneinander .,"Ermahnungen von der Seitenlinie , miteinander fair umzugehen und",,sich,,"nicht beim kleinsten Schubser gegenseitig zu zerfleischen , sind normalerweise überflüssig .",Vorerst allerdings hilfreich .
+78,German,4282,idiom,spielen . Und das heißt gemeinsam und nicht gegeneinander .,"Ermahnungen von der Seitenlinie , miteinander fair umzugehen und sich nicht beim",,kleinsten Schubser,,"gegenseitig zu zerfleischen , sind normalerweise überflüssig .",Vorerst allerdings hilfreich .
+

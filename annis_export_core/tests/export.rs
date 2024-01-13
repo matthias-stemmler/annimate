@@ -110,6 +110,7 @@ export_test! {
                 left_context: 4,
                 right_context: 4,
                 segmentation: None,
+                primary_node_indices: &[],
             })),
         ],
     }
@@ -134,6 +135,7 @@ export_test! {
                 left_context: 4,
                 right_context: 4,
                 segmentation: Some("diplomatic"),
+                primary_node_indices: &[],
             })),
         ],
     }
@@ -158,6 +160,7 @@ export_test! {
                 left_context: 4,
                 right_context: 4,
                 segmentation: Some("norm"),
+                primary_node_indices: &[],
             })),
         ],
     }
@@ -186,6 +189,7 @@ export_test! {
                 left_context: 1,
                 right_context: 1,
                 segmentation: None,
+                primary_node_indices: &[],
             })),
         ],
     }
@@ -214,6 +218,7 @@ export_test! {
                 left_context: 1,
                 right_context: 1,
                 segmentation: None,
+                primary_node_indices: &[],
             })),
         ],
     }
@@ -234,10 +239,11 @@ export_test! {
                 left_context: 1,
                 right_context: 1,
                 segmentation: Some("diplomatic"),
+                primary_node_indices: &[],
             })),
         ],
     }
-    pcc2: {
+    pcc2_primary_node: {
         corpus_paths: ["pcc2_v7_relANNIS.zip"],
         corpus_names: ["pcc2"],
         aql_query: "Sent _i_ NP & Inf-Stat & #2 _=_ #3",
@@ -258,6 +264,32 @@ export_test! {
                 left_context: 10,
                 right_context: 10,
                 segmentation: None,
+                primary_node_indices: &[1],
+            })),
+        ],
+    }
+    pcc2_primary_nodes_priority: {
+        corpus_paths: ["pcc2_v7_relANNIS.zip"],
+        corpus_names: ["pcc2"],
+        aql_query: "Sent _i_ NP & Inf-Stat & #2 _=_ #3",
+        query_language: AQL,
+        export_columns: [
+            Number,
+            Data(Anno(TestExportDataAnno::Corpus {
+                anno_key: ("", "language"),
+            })),
+            Data(Anno(TestExportDataAnno::Document {
+                anno_key: ("annis", "doc"),
+            })),
+            Data(Anno(TestExportDataAnno::MatchNode {
+                anno_key: ("exmaralda", "Inf-Stat"),
+                index: 2,
+            })),
+            Data(Text(TestExportDataText {
+                left_context: 10,
+                right_context: 10,
+                segmentation: None,
+                primary_node_indices: &[1, 0],
             })),
         ],
     }
@@ -300,9 +332,10 @@ enum TestExportDataAnno {
 
 #[derive(Clone, Serialize)]
 struct TestExportDataText {
-    pub left_context: usize,
-    pub right_context: usize,
-    pub segmentation: Option<&'static str>,
+    left_context: usize,
+    right_context: usize,
+    segmentation: Option<&'static str>,
+    primary_node_indices: &'static [usize],
 }
 
 impl From<TestCsvExportColumn> for CsvExportColumn {
@@ -340,10 +373,12 @@ impl From<TestCsvExportColumn> for CsvExportColumn {
                     left_context,
                     right_context,
                     segmentation,
+                    primary_node_indices,
                 }) => ExportData::Text(ExportDataText {
                     left_context,
                     right_context,
                     segmentation: segmentation.map(|s| s.to_string()),
+                    primary_node_indices: primary_node_indices.into(),
                 }),
             }),
         }
