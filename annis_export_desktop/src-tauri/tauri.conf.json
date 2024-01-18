@@ -12,6 +12,9 @@
   "tauri": {
     "allowlist": {
       "all": false,
+      "process": {
+        "relaunch": true
+      },
       "shell": {
         "all": false,
         "open": true

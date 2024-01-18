@@ -5,8 +5,9 @@ import {
 } from '@/components/ui/resizable';
 import { Textarea } from '@/components/ui/textarea';
 import { FC } from 'react';
+import { CorpusSelect } from './corpus-select';
 
-export const App: FC = () => (
+export const Page: FC = () => (
   <div className="flex flex-col h-full">
     <header className="p-4">
       <h1>Title</h1>
@@ -22,7 +23,7 @@ export const App: FC = () => (
           <ResizableHandle withHandle />
 
           <ResizablePanel className="p-2" minSize={10}>
-            Corpora
+            <CorpusSelect />
           </ResizablePanel>
         </ResizablePanelGroup>
       </ResizablePanel>

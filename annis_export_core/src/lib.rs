@@ -1,8 +1,7 @@
 use anno::AnnoKeys;
 use corpus::CorpusRef;
-use error::AnnisExportError;
 use format::export;
-use graphannis::{corpusstorage::CacheStrategy, errors::GraphAnnisError};
+use graphannis::corpusstorage::CacheStrategy;
 use itertools::Itertools;
 use query::Query;
 use std::{
@@ -21,6 +20,7 @@ mod util;
 
 pub use anno::{ExportableAnnoKey, ExportableAnnoKeys};
 pub use aql::{QueryNode, QueryValidationResult};
+pub use error::AnnisExportError;
 pub use format::{CsvExportColumn, CsvExportConfig, ExportFormat};
 pub use graphannis::{corpusstorage::CorpusInfo, graph::AnnoKey};
 pub use query::{ExportData, ExportDataAnno, ExportDataText, QueryLanguage};
@@ -28,7 +28,7 @@ pub use query::{ExportData, ExportDataAnno, ExportDataText, QueryLanguage};
 pub struct CorpusStorage(graphannis::CorpusStorage);
 
 impl CorpusStorage {
-    pub fn from_db_dir<P>(db_dir: P) -> Result<Self, GraphAnnisError>
+    pub fn from_db_dir<P>(db_dir: P) -> Result<Self, AnnisExportError>
     where
         P: AsRef<Path>,
     {
@@ -39,7 +39,7 @@ impl CorpusStorage {
         )?))
     }
 
-    pub fn corpus_infos(&self) -> Result<Vec<CorpusInfo>, GraphAnnisError> {
+    pub fn corpus_infos(&self) -> Result<Vec<CorpusInfo>, AnnisExportError> {
         Ok(self
             .0
             .list()?
@@ -52,12 +52,12 @@ impl CorpusStorage {
         &self,
         zip: R,
         on_status: F,
-    ) -> Result<Vec<String>, GraphAnnisError>
+    ) -> Result<Vec<String>, AnnisExportError>
     where
         F: Fn(&str),
         R: Read + Seek,
     {
-        self.0.import_all_from_zip(zip, false, false, on_status)
+        Ok(self.0.import_all_from_zip(zip, false, false, on_status)?)
     }
 
     pub fn validate_query<S>(
@@ -65,36 +65,40 @@ impl CorpusStorage {
         corpus_names: &[S],
         aql_query: &str,
         query_language: QueryLanguage,
-    ) -> Result<QueryValidationResult, GraphAnnisError>
+    ) -> Result<QueryValidationResult, AnnisExportError>
     where
         S: AsRef<str>,
     {
-        aql::validate_query(self.corpus_ref(corpus_names), aql_query, query_language)
+        Ok(aql::validate_query(
+            self.corpus_ref(corpus_names),
+            aql_query,
+            query_language,
+        )?)
     }
 
     pub fn query_nodes(
         &self,
         aql_query: &str,
         query_language: QueryLanguage,
-    ) -> Result<Vec<Vec<QueryNode>>, GraphAnnisError> {
-        aql::query_nodes(&self.0, aql_query, query_language)
+    ) -> Result<Vec<Vec<QueryNode>>, AnnisExportError> {
+        Ok(aql::query_nodes(&self.0, aql_query, query_language)?)
     }
 
     pub fn exportable_anno_keys<S>(
         &self,
         corpus_names: &[S],
-    ) -> Result<ExportableAnnoKeys, GraphAnnisError>
+    ) -> Result<ExportableAnnoKeys, AnnisExportError>
     where
         S: AsRef<str>,
     {
-        AnnoKeys::new(self.corpus_ref(corpus_names)).map(AnnoKeys::into_exportable)
+        Ok(AnnoKeys::new(self.corpus_ref(corpus_names)).map(AnnoKeys::into_exportable)?)
     }
 
-    pub fn segmentations<S>(&self, corpus_names: &[S]) -> Result<Vec<String>, GraphAnnisError>
+    pub fn segmentations<S>(&self, corpus_names: &[S]) -> Result<Vec<String>, AnnisExportError>
     where
         S: AsRef<str>,
     {
-        anno::segmentations(self.corpus_ref(corpus_names))
+        Ok(anno::segmentations(self.corpus_ref(corpus_names))?)
     }
 
     pub fn export_matches<F, S, W>(
