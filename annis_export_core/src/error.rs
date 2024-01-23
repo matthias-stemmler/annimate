@@ -5,6 +5,9 @@ use thiserror::Error;
 
 #[derive(Debug, Error)]
 pub enum AnnisExportError {
+    #[error("Corpus name decodes to invalid UTF-8: {0}")]
+    CorpusNameDecodesToInvalidUtf8(String),
+
     #[error("Match node index {index} out of bounds, may be at most {max_index}")]
     MatchNodeIndexOutOfBounds { index: usize, max_index: usize },
 

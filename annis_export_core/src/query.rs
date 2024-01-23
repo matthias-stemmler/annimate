@@ -366,7 +366,8 @@ impl<S> MatchesPage<'_, S> {
         let first_node_name = match_node_names
             .first()
             .ok_or(AnnisExportError::MatchWithoutNodes)?;
-        let corpus_name = node_name::get_corpus_name(first_node_name);
+
+        let corpus_name = node_name::get_corpus_name(first_node_name)?;
         let doc_name = node_name::get_doc_name(first_node_name);
 
         let mut annos = HashMap::new();
@@ -377,7 +378,7 @@ impl<S> MatchesPage<'_, S> {
                 ExportData::Anno(anno) => match anno {
                     ExportDataAnno::Corpus { anno_key } => {
                         if let Some(value) =
-                            anno::get_anno(self.corpus_ref.storage, corpus_name, None, anno_key)?
+                            anno::get_anno(self.corpus_ref.storage, &corpus_name, None, anno_key)?
                         {
                             annos.insert(anno.clone(), value);
                         }
@@ -385,7 +386,7 @@ impl<S> MatchesPage<'_, S> {
                     ExportDataAnno::Document { anno_key } => {
                         if let Some(value) = anno::get_anno(
                             self.corpus_ref.storage,
-                            corpus_name,
+                            &corpus_name,
                             Some(doc_name),
                             anno_key,
                         )? {
@@ -398,7 +399,7 @@ impl<S> MatchesPage<'_, S> {
                             .map(|node_name| {
                                 anno::get_anno(
                                     self.corpus_ref.storage,
-                                    corpus_name,
+                                    &corpus_name,
                                     Some(node_name),
                                     anno_key,
                                 )
@@ -415,7 +416,7 @@ impl<S> MatchesPage<'_, S> {
                         text.clone(),
                         get_parts(
                             self.corpus_ref.storage,
-                            corpus_name,
+                            &corpus_name,
                             match_node_names.clone(),
                             text,
                             self.fragment_anno_keys.get(&text.segmentation).unwrap(),

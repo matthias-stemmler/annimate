@@ -10,6 +10,7 @@ graphannis-core = "3"
 itertools = "0.12"
 regex = "1"
 thiserror = "1"
+urlencoding = "2"
 
 [dev-dependencies]
 indoc = "2"
