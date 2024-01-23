@@ -130,7 +130,17 @@ where
         anno_keys_present_in_all_corpora.retain(|anno_key| anno_keys.contains(anno_key));
     }
 
-    Ok(anno_keys_present_in_all_corpora.into_iter().next())
+    let mut fallback_anno_key = None;
+
+    for anno_key in anno_keys_present_in_all_corpora {
+        if anno_key.ns == DEFAULT_NS {
+            return Ok(Some(anno_key));
+        }
+
+        fallback_anno_key.get_or_insert(anno_key);
+    }
+
+    Ok(fallback_anno_key)
 }
 
 pub(crate) fn get_anno(
