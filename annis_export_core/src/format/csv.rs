@@ -68,21 +68,26 @@ impl Exporter for CsvExporter {
         I::IntoIter: ExactSizeIterator,
         W: Write,
     {
+        let matches_iter = matches.into_iter();
+        let count = matches_iter.len();
+        let mut matches = Vec::with_capacity(count);
+
         let max_match_parts_by_text = {
-            let matches = matches.clone().into_iter();
-            let count = matches.len();
             let mut max_match_parts_by_text = HashMap::new();
 
-            for (i, m) in matches.enumerate() {
-                for (text, parts) in m?.texts {
-                    let match_parts = parts.into_iter().filter(|p| p.is_match()).count();
-                    let max_match_parts = max_match_parts_by_text.entry(text).or_insert(0);
+            for (i, m) in matches_iter.enumerate() {
+                let m = m?;
+
+                for (text, parts) in &m.texts {
+                    let match_parts = parts.iter().filter(|p| p.is_match()).count();
+                    let max_match_parts = max_match_parts_by_text.entry(text.clone()).or_insert(0);
                     if match_parts > *max_match_parts {
                         *max_match_parts = match_parts;
                     }
                 }
 
-                on_progress(0.5 * (i + 1) as f32 / count as f32)
+                matches.push(m);
+                on_progress((i + 1) as f32 / count as f32)
             }
 
             max_match_parts_by_text
@@ -144,12 +149,7 @@ impl Exporter for CsvExporter {
             }
         }))?;
 
-        let matches = matches.into_iter();
-        let count = matches.len();
-
-        for (i, m) in matches.enumerate() {
-            let Match { annos, texts } = m?;
-
+        for (i, Match { annos, texts }) in matches.into_iter().enumerate() {
             csv_writer.write_record(config.columns.iter().flat_map(|c| match c {
                 CsvExportColumn::Number => vec![(i + 1).to_string()],
                 CsvExportColumn::Data(ExportData::Anno(anno)) => {
@@ -165,8 +165,6 @@ impl Exporter for CsvExporter {
                     TextColumnsAligned::new(parts, column_types).collect()
                 }
             }))?;
-
-            on_progress(0.5 + 0.5 * (i + 1) as f32 / count as f32)
         }
 
         Ok(())
