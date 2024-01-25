@@ -75,6 +75,30 @@ impl ExportDataText {
     }
 }
 
+#[derive(Debug, Clone)]
+pub(crate) struct Match {
+    pub(crate) annos: HashMap<ExportDataAnno, String>,
+    pub(crate) texts: HashMap<ExportDataText, Vec<TextPart>>,
+}
+
+#[derive(Debug, Clone)]
+pub(crate) enum TextPart {
+    Match {
+        index: usize,
+        fragments: Vec<String>,
+    },
+    Context {
+        fragments: Vec<String>,
+    },
+    Gap,
+}
+
+impl TextPart {
+    pub(crate) fn is_match(&self) -> bool {
+        matches!(self, TextPart::Match { .. })
+    }
+}
+
 pub(crate) struct Query<'a, S> {
     corpus_ref: CorpusRef<'a, S>,
     aql_query: &'a str,
@@ -378,13 +402,13 @@ impl<S> MatchesPage<'_, S> {
                 ExportData::Anno(anno) => match anno {
                     ExportDataAnno::Corpus { anno_key } => {
                         if let Some(value) =
-                            anno::get_anno(self.corpus_ref.storage, &corpus_name, None, anno_key)?
+                            get_anno(self.corpus_ref.storage, &corpus_name, None, anno_key)?
                         {
                             annos.insert(anno.clone(), value);
                         }
                     }
                     ExportDataAnno::Document { anno_key } => {
-                        if let Some(value) = anno::get_anno(
+                        if let Some(value) = get_anno(
                             self.corpus_ref.storage,
                             &corpus_name,
                             Some(doc_name),
@@ -397,10 +421,10 @@ impl<S> MatchesPage<'_, S> {
                         if let Some(value) = match_node_names
                             .get(*index)
                             .map(|node_name| {
-                                anno::get_anno(
+                                get_anno_with_overlapping_coverage(
                                     self.corpus_ref.storage,
                                     &corpus_name,
-                                    Some(node_name),
+                                    node_name,
                                     anno_key,
                                 )
                             })
@@ -430,28 +454,50 @@ impl<S> MatchesPage<'_, S> {
     }
 }
 
-#[derive(Debug, Clone)]
-pub(crate) struct Match {
-    pub(crate) annos: HashMap<ExportDataAnno, String>,
-    pub(crate) texts: HashMap<ExportDataText, Vec<TextPart>>,
+fn get_anno(
+    storage: &graphannis::CorpusStorage,
+    corpus_name: &str,
+    node_name: Option<&str>,
+    anno_key: &AnnoKey,
+) -> Result<Option<String>, GraphAnnisError> {
+    let graph = match node_name {
+        Some(node_name) => storage.subgraph(corpus_name, vec![node_name.into()], 0, 0, None)?,
+        None => storage.corpus_graph(corpus_name)?,
+    };
+
+    let node_id = node_name_to_node_id(&graph, node_name.unwrap_or(corpus_name))?;
+
+    anno::get_anno(&graph, node_id, anno_key)
 }
 
-#[derive(Debug, Clone)]
-pub(crate) enum TextPart {
-    Match {
-        index: usize,
-        fragments: Vec<String>,
-    },
-    Context {
-        fragments: Vec<String>,
-    },
-    Gap,
-}
+fn get_anno_with_overlapping_coverage(
+    storage: &graphannis::CorpusStorage,
+    corpus_name: &str,
+    node_name: &str,
+    anno_key: &AnnoKey,
+) -> Result<Option<String>, GraphAnnisError> {
+    let graph = storage.subgraph(corpus_name, vec![node_name.into()], 0, 0, None)?;
+    let node_id = node_name_to_node_id(&graph, node_name)?;
 
-impl TextPart {
-    pub(crate) fn is_match(&self) -> bool {
-        matches!(self, TextPart::Match { .. })
+    if let Some(anno) = anno::get_anno(&graph, node_id, anno_key)? {
+        return Ok(Some(anno));
     }
+
+    let graph_helper = GraphHelper::new(&graph)?;
+
+    let Some(covered_token_id) = graph_helper.get_covered_token_id(node_id)? else {
+        return Ok(None);
+    };
+
+    for token_id in graph_helper.get_connected_node_ids_in_order(covered_token_id) {
+        for node_id in graph_helper.get_covering_node_ids(token_id?) {
+            if let Some(anno) = anno::get_anno(&graph, node_id?, anno_key)? {
+                return Ok(Some(anno));
+            }
+        }
+    }
+
+    Ok(None)
 }
 
 fn get_parts(
@@ -495,7 +541,6 @@ fn get_parts(
     )?;
 
     let graph_helper = GraphHelper::new(&subgraph)?;
-    let order_storage = subgraph.get_graphstorage_as_ref(default_ordering_component());
     let gap_storage = subgraph.get_graphstorage_as_ref(gap_ordering_component());
     let node_annos = subgraph.get_node_annos();
 
@@ -513,29 +558,17 @@ fn get_parts(
     let mut chain_ids_with_predecessor = HashSet::new();
 
     for &(match_node_id, _) in &primary_match_node_ids_with_index {
-        let Some(covered_token_id) = graph_helper.get_covered_token_id(match_node_id)? else {
+        let Some(token_id) = graph_helper.get_covered_token_id(match_node_id)? else {
             continue;
         };
 
-        if seen_token_ids.contains(&covered_token_id) {
+        if seen_token_ids.contains(&token_id) {
             continue;
         }
 
-        let left_context_token_ids = order_storage.into_iter().flat_map(|s| {
-            s.find_connected_inverse(covered_token_id, 1, Bound::Unbounded)
-                .collect::<Vec<_>>()
-                .into_iter()
-                .rev()
-        });
-
-        let right_context_token_ids = order_storage
-            .into_iter()
-            .flat_map(|s| s.find_connected(covered_token_id, 1, Bound::Unbounded));
-
-        let token_ids: Vec<_> = left_context_token_ids
-            .chain(Some(Ok(covered_token_id)))
-            .chain(right_context_token_ids)
-            .collect::<Result<_, _>>()?;
+        let token_ids: Vec<_> = graph_helper
+            .get_connected_node_ids_in_order(token_id)
+            .try_collect()?;
 
         seen_token_ids.extend(&token_ids);
 
@@ -670,12 +703,13 @@ fn get_parts(
 
 struct GraphHelper<'a> {
     graph: &'a Graph<AnnotationComponentType>,
-    coverage_component_storages: Vec<&'a dyn GraphStorage>,
+    coverage_storages: Vec<&'a dyn GraphStorage>,
+    order_storage: Option<&'a dyn GraphStorage>,
 }
 
 impl<'a> GraphHelper<'a> {
     fn new(graph: &'a Graph<AnnotationComponentType>) -> Result<Self, GraphAnnisError> {
-        let coverage_component_storages = graph
+        let coverage_storages = graph
             .get_all_components(Some(AnnotationComponentType::Coverage), None)
             .into_iter()
             .filter_map(|c| graph.get_graphstorage_as_ref(&c))
@@ -688,9 +722,12 @@ impl<'a> GraphHelper<'a> {
             })
             .collect();
 
+        let order_storage = graph.get_graphstorage_as_ref(default_ordering_component());
+
         Ok(Self {
             graph,
-            coverage_component_storages,
+            coverage_storages,
+            order_storage,
         })
     }
 
@@ -699,7 +736,7 @@ impl<'a> GraphHelper<'a> {
             return Ok(Some(node_id));
         }
 
-        for storage in &self.coverage_component_storages {
+        for storage in &self.coverage_storages {
             for covered_node_id in storage.get_outgoing_edges(node_id) {
                 let covered_node_id = covered_node_id?;
 
@@ -712,12 +749,33 @@ impl<'a> GraphHelper<'a> {
         Ok(None)
     }
 
+    fn get_connected_node_ids_in_order(
+        &self,
+        node_id: NodeID,
+    ) -> impl Iterator<Item = Result<NodeID, GraphAnnisCoreError>> + '_ {
+        let left_connected_node_ids = self.order_storage.into_iter().flat_map(move |s| {
+            s.find_connected_inverse(node_id, 1, Bound::Unbounded)
+                .collect::<Vec<_>>()
+                .into_iter()
+                .rev()
+        });
+
+        let right_connected_node_ids = self
+            .order_storage
+            .into_iter()
+            .flat_map(move |s| s.find_connected(node_id, 1, Bound::Unbounded));
+
+        left_connected_node_ids
+            .chain(Some(Ok(node_id)))
+            .chain(right_connected_node_ids)
+    }
+
     fn get_covering_node_ids(
         &self,
         node_id: NodeID,
     ) -> impl Iterator<Item = Result<NodeID, GraphAnnisCoreError>> + '_ {
         iter::once(Ok(node_id)).chain(
-            self.coverage_component_storages
+            self.coverage_storages
                 .iter()
                 .flat_map(move |&gs| gs.get_ingoing_edges(node_id)),
         )
@@ -728,7 +786,7 @@ impl<'a> GraphHelper<'a> {
         source: NodeID,
         target: NodeID,
     ) -> Result<bool, GraphAnnisCoreError> {
-        self.coverage_component_storages
+        self.coverage_storages
             .iter()
             .map(|gs| gs.is_connected(source, target, 0, Bound::Included(1)))
             .fold_ok(false, |a, b| a || b)
@@ -746,7 +804,7 @@ impl<'a> GraphHelper<'a> {
     }
 
     fn has_outgoing_coverage_edges(&self, node_id: NodeID) -> Result<bool, GraphAnnisError> {
-        for storage in &self.coverage_component_storages {
+        for storage in &self.coverage_storages {
             if storage.has_outgoing_edges(node_id)? {
                 return Ok(true);
             }

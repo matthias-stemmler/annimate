@@ -3,10 +3,11 @@ use graphannis::{
     corpusstorage::{QueryLanguage, ResultOrder, SearchQuery},
     errors::GraphAnnisError,
     model::AnnotationComponentType,
+    AnnotationGraph,
 };
 use graphannis_core::{
     graph::{ANNIS_NS, DEFAULT_NS},
-    types::{AnnoKey, Component},
+    types::{AnnoKey, Component, NodeID},
 };
 use itertools::Itertools;
 use std::{
@@ -144,18 +145,10 @@ where
 }
 
 pub(crate) fn get_anno(
-    storage: &graphannis::CorpusStorage,
-    corpus_name: &str,
-    node_name: Option<&str>,
+    graph: &AnnotationGraph,
+    node_id: NodeID,
     anno_key: &AnnoKey,
 ) -> Result<Option<String>, GraphAnnisError> {
-    let graph = match node_name {
-        Some(node_name) => storage.subgraph(corpus_name, vec![node_name.into()], 0, 0, None)?,
-        None => storage.corpus_graph(corpus_name)?,
-    };
-
-    let node_id = node_name_to_node_id(&graph, node_name.unwrap_or(corpus_name))?;
-
     Ok(graph
         .get_node_annos()
         .get_value_for_item(&node_id, anno_key)?

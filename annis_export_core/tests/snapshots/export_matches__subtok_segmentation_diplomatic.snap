@@ -5,7 +5,7 @@ info:
     - subtok.demo_relANNIS.zip
   corpus_names:
     - subtok.demo
-  aql_query: "pos=\"DT\" _=_ lemma"
+  aql_query: "pos=\"DT\""
   query_language: AQL
   export_columns:
     - Number
@@ -27,7 +27,7 @@ info:
             anno_key:
               - grammar
               - lemma
-            index: 1
+            index: 0
     - Data:
         Text:
           left_context: 4
@@ -35,7 +35,7 @@ info:
           segmentation: diplomatic
           primary_node_indices: []
 ---
-Number,Corpus language,Document,#2 lemma,Left context (diplomatic),Match (diplomatic),Right context (diplomatic)
+Number,Corpus language,Document,#1 lemma,Left context (diplomatic),Match (diplomatic),Right context (diplomatic)
 1,English,subtok.demo.doc01,This,,T his,is an example of
 2,English,subtok.demo.doc01,a,T his is,an,example of a ſub⸗
 3,English,subtok.demo.doc01,a,is an example of,a,ſub⸗ tokenized corpus .

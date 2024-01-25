@@ -1,0 +1,37 @@
+---
+source: annis_export_core/tests/export_matches.rs
+info:
+  corpus_paths:
+    - subtok.demo_relANNIS.zip
+  corpus_names:
+    - subtok.demo
+  aql_query: "tok=\"tokenized\" | norm=\"subtokenized\""
+  query_language: AQL
+  export_columns:
+    - Number
+    - Data:
+        Anno:
+          MatchNode:
+            anno_key:
+              - annis
+              - tok
+            index: 0
+    - Data:
+        Anno:
+          MatchNode:
+            anno_key:
+              - grammar
+              - norm
+            index: 0
+    - Data:
+        Anno:
+          MatchNode:
+            anno_key:
+              - structure
+              - line
+            index: 0
+---
+Number,#1|#2 tok,#1|#2 norm,#1|#2 line
+1,subtokenized,subtokenized,1
+2,tokenized,subtokenized,2
+

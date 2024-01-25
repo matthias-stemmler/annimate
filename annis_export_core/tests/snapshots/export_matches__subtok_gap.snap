@@ -5,7 +5,7 @@ info:
     - subtok.demo_relANNIS.zip
   corpus_names:
     - subtok.demo
-  aql_query: "pos=\"DT\" .5,5 pos=\"DT\" & lemma & lemma & #1 _=_ #3 & #2 _=_ #4"
+  aql_query: "pos=\"DT\" .5,5 pos=\"DT\""
   query_language: AQL
   export_columns:
     - Number
@@ -27,14 +27,14 @@ info:
             anno_key:
               - grammar
               - lemma
-            index: 2
+            index: 0
     - Data:
         Anno:
           MatchNode:
             anno_key:
               - grammar
               - lemma
-            index: 3
+            index: 1
     - Data:
         Text:
           left_context: 1
@@ -42,6 +42,6 @@ info:
           segmentation: ~
           primary_node_indices: []
 ---
-Number,Corpus language,Document,#3 lemma,#4 lemma,Context 1 (tokens),Match 1 (tokens),Context 2 (tokens),Match 2 (tokens),Context 3 (tokens)
+Number,Corpus language,Document,#1 lemma,#2 lemma,Context 1 (tokens),Match 1 (tokens),Context 2 (tokens),Match 2 (tokens),Context 3 (tokens)
 1,English,subtok.demo.doc01,This,a,,T his,is (...) of,a,sub-
 

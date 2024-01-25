@@ -5,7 +5,7 @@ info:
     - pcc2_v7_relANNIS.zip
   corpus_names:
     - pcc2
-  aql_query: "Sent _i_ NP & Inf-Stat & #2 _=_ #3"
+  aql_query: Sent _i_ NP
   query_language: AQL
   export_columns:
     - Number
@@ -27,7 +27,7 @@ info:
             anno_key:
               - exmaralda
               - Inf-Stat
-            index: 2
+            index: 1
     - Data:
         Text:
           left_context: 10
@@ -36,83 +36,94 @@ info:
           primary_node_indices:
             - 1
 ---
-Number,Corpus language,Document,#3 Inf-Stat,Left context (tokens),Match (tokens),Right context (tokens)
+Number,Corpus language,Document,#2 Inf-Stat,Left context (tokens),Match (tokens),Right context (tokens)
 1,German,11299,new,Feigenblatt,Die Jugendlichen,in Zossen wollen ein Musikcafé . Das forderten sie bei
 2,German,11299,new,Feigenblatt Die Jugendlichen in,Zossen,wollen ein Musikcafé . Das forderten sie bei der ersten
 3,German,11299,new,Feigenblatt Die Jugendlichen in Zossen wollen,ein Musikcafé,. Das forderten sie bei der ersten Zossener Runde am
 4,German,11299,giv-active,Feigenblatt Die Jugendlichen in Zossen wollen ein Musikcafé .,Das,forderten sie bei der ersten Zossener Runde am Dienstagabend .
 5,German,11299,giv-active,Die Jugendlichen in Zossen wollen ein Musikcafé . Das forderten,sie,bei der ersten Zossener Runde am Dienstagabend . Dass die
 6,German,11299,new,in Zossen wollen ein Musikcafé . Das forderten sie bei,der ersten Zossener Runde,am Dienstagabend . Dass die Politiker der Stadt dafür Verständnis
-7,German,11299,new,sie bei der ersten Zossener Runde am Dienstagabend . Dass,die Politiker,"der Stadt dafür Verständnis haben , ist löblich . Mit"
-8,German,11299,giv-active,der ersten Zossener Runde am Dienstagabend . Dass die Politiker,der Stadt,"dafür Verständnis haben , ist löblich . Mit dem Treffen"
-9,German,11299,giv-active,Zossener Runde am Dienstagabend . Dass die Politiker der Stadt,dafür,"Verständnis haben , ist löblich . Mit dem Treffen im"
-10,German,11299,giv-active,"der Stadt dafür Verständnis haben , ist löblich . Mit",dem Treffen,im Rathaus ist somit auch ein Dialog zwischen den Generationen
-11,German,11299,acc-gen,"Verständnis haben , ist löblich . Mit dem Treffen im",Rathaus,ist somit auch ein Dialog zwischen den Generationen angestoßen .
-12,German,11299,acc-inf,löblich . Mit dem Treffen im Rathaus ist somit auch,ein Dialog,zwischen den Generationen angestoßen . Dass die beiden geladenen Jugendlichen
-13,German,11299,acc-inf,dem Treffen im Rathaus ist somit auch ein Dialog zwischen,den Generationen,angestoßen . Dass die beiden geladenen Jugendlichen im Laufe des
-14,German,11299,giv-active,somit auch ein Dialog zwischen den Generationen angestoßen . Dass,die beiden geladenen Jugendlichen,"im Laufe des Abends immer weniger zu Wort kamen ,"
-15,German,11299,giv-inactive,Generationen angestoßen . Dass die beiden geladenen Jugendlichen im Laufe,des Abends,"immer weniger zu Wort kamen , war sicher keine böse"
-16,German,11299,idiom,"des Abends immer weniger zu Wort kamen , war sicher",keine böse Absicht,", ärgerlich ist es trotzdem . Und aberwitzig dazu ."
-17,German,11299,idiom,", ärgerlich ist es trotzdem . Und aberwitzig dazu .",Es,"entbehrt nicht der Komik , wenn sich drei Erwachsene -"
-18,German,11299,idiom,es trotzdem . Und aberwitzig dazu . Es entbehrt nicht,der Komik,", wenn sich drei Erwachsene - Karola Andrae ( Bürgerbündnis/FDP"
-19,German,11299,giv-inacitve,"dazu . Es entbehrt nicht der Komik , wenn sich",drei Erwachsene,"- Karola Andrae ( Bürgerbündnis/FDP ) , Susanne Michler ("
-20,German,11299,acc-gen,"entbehrt nicht der Komik , wenn sich drei Erwachsene -",Karola Andrae,"( Bürgerbündnis/FDP ) , Susanne Michler ( CDU ) und"
-21,German,11299,acc-gen,"der Komik , wenn sich drei Erwachsene - Karola Andrae",( Bürgerbündnis/FDP ),", Susanne Michler ( CDU ) und Joachim Zanow ("
-22,German,11299,acc-gen,"sich drei Erwachsene - Karola Andrae ( Bürgerbündnis/FDP ) ,",Susanne Michler,( CDU ) und Joachim Zanow ( SPD ) -
-23,German,11299,acc-gen,"Erwachsene - Karola Andrae ( Bürgerbündnis/FDP ) , Susanne Michler",( CDU ),"und Joachim Zanow ( SPD ) - darüber streiten ,"
-24,German,11299,acc-gen,"( Bürgerbündnis/FDP ) , Susanne Michler ( CDU ) und",Joachim Zanow,"( SPD ) - darüber streiten , was Jugendliche wollen"
-25,German,11299,acc-gen,") , Susanne Michler ( CDU ) und Joachim Zanow",( SPD ),"- darüber streiten , was Jugendliche wollen und brauchen ,"
-26,German,11299,giv-inactive,"Joachim Zanow ( SPD ) - darüber streiten , was",Jugendliche,"wollen und brauchen , ohne auf die Idee zu kommen"
-27,German,11299,giv-active,"und brauchen , ohne auf die Idee zu kommen ,",sie,"selbst zu fragen . Und das , obwohl sie ihnen"
-28,German,11299,giv-active,", sie selbst zu fragen . Und das , obwohl",sie,ihnen gegenüber sitzen . Die Jugendlichen wurden somit zum bloßen
-29,German,11299,giv-active,"sie selbst zu fragen . Und das , obwohl sie",ihnen,gegenüber sitzen . Die Jugendlichen wurden somit zum bloßen Feigenblatt
-30,German,11299,giv-active,". Und das , obwohl sie ihnen gegenüber sitzen .",Die Jugendlichen,wurden somit zum bloßen Feigenblatt degradiert . Nicht über sondern
-31,German,11299,idiom,sie ihnen gegenüber sitzen . Die Jugendlichen wurden somit zum,bloßen Feigenblatt,degradiert . Nicht über sondern mit ihnen hätten die Politiker
-32,German,11299,giv-active,somit zum bloßen Feigenblatt degradiert . Nicht über sondern mit,ihnen,hätten die Politiker reden sollen . Damit ist eine große
-33,German,11299,giv-active,bloßen Feigenblatt degradiert . Nicht über sondern mit ihnen hätten,die Politiker,reden sollen . Damit ist eine große Chance vertan .
-34,German,11299,giv-inactive,ist eine große Chance vertan . Vielleicht klappt es bei,der nächsten Runde,Anfang 2002 . Dann werden auch mehr Jugendliche eingeladen .
-35,German,11299,acc-inf,bei der nächsten Runde Anfang 2002 . Dann werden auch,mehr Jugendliche,eingeladen . In der Gruppe können sie sich hoffentlich mehr
-36,German,11299,acc-inf,2002 . Dann werden auch mehr Jugendliche eingeladen . In,der Gruppe,können sie sich hoffentlich mehr Gehör verschaffen . Vielleicht finden
-37,German,11299,giv-active,werden auch mehr Jugendliche eingeladen . In der Gruppe können,sie,sich hoffentlich mehr Gehör verschaffen . Vielleicht finden dann auch
-38,German,11299,idiom,Jugendliche eingeladen . In der Gruppe können sie sich hoffentlich,mehr Gehör,verschaffen . Vielleicht finden dann auch Vertreter von PDS und
-39,German,11299,acc-inf,sich hoffentlich mehr Gehör verschaffen . Vielleicht finden dann auch,Vertreter,von PDS und Gewerbeverein ihren Weg ins Rathaus . Die
-40,German,11299,acc-gen,mehr Gehör verschaffen . Vielleicht finden dann auch Vertreter von,PDS,und Gewerbeverein ihren Weg ins Rathaus . Die glänzten diesmal
-41,German,11299,acc-gen,verschaffen . Vielleicht finden dann auch Vertreter von PDS und,Gewerbeverein,ihren Weg ins Rathaus . Die glänzten diesmal noch mit
-42,German,11299,giv-inactive,dann auch Vertreter von PDS und Gewerbeverein ihren Weg ins,Rathaus,. Die glänzten diesmal noch mit Abwesenheit .
-43,German,11299,giv-active,Vertreter von PDS und Gewerbeverein ihren Weg ins Rathaus .,Die,glänzten diesmal noch mit Abwesenheit .
-44,German,11299,idiom,ihren Weg ins Rathaus . Die glänzten diesmal noch mit,Abwesenheit,.
-45,German,4282,idiom,Steilpass,Wunder,gibt es immer wieder ! Erst spielen die Dallgower Gemeindevertreter
-46,German,4282,new,Steilpass Wunder gibt es immer wieder ! Erst spielen,die Dallgower Gemeindevertreter,so statisch und verzagt wie die deutsche Abwehrreihe der Fußballkicker
-47,German,4282,acc-inf,Erst spielen die Dallgower Gemeindevertreter so statisch und verzagt wie,die deutsche Abwehrreihe der Fußballkicker,. Und dann kommt aus der Tiefe solch ein fulminanter
-48,German,4282,idiom,die deutsche Abwehrreihe der Fußballkicker . Und dann kommt aus,der Tiefe,"solch ein fulminanter Steilpass , von dem man hofft ,"
-49,German,4282,new,der Fußballkicker . Und dann kommt aus der Tiefe solch,ein fulminanter Steilpass,", von dem man hofft , dass die Seeburger oder"
-50,German,4282,giv-active,"kommt aus der Tiefe solch ein fulminanter Steilpass , von",dem,"man hofft , dass die Seeburger oder Groß-Glienicker Mitspieler ihn"
-51,German,4282,acc-sit,"aus der Tiefe solch ein fulminanter Steilpass , von dem",man,"hofft , dass die Seeburger oder Groß-Glienicker Mitspieler ihn aufnehmen"
-52,German,4282,new,"ein fulminanter Steilpass , von dem man hofft , dass",die Seeburger oder Groß-Glienicker Mitspieler,ihn aufnehmen können . Ein Befreiungsschlag ist es allerdings nicht
-53,German,4282,giv-active,"dem man hofft , dass die Seeburger oder Groß-Glienicker Mitspieler",ihn,"aufnehmen können . Ein Befreiungsschlag ist es allerdings nicht ,"
-54,German,4282,acc-inf,dass die Seeburger oder Groß-Glienicker Mitspieler ihn aufnehmen können .,Ein Befreiungsschlag,"ist es allerdings nicht , weil es vorerst keine Gefahr"
-55,German,4282,idiom,"Ein Befreiungsschlag ist es allerdings nicht , weil es vorerst",keine Gefahr,fürs Dallgower Tor gab . Die Seeburger und einige Groß-Glienicker
-56,German,4282,acc-inf,"es allerdings nicht , weil es vorerst keine Gefahr fürs",Dallgower Tor,gab . Die Seeburger und einige Groß-Glienicker haben den Ball
-57,German,4282,giv-inactive,weil es vorerst keine Gefahr fürs Dallgower Tor gab .,Die Seeburger,und einige Groß-Glienicker haben den Ball erst zurückgespielt und dann
-58,German,4282,giv-inactive,keine Gefahr fürs Dallgower Tor gab . Die Seeburger und,einige Groß-Glienicker,haben den Ball erst zurückgespielt und dann um so drängender
-59,German,4282,acc-inf,Dallgower Tor gab . Die Seeburger und einige Groß-Glienicker haben,den Ball,erst zurückgespielt und dann um so drängender wieder gefordert .
-60,German,4282,giv-active,und dann um so drängender wieder gefordert . Nun sollen,sie,"zeigen , wie sie die Chance verwerten . Eine Diskussion"
-61,German,4282,giv-acitve,"drängender wieder gefordert . Nun sollen sie zeigen , wie",sie,"die Chance verwerten . Eine Diskussion , wo künftig die"
-62,German,4282,acc-inf,"wieder gefordert . Nun sollen sie zeigen , wie sie",die Chance,"verwerten . Eine Diskussion , wo künftig die Trainerkabine stehen"
-63,German,4282,new,"sollen sie zeigen , wie sie die Chance verwerten .",Eine Diskussion,", wo künftig die Trainerkabine stehen soll , wäre in"
-64,German,4282,new,"sie die Chance verwerten . Eine Diskussion , wo künftig",die Trainerkabine,"stehen soll , wäre in der jetzigen Spielsituation verheerend ."
-65,German,4282,new,", wo künftig die Trainerkabine stehen soll , wäre in",der jetzigen Spielsituation,verheerend . Und eine Parallele zu den deutschen Grotten-Kickern gibt
-66,German,4282,idiom,"soll , wäre in der jetzigen Spielsituation verheerend . Und",eine Parallele,zu den deutschen Grotten-Kickern gibt es immer noch . Auch
-67,German,4282,giv-inactive,in der jetzigen Spielsituation verheerend . Und eine Parallele zu,den deutschen Grotten-Kickern,gibt es immer noch . Auch wenn die Spieler aus
-68,German,4282,acc-aggr,den deutschen Grotten-Kickern gibt es immer noch . Auch wenn,die Spieler,"aus den verschiedenen Vereinen zusammengewürfelt sind , sie müssen sich"
-69,German,4282,giv-inactive,gibt es immer noch . Auch wenn die Spieler aus,den verschiedenen Vereinen,"zusammengewürfelt sind , sie müssen sich daran gewöhnen , dass"
-70,German,4282,giv-active,"wenn die Spieler aus den verschiedenen Vereinen zusammengewürfelt sind ,",sie,"müssen sich daran gewöhnen , dass sie nun in einer"
-71,German,4282,acc-aggr,"Spieler aus den verschiedenen Vereinen zusammengewürfelt sind , sie müssen",sich,"daran gewöhnen , dass sie nun in einer Mannschaft """
-72,German,4282,giv-active,"zusammengewürfelt sind , sie müssen sich daran gewöhnen , dass",sie,"nun in einer Mannschaft "" Döberitzer Heide "" spielen ."
-73,German,4282,acc-inf,"sie müssen sich daran gewöhnen , dass sie nun in","einer Mannschaft "" Döberitzer Heide """,spielen . Und das heißt gemeinsam und nicht gegeneinander .
-74,German,4282,giv-active,"in einer Mannschaft "" Döberitzer Heide "" spielen . Und",das,heißt gemeinsam und nicht gegeneinander . Ermahnungen von der Seitenlinie
-75,German,4282,new,spielen . Und das heißt gemeinsam und nicht gegeneinander .,Ermahnungen,"von der Seitenlinie , miteinander fair umzugehen und sich nicht"
-76,German,4282,acc-inf,Und das heißt gemeinsam und nicht gegeneinander . Ermahnungen von,der Seitenlinie,", miteinander fair umzugehen und sich nicht beim kleinsten Schubser"
-77,German,4282,acc-aggr,". Ermahnungen von der Seitenlinie , miteinander fair umzugehen und",sich,"nicht beim kleinsten Schubser gegenseitig zu zerfleischen , sind normalerweise"
-78,German,4282,idiom,"der Seitenlinie , miteinander fair umzugehen und sich nicht beim",kleinsten Schubser,"gegenseitig zu zerfleischen , sind normalerweise überflüssig . Vorerst allerdings"
+7,German,11299,,. Das forderten sie bei der ersten Zossener Runde am,Dienstagabend,". Dass die Politiker der Stadt dafür Verständnis haben ,"
+8,German,11299,new,sie bei der ersten Zossener Runde am Dienstagabend . Dass,die Politiker,"der Stadt dafür Verständnis haben , ist löblich . Mit"
+9,German,11299,giv-active,der ersten Zossener Runde am Dienstagabend . Dass die Politiker,der Stadt,"dafür Verständnis haben , ist löblich . Mit dem Treffen"
+10,German,11299,giv-active,Zossener Runde am Dienstagabend . Dass die Politiker der Stadt,dafür,"Verständnis haben , ist löblich . Mit dem Treffen im"
+11,German,11299,,Runde am Dienstagabend . Dass die Politiker der Stadt dafür,Verständnis,"haben , ist löblich . Mit dem Treffen im Rathaus"
+12,German,11299,giv-active,"der Stadt dafür Verständnis haben , ist löblich . Mit",dem Treffen,im Rathaus ist somit auch ein Dialog zwischen den Generationen
+13,German,11299,acc-gen,"Verständnis haben , ist löblich . Mit dem Treffen im",Rathaus,ist somit auch ein Dialog zwischen den Generationen angestoßen .
+14,German,11299,acc-inf,löblich . Mit dem Treffen im Rathaus ist somit auch,ein Dialog,zwischen den Generationen angestoßen . Dass die beiden geladenen Jugendlichen
+15,German,11299,acc-inf,dem Treffen im Rathaus ist somit auch ein Dialog zwischen,den Generationen,angestoßen . Dass die beiden geladenen Jugendlichen im Laufe des
+16,German,11299,giv-active,somit auch ein Dialog zwischen den Generationen angestoßen . Dass,die beiden geladenen Jugendlichen,"im Laufe des Abends immer weniger zu Wort kamen ,"
+17,German,11299,,den Generationen angestoßen . Dass die beiden geladenen Jugendlichen im,Laufe,"des Abends immer weniger zu Wort kamen , war sicher"
+18,German,11299,giv-inactive,Generationen angestoßen . Dass die beiden geladenen Jugendlichen im Laufe,des Abends,"immer weniger zu Wort kamen , war sicher keine böse"
+19,German,11299,,beiden geladenen Jugendlichen im Laufe des Abends immer weniger zu,Wort,"kamen , war sicher keine böse Absicht , ärgerlich ist"
+20,German,11299,idiom,"des Abends immer weniger zu Wort kamen , war sicher",keine böse Absicht,", ärgerlich ist es trotzdem . Und aberwitzig dazu ."
+21,German,11299,,"kamen , war sicher keine böse Absicht , ärgerlich ist",es,trotzdem . Und aberwitzig dazu . Es entbehrt nicht der
+22,German,11299,idiom,", ärgerlich ist es trotzdem . Und aberwitzig dazu .",Es,"entbehrt nicht der Komik , wenn sich drei Erwachsene -"
+23,German,11299,idiom,es trotzdem . Und aberwitzig dazu . Es entbehrt nicht,der Komik,", wenn sich drei Erwachsene - Karola Andrae ( Bürgerbündnis/FDP"
+24,German,11299,giv-inacitve,"dazu . Es entbehrt nicht der Komik , wenn sich",drei Erwachsene,"- Karola Andrae ( Bürgerbündnis/FDP ) , Susanne Michler ("
+25,German,11299,acc-gen,"entbehrt nicht der Komik , wenn sich drei Erwachsene -",Karola Andrae,"( Bürgerbündnis/FDP ) , Susanne Michler ( CDU ) und"
+26,German,11299,acc-gen,"der Komik , wenn sich drei Erwachsene - Karola Andrae",( Bürgerbündnis/FDP ),", Susanne Michler ( CDU ) und Joachim Zanow ("
+27,German,11299,acc-gen,"sich drei Erwachsene - Karola Andrae ( Bürgerbündnis/FDP ) ,",Susanne Michler,( CDU ) und Joachim Zanow ( SPD ) -
+28,German,11299,acc-gen,"Erwachsene - Karola Andrae ( Bürgerbündnis/FDP ) , Susanne Michler",( CDU ),"und Joachim Zanow ( SPD ) - darüber streiten ,"
+29,German,11299,acc-gen,"( Bürgerbündnis/FDP ) , Susanne Michler ( CDU ) und",Joachim Zanow,"( SPD ) - darüber streiten , was Jugendliche wollen"
+30,German,11299,acc-gen,") , Susanne Michler ( CDU ) und Joachim Zanow",( SPD ),"- darüber streiten , was Jugendliche wollen und brauchen ,"
+31,German,11299,giv-inactive,"Joachim Zanow ( SPD ) - darüber streiten , was",Jugendliche,"wollen und brauchen , ohne auf die Idee zu kommen"
+32,German,11299,,"streiten , was Jugendliche wollen und brauchen , ohne auf",die Idee,"zu kommen , sie selbst zu fragen . Und das"
+33,German,11299,giv-active,"und brauchen , ohne auf die Idee zu kommen ,",sie,"selbst zu fragen . Und das , obwohl sie ihnen"
+34,German,11299,,"Idee zu kommen , sie selbst zu fragen . Und",das,", obwohl sie ihnen gegenüber sitzen . Die Jugendlichen wurden"
+35,German,11299,giv-active,", sie selbst zu fragen . Und das , obwohl",sie,ihnen gegenüber sitzen . Die Jugendlichen wurden somit zum bloßen
+36,German,11299,giv-active,"sie selbst zu fragen . Und das , obwohl sie",ihnen,gegenüber sitzen . Die Jugendlichen wurden somit zum bloßen Feigenblatt
+37,German,11299,giv-active,". Und das , obwohl sie ihnen gegenüber sitzen .",Die Jugendlichen,wurden somit zum bloßen Feigenblatt degradiert . Nicht über sondern
+38,German,11299,idiom,sie ihnen gegenüber sitzen . Die Jugendlichen wurden somit zum,bloßen Feigenblatt,degradiert . Nicht über sondern mit ihnen hätten die Politiker
+39,German,11299,giv-active,somit zum bloßen Feigenblatt degradiert . Nicht über sondern mit,ihnen,hätten die Politiker reden sollen . Damit ist eine große
+40,German,11299,giv-active,bloßen Feigenblatt degradiert . Nicht über sondern mit ihnen hätten,die Politiker,reden sollen . Damit ist eine große Chance vertan .
+41,German,11299,,mit ihnen hätten die Politiker reden sollen . Damit ist,eine große Chance,vertan . Vielleicht klappt es bei der nächsten Runde Anfang
+42,German,11299,,. Damit ist eine große Chance vertan . Vielleicht klappt,es,bei der nächsten Runde Anfang 2002 . Dann werden auch
+43,German,11299,giv-inactive,ist eine große Chance vertan . Vielleicht klappt es bei,der nächsten Runde,Anfang 2002 . Dann werden auch mehr Jugendliche eingeladen .
+44,German,11299,,Chance vertan . Vielleicht klappt es bei der nächsten Runde,Anfang 2002,. Dann werden auch mehr Jugendliche eingeladen . In der
+45,German,11299,acc-inf,bei der nächsten Runde Anfang 2002 . Dann werden auch,mehr Jugendliche,eingeladen . In der Gruppe können sie sich hoffentlich mehr
+46,German,11299,acc-inf,2002 . Dann werden auch mehr Jugendliche eingeladen . In,der Gruppe,können sie sich hoffentlich mehr Gehör verschaffen . Vielleicht finden
+47,German,11299,giv-active,werden auch mehr Jugendliche eingeladen . In der Gruppe können,sie,sich hoffentlich mehr Gehör verschaffen . Vielleicht finden dann auch
+48,German,11299,idiom,Jugendliche eingeladen . In der Gruppe können sie sich hoffentlich,mehr Gehör,verschaffen . Vielleicht finden dann auch Vertreter von PDS und
+49,German,11299,acc-inf,sich hoffentlich mehr Gehör verschaffen . Vielleicht finden dann auch,Vertreter,von PDS und Gewerbeverein ihren Weg ins Rathaus . Die
+50,German,11299,acc-gen,mehr Gehör verschaffen . Vielleicht finden dann auch Vertreter von,PDS,und Gewerbeverein ihren Weg ins Rathaus . Die glänzten diesmal
+51,German,11299,acc-gen,verschaffen . Vielleicht finden dann auch Vertreter von PDS und,Gewerbeverein,ihren Weg ins Rathaus . Die glänzten diesmal noch mit
+52,German,11299,,. Vielleicht finden dann auch Vertreter von PDS und Gewerbeverein,ihren Weg,ins Rathaus . Die glänzten diesmal noch mit Abwesenheit .
+53,German,11299,giv-inactive,dann auch Vertreter von PDS und Gewerbeverein ihren Weg ins,Rathaus,. Die glänzten diesmal noch mit Abwesenheit .
+54,German,11299,giv-active,Vertreter von PDS und Gewerbeverein ihren Weg ins Rathaus .,Die,glänzten diesmal noch mit Abwesenheit .
+55,German,11299,idiom,ihren Weg ins Rathaus . Die glänzten diesmal noch mit,Abwesenheit,.
+56,German,4282,idiom,Steilpass,Wunder,gibt es immer wieder ! Erst spielen die Dallgower Gemeindevertreter
+57,German,4282,new,Steilpass Wunder gibt es immer wieder ! Erst spielen,die Dallgower Gemeindevertreter,so statisch und verzagt wie die deutsche Abwehrreihe der Fußballkicker
+58,German,4282,acc-inf,Erst spielen die Dallgower Gemeindevertreter so statisch und verzagt wie,die deutsche Abwehrreihe der Fußballkicker,. Und dann kommt aus der Tiefe solch ein fulminanter
+59,German,4282,idiom,die deutsche Abwehrreihe der Fußballkicker . Und dann kommt aus,der Tiefe,"solch ein fulminanter Steilpass , von dem man hofft ,"
+60,German,4282,new,der Fußballkicker . Und dann kommt aus der Tiefe solch,ein fulminanter Steilpass,", von dem man hofft , dass die Seeburger oder"
+61,German,4282,giv-active,"kommt aus der Tiefe solch ein fulminanter Steilpass , von",dem,"man hofft , dass die Seeburger oder Groß-Glienicker Mitspieler ihn"
+62,German,4282,acc-sit,"aus der Tiefe solch ein fulminanter Steilpass , von dem",man,"hofft , dass die Seeburger oder Groß-Glienicker Mitspieler ihn aufnehmen"
+63,German,4282,new,"ein fulminanter Steilpass , von dem man hofft , dass",die Seeburger oder Groß-Glienicker Mitspieler,ihn aufnehmen können . Ein Befreiungsschlag ist es allerdings nicht
+64,German,4282,giv-active,"dem man hofft , dass die Seeburger oder Groß-Glienicker Mitspieler",ihn,"aufnehmen können . Ein Befreiungsschlag ist es allerdings nicht ,"
+65,German,4282,acc-inf,dass die Seeburger oder Groß-Glienicker Mitspieler ihn aufnehmen können .,Ein Befreiungsschlag,"ist es allerdings nicht , weil es vorerst keine Gefahr"
+66,German,4282,idiom,"Ein Befreiungsschlag ist es allerdings nicht , weil es vorerst",keine Gefahr,fürs Dallgower Tor gab . Die Seeburger und einige Groß-Glienicker
+67,German,4282,acc-inf,"es allerdings nicht , weil es vorerst keine Gefahr fürs",Dallgower Tor,gab . Die Seeburger und einige Groß-Glienicker haben den Ball
+68,German,4282,giv-inactive,weil es vorerst keine Gefahr fürs Dallgower Tor gab .,Die Seeburger,und einige Groß-Glienicker haben den Ball erst zurückgespielt und dann
+69,German,4282,giv-inactive,keine Gefahr fürs Dallgower Tor gab . Die Seeburger und,einige Groß-Glienicker,haben den Ball erst zurückgespielt und dann um so drängender
+70,German,4282,acc-inf,Dallgower Tor gab . Die Seeburger und einige Groß-Glienicker haben,den Ball,erst zurückgespielt und dann um so drängender wieder gefordert .
+71,German,4282,giv-active,und dann um so drängender wieder gefordert . Nun sollen,sie,"zeigen , wie sie die Chance verwerten . Eine Diskussion"
+72,German,4282,giv-acitve,"drängender wieder gefordert . Nun sollen sie zeigen , wie",sie,"die Chance verwerten . Eine Diskussion , wo künftig die"
+73,German,4282,acc-inf,"wieder gefordert . Nun sollen sie zeigen , wie sie",die Chance,"verwerten . Eine Diskussion , wo künftig die Trainerkabine stehen"
+74,German,4282,new,"sollen sie zeigen , wie sie die Chance verwerten .",Eine Diskussion,", wo künftig die Trainerkabine stehen soll , wäre in"
+75,German,4282,new,"sie die Chance verwerten . Eine Diskussion , wo künftig",die Trainerkabine,"stehen soll , wäre in der jetzigen Spielsituation verheerend ."
+76,German,4282,new,", wo künftig die Trainerkabine stehen soll , wäre in",der jetzigen Spielsituation,verheerend . Und eine Parallele zu den deutschen Grotten-Kickern gibt
+77,German,4282,idiom,"soll , wäre in der jetzigen Spielsituation verheerend . Und",eine Parallele,zu den deutschen Grotten-Kickern gibt es immer noch . Auch
+78,German,4282,giv-inactive,in der jetzigen Spielsituation verheerend . Und eine Parallele zu,den deutschen Grotten-Kickern,gibt es immer noch . Auch wenn die Spieler aus
+79,German,4282,acc-aggr,den deutschen Grotten-Kickern gibt es immer noch . Auch wenn,die Spieler,"aus den verschiedenen Vereinen zusammengewürfelt sind , sie müssen sich"
+80,German,4282,giv-inactive,gibt es immer noch . Auch wenn die Spieler aus,den verschiedenen Vereinen,"zusammengewürfelt sind , sie müssen sich daran gewöhnen , dass"
+81,German,4282,giv-active,"wenn die Spieler aus den verschiedenen Vereinen zusammengewürfelt sind ,",sie,"müssen sich daran gewöhnen , dass sie nun in einer"
+82,German,4282,acc-aggr,"Spieler aus den verschiedenen Vereinen zusammengewürfelt sind , sie müssen",sich,"daran gewöhnen , dass sie nun in einer Mannschaft """
+83,German,4282,giv-active,"zusammengewürfelt sind , sie müssen sich daran gewöhnen , dass",sie,"nun in einer Mannschaft "" Döberitzer Heide "" spielen ."
+84,German,4282,acc-inf,"sie müssen sich daran gewöhnen , dass sie nun in","einer Mannschaft "" Döberitzer Heide """,spielen . Und das heißt gemeinsam und nicht gegeneinander .
+85,German,4282,giv-active,"in einer Mannschaft "" Döberitzer Heide "" spielen . Und",das,heißt gemeinsam und nicht gegeneinander . Ermahnungen von der Seitenlinie
+86,German,4282,new,spielen . Und das heißt gemeinsam und nicht gegeneinander .,Ermahnungen,"von der Seitenlinie , miteinander fair umzugehen und sich nicht"
+87,German,4282,acc-inf,Und das heißt gemeinsam und nicht gegeneinander . Ermahnungen von,der Seitenlinie,", miteinander fair umzugehen und sich nicht beim kleinsten Schubser"
+88,German,4282,acc-aggr,". Ermahnungen von der Seitenlinie , miteinander fair umzugehen und",sich,"nicht beim kleinsten Schubser gegenseitig zu zerfleischen , sind normalerweise"
+89,German,4282,idiom,"der Seitenlinie , miteinander fair umzugehen und sich nicht beim",kleinsten Schubser,"gegenseitig zu zerfleischen , sind normalerweise überflüssig . Vorerst allerdings"
 

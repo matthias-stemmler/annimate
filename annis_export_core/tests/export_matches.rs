@@ -89,10 +89,31 @@ macro_rules! export_matches_test {
 }
 
 export_matches_test! {
+    subtok_annos: {
+        corpus_paths: ["subtok.demo_relANNIS.zip"],
+        corpus_names: ["subtok.demo"],
+        aql_query: "tok=\"tokenized\" | norm=\"subtokenized\"",
+        query_language: AQL,
+        export_columns: [
+            Number,
+            Data(Anno(TestExportDataAnno::MatchNode {
+                anno_key: ("annis", "tok"),
+                index: 0,
+            })),
+            Data(Anno(TestExportDataAnno::MatchNode {
+                anno_key: ("grammar", "norm"),
+                index: 0,
+            })),
+            Data(Anno(TestExportDataAnno::MatchNode {
+                anno_key: ("structure", "line"),
+                index: 0,
+            })),
+        ],
+    }
     subtok_segmentation_tokens: {
         corpus_paths: ["subtok.demo_relANNIS.zip"],
         corpus_names: ["subtok.demo"],
-        aql_query: "pos=\"DT\" _=_ lemma",
+        aql_query: "pos=\"DT\"",
         query_language: AQL,
         export_columns: [
             Number,
@@ -104,7 +125,7 @@ export_matches_test! {
             })),
             Data(Anno(TestExportDataAnno::MatchNode {
                 anno_key: ("grammar", "lemma"),
-                index: 1,
+                index: 0,
             })),
             Data(Text(TestExportDataText {
                 left_context: 4,
@@ -117,7 +138,7 @@ export_matches_test! {
     subtok_segmentation_diplomatic: {
         corpus_paths: ["subtok.demo_relANNIS.zip"],
         corpus_names: ["subtok.demo"],
-        aql_query: "pos=\"DT\" _=_ lemma",
+        aql_query: "pos=\"DT\"",
         query_language: AQL,
         export_columns: [
             Number,
@@ -129,7 +150,7 @@ export_matches_test! {
             })),
             Data(Anno(TestExportDataAnno::MatchNode {
                 anno_key: ("grammar", "lemma"),
-                index: 1,
+                index: 0,
             })),
             Data(Text(TestExportDataText {
                 left_context: 4,
@@ -142,7 +163,7 @@ export_matches_test! {
     subtok_segmentation_norm: {
         corpus_paths: ["subtok.demo_relANNIS.zip"],
         corpus_names: ["subtok.demo"],
-        aql_query: "pos=\"DT\" _=_ lemma",
+        aql_query: "pos=\"DT\"",
         query_language: AQL,
         export_columns: [
             Number,
@@ -154,7 +175,7 @@ export_matches_test! {
             })),
             Data(Anno(TestExportDataAnno::MatchNode {
                 anno_key: ("grammar", "lemma"),
-                index: 1,
+                index: 0,
             })),
             Data(Text(TestExportDataText {
                 left_context: 4,
@@ -167,7 +188,7 @@ export_matches_test! {
     subtok_gap: {
         corpus_paths: ["subtok.demo_relANNIS.zip"],
         corpus_names: ["subtok.demo"],
-        aql_query: "pos=\"DT\" .5,5 pos=\"DT\" & lemma & lemma & #1 _=_ #3 & #2 _=_ #4",
+        aql_query: "pos=\"DT\" .5,5 pos=\"DT\"",
         query_language: AQL,
         export_columns: [
             Number,
@@ -179,11 +200,11 @@ export_matches_test! {
             })),
             Data(Anno(TestExportDataAnno::MatchNode {
                 anno_key: ("grammar", "lemma"),
-                index: 2,
+                index: 0,
             })),
             Data(Anno(TestExportDataAnno::MatchNode {
                 anno_key: ("grammar", "lemma"),
-                index: 3,
+                index: 1,
             })),
             Data(Text(TestExportDataText {
                 left_context: 1,
@@ -246,7 +267,7 @@ export_matches_test! {
     pcc2_primary_node: {
         corpus_paths: ["pcc2_v7_relANNIS.zip"],
         corpus_names: ["pcc2"],
-        aql_query: "Sent _i_ NP & Inf-Stat & #2 _=_ #3",
+        aql_query: "Sent _i_ NP",
         query_language: AQL,
         export_columns: [
             Number,
@@ -258,7 +279,7 @@ export_matches_test! {
             })),
             Data(Anno(TestExportDataAnno::MatchNode {
                 anno_key: ("exmaralda", "Inf-Stat"),
-                index: 2,
+                index: 1,
             })),
             Data(Text(TestExportDataText {
                 left_context: 10,
@@ -271,7 +292,7 @@ export_matches_test! {
     pcc2_primary_nodes_priority: {
         corpus_paths: ["pcc2_v7_relANNIS.zip"],
         corpus_names: ["pcc2"],
-        aql_query: "Sent _i_ NP & Inf-Stat & #2 _=_ #3",
+        aql_query: "Sent _i_ NP",
         query_language: AQL,
         export_columns: [
             Number,
@@ -283,7 +304,7 @@ export_matches_test! {
             })),
             Data(Anno(TestExportDataAnno::MatchNode {
                 anno_key: ("exmaralda", "Inf-Stat"),
-                index: 2,
+                index: 1,
             })),
             Data(Text(TestExportDataText {
                 left_context: 10,
