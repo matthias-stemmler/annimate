@@ -526,15 +526,9 @@ fn get_parts(
         Either::Right(primary_node_indices.iter().copied())
     };
 
-    let primary_match_node_names = primary_node_indices
-        .clone()
-        .into_iter()
-        .map(|i| match_node_names[i].clone())
-        .collect();
-
     let subgraph = storage.subgraph(
         corpus_name,
-        primary_match_node_names,
+        match_node_names.clone(),
         *left_context,
         *right_context,
         segmentation.clone(),
