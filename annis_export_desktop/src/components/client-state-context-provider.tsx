@@ -31,7 +31,9 @@ export const ClientStateContextProvider: FC<PropsWithChildren> = ({
 
   const value = {
     aqlQuery,
-    selectedCorpusNames,
+    selectedCorpusNames: (corpusNames ?? [])?.filter((c) =>
+      selectedCorpusNames.includes(c),
+    ),
 
     setAqlQuery,
     toggleAllCorporaSelected,
