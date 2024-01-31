@@ -30,8 +30,11 @@ where
 
 #[derive(Debug)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize))]
+#[cfg_attr(feature = "serde", serde(tag = "type"))]
 pub enum QueryValidationResult {
+    #[cfg_attr(feature = "serde", serde(rename = "valid"))]
     Valid,
+    #[cfg_attr(feature = "serde", serde(rename = "invalid"))]
     Invalid(AQLError),
 }
 
