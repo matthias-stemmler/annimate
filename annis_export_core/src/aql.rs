@@ -29,6 +29,7 @@ where
 }
 
 #[derive(Debug)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize))]
 pub enum QueryValidationResult {
     Valid,
     Invalid(AQLError),

@@ -3,12 +3,16 @@ name = "annis_export_core"
 version = "0.1.0"
 edition = "2021"
 
+[features]
+serde = ["dep:serde"]
+
 [dependencies]
 csv = "1"
 graphannis = "3"
 graphannis-core = "3"
 itertools = "0.12"
 regex = "1"
+serde = { version = "1", features = ["derive"], optional = true }
 thiserror = "1"
 urlencoding = "2"
 

@@ -3,9 +3,9 @@ import {
   ResizablePanel,
   ResizablePanelGroup,
 } from '@/components/ui/resizable';
-import { Textarea } from '@/components/ui/textarea';
 import { FC } from 'react';
 import { CorpusList } from './corpus-list';
+import { QueryInput } from './query-input';
 
 export const Page: FC = () => (
   <div className="flex flex-col h-full">
@@ -17,7 +17,7 @@ export const Page: FC = () => (
       <ResizablePanel minSize={10}>
         <ResizablePanelGroup direction="vertical">
           <ResizablePanel className="p-2" minSize={10}>
-            <Textarea className="font-mono" />
+            <QueryInput />
           </ResizablePanel>
 
           <ResizableHandle withHandle />

@@ -11,7 +11,10 @@ fn main() {
 
     tauri::Builder::default()
         .manage(State::from_db_dir(db_dir.into()))
-        .invoke_handler(tauri::generate_handler![api::get_corpus_names])
+        .invoke_handler(tauri::generate_handler![
+            api::get_corpus_names,
+            api::validate_query
+        ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

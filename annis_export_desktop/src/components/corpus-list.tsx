@@ -1,11 +1,16 @@
 import { SelectList } from '@/components/ui/custom/select-list';
 import { Spinner } from '@/components/ui/custom/spinner';
+import { useClientState } from '@/lib/client-state';
 import { useCorpusNames } from '@/lib/queries';
-import { FC, useState } from 'react';
+import { FC } from 'react';
 
 export const CorpusList: FC = () => {
   const { data: corpusNames, error, isPending } = useCorpusNames();
-  const [selectedCorpusNames, setSelectedCorpusNames] = useState<string[]>([]);
+  const {
+    selectedCorpusNames,
+    toggleCorpusSelected,
+    toggleAllCorporaSelected,
+  } = useClientState();
 
   if (error !== null) {
     throw new Error(`Failed to load corpora: ${error}`);
@@ -20,18 +25,8 @@ export const CorpusList: FC = () => {
       values={corpusNames}
       selectedValues={selectedCorpusNames}
       renderValue={(corpusName) => corpusName}
-      onClick={(corpusName) =>
-        setSelectedCorpusNames((cs) =>
-          cs.includes(corpusName)
-            ? cs.filter((c) => c !== corpusName)
-            : [...cs, corpusName],
-        )
-      }
-      onClickAll={() =>
-        setSelectedCorpusNames((cs) =>
-          cs.length === corpusNames.length ? [] : corpusNames,
-        )
-      }
+      onClick={toggleCorpusSelected}
+      onClickAll={toggleAllCorporaSelected}
     />
   );
 };
