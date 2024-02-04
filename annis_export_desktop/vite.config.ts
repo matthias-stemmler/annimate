@@ -1,3 +1,5 @@
+/// <reference types="vitest" />
+
 import { defineConfig } from 'vite';
 import path from 'path';
 import react from '@vitejs/plugin-react';
@@ -17,5 +19,8 @@ export default defineConfig(async () => ({
     watch: {
       ignored: ['**/src-tauri/**'],
     },
+  },
+  test: {
+    include: ['src/**/*.{test,spec}.?(c|m)[jt]s?(x)'],
   },
 }));

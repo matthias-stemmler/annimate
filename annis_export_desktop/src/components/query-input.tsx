@@ -7,10 +7,10 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { LineColumn, LineColumnRange, QueryValidationResult } from '@/lib/api';
+import { LineColumnRange, QueryValidationResult } from '@/lib/api';
 import { useClientState } from '@/lib/client-state';
 import { useQueryValidationResult } from '@/lib/queries';
-import { cn } from '@/lib/utils';
+import { cn, lineColumnToCharacterIndex } from '@/lib/utils';
 import { AlertTriangle, CheckSquare2, XSquare } from 'lucide-react';
 import { FC, useId, useRef } from 'react';
 
@@ -73,7 +73,8 @@ export const QueryInput: FC = () => {
                   if (validationResult.location !== null) {
                     const { start, end } = validationResult.location;
                     const selectionStart = lineColumnToCharacterIndex(
-                      start,
+                      start.line,
+                      start.column,
                       aqlQuery,
                     );
 
@@ -81,7 +82,11 @@ export const QueryInput: FC = () => {
                       selectionStart,
                       end === null
                         ? selectionStart
-                        : lineColumnToCharacterIndex(end, aqlQuery) + 1,
+                        : lineColumnToCharacterIndex(
+                            end.line,
+                            end.column,
+                            aqlQuery,
+                          ) + 1,
                     );
                   }
 
@@ -165,18 +170,3 @@ const LocationDisplay: FC<LocationDisplayProps> = ({
     )}
   </p>
 );
-
-const lineColumnToCharacterIndex = (
-  lineColumn: LineColumn,
-  value: string,
-): number => {
-  const lineIndex = lineColumn.line - 1;
-  const columnIndex = lineColumn.column - 1;
-
-  const numCharsBeforeLine = value
-    .split('\n')
-    .slice(0, lineIndex)
-    .reduce((acc, line) => acc + line.length + '\n'.length, 0);
-
-  return numCharsBeforeLine + columnIndex;
-};
