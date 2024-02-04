@@ -1,11 +1,11 @@
+import { CorpusList } from '@/components/corpus-list';
+import { QueryInput } from '@/components/query-input';
 import {
   ResizableHandle,
   ResizablePanel,
   ResizablePanelGroup,
 } from '@/components/ui/resizable';
 import { FC } from 'react';
-import { CorpusList } from './corpus-list';
-import { QueryInput } from './query-input';
 
 export const Page: FC = () => (
   <div className="flex flex-col h-full">
@@ -14,15 +14,15 @@ export const Page: FC = () => (
     </header>
 
     <ResizablePanelGroup direction="horizontal">
-      <ResizablePanel minSize={10}>
+      <ResizablePanel minSize={25}>
         <ResizablePanelGroup direction="vertical">
-          <ResizablePanel className="p-2" minSize={10}>
+          <ResizablePanel className="p-2 pb-4" minSize={25}>
             <QueryInput />
           </ResizablePanel>
 
           <ResizableHandle withHandle />
 
-          <ResizablePanel className="p-2" minSize={10}>
+          <ResizablePanel className="p-2" minSize={25}>
             <CorpusList />
           </ResizablePanel>
         </ResizablePanelGroup>
@@ -30,7 +30,7 @@ export const Page: FC = () => (
 
       <ResizableHandle withHandle />
 
-      <ResizablePanel className="p-2" minSize={10}>
+      <ResizablePanel className="p-2" minSize={25}>
         Export
       </ResizablePanel>
     </ResizablePanelGroup>

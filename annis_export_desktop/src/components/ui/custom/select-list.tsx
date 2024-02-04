@@ -66,7 +66,7 @@ const SelectListItem: FC<SelectListItemProps> = ({
   return (
     <li
       className={cn(
-        'flex items-center gap-2 p-1 cursor-pointer hover:bg-slate-100',
+        'flex items-center gap-2 p-1 cursor-pointer hover:bg-accent',
         className,
       )}
       onClick={onClick}

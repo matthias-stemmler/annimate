@@ -40,8 +40,10 @@
         "fullscreen": false,
         "resizable": true,
         "title": "annis_export_desktop",
-        "width": 800,
-        "height": 600
+        "width": 1024,
+        "height": 768,
+        "minWidth": 640,
+        "minHeight": 480
       }
     ]
   }

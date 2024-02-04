@@ -2,6 +2,7 @@ import { ClientStateContextProvider } from '@/components/client-state-context-pr
 import { ErrorAlert } from '@/components/error-alert';
 import { ErrorBoundary } from '@/components/error-boundary';
 import { Page } from '@/components/page';
+import { TooltipProvider } from '@/components/ui/tooltip';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { FC } from 'react';
 
@@ -9,6 +10,7 @@ const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       retry: false,
+      staleTime: Infinity,
     },
   },
 });
@@ -17,7 +19,9 @@ export const App: FC = () => (
   <ErrorBoundary fallback={(err) => <ErrorAlert message={err.message} />}>
     <QueryClientProvider client={queryClient}>
       <ClientStateContextProvider>
-        <Page />
+        <TooltipProvider>
+          <Page />
+        </TooltipProvider>
       </ClientStateContextProvider>
     </QueryClientProvider>
   </ErrorBoundary>

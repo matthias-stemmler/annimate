@@ -15,6 +15,10 @@ pub fn validate_query<S>(
 where
     S: AsRef<str>,
 {
+    if corpus_ref.names.is_empty() {
+        return Ok(QueryValidationResult::Indeterminate);
+    }
+
     match corpus_ref
         .storage
         .validate_query(corpus_ref.names, aql_query, query_language)
@@ -36,6 +40,8 @@ pub enum QueryValidationResult {
     Valid,
     #[cfg_attr(feature = "serde", serde(rename = "invalid"))]
     Invalid(AQLError),
+    #[cfg_attr(feature = "serde", serde(rename = "indeterminate"))]
+    Indeterminate,
 }
 
 pub fn query_nodes(

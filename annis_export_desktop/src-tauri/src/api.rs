@@ -1,5 +1,5 @@
 use crate::error::Error;
-use annis_export_core::{CorpusStorage, QueryValidationResult};
+use annis_export_core::{CorpusStorage, QueryLanguage, QueryValidationResult};
 use std::path::PathBuf;
 
 pub(crate) struct State {
@@ -29,10 +29,9 @@ pub(crate) fn validate_query(
     state: tauri::State<State>,
     corpus_names: Vec<String>,
     aql_query: String,
+    query_language: QueryLanguage,
 ) -> Result<QueryValidationResult, Error> {
-    Ok(state.storage.validate_query(
-        &corpus_names,
-        &aql_query,
-        annis_export_core::QueryLanguage::AQL,
-    )?)
+    Ok(state
+        .storage
+        .validate_query(&corpus_names, &aql_query, query_language)?)
 }

@@ -1,10 +1,13 @@
+import { QueryLanguage } from '@/lib/api';
 import { createContext, useContext } from 'react';
 
 export type ClientStateContextValue = {
   aqlQuery: string;
+  queryLanguage: QueryLanguage;
   selectedCorpusNames: string[];
 
   setAqlQuery: (aqlQuery: string) => void;
+  setQueryLanguage: (queryLanguage: QueryLanguage) => void;
   toggleAllCorporaSelected: () => void;
   toggleCorpusSelected: (corpusName: string) => void;
 };

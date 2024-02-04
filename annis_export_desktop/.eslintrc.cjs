@@ -14,5 +14,16 @@ module.exports = {
       'warn',
       { allowConstantExport: true },
     ],
+    'no-restricted-imports': [
+      'error',
+      {
+        patterns: [
+          {
+            group: ['./**', '../**'],
+            message: 'Import from @/** instead.',
+          },
+        ],
+      },
+    ],
   },
 };
