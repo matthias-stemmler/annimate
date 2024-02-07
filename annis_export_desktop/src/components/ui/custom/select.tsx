@@ -8,6 +8,7 @@ import {
 import { ReactNode } from 'react';
 
 export type SelectProps<T> = {
+  disabled?: boolean;
   onChange?: (value: T) => void;
   options: SelectOption<T>[];
   triggerClassName?: string;
@@ -20,12 +21,13 @@ export type SelectOption<T> = {
 };
 
 export const Select = <T extends string>({
+  disabled,
   onChange,
   options,
   triggerClassName,
   value,
 }: SelectProps<T>) => (
-  <SelectUi onValueChange={onChange} value={value}>
+  <SelectUi disabled={disabled} onValueChange={onChange} value={value}>
     <SelectTrigger className={triggerClassName}>
       <SelectValue />
     </SelectTrigger>

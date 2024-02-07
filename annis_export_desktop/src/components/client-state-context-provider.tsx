@@ -1,5 +1,6 @@
 import { QueryLanguage } from '@/lib/api';
 import { ClientStateContext } from '@/lib/client-state';
+import { useDebounce } from '@/lib/hooks';
 import { useCorpusNames } from '@/lib/queries';
 import { FC, PropsWithChildren, useCallback, useState } from 'react';
 
@@ -11,6 +12,8 @@ export const ClientStateContextProvider: FC<PropsWithChildren> = ({
   const [aqlQuery, setAqlQuery] = useState<string>('');
   const [queryLanguage, setQueryLanguage] = useState<QueryLanguage>('AQL');
   const [selectedCorpusNames, setSelectedCorpusNames] = useState<string[]>([]);
+
+  const aqlQueryDebounced = useDebounce(aqlQuery, 300, aqlQuery !== '');
 
   const toggleAllCorporaSelected = useCallback(() => {
     setSelectedCorpusNames((selectedCorpusNames) =>
@@ -32,7 +35,10 @@ export const ClientStateContextProvider: FC<PropsWithChildren> = ({
   );
 
   const value = {
-    aqlQuery,
+    aqlQuery: {
+      value: aqlQuery,
+      debouncedValue: aqlQueryDebounced,
+    },
     queryLanguage,
     selectedCorpusNames: (corpusNames ?? [])?.filter((c) =>
       selectedCorpusNames.includes(c),

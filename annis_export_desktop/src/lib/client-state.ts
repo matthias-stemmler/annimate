@@ -2,7 +2,10 @@ import { QueryLanguage } from '@/lib/api';
 import { createContext, useContext } from 'react';
 
 export type ClientStateContextValue = {
-  aqlQuery: string;
+  aqlQuery: {
+    value: string;
+    debouncedValue: string;
+  };
   queryLanguage: QueryLanguage;
   selectedCorpusNames: string[];
 

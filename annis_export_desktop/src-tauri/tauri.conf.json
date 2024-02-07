@@ -11,13 +11,17 @@
   },
   "tauri": {
     "allowlist": {
-      "all": false,
+      "dialog": {
+        "save": true
+      },
+      "path": {
+        "all": true
+      },
       "process": {
         "relaunch": true
       },
       "shell": {
-        "all": false,
-        "open": true
+        "open": ".*"
       }
     },
     "bundle": {

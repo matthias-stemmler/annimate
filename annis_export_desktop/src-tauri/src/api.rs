@@ -1,6 +1,10 @@
 use crate::error::Error;
-use annis_export_core::{CorpusStorage, QueryLanguage, QueryValidationResult};
-use std::path::PathBuf;
+use annis_export_core::{
+    CorpusStorage, CsvExportColumn, CsvExportConfig, ExportFormat, QueryLanguage,
+    QueryValidationResult,
+};
+use std::{fs::File, io::Write, path::PathBuf};
+use tauri::Window;
 
 pub(crate) struct State {
     storage: CorpusStorage,
@@ -12,6 +16,48 @@ impl State {
             storage: CorpusStorage::from_db_dir(&db_dir).expect("Failed to create corpus storage"),
         }
     }
+}
+
+#[tauri::command(async)]
+pub(crate) fn export_matches(
+    state: tauri::State<State>,
+    window: Window,
+    corpus_names: Vec<String>,
+    aql_query: String,
+    query_language: QueryLanguage,
+    output_file: PathBuf,
+) -> Result<(), Error> {
+    let mut out = File::create(&output_file)?;
+
+    state.storage.export_matches(
+        &corpus_names,
+        &aql_query,
+        query_language,
+        ExportFormat::Csv(CsvExportConfig {
+            columns: vec![
+                CsvExportColumn::Number,
+                CsvExportColumn::Data(annis_export_core::ExportData::Anno(
+                    annis_export_core::ExportDataAnno::MatchNode {
+                        anno_key: annis_export_core::AnnoKey {
+                            name: "tok".into(),
+                            ns: "annis".into(),
+                        },
+                        index: 0,
+                    },
+                )),
+            ],
+        }),
+        &mut out,
+        |status_event| {
+            window
+                .emit("export_status", &status_event)
+                .expect("Failed to emit export_status event")
+        },
+    )?;
+
+    out.flush()?;
+
+    Ok(())
 }
 
 #[tauri::command(async)]

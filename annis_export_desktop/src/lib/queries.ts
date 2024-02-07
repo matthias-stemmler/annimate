@@ -1,33 +1,38 @@
 import {
-  QueryLanguage,
   QueryValidationResult,
-  fetchCorpusNames,
+  getCorpusNames,
   validateQuery,
 } from '@/lib/api';
-import { useDebounce } from '@/lib/hooks';
+import { useClientState } from '@/lib/client-state';
 import { UseQueryResult, useQuery } from '@tanstack/react-query';
 
 export const useCorpusNames = (): UseQueryResult<string[]> =>
   useQuery({
     queryKey: ['corpusNames'],
-    queryFn: fetchCorpusNames,
+    queryFn: getCorpusNames,
   });
 
-export const useQueryValidationResult = (
-  corpusNames: string[],
-  aqlQuery: string,
-  queryLanguage: QueryLanguage,
-): UseQueryResult<QueryValidationResult> => {
-  const aqlQueryDebounced = useDebounce(aqlQuery, 300, aqlQuery !== '');
-
-  return useQuery({
-    enabled: aqlQueryDebounced !== '',
-    queryKey: [
-      'queryValidationResult',
-      corpusNames,
-      aqlQueryDebounced,
+export const useQueryValidationResult =
+  (): UseQueryResult<QueryValidationResult> => {
+    const {
+      aqlQuery: { debouncedValue: aqlQueryDebounced },
       queryLanguage,
-    ],
-    queryFn: () => validateQuery(corpusNames, aqlQueryDebounced, queryLanguage),
-  });
-};
+      selectedCorpusNames,
+    } = useClientState();
+
+    return useQuery({
+      enabled: aqlQueryDebounced !== '',
+      queryKey: [
+        'queryValidationResult',
+        selectedCorpusNames,
+        aqlQueryDebounced,
+        queryLanguage,
+      ],
+      queryFn: () =>
+        validateQuery({
+          corpusNames: selectedCorpusNames,
+          aqlQuery: aqlQueryDebounced,
+          queryLanguage,
+        }),
+    });
+  };

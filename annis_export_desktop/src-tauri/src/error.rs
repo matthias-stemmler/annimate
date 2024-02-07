@@ -1,11 +1,15 @@
 use annis_export_core::AnnisExportError;
 use serde::{Serialize, Serializer};
+use std::io;
 use thiserror::Error;
 
 #[derive(Debug, Error)]
 pub(crate) enum Error {
     #[error(transparent)]
     AnnisExport(#[from] AnnisExportError),
+
+    #[error(transparent)]
+    Io(#[from] io::Error),
 }
 
 impl Serialize for Error {

@@ -197,7 +197,7 @@ impl AnnoKeys {
             .flatten_ok()
             .try_collect()?;
 
-        // Anno keys with name "tok" are invalid in AQL queries,
+        // Anno keys with name "tok" are invalid in AQL queries (when qualified with a namespace),
         // so we just assume those don't appear on the corpus and document levels, but they do appear on the node level
 
         let doc_anno_keys = filter_anno_keys_by_query(

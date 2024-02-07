@@ -143,7 +143,12 @@ impl CorpusStorage {
 }
 
 #[derive(Debug)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize))]
+#[cfg_attr(feature = "serde", serde(tag = "type"))]
 pub enum StatusEvent {
+    #[cfg_attr(feature = "serde", serde(rename = "found"))]
     Found { count: usize },
+
+    #[cfg_attr(feature = "serde", serde(rename = "exported"))]
     Exported { progress: f32 },
 }

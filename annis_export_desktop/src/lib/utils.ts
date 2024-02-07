@@ -1,9 +1,13 @@
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
-export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs));
-}
+const LOCALE = 'en-US';
+const PERCENTAGE_FORMAT = new Intl.NumberFormat(LOCALE, { style: 'percent' });
+
+export const cn = (...inputs: ClassValue[]) => twMerge(clsx(inputs));
+
+export const formatPercentage = (value: number): string =>
+  PERCENTAGE_FORMAT.format(value);
 
 export const lineColumnToCharacterIndex = (
   line: number,

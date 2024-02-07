@@ -9,6 +9,7 @@ import {
 } from '@/components/ui/tooltip';
 import { LineColumnRange, QueryValidationResult } from '@/lib/api';
 import { useClientState } from '@/lib/client-state';
+import { useIsExporting } from '@/lib/mutations';
 import { useQueryValidationResult } from '@/lib/queries';
 import { cn, lineColumnToCharacterIndex } from '@/lib/utils';
 import { AlertTriangle, CheckSquare2, XSquare } from 'lucide-react';
@@ -16,14 +17,16 @@ import { FC, useId, useRef } from 'react';
 
 export const QueryInput: FC = () => {
   const {
-    aqlQuery,
+    aqlQuery: { value: aqlQuery },
     queryLanguage,
-    selectedCorpusNames,
     setAqlQuery,
     setQueryLanguage,
   } = useClientState();
   const { data: validationResult, isFetching: validationIsFetching } =
-    useQueryValidationResult(selectedCorpusNames, aqlQuery, queryLanguage);
+    useQueryValidationResult();
+  const isExporting = useIsExporting();
+  const disabled = isExporting;
+
   const textAreaId = useId();
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -34,11 +37,12 @@ export const QueryInput: FC = () => {
   return (
     <div className="h-full flex flex-col gap-2">
       <div className="flex justify-between items-end">
-        <Label className="mb-2" htmlFor={textAreaId}>
+        <Label className="mr-2 mb-2" htmlFor={textAreaId}>
           Query
         </Label>
 
         <Select
+          disabled={disabled}
           onChange={setQueryLanguage}
           options={[
             { value: 'AQL', caption: 'AQL (latest)' },
@@ -57,6 +61,7 @@ export const QueryInput: FC = () => {
               'bg-red-50': isInvalid,
             },
           )}
+          disabled={disabled}
           id={textAreaId}
           onChange={(event) => setAqlQuery(event.target.value)}
           placeholder="Enter AQL query"
@@ -65,10 +70,16 @@ export const QueryInput: FC = () => {
         />
 
         {status !== undefined && (
-          <Tooltip delayDuration={isValid ? undefined : 0}>
+          <Tooltip
+            delayDuration={isValid ? undefined : 0}
+            open={disabled ? false : undefined}
+          >
             <TooltipTrigger
-              className="absolute top-2 right-2"
-              onFocus={() => {
+              className="absolute top-2 right-2 disabled:cursor-not-allowed disabled:opacity-70"
+              disabled={disabled}
+              onMouseDown={(event) => {
+                event?.preventDefault();
+
                 if (isInvalid) {
                   if (validationResult.location !== null) {
                     const { start, end } = validationResult.location;

@@ -1,4 +1,5 @@
 import { CorpusList } from '@/components/corpus-list';
+import { ExportSection } from '@/components/export-section';
 import { QueryInput } from '@/components/query-input';
 import {
   ResizableHandle,
@@ -31,7 +32,7 @@ export const Page: FC = () => (
       <ResizableHandle withHandle />
 
       <ResizablePanel className="p-2" minSize={25}>
-        Export
+        <ExportSection />
       </ResizablePanel>
     </ResizablePanelGroup>
   </div>
