@@ -3,7 +3,10 @@ use annis_export_core::{
     CorpusStorage, CsvExportColumn, CsvExportConfig, ExportFormat, QueryLanguage,
     QueryValidationResult,
 };
-use std::{fs::File, io::Write, path::PathBuf};
+use std::{
+    io::{self, Write},
+    path::PathBuf,
+};
 use tauri::Window;
 
 pub(crate) struct State {
@@ -13,7 +16,7 @@ pub(crate) struct State {
 impl State {
     pub(crate) fn from_db_dir(db_dir: PathBuf) -> Self {
         Self {
-            storage: CorpusStorage::from_db_dir(&db_dir).expect("Failed to create corpus storage"),
+            storage: CorpusStorage::from_db_dir(db_dir).expect("Failed to create corpus storage"),
         }
     }
 }
@@ -27,7 +30,12 @@ pub(crate) fn export_matches(
     query_language: QueryLanguage,
     output_file: PathBuf,
 ) -> Result<(), Error> {
-    let mut out = File::create(&output_file)?;
+    let mut out = tempfile::Builder::new()
+        .prefix(".annis_export")
+        .suffix(".csv")
+        .tempfile()?;
+
+    dbg!(&out);
 
     state.storage.export_matches(
         &corpus_names,
@@ -56,6 +64,7 @@ pub(crate) fn export_matches(
     )?;
 
     out.flush()?;
+    out.persist(output_file).map_err(io::Error::from)?;
 
     Ok(())
 }

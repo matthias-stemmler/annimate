@@ -361,8 +361,11 @@ fn main() -> anyhow::Result<()> {
             output_file,
             columns,
         } => {
-            let mut out = File::create(&output_file)
-                .with_context(|| format!("Failed to open output file {}", output_file.display()))?;
+            let mut out = tempfile::Builder::new()
+                .prefix(".annis_export")
+                .suffix(".csv")
+                .tempfile()
+                .context("Failed to create temporary file")?;
 
             let progress_reporter = ProgressReporter::new(cli.debug);
 
@@ -376,7 +379,9 @@ fn main() -> anyhow::Result<()> {
                     }),
                     &mut out,
                     |event| match event {
-                        StatusEvent::Found { count } => println!("Found {count} matches"),
+                        StatusEvent::Found { count } => {
+                            println!("Found {count} match{}", if count == 1 { "" } else { "es" })
+                        }
                         StatusEvent::Exported { progress } => {
                             progress_reporter.report(progress);
                         }
@@ -384,7 +389,9 @@ fn main() -> anyhow::Result<()> {
                 )
                 .context("Failed to export matches")?;
 
-            out.flush()
+            out.flush().context("Failed to write to temporary file")?;
+
+            out.persist(&output_file)
                 .with_context(|| format!("Failed to open output file {}", output_file.display()))?;
 
             progress_reporter.finish();
