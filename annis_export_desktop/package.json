@@ -35,6 +35,7 @@
     "tailwindcss-animate": "^1.0.7"
   },
   "devDependencies": {
+    "@tanstack/eslint-plugin-query": "^5.18.1",
     "@tauri-apps/cli": "^1.5.8",
     "@types/node": "^20.11.4",
     "@types/react": "^18.2.15",
