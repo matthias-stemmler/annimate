@@ -362,7 +362,7 @@ fn main() -> anyhow::Result<()> {
             columns,
         } => {
             let mut out = tempfile::Builder::new()
-                .prefix(".annis_export")
+                .prefix(".annis_export_")
                 .suffix(".csv")
                 .tempfile()
                 .context("Failed to create temporary file")?;

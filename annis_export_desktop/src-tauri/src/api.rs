@@ -31,11 +31,9 @@ pub(crate) fn export_matches(
     output_file: PathBuf,
 ) -> Result<(), Error> {
     let mut out = tempfile::Builder::new()
-        .prefix(".annis_export")
+        .prefix(".annis_export_")
         .suffix(".csv")
         .tempfile()?;
-
-    dbg!(&out);
 
     state.storage.export_matches(
         &corpus_names,

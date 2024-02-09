@@ -8,7 +8,7 @@ tauri-build = { version = "1.5", features = [] }
 
 [dependencies]
 annis_export_core = { path = "../../annis_export_core", features = ["serde"] }
-tauri = { version = "1.5", features = [ "path-all", "dialog-save", "process-relaunch", "shell-open"] }
+tauri = { version = "1.5", features = [ "dialog-save", "objc-exception", "path-all", "process-relaunch", "shell-open", "wry"], default-features = false }
 serde = { workspace = true }
 serde_json = "1.0"
 tempfile = { workspace = true }

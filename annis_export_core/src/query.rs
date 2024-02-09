@@ -32,7 +32,7 @@ use std::{
 
 pub use graphannis::corpusstorage::QueryLanguage;
 
-const PAGE_SIZE: usize = 10;
+const PAGE_SIZE: usize = 1000;
 
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub enum ExportData {
