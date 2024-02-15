@@ -17,13 +17,13 @@ export const Page: FC = () => (
     <ResizablePanelGroup direction="horizontal">
       <ResizablePanel minSize={25}>
         <ResizablePanelGroup direction="vertical">
-          <ResizablePanel className="p-2 pb-4" minSize={25}>
+          <ResizablePanel className="px-3 pt-1 pb-4" minSize={25}>
             <QueryInput />
           </ResizablePanel>
 
           <ResizableHandle withHandle />
 
-          <ResizablePanel className="p-2" minSize={25}>
+          <ResizablePanel className="p-3" minSize={25}>
             <CorpusList />
           </ResizablePanel>
         </ResizablePanelGroup>
@@ -31,7 +31,7 @@ export const Page: FC = () => (
 
       <ResizableHandle withHandle />
 
-      <ResizablePanel className="p-2" minSize={25}>
+      <ResizablePanel className="px-3 pb-4" minSize={25}>
         <ExportSection />
       </ResizablePanel>
     </ResizablePanelGroup>

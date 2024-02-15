@@ -23,7 +23,7 @@ export const SelectList = <T extends Key>({
   values,
 }: SelectListProps<T>) => (
   <ScrollArea className="h-full pr-4">
-    <ul>
+    <ul className="pb-1">
       <SelectListItem
         checked={
           values.every((v) => selectedValues.includes(v)) ||
