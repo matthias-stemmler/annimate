@@ -22,5 +22,8 @@ export default defineConfig(async () => ({
   },
   test: {
     include: ['src/**/*.{test,spec}.?(c|m)[jt]s?(x)'],
+    sequence: {
+      shuffle: true,
+    },
   },
 }));

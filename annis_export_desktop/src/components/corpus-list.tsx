@@ -25,6 +25,7 @@ export const CorpusList: FC = () => {
   return (
     <SelectList
       disabled={isExporting}
+      label="Corpora"
       onClick={toggleCorpusSelected}
       onClickAll={toggleAllCorporaSelected}
       selectedValues={selectedCorpusNames}
