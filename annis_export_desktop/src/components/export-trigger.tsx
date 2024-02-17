@@ -2,7 +2,7 @@ import { Button } from '@/components/ui/button';
 import { ProgressPercent } from '@/components/ui/custom/progress-percent';
 import { useToast } from '@/components/ui/use-toast';
 import { dirname, open, save } from '@/lib/api';
-import { useClientState } from '@/lib/client-state';
+import { useClientState } from '@/lib/client-state-context';
 import { useExportMatches } from '@/lib/mutations';
 import { useQueryValidationResult } from '@/lib/queries';
 import { File, Folder } from 'lucide-react';

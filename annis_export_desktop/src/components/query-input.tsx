@@ -8,7 +8,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { LineColumnRange, QueryValidationResult } from '@/lib/api';
-import { useClientState } from '@/lib/client-state';
+import { useClientState } from '@/lib/client-state-context';
 import { useIsExporting } from '@/lib/mutations';
 import { useQueryValidationResult } from '@/lib/queries';
 import { cn, lineColumnToCharacterIndex } from '@/lib/utils';

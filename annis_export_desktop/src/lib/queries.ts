@@ -3,7 +3,7 @@ import {
   getCorpusNames,
   validateQuery,
 } from '@/lib/api';
-import { useClientState } from '@/lib/client-state';
+import { useClientState } from '@/lib/client-state-context';
 import { UseQueryResult, useQuery } from '@tanstack/react-query';
 
 export const useCorpusNames = (): UseQueryResult<string[]> =>
