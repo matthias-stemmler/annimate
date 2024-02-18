@@ -1,4 +1,7 @@
 /** @type {import('tailwindcss').Config} */
+
+const colors = require('tailwindcss/colors');
+
 module.exports = {
   darkMode: ['class'],
   content: ['./src/**/*.{ts,tsx}'],
@@ -46,6 +49,13 @@ module.exports = {
           DEFAULT: 'hsl(var(--card))',
           foreground: 'hsl(var(--card-foreground))',
         },
+
+        // CUSTOM
+        'column-number': colors.sky,
+        'column-anno-corpus': colors.teal,
+        'column-anno-document': colors.green,
+        'column-anno-match': colors.yellow,
+        'column-match-in-context': colors.orange,
       },
       borderRadius: {
         lg: 'var(--radius)',

@@ -8,6 +8,23 @@ import { appWindow } from '@tauri-apps/api/window';
 
 export { dirname, open, relaunch, save };
 
+export type ExportColumn =
+  | {
+      type: 'number';
+    }
+  | {
+      type: 'anno_corpus';
+    }
+  | {
+      type: 'anno_document';
+    }
+  | {
+      type: 'anno_match';
+    }
+  | {
+      type: 'match_in_context';
+    };
+
 export type QueryLanguage = 'AQL' | 'AQLQuirksV3';
 
 export type QueryValidationResult =
