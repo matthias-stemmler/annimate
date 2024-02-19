@@ -25,6 +25,8 @@ export type ExportColumn =
       type: 'match_in_context';
     };
 
+export type ExportColumnType = ExportColumn['type'];
+
 export type QueryLanguage = 'AQL' | 'AQLQuirksV3';
 
 export type QueryValidationResult =

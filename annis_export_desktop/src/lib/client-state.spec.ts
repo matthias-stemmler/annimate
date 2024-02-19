@@ -11,6 +11,7 @@ describe('client-state', () => {
       { id: 4, type: 'anno_match' },
       { id: 5, type: 'match_in_context' },
     ],
+    exportColumnsMaxId: 5,
     queryLanguage: 'AQL',
     selectedCorpusNames: ['a', 'b', 'c'],
   };
@@ -62,6 +63,23 @@ describe('client-state', () => {
       { id: 4, type: 'anno_match', removalIndex: 4 },
       { id: 5, type: 'match_in_context', removalIndex: 3 },
     ]);
+  });
+
+  test('export_column_added action', () => {
+    const nextState = clientStateReducer(currentState, {
+      type: 'export_column_added',
+      columnType: 'number',
+    });
+
+    expect(nextState.exportColumns).toEqual([
+      { id: 1, type: 'number' },
+      { id: 2, type: 'anno_corpus', removalIndex: 1 },
+      { id: 3, type: 'anno_document' },
+      { id: 4, type: 'anno_match' },
+      { id: 5, type: 'match_in_context' },
+      { id: 6, type: 'number' },
+    ]);
+    expect(nextState.exportColumnsMaxId).toBe(6);
   });
 
   test('export_column_unremoved action', () => {

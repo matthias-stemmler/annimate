@@ -1,10 +1,11 @@
-import { ExportColumn, QueryLanguage } from '@/lib/api';
+import { ExportColumn, ExportColumnType, QueryLanguage } from '@/lib/api';
 
 const MAX_REMOVED_COLUMNS = 3;
 
 export type ClientState = {
   aqlQuery: string;
   exportColumns: ExportColumnItem[];
+  exportColumnsMaxId: number;
   queryLanguage: QueryLanguage;
   selectedCorpusNames: string[];
 };
@@ -18,6 +19,10 @@ type ClientStateAction =
   | {
       type: 'aql_query_updated';
       aqlQuery: string;
+    }
+  | {
+      type: 'export_column_added';
+      columnType: ExportColumnType;
     }
   | {
       type: 'export_column_removed';
@@ -54,6 +59,7 @@ export const initialClientState: ClientState = {
     { id: 4, type: 'anno_match' },
     { id: 5, type: 'match_in_context' },
   ],
+  exportColumnsMaxId: 5,
   queryLanguage: 'AQL',
   selectedCorpusNames: [],
 };
@@ -66,6 +72,17 @@ export const clientStateReducer = (
     case 'aql_query_updated': {
       const { aqlQuery } = action;
       return { ...state, aqlQuery };
+    }
+
+    case 'export_column_added': {
+      const { columnType } = action;
+      const id = (state.exportColumnsMaxId + 1) % Number.MAX_SAFE_INTEGER;
+
+      return {
+        ...state,
+        exportColumns: [...state.exportColumns, { id, type: columnType }],
+        exportColumnsMaxId: id,
+      };
     }
 
     case 'export_column_removed': {

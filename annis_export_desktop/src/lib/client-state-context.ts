@@ -1,4 +1,4 @@
-import { QueryLanguage } from '@/lib/api';
+import { ExportColumnType, QueryLanguage } from '@/lib/api';
 import {
   ExportColumnItem,
   clientStateReducer,
@@ -17,6 +17,7 @@ export type ClientStateContextValue = {
   queryLanguage: QueryLanguage;
   selectedCorpusNames: string[];
 
+  addExportColumn: (type: ExportColumnType) => void;
   removeExportColumn: (id: number) => void;
   reorderExportColumns: (
     reorder: (exportColumns: ExportColumnItem[]) => ExportColumnItem[],
@@ -53,6 +54,8 @@ export const useClientStateContextValue = (): ClientStateContextValue => {
     queryLanguage: clientState.queryLanguage,
     selectedCorpusNames: clientState.selectedCorpusNames,
 
+    addExportColumn: (type: ExportColumnType) =>
+      dispatch({ type: 'export_column_added', columnType: type }),
     removeExportColumn: (id: number) =>
       dispatch({ type: 'export_column_removed', id }),
     reorderExportColumns: (

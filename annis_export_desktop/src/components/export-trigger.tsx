@@ -28,7 +28,7 @@ export const ExportTrigger = () => {
     queryValidationResult?.type === 'indeterminate';
 
   return isExporting ? (
-    <div>
+    <div className="mt-2 mb-1">
       <p className="mb-1">
         {matchCount === undefined
           ? 'Searching ...'
@@ -38,7 +38,7 @@ export const ExportTrigger = () => {
     </div>
   ) : (
     <Button
-      className="w-full mt-1"
+      className="w-full mt-4"
       disabled={disabled}
       onClick={async () => {
         const outputFile = await save();
