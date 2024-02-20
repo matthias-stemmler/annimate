@@ -26,6 +26,10 @@ export type ExportColumn =
     };
 
 export type ExportColumnType = ExportColumn['type'];
+export type ExportColumnData<T extends ExportColumnType> = Omit<
+  ExportColumn & { type: T },
+  'type'
+>;
 
 export type QueryLanguage = 'AQL' | 'AQLQuirksV3';
 

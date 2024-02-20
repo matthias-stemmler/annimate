@@ -1,4 +1,4 @@
-import { ExportColumnType, QueryLanguage } from '@/lib/api';
+import { ExportColumn, ExportColumnType, QueryLanguage } from '@/lib/api';
 import {
   ExportColumnItem,
   clientStateReducer,
@@ -27,6 +27,7 @@ export type ClientStateContextValue = {
   toggleAllCorpora: () => void;
   toggleCorpus: (corpusName: string) => void;
   unremoveExportColumn: (id: number) => void;
+  updateExportColumn: (id: number, exportColumn: ExportColumn) => void;
 };
 
 export const useClientStateContextValue = (): ClientStateContextValue => {
@@ -73,6 +74,8 @@ export const useClientStateContextValue = (): ClientStateContextValue => {
         corpusName,
         corpusNames: corpusNames ?? [],
       }),
+    updateExportColumn: (id: number, exportColumn: ExportColumn) =>
+      dispatch({ type: 'export_column_updated', id, exportColumn }),
     unremoveExportColumn: (id: number) =>
       dispatch({ type: 'export_column_unremoved', id }),
   };

@@ -1,7 +1,10 @@
+import { AnnoCorpusColumn } from '@/components/columns/anno-corpus-column';
+import { AnnoDocumentColumn } from '@/components/columns/anno-document-column';
+import { AnnoMatchColumn } from '@/components/columns/anno-match-column';
+import { MatchInContextColumn } from '@/components/columns/match-in-context-column';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { ReorderList } from '@/components/ui/custom/reorder-list';
-import { Select } from '@/components/ui/custom/select';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -23,6 +26,14 @@ import { cn } from '@/lib/utils';
 import { GripVertical, Plus, Trash2 } from 'lucide-react';
 import { FC, PropsWithChildren } from 'react';
 
+const COLUMN_TYPE_TO_NAME: Record<ExportColumnType, string> = {
+  number: 'Number',
+  anno_corpus: 'Corpus metadata',
+  anno_document: 'Document metadata',
+  anno_match: 'Match annotation',
+  match_in_context: 'Match in context',
+};
+
 export const ExportColumnList: FC = () => {
   const {
     addExportColumn,
@@ -30,6 +41,7 @@ export const ExportColumnList: FC = () => {
     removeExportColumn,
     reorderExportColumns,
     unremoveExportColumn,
+    updateExportColumn,
   } = useClientState();
   const { toast } = useToast();
 
@@ -46,36 +58,23 @@ export const ExportColumnList: FC = () => {
           </DropdownMenuTrigger>
 
           <DropdownMenuContent>
-            <CardMenuItem
-              columnType="anno_corpus"
-              onClick={() => addExportColumn('anno_corpus')}
-            >
-              Corpus metadata
-            </CardMenuItem>
-            <CardMenuItem
-              columnType="anno_document"
-              onClick={() => addExportColumn('anno_document')}
-            >
-              Document metadata
-            </CardMenuItem>
-            <CardMenuItem
-              columnType="anno_match"
-              onClick={() => addExportColumn('anno_match')}
-            >
-              Match annotation
-            </CardMenuItem>
-            <CardMenuItem
-              columnType="match_in_context"
-              onClick={() => addExportColumn('match_in_context')}
-            >
-              Match in context
-            </CardMenuItem>
-            <CardMenuItem
-              columnType="number"
-              onClick={() => addExportColumn('number')}
-            >
-              Number
-            </CardMenuItem>
+            {(
+              [
+                'anno_corpus',
+                'anno_document',
+                'anno_match',
+                'match_in_context',
+                'number',
+              ] as const
+            ).map((columnType: ExportColumnType) => (
+              <CardMenuItem
+                key={columnType}
+                columnType={columnType}
+                onClick={() => addExportColumn(columnType)}
+              >
+                {COLUMN_TYPE_TO_NAME[columnType]}
+              </CardMenuItem>
+            ))}
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
@@ -120,9 +119,54 @@ export const ExportColumnList: FC = () => {
                   style={style}
                 >
                   <CardContent className="pl-4 pr-3 py-0 flex items-center gap-4">
-                    <div className="grow pt-1 pb-4">
-                      <p className="font-semibold text-sm mb-1">{item.type}</p>
-                      <Select options={[{ caption: 'a', value: 'a' }]} />
+                    <div className="grow py-4">
+                      <p className="font-semibold text-sm mb-1">
+                        {COLUMN_TYPE_TO_NAME[item.type]}
+                      </p>
+                      {item.type === 'anno_corpus' && (
+                        <AnnoCorpusColumn
+                          data={item}
+                          onChange={(data) =>
+                            updateExportColumn(item.id, {
+                              type: item.type,
+                              ...data,
+                            })
+                          }
+                        />
+                      )}
+                      {item.type === 'anno_document' && (
+                        <AnnoDocumentColumn
+                          data={item}
+                          onChange={(data) =>
+                            updateExportColumn(item.id, {
+                              type: item.type,
+                              ...data,
+                            })
+                          }
+                        />
+                      )}
+                      {item.type === 'anno_match' && (
+                        <AnnoMatchColumn
+                          data={item}
+                          onChange={(data) =>
+                            updateExportColumn(item.id, {
+                              type: item.type,
+                              ...data,
+                            })
+                          }
+                        />
+                      )}{' '}
+                      {item.type === 'match_in_context' && (
+                        <MatchInContextColumn
+                          data={item}
+                          onChange={(data) =>
+                            updateExportColumn(item.id, {
+                              type: item.type,
+                              ...data,
+                            })
+                          }
+                        />
+                      )}
                     </div>
 
                     <div className="flex items-center gap-2">

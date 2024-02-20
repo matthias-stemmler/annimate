@@ -29,12 +29,17 @@ type ClientStateAction =
       id: number;
     }
   | {
-      type: 'export_columns_reordered';
-      reorder: (exportColumns: ExportColumnItem[]) => ExportColumnItem[];
-    }
-  | {
       type: 'export_column_unremoved';
       id: number;
+    }
+  | {
+      type: 'export_column_updated';
+      id: number;
+      exportColumn: ExportColumn;
+    }
+  | {
+      type: 'export_columns_reordered';
+      reorder: (exportColumns: ExportColumnItem[]) => ExportColumnItem[];
     }
   | {
       type: 'query_language_updated';
@@ -113,6 +118,17 @@ export const clientStateReducer = (
             removalIndex:
               column.id === idToRemove ? nextRemovalIndex : column.removalIndex,
           })),
+      };
+    }
+
+    case 'export_column_updated': {
+      const { id, exportColumn } = action;
+
+      return {
+        ...state,
+        exportColumns: state.exportColumns.map((c) =>
+          c.id === id ? { ...c, ...exportColumn } : c,
+        ),
       };
     }
 

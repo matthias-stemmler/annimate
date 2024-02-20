@@ -25,6 +25,23 @@ describe('client-state', () => {
     expect(nextState.aqlQuery).toBe('aqlQuery updated');
   });
 
+  test('export_column_added action', () => {
+    const nextState = clientStateReducer(currentState, {
+      type: 'export_column_added',
+      columnType: 'number',
+    });
+
+    expect(nextState.exportColumns).toEqual([
+      { id: 1, type: 'number' },
+      { id: 2, type: 'anno_corpus', removalIndex: 1 },
+      { id: 3, type: 'anno_document' },
+      { id: 4, type: 'anno_match' },
+      { id: 5, type: 'match_in_context' },
+      { id: 6, type: 'number' },
+    ]);
+    expect(nextState.exportColumnsMaxId).toBe(6);
+  });
+
   test('export_column_removed action', () => {
     const nextState1 = clientStateReducer(currentState, {
       type: 'export_column_removed',
@@ -65,23 +82,6 @@ describe('client-state', () => {
     ]);
   });
 
-  test('export_column_added action', () => {
-    const nextState = clientStateReducer(currentState, {
-      type: 'export_column_added',
-      columnType: 'number',
-    });
-
-    expect(nextState.exportColumns).toEqual([
-      { id: 1, type: 'number' },
-      { id: 2, type: 'anno_corpus', removalIndex: 1 },
-      { id: 3, type: 'anno_document' },
-      { id: 4, type: 'anno_match' },
-      { id: 5, type: 'match_in_context' },
-      { id: 6, type: 'number' },
-    ]);
-    expect(nextState.exportColumnsMaxId).toBe(6);
-  });
-
   test('export_column_unremoved action', () => {
     const nextState = clientStateReducer(currentState, {
       type: 'export_column_unremoved',
@@ -92,6 +92,24 @@ describe('client-state', () => {
       { id: 1, type: 'number' },
       { id: 2, type: 'anno_corpus' },
       { id: 3, type: 'anno_document' },
+      { id: 4, type: 'anno_match' },
+      { id: 5, type: 'match_in_context' },
+    ]);
+  });
+
+  test('export_column_updated action', () => {
+    const nextState = clientStateReducer(currentState, {
+      type: 'export_column_updated',
+      id: 3,
+      exportColumn: {
+        type: 'anno_match',
+      },
+    });
+
+    expect(nextState.exportColumns).toEqual([
+      { id: 1, type: 'number' },
+      { id: 2, type: 'anno_corpus', removalIndex: 1 },
+      { id: 3, type: 'anno_match' },
       { id: 4, type: 'anno_match' },
       { id: 5, type: 'match_in_context' },
     ]);
