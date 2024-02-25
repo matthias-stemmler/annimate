@@ -46,7 +46,7 @@ export const ExportColumnList: FC = () => {
   const { toast } = useToast();
 
   return (
-    <div className="flex-1 overflow-hidden pt-1 flex flex-col gap-2">
+    <div className="flex-1 overflow-hidden pt-1 pr-1 flex flex-col gap-2">
       <div className="flex justify-between items-end">
         <Label className="mr-2 mb-2">Columns</Label>
 
@@ -206,7 +206,10 @@ export const ExportColumnList: FC = () => {
                       <Button
                         className={cn(
                           'h-5 w-5 p-0 hover:bg-inherit cursor-grab active:cursor-grabbing',
-                          { 'focus-visible:ring-transparent': isPlaceholder },
+                          {
+                            'focus-visible:ring-transparent': isPlaceholder,
+                            'cursor-grabbing': isOverlay,
+                          },
                         )}
                         disabled={exportColumns.length <= 1}
                         variant="ghost"

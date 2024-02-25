@@ -1,7 +1,7 @@
 use crate::error::Error;
 use annis_export_core::{
-    CorpusStorage, CsvExportColumn, CsvExportConfig, ExportFormat, QueryLanguage,
-    QueryValidationResult,
+    CorpusStorage, CsvExportColumn, CsvExportConfig, ExportFormat, ExportableAnnoKeys,
+    QueryLanguage, QueryValidationResult,
 };
 use std::{
     io::{self, Write},
@@ -75,6 +75,14 @@ pub(crate) fn get_corpus_names(state: tauri::State<State>) -> Result<Vec<String>
         .into_iter()
         .map(|corpus_info| corpus_info.name)
         .collect())
+}
+
+#[tauri::command(async)]
+pub(crate) fn get_exportable_anno_keys(
+    state: tauri::State<State>,
+    corpus_names: Vec<String>,
+) -> Result<ExportableAnnoKeys, Error> {
+    Ok(state.storage.exportable_anno_keys(&corpus_names)?)
 }
 
 #[tauri::command(async)]

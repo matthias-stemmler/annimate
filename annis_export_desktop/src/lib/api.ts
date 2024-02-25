@@ -8,6 +8,22 @@ import { appWindow } from '@tauri-apps/api/window';
 
 export { dirname, open, relaunch, save };
 
+export type ExportableAnnoKeys = {
+  corpus: ExportableAnnoKey[];
+  doc: ExportableAnnoKey[];
+  node: ExportableAnnoKey[];
+};
+
+export type ExportableAnnoKey = {
+  annoKey: AnnoKey;
+  displayName: string;
+};
+
+export type AnnoKey = {
+  ns: string;
+  name: string;
+};
+
 export type ExportColumn =
   | {
       type: 'number';
@@ -61,6 +77,10 @@ export const exportMatches = (params: {
 
 export const getCorpusNames = (): Promise<string[]> =>
   invoke('get_corpus_names');
+
+export const getExportableAnnoKeys = (params: {
+  corpusNames: string[];
+}): Promise<ExportableAnnoKeys> => invoke('get_exportable_anno_keys', params);
 
 export const validateQuery = (params: {
   corpusNames: string[];

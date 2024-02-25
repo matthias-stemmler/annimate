@@ -14,6 +14,7 @@ fn main() {
         .invoke_handler(tauri::generate_handler![
             api::export_matches,
             api::get_corpus_names,
+            api::get_exportable_anno_keys,
             api::validate_query
         ])
         .run(tauri::generate_context!())

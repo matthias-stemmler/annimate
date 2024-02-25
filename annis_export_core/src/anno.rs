@@ -367,6 +367,8 @@ impl Display for AnnoKeyDisplay<'_> {
 }
 
 #[derive(Debug)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize))]
+#[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
 pub struct ExportableAnnoKeys {
     pub corpus: Vec<ExportableAnnoKey>,
     pub doc: Vec<ExportableAnnoKey>,
@@ -374,6 +376,8 @@ pub struct ExportableAnnoKeys {
 }
 
 #[derive(Debug)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize))]
+#[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
 pub struct ExportableAnnoKey {
     pub anno_key: AnnoKey,
     pub display_name: String,

@@ -5,10 +5,12 @@ import {
   Select as SelectUi,
   SelectValue,
 } from '@/components/ui/select';
+import { cn } from '@/lib/utils';
 import { ReactNode } from 'react';
 
 export type SelectProps<T> = {
   disabled?: boolean;
+  loading?: boolean;
   onChange?: (value: T) => void;
   options: SelectOption<T>[];
   triggerClassName?: string;
@@ -22,21 +24,41 @@ export type SelectOption<T> = {
 
 export const Select = <T extends string>({
   disabled,
+  loading,
   onChange,
   options,
   triggerClassName,
   value,
-}: SelectProps<T>) => (
-  <SelectUi disabled={disabled} onValueChange={onChange} value={value}>
-    <SelectTrigger className={triggerClassName}>
-      <SelectValue />
-    </SelectTrigger>
-    <SelectContent>
-      {options.map(({ caption, value }) => (
-        <SelectItem key={value} value={value}>
-          {caption}
-        </SelectItem>
-      ))}
-    </SelectContent>
-  </SelectUi>
-);
+}: SelectProps<T>) => {
+  const placeholder =
+    (loading && 'Loading') || (options.length === 0 && 'No options available');
+
+  return (
+    <SelectUi
+      disabled={disabled || loading || options.length === 0}
+      onValueChange={onChange}
+      value={value}
+    >
+      <SelectTrigger
+        className={cn(triggerClassName, { 'disabled:cursor-wait': loading })}
+      >
+        <SelectValue
+          children={
+            value === undefined
+              ? placeholder
+              : options.find((o) => o.value === value)?.caption
+          }
+          placeholder={placeholder}
+        />
+      </SelectTrigger>
+
+      <SelectContent>
+        {options.map(({ caption, value }) => (
+          <SelectItem key={value} value={value}>
+            {caption}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </SelectUi>
+  );
+};
