@@ -2,30 +2,17 @@ import { Button } from '@/components/ui/button';
 import { ProgressPercent } from '@/components/ui/custom/progress-percent';
 import { useToast } from '@/components/ui/use-toast';
 import { dirname, open, save } from '@/lib/api';
-import { useClientState } from '@/lib/client-state-context';
-import { useExportMatches } from '@/lib/mutations';
-import { useQueryValidationResult } from '@/lib/queries';
+import { useCanExport, useExportMatches } from '@/lib/store';
 import { File, Folder } from 'lucide-react';
 
 export const ExportTrigger = () => {
-  const { toast } = useToast();
-  const {
-    aqlQuery: { value: aqlQuery },
-    queryLanguage,
-    selectedCorpusNames,
-  } = useClientState();
+  const canExport = useCanExport();
   const {
     mutation: { isPending: isExporting, mutate: exportMatches },
     matchCount,
     progress,
   } = useExportMatches();
-
-  const { data: queryValidationResult } = useQueryValidationResult();
-  const disabled =
-    selectedCorpusNames.length === 0 ||
-    aqlQuery === '' ||
-    queryValidationResult?.type === 'invalid' ||
-    queryValidationResult?.type === 'indeterminate';
+  const { toast } = useToast();
 
   return isExporting ? (
     <div className="mt-2 mb-1">
@@ -39,17 +26,12 @@ export const ExportTrigger = () => {
   ) : (
     <Button
       className="w-full mt-4"
-      disabled={disabled}
+      disabled={!canExport}
       onClick={async () => {
         const outputFile = await save();
         if (outputFile !== null) {
           exportMatches(
-            {
-              corpusNames: selectedCorpusNames,
-              aqlQuery,
-              queryLanguage,
-              outputFile,
-            },
+            { outputFile },
             {
               onError: (error: Error) => {
                 toast({

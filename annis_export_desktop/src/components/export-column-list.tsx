@@ -21,7 +21,14 @@ import {
 } from '@/components/ui/tooltip';
 import { useToast } from '@/components/ui/use-toast';
 import { ExportColumnType } from '@/lib/api';
-import { useClientState } from '@/lib/client-state-context';
+import {
+  useAddExportColumn,
+  useExportColumns,
+  useRemoveExportColumn,
+  useReorderExportColumns,
+  useUnremoveExportColumn,
+  useUpdateExportColumn,
+} from '@/lib/store';
 import { cn } from '@/lib/utils';
 import { GripVertical, Plus, Trash2 } from 'lucide-react';
 import { FC, PropsWithChildren } from 'react';
@@ -35,14 +42,13 @@ const COLUMN_TYPE_TO_NAME: Record<ExportColumnType, string> = {
 };
 
 export const ExportColumnList: FC = () => {
-  const {
-    addExportColumn,
-    exportColumns,
-    removeExportColumn,
-    reorderExportColumns,
-    unremoveExportColumn,
-    updateExportColumn,
-  } = useClientState();
+  const exportColumns = useExportColumns();
+  const addExportColumn = useAddExportColumn();
+  const updateExportColumn = useUpdateExportColumn();
+  const reorderExportColumns = useReorderExportColumns();
+  const removeExportColumn = useRemoveExportColumn();
+  const unremoveExportColumn = useUnremoveExportColumn();
+
   const { toast } = useToast();
 
   return (

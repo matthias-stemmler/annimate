@@ -1,7 +1,7 @@
-import { ClientStateContextProvider } from '@/components/client-state-context-provider';
 import { ErrorAlert } from '@/components/error-alert';
 import { ErrorBoundary } from '@/components/error-boundary';
 import { Page } from '@/components/page';
+import { StoreProvider } from '@/components/store-provider';
 import { Toaster } from '@/components/ui/toaster';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -19,12 +19,12 @@ const queryClient = new QueryClient({
 export const App: FC = () => (
   <ErrorBoundary fallback={(err) => <ErrorAlert message={err.message} />}>
     <QueryClientProvider client={queryClient}>
-      <ClientStateContextProvider>
+      <StoreProvider>
         <TooltipProvider>
           <Page />
           <Toaster />
         </TooltipProvider>
-      </ClientStateContextProvider>
+      </StoreProvider>
     </QueryClientProvider>
   </ErrorBoundary>
 );

@@ -1,15 +1,25 @@
-import { StatusEvent, exportMatches, subscribeToExportStatus } from '@/lib/api';
+import {
+  QueryLanguage,
+  StatusEvent,
+  exportMatches,
+  subscribeToExportStatus,
+} from '@/lib/api';
 import { useIsMutating, useMutation } from '@tanstack/react-query';
 import { useState } from 'react';
 
 const MUTATION_KEY_EXPORT_MATCHES = 'export-matches';
 
-export const useExportMatches = () => {
+export const useExportMatchesMutation = (params: {
+  corpusNames: string[];
+  aqlQuery: string;
+  queryLanguage: QueryLanguage;
+}) => {
   const [matchCount, setMatchCount] = useState<number | undefined>();
   const [progress, setProgress] = useState<number | undefined>();
 
   const mutation = useMutation({
-    mutationFn: exportMatches,
+    mutationFn: (args: { outputFile: string }) =>
+      exportMatches({ ...params, ...args }),
     mutationKey: [MUTATION_KEY_EXPORT_MATCHES],
     onMutate: async () => {
       const unsubscribe = await subscribeToExportStatus(

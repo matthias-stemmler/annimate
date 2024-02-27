@@ -1,13 +1,19 @@
 import { SelectList } from '@/components/ui/custom/select-list';
 import { Spinner } from '@/components/ui/custom/spinner';
-import { useClientState } from '@/lib/client-state-context';
 import { useIsExporting } from '@/lib/mutations';
-import { useCorpusNames } from '@/lib/queries';
+import {
+  useCorpusNames,
+  useSelectedCorpusNames,
+  useToggleAllCorpora,
+  useToggleCorpus,
+} from '@/lib/store';
 import { FC } from 'react';
 
 export const CorpusList: FC = () => {
-  const { selectedCorpusNames, toggleCorpus, toggleAllCorpora } =
-    useClientState();
+  const selectedCorpusNames = useSelectedCorpusNames();
+  const toggleCorpus = useToggleCorpus();
+  const toggleAllCorpora = useToggleAllCorpora();
+
   const { data: corpusNames, error, isPending } = useCorpusNames();
   const isExporting = useIsExporting();
 

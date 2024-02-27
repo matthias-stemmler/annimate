@@ -8,20 +8,24 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { LineColumnRange, QueryValidationResult } from '@/lib/api';
-import { useClientState } from '@/lib/client-state-context';
 import { useIsExporting } from '@/lib/mutations';
-import { useQueryValidationResult } from '@/lib/queries';
+import {
+  useAqlQuery,
+  useQueryLanguage,
+  useQueryValidationResult,
+  useSetAqlQuery,
+  useSetQueryLanguage,
+} from '@/lib/store';
 import { cn, lineColumnToCharacterIndex } from '@/lib/utils';
 import { AlertTriangle, CheckSquare2, XSquare } from 'lucide-react';
 import { FC, useId, useRef } from 'react';
 
 export const QueryInput: FC = () => {
-  const {
-    aqlQuery: { value: aqlQuery },
-    queryLanguage,
-    setAqlQuery,
-    setQueryLanguage,
-  } = useClientState();
+  const aqlQuery = useAqlQuery();
+  const queryLanguage = useQueryLanguage();
+  const setAqlQuery = useSetAqlQuery();
+  const setQueryLanguage = useSetQueryLanguage();
+
   const { data: validationResult, isFetching: validationIsFetching } =
     useQueryValidationResult();
   const isExporting = useIsExporting();
