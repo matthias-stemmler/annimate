@@ -1,7 +1,9 @@
 import {
+  ExportableAnnoKeys,
   QueryLanguage,
   QueryValidationResult,
   getCorpusNames,
+  getExportableAnnoKeys,
   validateQuery,
 } from '@/lib/api';
 import {
@@ -12,6 +14,7 @@ import {
 
 const QUERY_KEY_CORPUS_NAMES = 'corpus-names';
 const QUERY_KEY_QUERY_VALIDATION_RESULT = 'query-validation-result';
+const QUERY_KEY_EXPORTABLE_ANNO_KEYS = 'exportable-anno-keys';
 
 export const useCorpusNamesQuery = (): UseQueryResult<string[]> =>
   useQuery({
@@ -33,4 +36,16 @@ export const useQueryValidationResultQuery = (params: {
     enabled: params.aqlQuery !== '',
     queryKey: [QUERY_KEY_QUERY_VALIDATION_RESULT, params],
     queryFn: () => validateQuery(params),
+  });
+
+export const useExportableAnnoKeysQuery = <T>(
+  params: {
+    corpusNames: string[];
+  },
+  select: (exportableAnnoKeys: ExportableAnnoKeys) => T,
+): UseQueryResult<T> =>
+  useQuery({
+    queryKey: [QUERY_KEY_EXPORTABLE_ANNO_KEYS, params],
+    queryFn: () => getExportableAnnoKeys(params),
+    select,
   });

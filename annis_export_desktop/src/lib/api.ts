@@ -30,9 +30,11 @@ export type ExportColumn =
     }
   | {
       type: 'anno_corpus';
+      annoKey: AnnoKey | undefined;
     }
   | {
       type: 'anno_document';
+      annoKey: AnnoKey | undefined;
     }
   | {
       type: 'anno_match';

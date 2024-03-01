@@ -60,9 +60,9 @@ export const QueryInput: FC = () => {
       <div className="relative grow">
         <Textarea
           className={cn(
-            'font-mono h-full pr-9 resize-none focus:bg-background',
+            'font-mono h-full pr-9 resize-none focus:bg-background dark:focus:bg-background',
             {
-              'bg-red-50': isInvalid,
+              'bg-red-50 dark:bg-red-950': isInvalid,
             },
           )}
           disabled={disabled}

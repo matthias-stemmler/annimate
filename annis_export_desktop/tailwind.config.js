@@ -76,6 +76,16 @@ module.exports = {
         'accordion-down': 'accordion-down 0.2s ease-out',
         'accordion-up': 'accordion-up 0.2s ease-out',
       },
+      ringWidth: {
+        2: '1px',
+        4: '2px',
+        8: '4px',
+      },
+      ringOffsetWidth: {
+        2: '1px',
+        4: '2px',
+        8: '4px',
+      },
     },
   },
   plugins: [require('tailwindcss-animate')],

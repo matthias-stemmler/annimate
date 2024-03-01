@@ -25,6 +25,7 @@ import { CSSProperties, ReactNode, useState } from 'react';
 import { createPortal } from 'react-dom';
 
 export type ReorderListProps<T, I> = {
+  disabled?: boolean;
   items: T[];
   onReorder: (reorder: <U extends { id: I }>(items: U[]) => U[]) => void;
   renderItem: (item: T, context: ReorderListContext) => ReactNode;
@@ -40,6 +41,7 @@ export type ReorderListContext = {
 };
 
 export const ReorderList = <T extends { id: I }, I extends UniqueIdentifier>({
+  disabled,
   items,
   onReorder,
   renderItem,
@@ -89,6 +91,7 @@ export const ReorderList = <T extends { id: I }, I extends UniqueIdentifier>({
         {items.map((item) => (
           <ReorderListItem
             key={item.id}
+            disabled={disabled}
             id={item.id}
             item={item}
             renderItem={renderItem}
@@ -116,6 +119,7 @@ export const ReorderList = <T extends { id: I }, I extends UniqueIdentifier>({
 
 type ReorderListItemProps<T, I> = {
   id: I;
+  disabled?: boolean;
   isOverlay?: boolean;
   item: T;
   renderItem: (item: T, context: ReorderListContext) => ReactNode;
@@ -123,6 +127,7 @@ type ReorderListItemProps<T, I> = {
 
 const ReorderListItem = <T, I extends UniqueIdentifier>({
   id,
+  disabled,
   isOverlay = false,
   item,
   renderItem,
@@ -134,7 +139,7 @@ const ReorderListItem = <T, I extends UniqueIdentifier>({
     setNodeRef,
     transform,
     transition,
-  } = useSortable({ id });
+  } = useSortable({ id, disabled });
 
   const style = {
     // `translate3d(0, 0, 0)` works around a bug in WebKit

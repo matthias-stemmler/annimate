@@ -1,15 +1,21 @@
 import {
+  AnnoKey,
   ExportColumn,
+  ExportColumnData,
   ExportColumnType,
+  ExportableAnnoKey,
+  ExportableAnnoKeys,
   QueryLanguage,
   QueryValidationResult,
 } from '@/lib/api';
 import { useExportMatchesMutation } from '@/lib/mutations';
 import {
   useCorpusNamesQuery,
+  useExportableAnnoKeysQuery,
   useGetCorpusNamesQueryData,
   useQueryValidationResultQuery,
 } from '@/lib/queries';
+import { filterEligible } from '@/lib/utils';
 import { UseQueryResult } from '@tanstack/react-query';
 import { createContext, useContext } from 'react';
 import { StoreApi, createStore, useStore } from 'zustand';
@@ -48,6 +54,31 @@ export const createStoreForContext = (): StoreApi<State> =>
     exportColumnsMaxId: 0,
   }));
 
+const createExportColumn = (type: ExportColumnType): ExportColumn => {
+  switch (type) {
+    case 'number':
+      return { type: 'number' };
+
+    case 'anno_corpus':
+      return {
+        type: 'anno_corpus',
+        annoKey: undefined,
+      };
+
+    case 'anno_document':
+      return {
+        type: 'anno_document',
+        annoKey: undefined,
+      };
+
+    case 'anno_match':
+      return { type: 'anno_match' };
+
+    case 'match_in_context':
+      return { type: 'match_in_context' };
+  }
+};
+
 const useStoreFromContext = (): StoreApi<State> => {
   const store = useContext(StoreContext);
   if (store === undefined) {
@@ -78,20 +109,73 @@ export const useQueryLanguage = (): QueryLanguage =>
 
 export const useExportColumns = (): ExportColumnItem[] => {
   const exportColumns = useSelector((state) => state.exportColumns);
-  return exportColumns.filter((c) => c.removalIndex === undefined);
+  const exportableAnnoKeys = useExportableAnnoKeys();
+
+  return exportColumns
+    .filter((c) => c.removalIndex === undefined)
+    .map((column) => {
+      switch (column.type) {
+        case 'anno_corpus': {
+          return {
+            ...column,
+            annoKey: filterEligibleAnnoKey(
+              exportableAnnoKeys.data?.corpus,
+              column.annoKey,
+            ),
+          };
+        }
+
+        case 'anno_document': {
+          return {
+            ...column,
+            annoKey: filterEligibleAnnoKey(
+              exportableAnnoKeys.data?.doc,
+              column.annoKey,
+            ),
+          };
+        }
+
+        default:
+          return column;
+      }
+    });
 };
+
+const filterEligibleAnnoKey = (
+  eligibleAnnoKeys: ExportableAnnoKey[] | undefined,
+  annoKey: AnnoKey | undefined,
+): AnnoKey | undefined =>
+  filterEligible(
+    eligibleAnnoKeys,
+    annoKey,
+    (e, a) => e.annoKey.ns === a.ns && e.annoKey.name === a.name,
+  );
 
 export const useCanExport = (): boolean => {
   const selectedCorpusNames = useSelectedCorpusNames();
   const aqlQuery = useAqlQuery();
   const { data: queryValidationResult } = useQueryValidationResult();
+  const exportColumns = useExportColumns();
 
   return (
     selectedCorpusNames.length > 0 &&
     aqlQuery !== '' &&
     (queryValidationResult === undefined ||
-      queryValidationResult.type === 'valid')
+      queryValidationResult.type === 'valid') &&
+    exportColumns.length > 0 &&
+    exportColumns.every(isExportColumnValid)
   );
+};
+
+const isExportColumnValid = (exportColumn: ExportColumn): boolean => {
+  switch (exportColumn.type) {
+    case 'anno_corpus':
+    case 'anno_document':
+      return exportColumn.annoKey !== undefined;
+
+    default:
+      return true;
+  }
 };
 
 // STATE SET
@@ -161,15 +245,13 @@ export const useSetQueryLanguage = (): ((
   return (queryLanguage: QueryLanguage) => setState({ queryLanguage });
 };
 
-export const useAddExportColumn = (): ((
-  columnType: ExportColumnType,
-) => void) => {
+export const useAddExportColumn = (): ((type: ExportColumnType) => void) => {
   const setState = useSetState();
 
-  return (columnType: ExportColumnType) => {
+  return (type: ExportColumnType) => {
     setState((state) => {
       const id = (state.exportColumnsMaxId + 1) % Number.MAX_SAFE_INTEGER;
-      const newExportColumn = { id, type: columnType };
+      const newExportColumn = { id, ...createExportColumn(type) };
       return {
         exportColumns: [...state.exportColumns, newExportColumn],
         exportColumnsMaxId: id,
@@ -178,13 +260,13 @@ export const useAddExportColumn = (): ((
   };
 };
 
-export const useUpdateExportColumn = (): ((
+export const useUpdateExportColumn = <T extends ExportColumnType>(): ((
   id: number,
-  exportColumn: ExportColumn,
+  exportColumn: Partial<ExportColumnData<T>>,
 ) => void) => {
   const setState = useSetState();
 
-  return (id: number, exportColumn: ExportColumn) => {
+  return (id: number, exportColumn: Partial<ExportColumnData<T>>) => {
     setState((state) => ({
       exportColumns: state.exportColumns.map((c) =>
         c.id === id ? { ...c, ...exportColumn } : c,
@@ -271,6 +353,31 @@ export const useQueryValidationResult =
       queryLanguage,
     });
   };
+
+export const useCorpusAnnoKeys = (): UseQueryResult<ExportableAnnoKey[]> =>
+  useSelectedExportableAnnoKeys((e) => e.corpus);
+
+export const useDocAnnoKeys = (): UseQueryResult<ExportableAnnoKey[]> =>
+  useSelectedExportableAnnoKeys((e) => e.doc);
+
+export const useNodeAnnoKeys = (): UseQueryResult<ExportableAnnoKey[]> =>
+  useSelectedExportableAnnoKeys((e) => e.node);
+
+export const useExportableAnnoKeys = (): UseQueryResult<ExportableAnnoKeys> =>
+  useSelectedExportableAnnoKeys((e) => e);
+
+const useSelectedExportableAnnoKeys = <T>(
+  select: (exportableAnnoKeys: ExportableAnnoKeys) => T,
+): UseQueryResult<T> => {
+  const selectedCorpusNames = useSelectedCorpusNames();
+
+  return useExportableAnnoKeysQuery(
+    {
+      corpusNames: selectedCorpusNames,
+    },
+    select,
+  );
+};
 
 // MUTATIONS
 

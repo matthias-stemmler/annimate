@@ -24,6 +24,7 @@ import { ExportColumnType } from '@/lib/api';
 import {
   useAddExportColumn,
   useExportColumns,
+  useIsExporting,
   useRemoveExportColumn,
   useReorderExportColumns,
   useUnremoveExportColumn,
@@ -49,6 +50,10 @@ export const ExportColumnList: FC = () => {
   const removeExportColumn = useRemoveExportColumn();
   const unremoveExportColumn = useUnremoveExportColumn();
 
+  const isExporting = useIsExporting();
+  const disabled = isExporting;
+  const reorderDisabled = disabled || exportColumns.length <= 1;
+
   const { toast } = useToast();
 
   return (
@@ -58,7 +63,7 @@ export const ExportColumnList: FC = () => {
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline">
+            <Button disabled={disabled} variant="outline">
               <Plus className="h-4 w-4 mr-2" /> Add column
             </Button>
           </DropdownMenuTrigger>
@@ -86,13 +91,14 @@ export const ExportColumnList: FC = () => {
       </div>
 
       {exportColumns.length === 0 ? (
-        <div className="border rounded-md bg-gray-100 text-gray-500 flex-1 flex justify-center items-center">
+        <div className="border rounded-md bg-gray-100 dark:bg-gray-800 text-gray-500 flex-1 flex justify-center items-center">
           Please add a column to be exported.
         </div>
       ) : (
-        <ScrollArea className="flex-1 p-3 border rounded-md bg-gray-100">
+        <ScrollArea className="flex-1 p-3 border rounded-md bg-gray-100 dark:bg-gray-800">
           <div className="flex flex-col gap-4 mb-1">
             <ReorderList
+              disabled={reorderDisabled}
               items={exportColumns}
               onReorder={reorderExportColumns}
               renderItem={(
@@ -125,8 +131,28 @@ export const ExportColumnList: FC = () => {
                   style={style}
                 >
                   <CardContent className="pl-4 pr-3 py-0 flex items-center gap-4">
-                    <div className="grow py-4">
-                      <p className="font-semibold text-sm mb-1">
+                    <div className="grow py-2 flex flex-col gap-4">
+                      <p
+                        className={cn(
+                          'font-semibold text-sm py-2 cursor-default',
+                          {
+                            'text-column-number-800 dark:text-column-number-600':
+                              item.type === 'number',
+                            'text-column-anno-corpus-800 dark:text-column-anno-corpus-600':
+                              item.type === 'anno_corpus',
+                            'text-column-anno-document-800 dark:text-column-anno-document-600':
+                              item.type === 'anno_document',
+                            'text-column-anno-match-800 dark:text-column-anno-match-600':
+                              item.type === 'anno_match',
+                            'text-column-match-in-context-800 dark:text-column-match-in-context-600':
+                              item.type === 'match_in_context',
+                            'cursor-grab': !reorderDisabled,
+                            'cursor-grabbing': isOverlay || isPlaceholder,
+                          },
+                        )}
+                        {...dragHandleAttributes}
+                        {...dragHandleListeners}
+                      >
                         {COLUMN_TYPE_TO_NAME[item.type]}
                       </p>
                       {item.type === 'anno_corpus' && (
@@ -180,6 +206,7 @@ export const ExportColumnList: FC = () => {
                         <TooltipTrigger asChild>
                           <Button
                             className="text-destructive hover:text-destructive"
+                            disabled={disabled}
                             onClick={() => {
                               removeExportColumn(item.id);
 
@@ -211,13 +238,13 @@ export const ExportColumnList: FC = () => {
 
                       <Button
                         className={cn(
-                          'h-5 w-5 p-0 hover:bg-inherit cursor-grab active:cursor-grabbing',
+                          'h-5 w-5 p-0 hover:bg-inherit cursor-grab',
                           {
                             'focus-visible:ring-transparent': isPlaceholder,
-                            'cursor-grabbing': isOverlay,
+                            'cursor-grabbing': isOverlay || isPlaceholder,
                           },
                         )}
-                        disabled={exportColumns.length <= 1}
+                        disabled={reorderDisabled}
                         variant="ghost"
                         {...dragHandleAttributes}
                         {...dragHandleListeners}

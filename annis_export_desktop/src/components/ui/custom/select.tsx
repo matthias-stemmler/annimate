@@ -31,13 +31,14 @@ export const Select = <T extends string>({
   value,
 }: SelectProps<T>) => {
   const placeholder =
-    (loading && 'Loading') || (options.length === 0 && 'No options available');
+    (loading && 'Loading ...') ||
+    (options.length === 0 && 'No options available');
 
   return (
     <SelectUi
       disabled={disabled || loading || options.length === 0}
       onValueChange={onChange}
-      value={value}
+      value={value ?? ''}
     >
       <SelectTrigger
         className={cn(triggerClassName, { 'disabled:cursor-wait': loading })}

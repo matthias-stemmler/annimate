@@ -1,5 +1,10 @@
 import { StoreProvider } from '@/components/store-provider';
-import { QueryLanguage } from '@/lib/api';
+import {
+  AnnoKey,
+  ExportColumn,
+  ExportColumnType,
+  QueryLanguage,
+} from '@/lib/api';
 import {
   useAddExportColumn,
   useAqlQuery,
@@ -7,6 +12,7 @@ import {
   useCorpusNames,
   useExportColumns,
   useExportMatches,
+  useExportableAnnoKeys,
   useIsExporting,
   useQueryLanguage,
   useQueryValidationResult,
@@ -23,11 +29,24 @@ import {
 import { arrayMove } from '@dnd-kit/sortable';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { clearMocks, mockIPC } from '@tauri-apps/api/mocks';
-import { renderHook, waitFor } from '@testing-library/react';
+import { cleanup, renderHook, waitFor } from '@testing-library/react';
 import { FC, PropsWithChildren } from 'react';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 
 describe('store', () => {
+  const ANNO_KEY_CORPUS: AnnoKey = {
+    ns: 'corpus_ns',
+    name: 'corpus_name',
+  };
+  const ANNO_KEY_DOCUMENT: AnnoKey = {
+    ns: 'document_ns',
+    name: 'document_name',
+  };
+  const ANNO_KEY_UNKNOWN: AnnoKey = {
+    ns: 'unknown_ns',
+    name: 'unknown_name',
+  };
+
   const Wrapper: FC<PropsWithChildren> = ({ children }) => {
     const queryClient = new QueryClient({
       defaultOptions: { queries: { retry: false } },
@@ -55,6 +74,23 @@ describe('store', () => {
 
         case 'get_corpus_names': {
           return ['a', 'b', 'c'];
+        }
+
+        case 'get_exportable_anno_keys': {
+          return {
+            corpus: [
+              {
+                annoKey: ANNO_KEY_CORPUS,
+                displayName: 'corpus_name',
+              },
+            ],
+            doc: [
+              {
+                annoKey: ANNO_KEY_DOCUMENT,
+                displayName: 'document_name',
+              },
+            ],
+          };
         }
 
         case 'validate_query': {
@@ -88,6 +124,7 @@ describe('store', () => {
   });
 
   afterEach(() => {
+    cleanup();
     clearMocks();
     vi.clearAllMocks();
   });
@@ -290,51 +327,179 @@ describe('store', () => {
     });
   });
 
-  test('checking if export is possible', async () => {
+  test('selecting anno_corpus export column data', async () => {
     const { result } = renderHook(
       () => ({
-        corpusNames: useCorpusNames(),
-        toggleCorpus: useToggleCorpus(),
-
-        queryValidationResult: useQueryValidationResult(),
-        setAqlQuery: useSetAqlQuery(),
-
-        canExport: useCanExport(),
+        exportColumns: useExportColumns(),
+        addExportColumn: useAddExportColumn(),
+        updateExportColumn: useUpdateExportColumn(),
       }),
       { wrapper: Wrapper },
     );
 
+    result.current.addExportColumn('anno_corpus');
+
     await waitFor(() => {
-      expect(result.current.corpusNames.isSuccess).toBe(true);
+      expect(result.current.exportColumns).toEqual([
+        {
+          id: 1,
+          type: 'anno_corpus',
+        },
+      ]);
     });
 
-    expect(result.current.canExport).toBe(false);
-
-    result.current.toggleCorpus('b');
-
-    expect(result.current.canExport).toBe(false);
-
-    result.current.setAqlQuery('invalid');
-    await waitFor(() => {
-      expect(result.current.queryValidationResult.data).toBeUndefined();
-      expect(result.current.canExport).toBe(true);
+    result.current.updateExportColumn(1, {
+      type: 'anno_corpus',
+      annoKey: ANNO_KEY_CORPUS,
     });
 
     await waitFor(() => {
-      expect(result.current.queryValidationResult.data).toEqual({
-        type: 'invalid',
-      });
-      expect(result.current.canExport).toBe(false);
+      expect(result.current.exportColumns).toEqual([
+        {
+          id: 1,
+          type: 'anno_corpus',
+          annoKey: ANNO_KEY_CORPUS,
+        },
+      ]);
     });
 
-    result.current.setAqlQuery('valid');
+    result.current.updateExportColumn(1, {
+      type: 'anno_corpus',
+      annoKey: ANNO_KEY_UNKNOWN,
+    });
+
     await waitFor(() => {
-      expect(result.current.queryValidationResult.data).toEqual({
-        type: 'valid',
-      });
-      expect(result.current.canExport).toBe(true);
+      expect(result.current.exportColumns).toEqual([
+        {
+          id: 1,
+          type: 'anno_corpus',
+        },
+      ]);
     });
   });
+
+  test('selecting anno_document export column data', async () => {
+    const { result } = renderHook(
+      () => ({
+        exportColumns: useExportColumns(),
+        addExportColumn: useAddExportColumn(),
+        updateExportColumn: useUpdateExportColumn(),
+      }),
+      { wrapper: Wrapper },
+    );
+
+    result.current.addExportColumn('anno_document');
+
+    await waitFor(() => {
+      expect(result.current.exportColumns).toEqual([
+        {
+          id: 1,
+          type: 'anno_document',
+        },
+      ]);
+    });
+
+    result.current.updateExportColumn(1, {
+      type: 'anno_document',
+      annoKey: ANNO_KEY_DOCUMENT,
+    });
+
+    await waitFor(() => {
+      expect(result.current.exportColumns).toEqual([
+        {
+          id: 1,
+          type: 'anno_document',
+          annoKey: ANNO_KEY_DOCUMENT,
+        },
+      ]);
+    });
+
+    result.current.updateExportColumn(1, {
+      type: 'anno_document',
+      annoKey: ANNO_KEY_UNKNOWN,
+    });
+
+    await waitFor(() => {
+      expect(result.current.exportColumns).toEqual([
+        {
+          id: 1,
+          type: 'anno_document',
+        },
+      ]);
+    });
+  });
+
+  type ChangeContext = {
+    toggleCorpus: (corpusName: string) => void;
+    setAqlQuery: (aqlQuery: string) => void;
+    addExportColumn: (type: ExportColumnType) => void;
+    updateExportColumn: (
+      id: number,
+      exportColumn: Partial<ExportColumn>,
+    ) => void;
+  };
+
+  const allChanges: ((c: ChangeContext) => void)[] = [
+    (c) => c.toggleCorpus('b'),
+    (c) => c.setAqlQuery('valid'),
+    (c) => c.addExportColumn('anno_corpus'),
+    (c) =>
+      c.updateExportColumn(1, {
+        type: 'anno_corpus',
+        annoKey: ANNO_KEY_CORPUS,
+      }),
+    (c) => c.addExportColumn('anno_document'),
+    (c) =>
+      c.updateExportColumn(2, {
+        type: 'anno_document',
+        annoKey: ANNO_KEY_DOCUMENT,
+      }),
+  ];
+
+  test.each([
+    {
+      description: 'all changes',
+      changes: allChanges,
+      expectCanExport: true,
+    },
+    ...allChanges.map((_, i) => ({
+      description: `all changes except #${i + 1}`,
+      changes: allChanges.filter((_, j) => j !== i),
+      expectCanExport: false,
+    })),
+  ])(
+    'checking if export is possible ($description -> $expectCanExport)',
+    async ({ changes, expectCanExport }) => {
+      const { result } = renderHook(
+        () => ({
+          corpusNames: useCorpusNames(),
+          toggleCorpus: useToggleCorpus(),
+
+          queryValidationResult: useQueryValidationResult(),
+          setAqlQuery: useSetAqlQuery(),
+
+          addExportColumn: useAddExportColumn(),
+          updateExportColumn: useUpdateExportColumn(),
+          removeExportColumn: useRemoveExportColumn(),
+
+          exportableAnnoKeys: useExportableAnnoKeys(),
+
+          canExport: useCanExport(),
+        }),
+        { wrapper: Wrapper },
+      );
+
+      await waitFor(() => {
+        expect(result.current.corpusNames.isSuccess).toBe(true);
+      });
+
+      changes.forEach((c) => c(result.current));
+
+      await waitFor(() => {
+        expect(result.current.canExport).toBe(expectCanExport);
+      });
+    },
+  );
 
   test('exporting matches', async () => {
     const { result } = renderHook(
