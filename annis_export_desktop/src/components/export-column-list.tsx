@@ -12,7 +12,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Label } from '@/components/ui/label';
-import { ScrollArea } from '@/components/ui/scroll-area';
+import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { ToastAction } from '@/components/ui/toast';
 import {
   Tooltip,
@@ -91,11 +91,13 @@ export const ExportColumnList: FC = () => {
       </div>
 
       {exportColumns.length === 0 ? (
-        <div className="border rounded-md bg-gray-100 dark:bg-gray-800 text-gray-500 flex-1 flex justify-center items-center">
+        <div className="border rounded-md bg-gray-100 dark:bg-gray-800 text-gray-500 flex-1 flex justify-center items-center px-4">
           Please add a column to be exported.
         </div>
       ) : (
         <ScrollArea className="flex-1 p-3 border rounded-md bg-gray-100 dark:bg-gray-800">
+          <ScrollBar orientation="horizontal" />
+
           <div className="flex flex-col gap-4 mb-1">
             <ReorderList
               disabled={reorderDisabled}
@@ -113,7 +115,7 @@ export const ExportColumnList: FC = () => {
                 },
               ) => (
                 <Card
-                  className={cn('border-0 border-l-8 shadow-md', {
+                  className={cn('min-w-[36rem] border-0 border-l-8 shadow-md', {
                     'border-column-number-600 ring-column-number-600':
                       item.type === 'number',
                     'border-column-anno-corpus-600 ring-column-anno-corpus-600':
@@ -283,7 +285,7 @@ const CardMenuItem: FC<CardMenuItemProps> = ({
         'border-column-match-in-context-600': columnType === 'match_in_context',
       })}
     >
-      <CardContent className="pl-2 py-1">{children}</CardContent>
+      <CardContent className="p-2">{children}</CardContent>
     </Card>
   </DropdownMenuItem>
 );

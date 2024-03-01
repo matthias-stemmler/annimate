@@ -1,37 +1,37 @@
 use annis_export_core::{CorpusStorage, QueryLanguage::*, QueryNode};
 
 macro_rules! query_nodes_test {
-        ($(
-            $name:ident: $query:expr, $query_language:expr => [$([$($expected_var:expr => $expected_frag:expr),*$(,)?]),*$(,)?]
-        )*) => { $(
-            #[test]
-            fn $name() {
-                let storage = CorpusStorage::from_db_dir(concat!(
-                    env!("CARGO_TARGET_TMPDIR"),
-                    "/tests/query_nodes/",
-                    stringify!($name)
-                ))
-                .unwrap();
+    ($(
+        $name:ident: $query:expr, $query_language:expr => [$([$($expected_var:expr => $expected_frag:expr),*$(,)?]),*$(,)?]
+    )*) => { $(
+        #[test]
+        fn $name() {
+            let storage = CorpusStorage::from_db_dir(concat!(
+                env!("CARGO_TARGET_TMPDIR"),
+                "/tests/query_nodes/",
+                stringify!($name)
+            ))
+            .unwrap();
 
-                let actual: Vec<_> = storage
-                    .query_nodes($query, $query_language)
-                    .unwrap()
-                    .into_iter()
-                    .collect();
+            let actual: Vec<_> = storage
+                .query_nodes($query, $query_language)
+                .unwrap()
+                .into_iter()
+                .collect();
 
-                let expected: Vec<Vec<QueryNode>> = vec![$(
-                    vec![$(
-                        QueryNode {
-                            query_fragment: $expected_frag.into(),
-                            variable: $expected_var.into(),
-                        }
-                    ),*]
-                ),*];
+            let expected: Vec<Vec<QueryNode>> = vec![$(
+                vec![$(
+                    QueryNode {
+                        query_fragment: $expected_frag.into(),
+                        variable: $expected_var.into(),
+                    }
+                ),*]
+            ),*];
 
-                assert_eq!(actual, expected);
-            }
-        )* };
-    }
+            assert_eq!(actual, expected);
+        }
+    )* };
+}
 
 query_nodes_test! {
     simple: "foo1=\"foo2\"", AQL => [
