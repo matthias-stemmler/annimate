@@ -34,7 +34,14 @@ where
 
 #[derive(Debug)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize))]
-#[cfg_attr(feature = "serde", serde(tag = "type", rename_all = "camelCase"))]
+#[cfg_attr(
+    feature = "serde",
+    serde(
+        tag = "type",
+        rename_all = "snake_case",
+        rename_all_fields = "camelCase"
+    )
+)]
 pub enum QueryValidationResult {
     Valid,
     Invalid(AQLError),

@@ -1,4 +1,5 @@
 import {
+  ExportColumn,
   QueryLanguage,
   StatusEvent,
   exportMatches,
@@ -9,17 +10,20 @@ import { useState } from 'react';
 
 const MUTATION_KEY_EXPORT_MATCHES = 'export-matches';
 
-export const useExportMatchesMutation = (params: {
-  corpusNames: string[];
-  aqlQuery: string;
-  queryLanguage: QueryLanguage;
-}) => {
+export const useExportMatchesMutation = (
+  getParams: () => {
+    corpusNames: string[];
+    aqlQuery: string;
+    queryLanguage: QueryLanguage;
+    exportColumns: ExportColumn[];
+  },
+) => {
   const [matchCount, setMatchCount] = useState<number | undefined>();
   const [progress, setProgress] = useState<number | undefined>();
 
   const mutation = useMutation({
     mutationFn: (args: { outputFile: string }) =>
-      exportMatches({ ...params, ...args }),
+      exportMatches({ ...getParams(), ...args }),
     mutationKey: [MUTATION_KEY_EXPORT_MATCHES],
     onMutate: async () => {
       const unsubscribe = await subscribeToExportStatus(

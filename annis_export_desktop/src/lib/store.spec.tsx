@@ -10,7 +10,7 @@ import {
   useAqlQuery,
   useCanExport,
   useCorpusNames,
-  useExportColumns,
+  useExportColumnItems,
   useExportMatches,
   useExportableAnnoKeys,
   useIsExporting,
@@ -219,7 +219,7 @@ describe('store', () => {
   test('managing export columns', async () => {
     const { result } = renderHook(
       () => ({
-        exportColumns: useExportColumns(),
+        exportColumns: useExportColumnItems(),
         addExportColumn: useAddExportColumn(),
         updateExportColumn: useUpdateExportColumn(),
         reorderExportColumn: useReorderExportColumns(),
@@ -330,7 +330,7 @@ describe('store', () => {
   test('selecting anno_corpus export column data', async () => {
     const { result } = renderHook(
       () => ({
-        exportColumns: useExportColumns(),
+        exportColumns: useExportColumnItems(),
         addExportColumn: useAddExportColumn(),
         updateExportColumn: useUpdateExportColumn(),
       }),
@@ -381,7 +381,7 @@ describe('store', () => {
   test('selecting anno_document export column data', async () => {
     const { result } = renderHook(
       () => ({
-        exportColumns: useExportColumns(),
+        exportColumns: useExportColumnItems(),
         addExportColumn: useAddExportColumn(),
         updateExportColumn: useUpdateExportColumn(),
       }),
@@ -510,6 +510,10 @@ describe('store', () => {
         setAqlQuery: useSetAqlQuery(),
         setQueryLanguage: useSetQueryLanguage(),
 
+        addExportColumn: useAddExportColumn(),
+        updateExportColumn: useUpdateExportColumn(),
+
+        canExport: useCanExport(),
         exportMatches: useExportMatches(),
         isExporting: useIsExporting(),
       }),
@@ -523,6 +527,21 @@ describe('store', () => {
     result.current.toggleCorpus('b');
     result.current.setAqlQuery('valid');
     result.current.setQueryLanguage('AQLQuirksV3');
+    result.current.addExportColumn('number');
+    result.current.addExportColumn('anno_corpus');
+    result.current.addExportColumn('anno_document');
+    result.current.updateExportColumn(2, {
+      type: 'anno_corpus',
+      annoKey: ANNO_KEY_CORPUS,
+    });
+    result.current.updateExportColumn(3, {
+      type: 'anno_document',
+      annoKey: ANNO_KEY_DOCUMENT,
+    });
+
+    await waitFor(() => {
+      expect(result.current.canExport).toBe(true);
+    });
 
     result.current.exportMatches.mutation.mutate({ outputFile: 'out.csv' });
 
@@ -534,6 +553,19 @@ describe('store', () => {
       corpusNames: ['b'],
       aqlQuery: 'valid',
       queryLanguage: 'AQLQuirksV3',
+      exportColumns: [
+        expect.objectContaining({
+          type: 'number',
+        }),
+        expect.objectContaining({
+          type: 'anno_corpus',
+          annoKey: ANNO_KEY_CORPUS,
+        }),
+        expect.objectContaining({
+          type: 'anno_document',
+          annoKey: ANNO_KEY_DOCUMENT,
+        }),
+      ],
       outputFile: 'out.csv',
     });
   });

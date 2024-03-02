@@ -1,8 +1,10 @@
 use crate::error::Error;
 use annis_export_core::{
-    CorpusStorage, CsvExportColumn, CsvExportConfig, ExportFormat, ExportableAnnoKeys,
-    QueryLanguage, QueryValidationResult,
+    AnnoKey, CorpusStorage, CsvExportColumn, CsvExportConfig, ExportData, ExportDataAnno,
+    ExportFormat, ExportableAnnoKeys, QueryLanguage, QueryValidationResult,
 };
+use itertools::Itertools;
+use serde::Deserialize;
 use std::{
     io::{self, Write},
     path::PathBuf,
@@ -28,6 +30,7 @@ pub(crate) fn export_matches(
     corpus_names: Vec<String>,
     aql_query: String,
     query_language: QueryLanguage,
+    export_columns: Vec<ExportColumn>,
     output_file: PathBuf,
 ) -> Result<(), Error> {
     let mut out = tempfile::Builder::new()
@@ -40,18 +43,7 @@ pub(crate) fn export_matches(
         &aql_query,
         query_language,
         ExportFormat::Csv(CsvExportConfig {
-            columns: vec![
-                CsvExportColumn::Number,
-                CsvExportColumn::Data(annis_export_core::ExportData::Anno(
-                    annis_export_core::ExportDataAnno::MatchNode {
-                        anno_key: annis_export_core::AnnoKey {
-                            name: "tok".into(),
-                            ns: "annis".into(),
-                        },
-                        index: 0,
-                    },
-                )),
-            ],
+            columns: export_columns.into_iter().map_into().collect(),
         }),
         &mut out,
         |status_event| {
@@ -95,4 +87,34 @@ pub(crate) fn validate_query(
     Ok(state
         .storage
         .validate_query(&corpus_names, &aql_query, query_language)?)
+}
+
+#[derive(Deserialize)]
+#[serde(
+    tag = "type",
+    rename_all = "snake_case",
+    rename_all_fields = "camelCase"
+)]
+pub(crate) enum ExportColumn {
+    Number,
+    AnnoCorpus { anno_key: AnnoKey },
+    AnnoDocument { anno_key: AnnoKey },
+    AnnoMatch,
+    MatchInContext,
+}
+
+impl From<ExportColumn> for CsvExportColumn {
+    fn from(export_column: ExportColumn) -> CsvExportColumn {
+        match export_column {
+            ExportColumn::Number => CsvExportColumn::Number,
+            ExportColumn::AnnoCorpus { anno_key } => {
+                CsvExportColumn::Data(ExportData::Anno(ExportDataAnno::Corpus { anno_key }))
+            }
+            ExportColumn::AnnoDocument { anno_key } => {
+                CsvExportColumn::Data(ExportData::Anno(ExportDataAnno::Document { anno_key }))
+            }
+            ExportColumn::AnnoMatch => todo!(),
+            ExportColumn::MatchInContext => todo!(),
+        }
+    }
 }

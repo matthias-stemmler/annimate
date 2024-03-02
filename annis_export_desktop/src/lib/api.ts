@@ -74,6 +74,7 @@ export const exportMatches = (params: {
   corpusNames: string[];
   aqlQuery: string;
   queryLanguage: QueryLanguage;
+  exportColumns: ExportColumn[];
   outputFile: string;
 }): Promise<void> => invoke('export_matches', params);
 

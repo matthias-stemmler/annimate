@@ -1,3 +1,13 @@
+const importRuleAt = {
+  group: ['./*', '../*'],
+  message: 'Import from @/* instead.',
+};
+
+const importRuleNoTauri = {
+  group: ['@tauri-apps/*'],
+  message: 'Import from @tauri-apps/* only in api.ts and tests',
+};
+
 module.exports = {
   root: true,
   env: { browser: true, es2020: true },
@@ -18,13 +28,22 @@ module.exports = {
     'no-restricted-imports': [
       'error',
       {
-        patterns: [
-          {
-            group: ['./**', '../**'],
-            message: 'Import from @/** instead.',
-          },
-        ],
+        patterns: [importRuleAt, importRuleNoTauri],
       },
     ],
   },
+  overrides: [
+    // Allow Tauri imports in api.ts and tests
+    {
+      files: ['src/lib/api.ts', 'src/**/*.{test,spec}.?(c|m)[jt]s?(x)'],
+      rules: {
+        'no-restricted-imports': [
+          'error',
+          {
+            patterns: [importRuleAt],
+          },
+        ],
+      },
+    },
+  ],
 };

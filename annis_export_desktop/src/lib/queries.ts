@@ -49,3 +49,11 @@ export const useExportableAnnoKeysQuery = <T>(
     queryFn: () => getExportableAnnoKeys(params),
     select,
   });
+
+export const useGetExportableAnnoKeysQueryData = (): ((params: {
+  corpusNames: string[];
+}) => ExportableAnnoKeys | undefined) => {
+  const queryClient = useQueryClient();
+  return (params: { corpusNames: string[] }) =>
+    queryClient.getQueryData([QUERY_KEY_EXPORTABLE_ANNO_KEYS, params]);
+};

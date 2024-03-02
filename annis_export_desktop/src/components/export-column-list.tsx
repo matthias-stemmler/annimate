@@ -23,7 +23,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { ExportColumnType } from '@/lib/api';
 import {
   useAddExportColumn,
-  useExportColumns,
+  useExportColumnItems,
   useIsExporting,
   useRemoveExportColumn,
   useReorderExportColumns,
@@ -43,7 +43,7 @@ const COLUMN_TYPE_TO_NAME: Record<ExportColumnType, string> = {
 };
 
 export const ExportColumnList: FC = () => {
-  const exportColumns = useExportColumns();
+  const exportColumns = useExportColumnItems();
   const addExportColumn = useAddExportColumn();
   const updateExportColumn = useUpdateExportColumn();
   const reorderExportColumns = useReorderExportColumns();

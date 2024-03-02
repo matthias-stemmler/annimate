@@ -13,6 +13,7 @@ import {
   useCorpusNamesQuery,
   useExportableAnnoKeysQuery,
   useGetCorpusNamesQueryData,
+  useGetExportableAnnoKeysQueryData,
   useQueryValidationResultQuery,
 } from '@/lib/queries';
 import { filterEligible } from '@/lib/utils';
@@ -91,6 +92,9 @@ const useSelector = <U>(
   selector: Parameters<typeof useStore<StoreApi<State>, U>>[1],
 ): U => useStore(useStoreFromContext(), selector);
 
+const useGetState = (): StoreApi<State>['getState'] =>
+  useStoreFromContext().getState;
+
 const useSetState = (): StoreApi<State>['setState'] =>
   useStoreFromContext().setState;
 
@@ -99,19 +103,66 @@ const useSetState = (): StoreApi<State>['setState'] =>
 export const useSelectedCorpusNames = (): string[] => {
   const { data: corpusNames } = useCorpusNamesQuery();
   const selectedCorpusNames = useSelector((state) => state.selectedCorpusNames);
-  return (corpusNames ?? []).filter((c) => selectedCorpusNames.includes(c));
+  return toSelectedCorpusNames(corpusNames, selectedCorpusNames);
 };
 
+export const useGetSelectedCorpusNames = (): (() => string[]) => {
+  const getCorpusNamesQueryData = useGetCorpusNamesQueryData();
+  const getState = useGetState();
+
+  return () => {
+    const corpusNames = getCorpusNamesQueryData();
+    const { selectedCorpusNames } = getState();
+    return toSelectedCorpusNames(corpusNames, selectedCorpusNames);
+  };
+};
+
+const toSelectedCorpusNames = (
+  corpusNames: string[] | undefined,
+  selectedCorpusNames: string[],
+): string[] =>
+  (corpusNames ?? []).filter((c) => selectedCorpusNames.includes(c));
+
 export const useAqlQuery = (): string => useSelector((state) => state.aqlQuery);
+
+export const useGetAqlQuery = (): (() => string) => {
+  const getState = useGetState();
+  return () => getState().aqlQuery;
+};
 
 export const useQueryLanguage = (): QueryLanguage =>
   useSelector((state) => state.queryLanguage);
 
-export const useExportColumns = (): ExportColumnItem[] => {
-  const exportColumns = useSelector((state) => state.exportColumns);
-  const exportableAnnoKeys = useExportableAnnoKeys();
+export const useGetQueryLanguage = (): (() => QueryLanguage) => {
+  const getState = useGetState();
+  return () => getState().queryLanguage;
+};
 
-  return exportColumns
+export const useExportColumnItems = (): ExportColumnItem[] => {
+  const exportableAnnoKeys = useExportableAnnoKeys();
+  const exportColumns = useSelector((state) => state.exportColumns);
+  return toExportColumns(exportableAnnoKeys?.data, exportColumns);
+};
+
+export const useGetExportColumns = (): (() => ExportColumn[]) => {
+  const getSelectedCorpusNames = useGetSelectedCorpusNames();
+  const getExportableAnnoKeysQueryData = useGetExportableAnnoKeysQueryData();
+  const getState = useGetState();
+
+  return () => {
+    const exportableAnnoKeys = getExportableAnnoKeysQueryData({
+      corpusNames: getSelectedCorpusNames(),
+    });
+    const { exportColumns } = getState();
+    return toExportColumns(exportableAnnoKeys, exportColumns);
+  };
+};
+
+const toExportColumns = (
+  exportableAnnoKeys: ExportableAnnoKeys | undefined,
+  exportColumns: ExportColumnItem[],
+): ExportColumnItem[] =>
+  exportColumns
     .filter((c) => c.removalIndex === undefined)
     .map((column) => {
       switch (column.type) {
@@ -119,7 +170,7 @@ export const useExportColumns = (): ExportColumnItem[] => {
           return {
             ...column,
             annoKey: filterEligibleAnnoKey(
-              exportableAnnoKeys.data?.corpus,
+              exportableAnnoKeys?.corpus,
               column.annoKey,
             ),
           };
@@ -129,7 +180,7 @@ export const useExportColumns = (): ExportColumnItem[] => {
           return {
             ...column,
             annoKey: filterEligibleAnnoKey(
-              exportableAnnoKeys.data?.doc,
+              exportableAnnoKeys?.doc,
               column.annoKey,
             ),
           };
@@ -139,7 +190,6 @@ export const useExportColumns = (): ExportColumnItem[] => {
           return column;
       }
     });
-};
 
 const filterEligibleAnnoKey = (
   eligibleAnnoKeys: ExportableAnnoKey[] | undefined,
@@ -155,7 +205,7 @@ export const useCanExport = (): boolean => {
   const selectedCorpusNames = useSelectedCorpusNames();
   const aqlQuery = useAqlQuery();
   const { data: queryValidationResult } = useQueryValidationResult();
-  const exportColumns = useExportColumns();
+  const exportColumns = useExportColumnItems();
 
   return (
     selectedCorpusNames.length > 0 &&
@@ -382,15 +432,17 @@ const useSelectedExportableAnnoKeys = <T>(
 // MUTATIONS
 
 export const useExportMatches = () => {
-  const selectedCorpusNames = useSelectedCorpusNames();
-  const aqlQuery = useAqlQuery();
-  const queryLanguage = useQueryLanguage();
+  const getSelectedCorpusNames = useGetSelectedCorpusNames();
+  const getAqlQuery = useGetAqlQuery();
+  const getQueryLanguage = useGetQueryLanguage();
+  const getExportColumns = useGetExportColumns();
 
-  return useExportMatchesMutation({
-    corpusNames: selectedCorpusNames,
-    aqlQuery,
-    queryLanguage,
-  });
+  return useExportMatchesMutation(() => ({
+    corpusNames: getSelectedCorpusNames(),
+    aqlQuery: getAqlQuery(),
+    queryLanguage: getQueryLanguage(),
+    exportColumns: getExportColumns(),
+  }));
 };
 
 export { useIsExporting } from '@/lib/mutations';
