@@ -28,6 +28,7 @@ export const AnnoDocumentColumn: FC<ColumnProps<'anno_document'>> = ({
             annoKey: value === undefined ? undefined : valueToAnnoKey(value),
           })
         }
+        optionClassName="font-mono"
         options={(docAnnoKeys ?? []).map((e) => ({
           caption: e.displayName,
           value: annoKeyToValue(e.annoKey),

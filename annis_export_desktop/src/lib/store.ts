@@ -73,7 +73,10 @@ const createExportColumn = (type: ExportColumnType): ExportColumn => {
       };
 
     case 'anno_match':
-      return { type: 'anno_match' };
+      return {
+        type: 'anno_match',
+        annoKey: undefined,
+      };
 
     case 'match_in_context':
       return { type: 'match_in_context' };
@@ -166,7 +169,7 @@ const toExportColumns = (
     .filter((c) => c.removalIndex === undefined)
     .map((column) => {
       switch (column.type) {
-        case 'anno_corpus': {
+        case 'anno_corpus':
           return {
             ...column,
             annoKey: filterEligibleAnnoKey(
@@ -174,9 +177,8 @@ const toExportColumns = (
               column.annoKey,
             ),
           };
-        }
 
-        case 'anno_document': {
+        case 'anno_document':
           return {
             ...column,
             annoKey: filterEligibleAnnoKey(
@@ -184,7 +186,15 @@ const toExportColumns = (
               column.annoKey,
             ),
           };
-        }
+
+        case 'anno_match':
+          return {
+            ...column,
+            annoKey: filterEligibleAnnoKey(
+              exportableAnnoKeys?.node,
+              column.annoKey,
+            ),
+          };
 
         default:
           return column;
@@ -221,6 +231,7 @@ const isExportColumnValid = (exportColumn: ExportColumn): boolean => {
   switch (exportColumn.type) {
     case 'anno_corpus':
     case 'anno_document':
+    case 'anno_match':
       return exportColumn.annoKey !== undefined;
 
     default:

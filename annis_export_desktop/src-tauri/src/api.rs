@@ -99,7 +99,7 @@ pub(crate) enum ExportColumn {
     Number,
     AnnoCorpus { anno_key: AnnoKey },
     AnnoDocument { anno_key: AnnoKey },
-    AnnoMatch,
+    AnnoMatch { anno_key: AnnoKey },
     MatchInContext,
 }
 
@@ -113,7 +113,13 @@ impl From<ExportColumn> for CsvExportColumn {
             ExportColumn::AnnoDocument { anno_key } => {
                 CsvExportColumn::Data(ExportData::Anno(ExportDataAnno::Document { anno_key }))
             }
-            ExportColumn::AnnoMatch => todo!(),
+            ExportColumn::AnnoMatch { anno_key } => {
+                CsvExportColumn::Data(ExportData::Anno(ExportDataAnno::MatchNode {
+                    anno_key,
+                    // TODO configure index in UI
+                    index: 0,
+                }))
+            }
             ExportColumn::MatchInContext => todo!(),
         }
     }

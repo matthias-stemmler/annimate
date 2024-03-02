@@ -42,6 +42,10 @@ describe('store', () => {
     ns: 'document_ns',
     name: 'document_name',
   };
+  const ANNO_KEY_NODE: AnnoKey = {
+    ns: 'node_ns',
+    name: 'node_name',
+  };
   const ANNO_KEY_UNKNOWN: AnnoKey = {
     ns: 'unknown_ns',
     name: 'unknown_name',
@@ -88,6 +92,12 @@ describe('store', () => {
               {
                 annoKey: ANNO_KEY_DOCUMENT,
                 displayName: 'document_name',
+              },
+            ],
+            node: [
+              {
+                annoKey: ANNO_KEY_NODE,
+                displayName: 'node_name',
               },
             ],
           };
@@ -429,6 +439,57 @@ describe('store', () => {
     });
   });
 
+  test('selecting anno_match export column data', async () => {
+    const { result } = renderHook(
+      () => ({
+        exportColumns: useExportColumnItems(),
+        addExportColumn: useAddExportColumn(),
+        updateExportColumn: useUpdateExportColumn(),
+      }),
+      { wrapper: Wrapper },
+    );
+
+    result.current.addExportColumn('anno_match');
+
+    await waitFor(() => {
+      expect(result.current.exportColumns).toEqual([
+        {
+          id: 1,
+          type: 'anno_match',
+        },
+      ]);
+    });
+
+    result.current.updateExportColumn(1, {
+      type: 'anno_match',
+      annoKey: ANNO_KEY_NODE,
+    });
+
+    await waitFor(() => {
+      expect(result.current.exportColumns).toEqual([
+        {
+          id: 1,
+          type: 'anno_match',
+          annoKey: ANNO_KEY_NODE,
+        },
+      ]);
+    });
+
+    result.current.updateExportColumn(1, {
+      type: 'anno_match',
+      annoKey: ANNO_KEY_UNKNOWN,
+    });
+
+    await waitFor(() => {
+      expect(result.current.exportColumns).toEqual([
+        {
+          id: 1,
+          type: 'anno_match',
+        },
+      ]);
+    });
+  });
+
   type ChangeContext = {
     toggleCorpus: (corpusName: string) => void;
     setAqlQuery: (aqlQuery: string) => void;
@@ -453,6 +514,12 @@ describe('store', () => {
       c.updateExportColumn(2, {
         type: 'anno_document',
         annoKey: ANNO_KEY_DOCUMENT,
+      }),
+    (c) => c.addExportColumn('anno_match'),
+    (c) =>
+      c.updateExportColumn(3, {
+        type: 'anno_match',
+        annoKey: ANNO_KEY_NODE,
       }),
   ];
 
@@ -527,16 +594,25 @@ describe('store', () => {
     result.current.toggleCorpus('b');
     result.current.setAqlQuery('valid');
     result.current.setQueryLanguage('AQLQuirksV3');
+
     result.current.addExportColumn('number');
+
     result.current.addExportColumn('anno_corpus');
-    result.current.addExportColumn('anno_document');
     result.current.updateExportColumn(2, {
       type: 'anno_corpus',
       annoKey: ANNO_KEY_CORPUS,
     });
+
+    result.current.addExportColumn('anno_document');
     result.current.updateExportColumn(3, {
       type: 'anno_document',
       annoKey: ANNO_KEY_DOCUMENT,
+    });
+
+    result.current.addExportColumn('anno_match');
+    result.current.updateExportColumn(4, {
+      type: 'anno_match',
+      annoKey: ANNO_KEY_NODE,
     });
 
     await waitFor(() => {
@@ -564,6 +640,10 @@ describe('store', () => {
         expect.objectContaining({
           type: 'anno_document',
           annoKey: ANNO_KEY_DOCUMENT,
+        }),
+        expect.objectContaining({
+          type: 'anno_match',
+          annoKey: ANNO_KEY_NODE,
         }),
       ],
       outputFile: 'out.csv',

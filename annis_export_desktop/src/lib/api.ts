@@ -38,6 +38,7 @@ export type ExportColumn =
     }
   | {
       type: 'anno_match';
+      annoKey: AnnoKey | undefined;
     }
   | {
       type: 'match_in_context';

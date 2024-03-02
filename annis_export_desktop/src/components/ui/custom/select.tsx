@@ -12,6 +12,7 @@ export type SelectProps<T> = {
   disabled?: boolean;
   loading?: boolean;
   onChange?: (value: T) => void;
+  optionClassName?: string;
   options: SelectOption<T>[];
   triggerClassName?: string;
   value?: T;
@@ -26,6 +27,7 @@ export const Select = <T extends string>({
   disabled,
   loading,
   onChange,
+  optionClassName,
   options,
   triggerClassName,
   value,
@@ -41,7 +43,9 @@ export const Select = <T extends string>({
       value={value ?? ''}
     >
       <SelectTrigger
-        className={cn(triggerClassName, { 'disabled:cursor-wait': loading })}
+        className={cn(optionClassName, triggerClassName, {
+          'disabled:cursor-wait': loading,
+        })}
       >
         <SelectValue
           children={
@@ -55,7 +59,7 @@ export const Select = <T extends string>({
 
       <SelectContent>
         {options.map(({ caption, value }) => (
-          <SelectItem key={value} value={value}>
+          <SelectItem key={value} className={optionClassName} value={value}>
             {caption}
           </SelectItem>
         ))}
