@@ -18,15 +18,17 @@ const QUERY_KEY_CORPUS_NAMES = 'corpus-names';
 const QUERY_KEY_QUERY_VALIDATION_RESULT = 'query-validation-result';
 const QUERY_KEY_EXPORTABLE_ANNO_KEYS = 'exportable-anno-keys';
 
-export const useCorpusNamesQuery = (): UseQueryResult<string[]> =>
-  useQuery({
-    queryKey: [QUERY_KEY_CORPUS_NAMES],
-    queryFn: getCorpusNames,
-  });
+const corpusNamesQueryConfig = () => ({
+  queryKey: [QUERY_KEY_CORPUS_NAMES],
+  queryFn: getCorpusNames,
+});
 
-export const useGetCorpusNamesQueryData = (): (() => string[] | undefined) => {
+export const useCorpusNamesQuery = (): UseQueryResult<string[]> =>
+  useQuery(corpusNamesQueryConfig());
+
+export const useGetCorpusNamesQueryData = (): (() => Promise<string[]>) => {
   const queryClient = useQueryClient();
-  return () => queryClient.getQueryData([QUERY_KEY_CORPUS_NAMES]);
+  return () => queryClient.ensureQueryData(corpusNamesQueryConfig());
 };
 
 export const useQueryValidationResultQuery = (params: {
@@ -40,6 +42,11 @@ export const useQueryValidationResultQuery = (params: {
     queryFn: () => validateQuery(params),
   });
 
+const exportableAnnoKeysQueryConfig = (params: { corpusNames: string[] }) => ({
+  queryKey: [QUERY_KEY_EXPORTABLE_ANNO_KEYS, params],
+  queryFn: () => getExportableAnnoKeys(params),
+});
+
 export const useExportableAnnoKeysQuery = <T>(
   params: {
     corpusNames: string[];
@@ -47,15 +54,14 @@ export const useExportableAnnoKeysQuery = <T>(
   select: (exportableAnnoKeys: ExportableAnnoKeys) => T,
 ): UseQueryResult<T> =>
   useQuery({
-    queryKey: [QUERY_KEY_EXPORTABLE_ANNO_KEYS, params],
-    queryFn: () => getExportableAnnoKeys(params),
+    ...exportableAnnoKeysQueryConfig(params),
     select,
   });
 
 export const useGetExportableAnnoKeysQueryData = (): ((params: {
   corpusNames: string[];
-}) => ExportableAnnoKeys | undefined) => {
+}) => Promise<ExportableAnnoKeys>) => {
   const queryClient = useQueryClient();
   return (params: { corpusNames: string[] }) =>
-    queryClient.getQueryData([QUERY_KEY_EXPORTABLE_ANNO_KEYS, params]);
+    queryClient.ensureQueryData(exportableAnnoKeysQueryConfig(params));
 };

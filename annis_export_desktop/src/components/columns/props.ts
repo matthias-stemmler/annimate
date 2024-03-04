@@ -1,4 +1,4 @@
-import { ExportColumnData, ExportColumnType } from '@/lib/api';
+import { ExportColumnData, ExportColumnType } from '@/lib/api-types';
 
 export type ColumnProps<T extends ExportColumnType> = {
   data: ExportColumnData<T>;

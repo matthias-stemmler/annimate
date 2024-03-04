@@ -20,7 +20,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { useToast } from '@/components/ui/use-toast';
-import { ExportColumnType } from '@/lib/api';
+import { ExportColumnType } from '@/lib/api-types';
 import {
   useAddExportColumn,
   useExportColumnItems,

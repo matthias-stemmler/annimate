@@ -1,4 +1,4 @@
-import { AnnoKey } from '@/lib/api';
+import { AnnoKey } from '@/lib/api-types';
 
 export const annoKeyToValue = (annoKey: AnnoKey): string =>
   `${annoKey.ns}:${annoKey.name}`;

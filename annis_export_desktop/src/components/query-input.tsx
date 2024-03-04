@@ -7,7 +7,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { LineColumnRange, QueryValidationResult } from '@/lib/api';
+import { LineColumnRange, QueryValidationResult } from '@/lib/api-types';
 import { useIsExporting } from '@/lib/mutations';
 import {
   useAqlQuery,
