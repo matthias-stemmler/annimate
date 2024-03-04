@@ -1,11 +1,13 @@
 import {
-  ExportableAnnoKeys,
-  QueryLanguage,
-  QueryValidationResult,
   getCorpusNames,
   getExportableAnnoKeys,
   validateQuery,
 } from '@/lib/api';
+import {
+  ExportableAnnoKeys,
+  QueryLanguage,
+  QueryValidationResult,
+} from '@/lib/api-types';
 import {
   UseQueryResult,
   useQuery,

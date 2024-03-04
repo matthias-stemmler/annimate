@@ -23,12 +23,12 @@ export const AnnoCorpusColumn: FC<ColumnProps<'anno_corpus'>> = ({
       <Select
         disabled={disabled}
         loading={isPending}
+        monoFont
         onChange={(value) =>
           onChange({
             annoKey: value === undefined ? undefined : valueToAnnoKey(value),
           })
         }
-        optionClassName="font-mono"
         options={(corpusAnnoKeys ?? []).map((e) => ({
           caption: e.displayName,
           value: annoKeyToValue(e.annoKey),

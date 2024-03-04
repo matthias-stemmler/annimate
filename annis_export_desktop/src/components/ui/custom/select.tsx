@@ -11,8 +11,8 @@ import { ReactNode } from 'react';
 export type SelectProps<T> = {
   disabled?: boolean;
   loading?: boolean;
+  monoFont?: boolean;
   onChange?: (value: T) => void;
-  optionClassName?: string;
   options: SelectOption<T>[];
   triggerClassName?: string;
   value?: T;
@@ -26,8 +26,8 @@ export type SelectOption<T> = {
 export const Select = <T extends string>({
   disabled,
   loading,
+  monoFont,
   onChange,
-  optionClassName,
   options,
   triggerClassName,
   value,
@@ -43,8 +43,9 @@ export const Select = <T extends string>({
       value={value ?? ''}
     >
       <SelectTrigger
-        className={cn(optionClassName, triggerClassName, {
+        className={cn(triggerClassName, {
           'disabled:cursor-wait': loading,
+          'font-mono': monoFont && value !== undefined,
         })}
       >
         <SelectValue
@@ -59,7 +60,11 @@ export const Select = <T extends string>({
 
       <SelectContent>
         {options.map(({ caption, value }) => (
-          <SelectItem key={value} className={optionClassName} value={value}>
+          <SelectItem
+            key={value}
+            className={cn({ 'font-mono': monoFont })}
+            value={value}
+          >
             {caption}
           </SelectItem>
         ))}

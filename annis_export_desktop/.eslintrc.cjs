@@ -45,5 +45,18 @@ module.exports = {
         ],
       },
     },
+
+    // Allow relative imports in mocks
+    {
+      files: ['src/**/__mocks__/**'],
+      rules: {
+        'no-restricted-imports': [
+          'error',
+          {
+            patterns: [importRuleNoTauri],
+          },
+        ],
+      },
+    },
   ],
 };

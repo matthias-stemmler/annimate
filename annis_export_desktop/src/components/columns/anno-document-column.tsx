@@ -23,12 +23,12 @@ export const AnnoDocumentColumn: FC<ColumnProps<'anno_document'>> = ({
       <Select
         disabled={disabled}
         loading={isPending}
+        monoFont
         onChange={(value) =>
           onChange({
             annoKey: value === undefined ? undefined : valueToAnnoKey(value),
           })
         }
-        optionClassName="font-mono"
         options={(docAnnoKeys ?? []).map((e) => ({
           caption: e.displayName,
           value: annoKeyToValue(e.annoKey),

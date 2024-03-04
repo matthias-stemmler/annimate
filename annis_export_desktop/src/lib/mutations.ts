@@ -1,10 +1,5 @@
-import {
-  ExportColumn,
-  QueryLanguage,
-  StatusEvent,
-  exportMatches,
-  subscribeToExportStatus,
-} from '@/lib/api';
+import { exportMatches, subscribeToExportStatus } from '@/lib/api';
+import { ExportColumn, QueryLanguage, StatusEvent } from '@/lib/api-types';
 import { useIsMutating, useMutation } from '@tanstack/react-query';
 import { useState } from 'react';
 

@@ -7,7 +7,7 @@ import {
   ExportableAnnoKeys,
   QueryLanguage,
   QueryValidationResult,
-} from '@/lib/api';
+} from '@/lib/api-types';
 import { useExportMatchesMutation } from '@/lib/mutations';
 import {
   useCorpusNamesQuery,
