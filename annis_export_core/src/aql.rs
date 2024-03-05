@@ -97,6 +97,8 @@ pub fn query_nodes(
 }
 
 #[derive(Debug, PartialEq)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize))]
+#[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
 pub struct QueryNode {
     pub query_fragment: String,
     pub variable: String,

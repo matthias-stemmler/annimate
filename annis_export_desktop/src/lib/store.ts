@@ -415,29 +415,12 @@ export const useQueryValidationResult =
     });
   };
 
-export const useCorpusAnnoKeys = (): UseQueryResult<ExportableAnnoKey[]> =>
-  useSelectedExportableAnnoKeys((e) => e.corpus);
-
-export const useDocAnnoKeys = (): UseQueryResult<ExportableAnnoKey[]> =>
-  useSelectedExportableAnnoKeys((e) => e.doc);
-
-export const useNodeAnnoKeys = (): UseQueryResult<ExportableAnnoKey[]> =>
-  useSelectedExportableAnnoKeys((e) => e.node);
-
-export const useExportableAnnoKeys = (): UseQueryResult<ExportableAnnoKeys> =>
-  useSelectedExportableAnnoKeys((e) => e);
-
-const useSelectedExportableAnnoKeys = <T>(
-  select: (exportableAnnoKeys: ExportableAnnoKeys) => T,
-): UseQueryResult<T> => {
+export const useExportableAnnoKeys = (): UseQueryResult<ExportableAnnoKeys> => {
   const selectedCorpusNames = useSelectedCorpusNames();
 
-  return useExportableAnnoKeysQuery(
-    {
-      corpusNames: selectedCorpusNames,
-    },
-    select,
-  );
+  return useExportableAnnoKeysQuery({
+    corpusNames: selectedCorpusNames,
+  });
 };
 
 // MUTATIONS

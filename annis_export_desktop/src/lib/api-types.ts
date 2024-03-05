@@ -4,6 +4,8 @@ export type ExportableAnnoKeys = {
   node: ExportableAnnoKey[];
 };
 
+export type ExportableAnnoKeyCategory = keyof ExportableAnnoKeys;
+
 export type ExportableAnnoKey = {
   annoKey: AnnoKey;
   displayName: string;

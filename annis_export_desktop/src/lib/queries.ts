@@ -47,16 +47,10 @@ const exportableAnnoKeysQueryConfig = (params: { corpusNames: string[] }) => ({
   queryFn: () => getExportableAnnoKeys(params),
 });
 
-export const useExportableAnnoKeysQuery = <T>(
-  params: {
-    corpusNames: string[];
-  },
-  select: (exportableAnnoKeys: ExportableAnnoKeys) => T,
-): UseQueryResult<T> =>
-  useQuery({
-    ...exportableAnnoKeysQueryConfig(params),
-    select,
-  });
+export const useExportableAnnoKeysQuery = (params: {
+  corpusNames: string[];
+}): UseQueryResult<ExportableAnnoKeys> =>
+  useQuery(exportableAnnoKeysQueryConfig(params));
 
 export const useGetExportableAnnoKeysQueryData = (): ((params: {
   corpusNames: string[];
