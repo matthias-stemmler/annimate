@@ -17,7 +17,7 @@ const COLOR_CUSTOM_COMMAND = '#86efac';
 const COLOR_SUBSCRIPTION = '#d8b4fe';
 
 const CORPUS_NORMAL = 'Normal corpus';
-const CORPUS_INVALID_QUERY = 'Corpus with ! resp. !! invalid';
+const CORPUS_INVALID_QUERY = 'Corpus with any query invalid';
 const CORPUS_NO_MATCHES = 'Corpus without matches';
 const CORPUS_MANY_MATCHES = 'Corpus with many matches';
 const CORPUS_FAILING_EXPORT = 'Corpus with failing export';
@@ -143,12 +143,12 @@ export const validateQuery = async (params: {
   aqlQuery: string;
   queryLanguage: QueryLanguage;
 }): Promise<QueryValidationResult> => {
-  if (params.corpusNames.length === 0) {
-    return { type: 'indeterminate' };
-  }
-
-  if (!params.corpusNames.includes(CORPUS_INVALID_QUERY)) {
-    return { type: 'valid' };
+  if (params.corpusNames.includes(CORPUS_INVALID_QUERY)) {
+    return {
+      type: 'invalid',
+      desc: 'Query is semantically invalid',
+      location: null,
+    };
   }
 
   const failingString = params.queryLanguage === 'AQL' ? '!' : '!!';

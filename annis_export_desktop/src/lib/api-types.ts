@@ -46,8 +46,7 @@ export type QueryLanguage = 'AQL' | 'AQLQuirksV3';
 
 export type QueryValidationResult =
   | { type: 'valid' }
-  | { type: 'invalid'; desc: string; location: LineColumnRange | null }
-  | { type: 'indeterminate' };
+  | { type: 'invalid'; desc: string; location: LineColumnRange | null };
 
 export type LineColumnRange = {
   start: LineColumn;

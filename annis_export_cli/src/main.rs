@@ -411,9 +411,6 @@ fn main() -> anyhow::Result<()> {
             match result {
                 QueryValidationResult::Valid => println!("Query is valid"),
                 QueryValidationResult::Invalid(err) => println!("Query is invalid\n{err}"),
-                QueryValidationResult::Indeterminate => {
-                    println!("Indeterminate - no corpora specified")
-                }
             }
         }
     }

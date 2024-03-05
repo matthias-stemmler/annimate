@@ -15,16 +15,24 @@ pub fn validate_query<S>(
 where
     S: AsRef<str>,
 {
-    if corpus_ref.names.is_empty() {
-        return Ok(QueryValidationResult::Indeterminate);
+    if aql_query.is_empty() {
+        return Ok(QueryValidationResult::Valid);
     }
 
-    match corpus_ref
-        .storage
-        .validate_query(corpus_ref.names, aql_query, query_language)
-    {
-        Ok(true) => Ok(QueryValidationResult::Valid),
-        Ok(false) => unreachable!("Cannot occur according to docs"),
+    let result = if corpus_ref.names.is_empty() {
+        corpus_ref
+            .storage
+            .node_descriptions(aql_query, query_language)
+            .map(|_| ())
+    } else {
+        corpus_ref
+            .storage
+            .validate_query(corpus_ref.names, aql_query, query_language)
+            .map(|_| ())
+    };
+
+    match result {
+        Ok(_) => Ok(QueryValidationResult::Valid),
         Err(GraphAnnisError::AQLSyntaxError(err) | GraphAnnisError::AQLSemanticError(err)) => {
             Ok(QueryValidationResult::Invalid(err))
         }
@@ -45,7 +53,6 @@ where
 pub enum QueryValidationResult {
     Valid,
     Invalid(AQLError),
-    Indeterminate,
 }
 
 pub fn query_nodes(

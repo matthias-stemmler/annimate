@@ -111,6 +111,8 @@ describe('store', () => {
           };
 
           if (corpusNames.length === 1 && corpusNames[0] === 'b') {
+            return { type: 'invalid' };
+          } else {
             return {
               type:
                 aqlQuery === 'valid' ||
@@ -118,8 +120,6 @@ describe('store', () => {
                   ? 'valid'
                   : 'invalid',
             };
-          } else {
-            return { type: 'indeterminate' };
           }
         }
 
@@ -192,16 +192,11 @@ describe('store', () => {
     await waitFor(() => {
       expect(result.current.corpusNames.isSuccess).toBe(true);
     });
-    result.current.toggleCorpus('b');
 
     expect(result.current.aqlQuery).toEqual('');
     expect(result.current.queryLanguage).toEqual('AQL');
 
     result.current.setAqlQuery('valid');
-
-    await waitFor(() => {
-      expect(result.current.aqlQuery).toEqual('valid');
-    });
 
     await waitFor(() => {
       expect(result.current.queryValidationResult.data).toEqual({
@@ -222,6 +217,14 @@ describe('store', () => {
     await waitFor(() => {
       expect(result.current.queryValidationResult.data).toEqual({
         type: 'valid',
+      });
+    });
+
+    result.current.toggleCorpus('b');
+
+    await waitFor(() => {
+      expect(result.current.queryValidationResult.data).toEqual({
+        type: 'invalid',
       });
     });
   });

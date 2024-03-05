@@ -17,7 +17,7 @@ import {
   useSetQueryLanguage,
 } from '@/lib/store';
 import { cn, lineColumnToCharacterIndex } from '@/lib/utils';
-import { AlertTriangle, CheckSquare2, XSquare } from 'lucide-react';
+import { CheckSquare2, XSquare } from 'lucide-react';
 import { FC, useId, useRef } from 'react';
 
 export const QueryInput: FC = () => {
@@ -131,7 +131,6 @@ const StatusIcon: FC<StatusIconProps> = ({ status }) => {
     {
       valid: [CheckSquare2, 'text-green-700'],
       invalid: [XSquare, 'text-destructive'],
-      indeterminate: [AlertTriangle, 'text-orange-400'],
       validating: [Spinner],
     } as const
   )[status];
@@ -152,10 +151,6 @@ const ValidationResultDisplay: FC<ValidationResultDisplayProps> = ({
 
   if (validationResult.type === 'valid') {
     return 'Query is valid.';
-  }
-
-  if (validationResult.type === 'indeterminate') {
-    return 'Please select at least one corpus.';
   }
 
   return (
