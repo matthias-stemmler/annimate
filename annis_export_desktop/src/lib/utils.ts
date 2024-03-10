@@ -35,3 +35,22 @@ export const filterEligible = <S, T>(
   eligibleValues.some((v) => compare(v, value))
     ? value
     : undefined;
+
+export const groupBy = <K, T>(
+  items: readonly T[],
+  getKey: (x: T) => K,
+): [K, T[]][] => {
+  const groups: [K, T[]][] = [];
+
+  for (const item of items) {
+    const key = getKey(item);
+    let members = groups.find(([k]) => k === key)?.[1];
+    if (members === undefined) {
+      members = [];
+      groups.push([key, members]);
+    }
+    members.push(item);
+  }
+
+  return groups;
+};

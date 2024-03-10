@@ -7,6 +7,7 @@ import { ColumnProps } from '@/components/columns/props';
 import { Select, SelectOption } from '@/components/ui/custom/select';
 import { QueryNodeRef } from '@/lib/api-types';
 import { useIsExporting, useQueryNodes } from '@/lib/store';
+import { groupBy } from '@/lib/utils';
 import { FC } from 'react';
 
 export const AnnoMatchColumn: FC<ColumnProps<'anno_match'>> = ({
@@ -64,16 +65,35 @@ export const QueryNodeSelect: FC<QueryNodeSelectProps> = ({
           variables,
         });
       }}
-      options={nodes.map(
-        (ns, i): SelectOption<`${number}`> => ({
-          caption: ns
-            .map(
-              ({ queryFragment, variable }) => `#${variable} ${queryFragment}`,
-            )
-            .join(' | '),
+      options={nodes.map((ns, i): SelectOption<`${number}`> => {
+        const options = groupBy(ns, (n) => n.queryFragment);
+
+        return {
+          caption: (
+            <div className="flex gap-2 mr-2">
+              {options.map(([queryFragment, nodesForQueryFragment]) => (
+                <div
+                  key={queryFragment}
+                  className="min-w-0 flex items-center gap-2 px-2 bg-gray-500 text-white rounded-sm"
+                >
+                  {nodesForQueryFragment.map(({ variable }, i) => (
+                    <span
+                      key={i}
+                      className="max-w-32 overflow-hidden text-ellipsis font-semibold"
+                    >
+                      #{variable}
+                    </span>
+                  ))}
+                  <span className="flex-1 max-w-64 overflow-hidden text-ellipsis">
+                    {queryFragment}
+                  </span>
+                </div>
+              ))}
+            </div>
+          ),
           value: `${i}`,
-        }),
-      )}
+        };
+      })}
       triggerClassName="h-8"
       value={nodeRef === undefined ? undefined : `${nodeRef.index}`}
     />

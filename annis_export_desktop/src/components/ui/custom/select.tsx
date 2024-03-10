@@ -62,7 +62,7 @@ export const Select = <T extends string>({
         {options.map(({ caption, value }) => (
           <SelectItem
             key={value}
-            className={cn({ 'font-mono': monoFont })}
+            className={cn('max-w-[80vw]', { 'font-mono': monoFont })}
             value={value}
           >
             {caption}

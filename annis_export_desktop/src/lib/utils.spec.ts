@@ -1,4 +1,8 @@
-import { filterEligible, lineColumnToCharacterIndex } from '@/lib/utils';
+import {
+  filterEligible,
+  groupBy,
+  lineColumnToCharacterIndex,
+} from '@/lib/utils';
 import { describe, expect, it } from 'vitest';
 
 describe('utils', () => {
@@ -45,6 +49,40 @@ describe('utils', () => {
           (a, b) => a.toLowerCase() === b.toLowerCase(),
         );
         expect(filtered).toEqual(expectedValue);
+      },
+    );
+  });
+
+  describe('groupBy', () => {
+    it.each([
+      ['no items', [], []],
+      [
+        'only singleton groups',
+        ['a', 'bb', 'ccc'],
+        [
+          [1, ['a']],
+          [2, ['bb']],
+          [3, ['ccc']],
+        ],
+      ],
+      ['only one group', ['aaa', 'bbb', 'ccc'], [[3, ['aaa', 'bbb', 'ccc']]]],
+      [
+        'multiple groups, not all singleton',
+        ['aaa', 'bb', 'c', 'dd', 'eee'],
+        [
+          [3, ['aaa', 'eee']],
+          [2, ['bb', 'dd']],
+          [1, ['c']],
+        ],
+      ],
+    ] as const)(
+      'groups by the given key (%s)',
+      (
+        _description: string,
+        items: readonly string[],
+        expectedGroups: readonly (readonly [number, readonly string[]])[],
+      ) => {
+        expect(groupBy(items, (s) => s.length)).toEqual(expectedGroups);
       },
     );
   });
