@@ -3,7 +3,10 @@ import {
   AnnoKey,
   ExportColumn,
   ExportColumnType,
+  ExportableAnnoKeys,
   QueryLanguage,
+  QueryNodesResult,
+  QueryValidationResult,
 } from '@/lib/api-types';
 import {
   useAddExportColumn,
@@ -12,7 +15,6 @@ import {
   useCorpusNames,
   useExportColumnItems,
   useExportMatches,
-  useExportableAnnoKeys,
   useIsExporting,
   useQueryLanguage,
   useQueryValidationResult,
@@ -100,7 +102,19 @@ describe('store', () => {
                 displayName: 'node_name',
               },
             ],
-          };
+          } satisfies ExportableAnnoKeys;
+        }
+
+        case 'get_query_nodes': {
+          const { aqlQuery } = args as { aqlQuery: string };
+
+          return {
+            type: 'valid',
+            nodes:
+              aqlQuery === ''
+                ? []
+                : [[{ queryFragment: 'foo', variable: '1' }]],
+          } satisfies QueryNodesResult;
         }
 
         case 'validate_query': {
@@ -111,15 +125,24 @@ describe('store', () => {
           };
 
           if (corpusNames.length === 1 && corpusNames[0] === 'b') {
-            return { type: 'invalid' };
-          } else {
             return {
-              type:
-                aqlQuery === 'valid' ||
-                (aqlQuery === 'valid legacy' && queryLanguage === 'AQLQuirksV3')
-                  ? 'valid'
-                  : 'invalid',
-            };
+              type: 'invalid',
+              desc: '',
+              location: null,
+            } satisfies QueryValidationResult;
+          } else {
+            return (
+              aqlQuery === 'valid' ||
+              (aqlQuery === 'valid legacy' && queryLanguage === 'AQLQuirksV3')
+                ? {
+                    type: 'valid',
+                  }
+                : {
+                    type: 'invalid',
+                    desc: '',
+                    location: null,
+                  }
+            ) satisfies QueryValidationResult;
           }
         }
 
@@ -199,33 +222,25 @@ describe('store', () => {
     result.current.setAqlQuery('valid');
 
     await waitFor(() => {
-      expect(result.current.queryValidationResult.data).toEqual({
-        type: 'valid',
-      });
+      expect(result.current.queryValidationResult.data?.type).toBe('valid');
     });
 
     result.current.setAqlQuery('valid legacy');
 
     await waitFor(() => {
-      expect(result.current.queryValidationResult.data).toEqual({
-        type: 'invalid',
-      });
+      expect(result.current.queryValidationResult.data?.type).toBe('invalid');
     });
 
     result.current.setQueryLanguage('AQLQuirksV3');
 
     await waitFor(() => {
-      expect(result.current.queryValidationResult.data).toEqual({
-        type: 'valid',
-      });
+      expect(result.current.queryValidationResult.data?.type).toBe('valid');
     });
 
     result.current.toggleCorpus('b');
 
     await waitFor(() => {
-      expect(result.current.queryValidationResult.data).toEqual({
-        type: 'invalid',
-      });
+      expect(result.current.queryValidationResult.data?.type).toBe('invalid');
     });
   });
 
@@ -386,6 +401,7 @@ describe('store', () => {
         {
           id: 1,
           type: 'anno_corpus',
+          annoKey: undefined,
         },
       ]);
     });
@@ -437,6 +453,7 @@ describe('store', () => {
         {
           id: 1,
           type: 'anno_document',
+          annoKey: undefined,
         },
       ]);
     });
@@ -447,11 +464,13 @@ describe('store', () => {
       () => ({
         exportColumns: useExportColumnItems(),
         addExportColumn: useAddExportColumn(),
+        setAqlQuery: useSetAqlQuery(),
         updateExportColumn: useUpdateExportColumn(),
       }),
       { wrapper: Wrapper },
     );
 
+    result.current.setAqlQuery('valid');
     result.current.addExportColumn('anno_match');
 
     await waitFor(() => {
@@ -466,6 +485,7 @@ describe('store', () => {
     result.current.updateExportColumn(1, {
       type: 'anno_match',
       annoKey: ANNO_KEY_NODE,
+      index: 0,
     });
 
     await waitFor(() => {
@@ -474,6 +494,7 @@ describe('store', () => {
           id: 1,
           type: 'anno_match',
           annoKey: ANNO_KEY_NODE,
+          index: 0,
         },
       ]);
     });
@@ -488,6 +509,25 @@ describe('store', () => {
         {
           id: 1,
           type: 'anno_match',
+          annoKey: undefined,
+          index: 0,
+        },
+      ]);
+    });
+
+    result.current.updateExportColumn(1, {
+      type: 'anno_match',
+      annoKey: ANNO_KEY_NODE,
+      index: 1,
+    });
+
+    await waitFor(() => {
+      expect(result.current.exportColumns).toEqual([
+        {
+          id: 1,
+          type: 'anno_match',
+          annoKey: ANNO_KEY_NODE,
+          index: undefined,
         },
       ]);
     });
@@ -504,7 +544,7 @@ describe('store', () => {
   };
 
   const allChanges: ((c: ChangeContext) => void)[] = [
-    (c) => c.toggleCorpus('b'),
+    (c) => c.toggleCorpus('a'),
     (c) => c.setAqlQuery('valid'),
     (c) => c.addExportColumn('anno_corpus'),
     (c) =>
@@ -523,6 +563,7 @@ describe('store', () => {
       c.updateExportColumn(3, {
         type: 'anno_match',
         annoKey: ANNO_KEY_NODE,
+        index: 0,
       }),
   ];
 
@@ -545,14 +586,10 @@ describe('store', () => {
           corpusNames: useCorpusNames(),
           toggleCorpus: useToggleCorpus(),
 
-          queryValidationResult: useQueryValidationResult(),
           setAqlQuery: useSetAqlQuery(),
 
           addExportColumn: useAddExportColumn(),
           updateExportColumn: useUpdateExportColumn(),
-          removeExportColumn: useRemoveExportColumn(),
-
-          exportableAnnoKeys: useExportableAnnoKeys(),
 
           canExport: useCanExport(),
         }),
@@ -594,7 +631,7 @@ describe('store', () => {
       expect(result.current.corpusNames.isSuccess).toBe(true);
     });
 
-    result.current.toggleCorpus('b');
+    result.current.toggleCorpus('a');
     result.current.setAqlQuery('valid');
     result.current.setQueryLanguage('AQLQuirksV3');
 
@@ -616,6 +653,7 @@ describe('store', () => {
     result.current.updateExportColumn(4, {
       type: 'anno_match',
       annoKey: ANNO_KEY_NODE,
+      index: 0,
     });
 
     await waitFor(() => {
@@ -629,7 +667,7 @@ describe('store', () => {
     });
 
     expect(exportMatchesSpy).toHaveBeenCalledWith({
-      corpusNames: ['b'],
+      corpusNames: ['a'],
       aqlQuery: 'valid',
       queryLanguage: 'AQLQuirksV3',
       exportColumns: [

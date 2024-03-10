@@ -1,7 +1,7 @@
 use annis_export_core::{
     AnnoKey, CorpusInfo, CorpusStorage, CsvExportColumn, CsvExportConfig, ExportData,
-    ExportDataAnno, ExportDataText, ExportFormat, ExportableAnnoKey, QueryNode,
-    QueryValidationResult, StatusEvent,
+    ExportDataAnno, ExportDataText, ExportFormat, ExportableAnnoKey, QueryAnalysisResult,
+    QueryNode, StatusEvent,
 };
 use anyhow::{anyhow, Context};
 use clap::{Parser, Subcommand, ValueEnum};
@@ -242,24 +242,30 @@ fn main() -> anyhow::Result<()> {
 
     match cli.command {
         Commands::DescribeQuery { query, language } => {
-            for (index, nodes) in corpus_storage
+            let query_nodes_result = corpus_storage
                 .query_nodes(&query, language.into())
-                .context("Failed to determine query nodes")?
-                .into_iter()
-                .enumerate()
-            {
-                println!(
-                    "{index}: {}",
-                    nodes
-                        .into_iter()
-                        .map(
-                            |QueryNode {
-                                 query_fragment,
-                                 variable,
-                             }| format!("#{variable} {query_fragment}"),
-                        )
-                        .join(" | ")
-                );
+                .context("Failed to determine query nodes")?;
+
+            match query_nodes_result {
+                QueryAnalysisResult::Valid(query_nodes) => {
+                    for (index, nodes) in query_nodes.into_iter().enumerate() {
+                        println!(
+                            "{index}: {}",
+                            nodes
+                                .into_iter()
+                                .map(
+                                    |QueryNode {
+                                         query_fragment,
+                                         variable,
+                                     }| format!(
+                                        "#{variable} {query_fragment}"
+                                    ),
+                                )
+                                .join(" | ")
+                        );
+                    }
+                }
+                QueryAnalysisResult::Invalid(err) => println!("Query is invalid\n{err}"),
             }
         }
         Commands::GetCorpusInfo {
@@ -409,8 +415,8 @@ fn main() -> anyhow::Result<()> {
                 )
                 .context("Failed to validate query")?;
             match result {
-                QueryValidationResult::Valid => println!("Query is valid"),
-                QueryValidationResult::Invalid(err) => println!("Query is invalid\n{err}"),
+                QueryAnalysisResult::Valid(_) => println!("Query is valid"),
+                QueryAnalysisResult::Invalid(err) => println!("Query is invalid\n{err}"),
             }
         }
     }

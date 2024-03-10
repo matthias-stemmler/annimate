@@ -16,6 +16,7 @@ macro_rules! query_nodes_test {
             let actual: Vec<_> = storage
                 .query_nodes($query, $query_language)
                 .unwrap()
+                .unwrap_valid()
                 .into_iter()
                 .collect();
 
@@ -36,6 +37,9 @@ macro_rules! query_nodes_test {
 query_nodes_test! {
     simple: "foo1=\"foo2\"", AQL => [
         ["1" => "foo1=\"foo2\""],
+    ]
+    with_named_variables: "var#foo1=\"foo2\"", AQL => [
+        ["var" => "foo1=\"foo2\""],
     ]
     conjunction: "foo1=\"foo2\" & bar1=\"bar2\"", AQL => [
         ["1" => "foo1=\"foo2\""],

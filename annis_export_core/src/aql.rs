@@ -5,21 +5,24 @@ use graphannis::{
 };
 use itertools::{Itertools, Position};
 use regex::Regex;
-use std::{collections::BTreeMap, sync::OnceLock};
+use std::{collections::BTreeMap, sync::OnceLock, vec};
 
 pub fn validate_query<S>(
     corpus_ref: CorpusRef<S>,
     aql_query: &str,
     query_language: QueryLanguage,
-) -> Result<QueryValidationResult, GraphAnnisError>
+) -> Result<QueryAnalysisResult<()>, GraphAnnisError>
 where
     S: AsRef<str>,
 {
+    // Shortcut for empty query because graphannis::CorpusStorage::validate_query overflows
     if aql_query.is_empty() {
-        return Ok(QueryValidationResult::Valid);
+        return Ok(QueryAnalysisResult::Valid(()));
     }
 
-    let result = if corpus_ref.names.is_empty() {
+    // When there are no corpora, graphannis::CorpusStorage::validate_query always succeeds, even when there are syntax errors
+    // So we catch these by using graphannis::CorpusStorage::node_descriptions instead
+    QueryAnalysisResult::from_result(if corpus_ref.names.is_empty() {
         corpus_ref
             .storage
             .node_descriptions(aql_query, query_language)
@@ -29,37 +32,27 @@ where
             .storage
             .validate_query(corpus_ref.names, aql_query, query_language)
             .map(|_| ())
-    };
-
-    match result {
-        Ok(_) => Ok(QueryValidationResult::Valid),
-        Err(GraphAnnisError::AQLSyntaxError(err) | GraphAnnisError::AQLSemanticError(err)) => {
-            Ok(QueryValidationResult::Invalid(err))
-        }
-        Err(err) => Err(err),
-    }
-}
-
-#[derive(Debug)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize))]
-#[cfg_attr(
-    feature = "serde",
-    serde(
-        tag = "type",
-        rename_all = "snake_case",
-        rename_all_fields = "camelCase"
-    )
-)]
-pub enum QueryValidationResult {
-    Valid,
-    Invalid(AQLError),
+    })
 }
 
 pub fn query_nodes(
     storage: &graphannis::CorpusStorage,
     aql_query: &str,
     query_language: QueryLanguage,
-) -> Result<Vec<Vec<QueryNode>>, GraphAnnisError> {
+) -> Result<QueryAnalysisResult<QueryNodes>, GraphAnnisError> {
+    QueryAnalysisResult::from_result(query_nodes_valid(storage, aql_query, query_language))
+}
+
+pub(crate) fn query_nodes_valid(
+    storage: &graphannis::CorpusStorage,
+    aql_query: &str,
+    query_language: QueryLanguage,
+) -> Result<QueryNodes, GraphAnnisError> {
+    // Shortcut for empty query because graphannis::CorpusStorage::node_descriptions overflows
+    if aql_query.is_empty() {
+        return Ok(Vec::new().into());
+    }
+
     let mut node_descriptions = storage.node_descriptions(aql_query, query_language)?;
 
     if let QueryLanguage::AQLQuirksV3 = query_language {
@@ -100,7 +93,74 @@ pub fn query_nodes(
             .push(node.into());
     }
 
-    Ok(nodes_by_index_in_alternative.into_values().collect())
+    Ok(nodes_by_index_in_alternative
+        .into_values()
+        .collect_vec()
+        .into())
+}
+
+#[derive(Debug)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize))]
+#[cfg_attr(
+    feature = "serde",
+    serde(
+        tag = "type",
+        rename_all = "snake_case",
+        rename_all_fields = "camelCase"
+    )
+)]
+pub enum QueryAnalysisResult<T = ()> {
+    Valid(T),
+    Invalid(AQLError),
+}
+
+impl<T> QueryAnalysisResult<T> {
+    pub fn unwrap_valid(self) -> T {
+        match self {
+            QueryAnalysisResult::Valid(x) => x,
+            QueryAnalysisResult::Invalid(_) => panic!("query is invalid"),
+        }
+    }
+
+    fn from_result(
+        result: Result<T, GraphAnnisError>,
+    ) -> Result<QueryAnalysisResult<T>, GraphAnnisError> {
+        match result {
+            Ok(x) => Ok(QueryAnalysisResult::Valid(x)),
+            Err(GraphAnnisError::AQLSyntaxError(err) | GraphAnnisError::AQLSemanticError(err)) => {
+                Ok(QueryAnalysisResult::Invalid(err))
+            }
+            Err(err) => Err(err),
+        }
+    }
+}
+
+#[derive(Debug)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize))]
+#[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
+pub struct QueryNodes {
+    nodes: Vec<Vec<QueryNode>>,
+}
+
+impl From<Vec<Vec<QueryNode>>> for QueryNodes {
+    fn from(nodes: Vec<Vec<QueryNode>>) -> QueryNodes {
+        QueryNodes { nodes }
+    }
+}
+
+impl From<QueryNodes> for Vec<Vec<QueryNode>> {
+    fn from(query_nodes: QueryNodes) -> Vec<Vec<QueryNode>> {
+        query_nodes.nodes
+    }
+}
+
+impl IntoIterator for QueryNodes {
+    type Item = Vec<QueryNode>;
+    type IntoIter = vec::IntoIter<Vec<QueryNode>>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.nodes.into_iter()
+    }
 }
 
 #[derive(Debug, PartialEq)]

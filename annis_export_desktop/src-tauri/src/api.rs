@@ -1,7 +1,7 @@
 use crate::error::Error;
 use annis_export_core::{
     AnnoKey, CorpusStorage, CsvExportColumn, CsvExportConfig, ExportData, ExportDataAnno,
-    ExportFormat, ExportableAnnoKeys, QueryLanguage, QueryValidationResult,
+    ExportFormat, ExportableAnnoKeys, QueryAnalysisResult, QueryLanguage, QueryNodes,
 };
 use itertools::Itertools;
 use serde::Deserialize;
@@ -78,12 +78,21 @@ pub(crate) fn get_exportable_anno_keys(
 }
 
 #[tauri::command(async)]
+pub(crate) fn get_query_nodes(
+    state: tauri::State<State>,
+    aql_query: String,
+    query_language: QueryLanguage,
+) -> Result<QueryAnalysisResult<QueryNodes>, Error> {
+    Ok(state.storage.query_nodes(&aql_query, query_language)?)
+}
+
+#[tauri::command(async)]
 pub(crate) fn validate_query(
     state: tauri::State<State>,
     corpus_names: Vec<String>,
     aql_query: String,
     query_language: QueryLanguage,
-) -> Result<QueryValidationResult, Error> {
+) -> Result<QueryAnalysisResult<()>, Error> {
     Ok(state
         .storage
         .validate_query(&corpus_names, &aql_query, query_language)?)
@@ -99,7 +108,7 @@ pub(crate) enum ExportColumn {
     Number,
     AnnoCorpus { anno_key: AnnoKey },
     AnnoDocument { anno_key: AnnoKey },
-    AnnoMatch { anno_key: AnnoKey },
+    AnnoMatch { anno_key: AnnoKey, index: usize },
     MatchInContext,
 }
 
@@ -113,11 +122,10 @@ impl From<ExportColumn> for CsvExportColumn {
             ExportColumn::AnnoDocument { anno_key } => {
                 CsvExportColumn::Data(ExportData::Anno(ExportDataAnno::Document { anno_key }))
             }
-            ExportColumn::AnnoMatch { anno_key } => {
+            ExportColumn::AnnoMatch { anno_key, index } => {
                 CsvExportColumn::Data(ExportData::Anno(ExportDataAnno::MatchNode {
                     anno_key,
-                    // TODO configure index in UI
-                    index: 0,
+                    index,
                 }))
             }
             ExportColumn::MatchInContext => todo!(),

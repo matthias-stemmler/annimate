@@ -19,7 +19,7 @@ mod query;
 mod util;
 
 pub use anno::{ExportableAnnoKey, ExportableAnnoKeys};
-pub use aql::{QueryNode, QueryValidationResult};
+pub use aql::{QueryAnalysisResult, QueryNode, QueryNodes};
 pub use error::AnnisExportError;
 pub use format::{CsvExportColumn, CsvExportConfig, ExportFormat};
 pub use graphannis::{corpusstorage::CorpusInfo, graph::AnnoKey};
@@ -65,7 +65,7 @@ impl CorpusStorage {
         corpus_names: &[S],
         aql_query: &str,
         query_language: QueryLanguage,
-    ) -> Result<QueryValidationResult, AnnisExportError>
+    ) -> Result<QueryAnalysisResult<()>, AnnisExportError>
     where
         S: AsRef<str>,
     {
@@ -80,7 +80,7 @@ impl CorpusStorage {
         &self,
         aql_query: &str,
         query_language: QueryLanguage,
-    ) -> Result<Vec<Vec<QueryNode>>, AnnisExportError> {
+    ) -> Result<QueryAnalysisResult<QueryNodes>, AnnisExportError> {
         Ok(aql::query_nodes(&self.0, aql_query, query_language)?)
     }
 

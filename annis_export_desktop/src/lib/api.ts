@@ -2,6 +2,7 @@ import {
   ExportColumn,
   ExportableAnnoKeys,
   QueryLanguage,
+  QueryNodesResult,
   QueryValidationResult,
   StatusEvent,
 } from '@/lib/api-types';
@@ -29,6 +30,11 @@ export const getCorpusNames = (): Promise<string[]> =>
 export const getExportableAnnoKeys = (params: {
   corpusNames: string[];
 }): Promise<ExportableAnnoKeys> => invoke('get_exportable_anno_keys', params);
+
+export const getQueryNodes = (params: {
+  aqlQuery: string;
+  queryLanguage: QueryLanguage;
+}): Promise<QueryNodesResult> => invoke('get_query_nodes', params);
 
 export const validateQuery = (params: {
   corpusNames: string[];

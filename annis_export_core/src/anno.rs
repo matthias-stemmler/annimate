@@ -414,17 +414,14 @@ mod tests {
             name: "empty_ns_unambiguous_name".into(),
         };
 
-        let format = AnnoKeyFormat::new(
-            [
-                ambiguous1.clone(),
-                unambiguous.clone(),
-                ambiguous2.clone(),
-                unambiguous.clone(),
-                empty_ns_ambiguous.clone(),
-                empty_ns_unambiguous.clone(),
-            ]
-            .into_iter(),
-        );
+        let format = AnnoKeyFormat::new([
+            ambiguous1.clone(),
+            unambiguous.clone(),
+            ambiguous2.clone(),
+            unambiguous.clone(),
+            empty_ns_ambiguous.clone(),
+            empty_ns_unambiguous.clone(),
+        ]);
 
         assert_eq!(
             format.display(&ambiguous1).to_string(),

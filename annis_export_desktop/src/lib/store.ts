@@ -6,6 +6,8 @@ import {
   ExportableAnnoKey,
   ExportableAnnoKeys,
   QueryLanguage,
+  QueryNode,
+  QueryNodesResult,
   QueryValidationResult,
 } from '@/lib/api-types';
 import { useExportMatchesMutation } from '@/lib/mutations';
@@ -14,6 +16,8 @@ import {
   useExportableAnnoKeysQuery,
   useGetCorpusNamesQueryData,
   useGetExportableAnnoKeysQueryData,
+  useGetQueryNodesQueryData,
+  useQueryNodesQuery,
   useQueryValidationResultQuery,
 } from '@/lib/queries';
 import { filterEligible } from '@/lib/utils';
@@ -76,6 +80,7 @@ const createExportColumn = (type: ExportColumnType): ExportColumn => {
       return {
         type: 'anno_match',
         annoKey: undefined,
+        index: undefined,
       };
 
     case 'match_in_context':
@@ -133,6 +138,11 @@ export const useGetAqlQuery = (): (() => string) => {
   return () => getState().aqlQuery;
 };
 
+const useGetAqlQueryDebounced = (): (() => string) => {
+  const getState = useGetState();
+  return () => getState().aqlQueryDebounced;
+};
+
 export const useQueryLanguage = (): QueryLanguage =>
   useSelector((state) => state.queryLanguage);
 
@@ -143,26 +153,42 @@ export const useGetQueryLanguage = (): (() => QueryLanguage) => {
 
 export const useExportColumnItems = (): ExportColumnItem[] => {
   const exportableAnnoKeys = useExportableAnnoKeys();
+  const queryNodes = useQueryNodes();
   const exportColumns = useSelector((state) => state.exportColumns);
-  return toExportColumns(exportableAnnoKeys?.data, exportColumns);
+
+  return toExportColumns(
+    exportableAnnoKeys.data,
+    queryNodes.data,
+    exportColumns,
+  );
 };
 
 export const useGetExportColumns = (): (() => Promise<ExportColumn[]>) => {
   const getSelectedCorpusNames = useGetSelectedCorpusNames();
+  const getAqlQueryDebounced = useGetAqlQueryDebounced();
+  const getQueryLanguage = useGetQueryLanguage();
+
   const getExportableAnnoKeysQueryData = useGetExportableAnnoKeysQueryData();
+  const getQueryNodesQueryData = useGetQueryNodesQueryData();
+
   const getState = useGetState();
 
   return async () => {
     const exportableAnnoKeys = await getExportableAnnoKeysQueryData({
       corpusNames: await getSelectedCorpusNames(),
     });
+    const queryNodes = await getQueryNodesQueryData({
+      aqlQuery: getAqlQueryDebounced(),
+      queryLanguage: getQueryLanguage(),
+    });
     const { exportColumns } = getState();
-    return toExportColumns(exportableAnnoKeys, exportColumns);
+    return toExportColumns(exportableAnnoKeys, queryNodes, exportColumns);
   };
 };
 
 const toExportColumns = (
   exportableAnnoKeys: ExportableAnnoKeys | undefined,
+  queryNodes: QueryNodesResult | undefined,
   exportColumns: ExportColumnItem[],
 ): ExportColumnItem[] =>
   exportColumns
@@ -194,6 +220,10 @@ const toExportColumns = (
               exportableAnnoKeys?.node,
               column.annoKey,
             ),
+            index: filterEligibleQueryNodeIndex(
+              queryNodes?.type === 'valid' ? queryNodes.nodes : undefined,
+              column.index,
+            ),
           };
 
         default:
@@ -209,6 +239,16 @@ const filterEligibleAnnoKey = (
     eligibleAnnoKeys,
     annoKey,
     (e, a) => e.annoKey.ns === a.ns && e.annoKey.name === a.name,
+  );
+
+const filterEligibleQueryNodeIndex = (
+  eligibleQueryNodes: QueryNode[][] | undefined,
+  index: number | undefined,
+): number | undefined =>
+  filterEligible(
+    eligibleQueryNodes?.map((_, i) => i),
+    index,
+    (i, j) => i === j,
   );
 
 export const useCanExport = (): boolean => {
@@ -231,8 +271,12 @@ const isExportColumnValid = (exportColumn: ExportColumn): boolean => {
   switch (exportColumn.type) {
     case 'anno_corpus':
     case 'anno_document':
-    case 'anno_match':
       return exportColumn.annoKey !== undefined;
+
+    case 'anno_match':
+      return (
+        exportColumn.annoKey !== undefined && exportColumn.index !== undefined
+      );
 
     default:
       return true;
@@ -401,6 +445,16 @@ export const useUnremoveExportColumn = (): ((id: number) => void) => {
 
 export const useCorpusNames = (): UseQueryResult<string[]> =>
   useCorpusNamesQuery();
+
+export const useQueryNodes = (): UseQueryResult<QueryNodesResult> => {
+  const aqlQueryDebounced = useSelector((state) => state.aqlQueryDebounced);
+  const queryLanguage = useQueryLanguage();
+
+  return useQueryNodesQuery({
+    aqlQuery: aqlQueryDebounced,
+    queryLanguage,
+  });
+};
 
 export const useQueryValidationResult =
   (): UseQueryResult<QueryValidationResult> => {

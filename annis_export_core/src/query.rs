@@ -116,7 +116,7 @@ impl<'a, S> Query<'a, S> {
             corpus_ref,
             aql_query,
             query_language,
-            nodes: aql::query_nodes(corpus_ref.storage, aql_query, query_language)?,
+            nodes: aql::query_nodes_valid(corpus_ref.storage, aql_query, query_language)?.into(),
         })
     }
 

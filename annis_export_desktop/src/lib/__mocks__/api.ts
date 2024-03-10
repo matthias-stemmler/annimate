@@ -3,10 +3,13 @@
 // Enable by setting the environment variable `MOCK=1`
 
 import {
+  AQLError,
   ExportColumn,
   ExportableAnnoKey,
   ExportableAnnoKeys,
   QueryLanguage,
+  QueryNode,
+  QueryNodesResult,
   QueryValidationResult,
   StatusEvent,
   UnlistenFn,
@@ -138,6 +141,42 @@ export const getExportableAnnoKeys = async (params: {
   return makeExportableAnnoKeys(0);
 };
 
+export const getQueryNodes = async (params: {
+  aqlQuery: string;
+  queryLanguage: QueryLanguage;
+}): Promise<QueryNodesResult> => {
+  if (params.aqlQuery === '') {
+    return { type: 'valid', nodes: [] };
+  }
+
+  if (!isQuerySyntacticallyValid(params.aqlQuery, params.queryLanguage)) {
+    return { type: 'invalid' };
+  }
+
+  const nodesWithIndex = params.aqlQuery
+    .split(/\s*\|\s*/)
+    .flatMap((line) =>
+      line
+        .split(/\s*&\s*/)
+        .map((queryFragment, index): [QueryNode, number] => [
+          { queryFragment, variable: `${index + 1}` },
+          index,
+        ]),
+    );
+
+  const nodes: QueryNode[][] = [];
+
+  for (
+    let index = 0, ns: [QueryNode, number][];
+    (ns = nodesWithIndex.filter(([, i]) => i === index)).length > 0;
+    index++
+  ) {
+    nodes.push(ns.map(([n]) => n));
+  }
+
+  return { type: 'valid', nodes };
+};
+
 export const validateQuery = async (params: {
   corpusNames: string[];
   aqlQuery: string;
@@ -151,21 +190,35 @@ export const validateQuery = async (params: {
     };
   }
 
-  const failingString = params.queryLanguage === 'AQL' ? '!' : '!!';
-  const lines = params.aqlQuery.split('\n');
+  const error = getQuerySyntaxError(params.aqlQuery, params.queryLanguage);
+  return error === undefined
+    ? { type: 'valid' }
+    : { type: 'invalid', ...error };
+};
+
+const isQuerySyntacticallyValid = (
+  aqlQuery: string,
+  queryLanguage: QueryLanguage,
+): boolean => getQuerySyntaxError(aqlQuery, queryLanguage) === undefined;
+
+const getQuerySyntaxError = (
+  aqlQuery: string,
+  queryLanguage: QueryLanguage,
+): AQLError | undefined => {
+  const failingString = queryLanguage === 'AQL' ? '!' : '!!';
+  const lines = aqlQuery.split('\n');
 
   const line = lines.findIndex((l) => l.includes(failingString));
   if (line === -1) {
-    return { type: 'valid' };
+    return undefined;
   }
 
   const column = lines[line].indexOf(failingString);
   if (column === -1) {
-    return { type: 'valid' };
+    return undefined;
   }
 
   return {
-    type: 'invalid',
     desc: `Query must not contain '${failingString}'`,
     location: {
       start: {

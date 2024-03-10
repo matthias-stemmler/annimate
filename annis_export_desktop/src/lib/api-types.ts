@@ -31,6 +31,7 @@ export type ExportColumn =
   | {
       type: 'anno_match';
       annoKey: AnnoKey | undefined;
+      index: number | undefined;
     }
   | {
       type: 'match_in_context';
@@ -44,9 +45,23 @@ export type ExportColumnData<T extends ExportColumnType> = Omit<
 
 export type QueryLanguage = 'AQL' | 'AQLQuirksV3';
 
+export type QueryNodesResult =
+  | { type: 'valid'; nodes: QueryNode[][] }
+  | { type: 'invalid' };
+
+export type QueryNode = {
+  queryFragment: string;
+  variable: string;
+};
+
 export type QueryValidationResult =
   | { type: 'valid' }
-  | { type: 'invalid'; desc: string; location: LineColumnRange | null };
+  | ({ type: 'invalid' } & AQLError);
+
+export type AQLError = {
+  desc: string;
+  location: LineColumnRange | null;
+};
 
 export type LineColumnRange = {
   start: LineColumn;

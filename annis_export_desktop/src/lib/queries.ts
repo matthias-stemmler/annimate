@@ -1,11 +1,13 @@
 import {
   getCorpusNames,
   getExportableAnnoKeys,
+  getQueryNodes,
   validateQuery,
 } from '@/lib/api';
 import {
   ExportableAnnoKeys,
   QueryLanguage,
+  QueryNodesResult,
   QueryValidationResult,
 } from '@/lib/api-types';
 import {
@@ -15,6 +17,7 @@ import {
 } from '@tanstack/react-query';
 
 const QUERY_KEY_CORPUS_NAMES = 'corpus-names';
+const QUERY_KEY_QUERY_NODES = 'query-nodes';
 const QUERY_KEY_QUERY_VALIDATION_RESULT = 'query-validation-result';
 const QUERY_KEY_EXPORTABLE_ANNO_KEYS = 'exportable-anno-keys';
 
@@ -30,6 +33,19 @@ export const useGetCorpusNamesQueryData = (): (() => Promise<string[]>) => {
   const queryClient = useQueryClient();
   return () => queryClient.ensureQueryData(corpusNamesQueryConfig());
 };
+
+const queryNodesQueryConfig = (params: {
+  aqlQuery: string;
+  queryLanguage: QueryLanguage;
+}) => ({
+  queryKey: [QUERY_KEY_QUERY_NODES, params],
+  queryFn: () => getQueryNodes(params),
+});
+
+export const useQueryNodesQuery = (params: {
+  aqlQuery: string;
+  queryLanguage: QueryLanguage;
+}): UseQueryResult<QueryNodesResult> => useQuery(queryNodesQueryConfig(params));
 
 export const useQueryValidationResultQuery = (params: {
   corpusNames: string[];
@@ -58,4 +74,13 @@ export const useGetExportableAnnoKeysQueryData = (): ((params: {
   const queryClient = useQueryClient();
   return (params: { corpusNames: string[] }) =>
     queryClient.ensureQueryData(exportableAnnoKeysQueryConfig(params));
+};
+
+export const useGetQueryNodesQueryData = (): ((params: {
+  aqlQuery: string;
+  queryLanguage: QueryLanguage;
+}) => Promise<QueryNodesResult>) => {
+  const queryClient = useQueryClient();
+  return (params: { aqlQuery: string; queryLanguage: QueryLanguage }) =>
+    queryClient.ensureQueryData(queryNodesQueryConfig(params));
 };
