@@ -31,7 +31,7 @@ export type ExportColumn =
   | {
       type: 'anno_match';
       annoKey: AnnoKey | undefined;
-      index: number | undefined;
+      nodeRef: QueryNodeRef | undefined;
     }
   | {
       type: 'match_in_context';
@@ -52,6 +52,11 @@ export type QueryNodesResult =
 export type QueryNode = {
   queryFragment: string;
   variable: string;
+};
+
+export type QueryNodeRef = {
+  index: number;
+  variables: string[];
 };
 
 export type QueryValidationResult =

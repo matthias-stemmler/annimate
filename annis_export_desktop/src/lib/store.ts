@@ -6,7 +6,6 @@ import {
   ExportableAnnoKey,
   ExportableAnnoKeys,
   QueryLanguage,
-  QueryNode,
   QueryNodesResult,
   QueryValidationResult,
 } from '@/lib/api-types';
@@ -20,6 +19,7 @@ import {
   useQueryNodesQuery,
   useQueryValidationResultQuery,
 } from '@/lib/queries';
+import { findEligibleQueryNodeRef } from '@/lib/query-node-utils';
 import { filterEligible } from '@/lib/utils';
 import { UseQueryResult } from '@tanstack/react-query';
 import { createContext, useContext } from 'react';
@@ -80,7 +80,7 @@ const createExportColumn = (type: ExportColumnType): ExportColumn => {
       return {
         type: 'anno_match',
         annoKey: undefined,
-        index: undefined,
+        nodeRef: undefined,
       };
 
     case 'match_in_context':
@@ -220,9 +220,9 @@ const toExportColumns = (
               exportableAnnoKeys?.node,
               column.annoKey,
             ),
-            index: filterEligibleQueryNodeIndex(
+            nodeRef: findEligibleQueryNodeRef(
               queryNodes?.type === 'valid' ? queryNodes.nodes : undefined,
-              column.index,
+              column.nodeRef,
             ),
           };
 
@@ -239,16 +239,6 @@ const filterEligibleAnnoKey = (
     eligibleAnnoKeys,
     annoKey,
     (e, a) => e.annoKey.ns === a.ns && e.annoKey.name === a.name,
-  );
-
-const filterEligibleQueryNodeIndex = (
-  eligibleQueryNodes: QueryNode[][] | undefined,
-  index: number | undefined,
-): number | undefined =>
-  filterEligible(
-    eligibleQueryNodes?.map((_, i) => i),
-    index,
-    (i, j) => i === j,
   );
 
 export const useCanExport = (): boolean => {
@@ -275,7 +265,7 @@ const isExportColumnValid = (exportColumn: ExportColumn): boolean => {
 
     case 'anno_match':
       return (
-        exportColumn.annoKey !== undefined && exportColumn.index !== undefined
+        exportColumn.annoKey !== undefined && exportColumn.nodeRef !== undefined
       );
 
     default:

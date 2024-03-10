@@ -106,10 +106,23 @@ pub(crate) fn validate_query(
 )]
 pub(crate) enum ExportColumn {
     Number,
-    AnnoCorpus { anno_key: AnnoKey },
-    AnnoDocument { anno_key: AnnoKey },
-    AnnoMatch { anno_key: AnnoKey, index: usize },
+    AnnoCorpus {
+        anno_key: AnnoKey,
+    },
+    AnnoDocument {
+        anno_key: AnnoKey,
+    },
+    AnnoMatch {
+        anno_key: AnnoKey,
+        node_ref: QueryNodeRef,
+    },
     MatchInContext,
+}
+
+#[derive(Deserialize)]
+#[serde(tag = "type", rename_all = "camelCase")]
+pub(crate) struct QueryNodeRef {
+    index: usize,
 }
 
 impl From<ExportColumn> for CsvExportColumn {
@@ -122,10 +135,10 @@ impl From<ExportColumn> for CsvExportColumn {
             ExportColumn::AnnoDocument { anno_key } => {
                 CsvExportColumn::Data(ExportData::Anno(ExportDataAnno::Document { anno_key }))
             }
-            ExportColumn::AnnoMatch { anno_key, index } => {
+            ExportColumn::AnnoMatch { anno_key, node_ref } => {
                 CsvExportColumn::Data(ExportData::Anno(ExportDataAnno::MatchNode {
                     anno_key,
-                    index,
+                    index: node_ref.index,
                 }))
             }
             ExportColumn::MatchInContext => todo!(),

@@ -485,7 +485,7 @@ describe('store', () => {
     result.current.updateExportColumn(1, {
       type: 'anno_match',
       annoKey: ANNO_KEY_NODE,
-      index: 0,
+      nodeRef: { index: 0, variables: ['1'] },
     });
 
     await waitFor(() => {
@@ -494,7 +494,7 @@ describe('store', () => {
           id: 1,
           type: 'anno_match',
           annoKey: ANNO_KEY_NODE,
-          index: 0,
+          nodeRef: { index: 0, variables: ['1'] },
         },
       ]);
     });
@@ -502,6 +502,7 @@ describe('store', () => {
     result.current.updateExportColumn(1, {
       type: 'anno_match',
       annoKey: ANNO_KEY_UNKNOWN,
+      nodeRef: { index: 1, variables: ['1', '2'] },
     });
 
     await waitFor(() => {
@@ -510,7 +511,7 @@ describe('store', () => {
           id: 1,
           type: 'anno_match',
           annoKey: undefined,
-          index: 0,
+          nodeRef: { index: 0, variables: ['1'] },
         },
       ]);
     });
@@ -518,7 +519,7 @@ describe('store', () => {
     result.current.updateExportColumn(1, {
       type: 'anno_match',
       annoKey: ANNO_KEY_NODE,
-      index: 1,
+      nodeRef: { index: 0, variables: ['2'] },
     });
 
     await waitFor(() => {
@@ -527,7 +528,7 @@ describe('store', () => {
           id: 1,
           type: 'anno_match',
           annoKey: ANNO_KEY_NODE,
-          index: undefined,
+          nodeRef: undefined,
         },
       ]);
     });
@@ -563,7 +564,7 @@ describe('store', () => {
       c.updateExportColumn(3, {
         type: 'anno_match',
         annoKey: ANNO_KEY_NODE,
-        index: 0,
+        nodeRef: { index: 0, variables: ['1'] },
       }),
   ];
 
@@ -653,7 +654,7 @@ describe('store', () => {
     result.current.updateExportColumn(4, {
       type: 'anno_match',
       annoKey: ANNO_KEY_NODE,
-      index: 0,
+      nodeRef: { index: 0, variables: ['1'] },
     });
 
     await waitFor(() => {
