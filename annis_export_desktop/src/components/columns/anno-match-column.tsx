@@ -1,4 +1,8 @@
 import { AnnoSelect } from '@/components/columns/anno-select';
+import {
+  ColumnConfigGrid,
+  ColumnConfigItem,
+} from '@/components/columns/layout';
 import { ColumnProps } from '@/components/columns/props';
 import { Select, SelectOption } from '@/components/ui/custom/select';
 import { QueryNodeRef } from '@/lib/api-types';
@@ -9,24 +13,22 @@ export const AnnoMatchColumn: FC<ColumnProps<'anno_match'>> = ({
   data,
   onChange,
 }) => (
-  <div className="flex gap-4 mb-2">
-    <div className="flex-1">
-      <p className="text-sm mb-1">Annotation</p>
+  <ColumnConfigGrid>
+    <ColumnConfigItem caption="Annotation">
       <AnnoSelect
         annoKey={data.annoKey}
         category="node"
         onChange={(annoKey) => onChange({ annoKey })}
       />
-    </div>
+    </ColumnConfigItem>
 
-    <div className="flex-1">
-      <p className="text-sm mb-1">Query node</p>
+    <ColumnConfigItem caption="Query node">
       <QueryNodeSelect
         nodeRef={data.nodeRef}
         onChange={(nodeRef) => onChange({ nodeRef })}
       />
-    </div>
-  </div>
+    </ColumnConfigItem>
+  </ColumnConfigGrid>
 );
 
 export type QueryNodeSelectProps = {
