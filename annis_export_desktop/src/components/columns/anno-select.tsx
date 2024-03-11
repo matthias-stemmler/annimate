@@ -31,10 +31,9 @@ export const AnnoSelect: FC<AnnoSelectProps> = ({
     <Select
       disabled={disabled}
       loading={isPending}
-      monoFont
       onChange={(value) => onChange?.(valueToAnnoKey(value))}
       options={(exportableAnnoKeys?.[category] ?? []).map((e) => ({
-        caption: e.displayName,
+        caption: <span className="font-mono">{e.displayName}</span>,
         value: annoKeyToValue(e.annoKey),
       }))}
       triggerClassName="h-8"

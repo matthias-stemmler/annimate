@@ -32,15 +32,12 @@ export const AnnoMatchColumn: FC<ColumnProps<'anno_match'>> = ({
   </ColumnConfigGrid>
 );
 
-export type QueryNodeSelectProps = {
+type QueryNodeSelectProps = {
   nodeRef: QueryNodeRef | undefined;
   onChange?: (nodeRef: QueryNodeRef) => void;
 };
 
-export const QueryNodeSelect: FC<QueryNodeSelectProps> = ({
-  nodeRef,
-  onChange,
-}) => {
+const QueryNodeSelect: FC<QueryNodeSelectProps> = ({ nodeRef, onChange }) => {
   const { data: queryNodes, error, isPending } = useQueryNodes();
   const isExporting = useIsExporting();
   const disabled = isExporting;
@@ -55,7 +52,6 @@ export const QueryNodeSelect: FC<QueryNodeSelectProps> = ({
     <Select
       disabled={disabled}
       loading={isPending}
-      monoFont
       onChange={(value) => {
         const index = parseInt(value);
         const variables = nodes[index].map((n) => n.variable);

@@ -35,6 +35,7 @@ export type ExportColumn =
     }
   | {
       type: 'match_in_context';
+      segmentation: string | undefined;
     };
 
 export type ExportColumnType = ExportColumn['type'];

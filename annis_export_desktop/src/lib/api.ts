@@ -36,6 +36,10 @@ export const getQueryNodes = (params: {
   queryLanguage: QueryLanguage;
 }): Promise<QueryNodesResult> => invoke('get_query_nodes', params);
 
+export const getSegmentations = (params: {
+  corpusNames: string[];
+}): Promise<string[]> => invoke('get_segmentations', params);
+
 export const validateQuery = (params: {
   corpusNames: string[];
   aqlQuery: string;

@@ -16,8 +16,10 @@ import {
   useGetCorpusNamesQueryData,
   useGetExportableAnnoKeysQueryData,
   useGetQueryNodesQueryData,
+  useGetSegmentationsQueryData,
   useQueryNodesQuery,
   useQueryValidationResultQuery,
+  useSegmentationsQuery,
 } from '@/lib/queries';
 import { findEligibleQueryNodeRef } from '@/lib/query-node-utils';
 import { filterEligible } from '@/lib/utils';
@@ -84,7 +86,10 @@ const createExportColumn = (type: ExportColumnType): ExportColumn => {
       };
 
     case 'match_in_context':
-      return { type: 'match_in_context' };
+      return {
+        type: 'match_in_context',
+        segmentation: '',
+      };
   }
 };
 
@@ -154,11 +159,13 @@ export const useGetQueryLanguage = (): (() => QueryLanguage) => {
 export const useExportColumnItems = (): ExportColumnItem[] => {
   const exportableAnnoKeys = useExportableAnnoKeys();
   const queryNodes = useQueryNodes();
+  const segmentations = useSegmentations();
   const exportColumns = useSelector((state) => state.exportColumns);
 
   return toExportColumns(
     exportableAnnoKeys.data,
     queryNodes.data,
+    segmentations.data,
     exportColumns,
   );
 };
@@ -170,25 +177,34 @@ export const useGetExportColumns = (): (() => Promise<ExportColumn[]>) => {
 
   const getExportableAnnoKeysQueryData = useGetExportableAnnoKeysQueryData();
   const getQueryNodesQueryData = useGetQueryNodesQueryData();
+  const getSegmentationsQueryData = useGetSegmentationsQueryData();
 
   const getState = useGetState();
 
   return async () => {
+    const corpusNames = await getSelectedCorpusNames();
     const exportableAnnoKeys = await getExportableAnnoKeysQueryData({
-      corpusNames: await getSelectedCorpusNames(),
+      corpusNames,
     });
     const queryNodes = await getQueryNodesQueryData({
       aqlQuery: getAqlQueryDebounced(),
       queryLanguage: getQueryLanguage(),
     });
+    const segmentations = await getSegmentationsQueryData({ corpusNames });
     const { exportColumns } = getState();
-    return toExportColumns(exportableAnnoKeys, queryNodes, exportColumns);
+    return toExportColumns(
+      exportableAnnoKeys,
+      queryNodes,
+      segmentations,
+      exportColumns,
+    );
   };
 };
 
 const toExportColumns = (
   exportableAnnoKeys: ExportableAnnoKeys | undefined,
   queryNodes: QueryNodesResult | undefined,
+  segmentations: string[] | undefined,
   exportColumns: ExportColumnItem[],
 ): ExportColumnItem[] =>
   exportColumns
@@ -223,6 +239,16 @@ const toExportColumns = (
             nodeRef: findEligibleQueryNodeRef(
               queryNodes?.type === 'valid' ? queryNodes.nodes : undefined,
               column.nodeRef,
+            ),
+          };
+
+        case 'match_in_context':
+          return {
+            ...column,
+            segmentation: filterEligible(
+              segmentations,
+              column.segmentation,
+              (a, b) => a === b,
             ),
           };
 
@@ -267,6 +293,9 @@ const isExportColumnValid = (exportColumn: ExportColumn): boolean => {
       return (
         exportColumn.annoKey !== undefined && exportColumn.nodeRef !== undefined
       );
+
+    case 'match_in_context':
+      return exportColumn.segmentation !== undefined;
 
     default:
       return true;
@@ -458,6 +487,14 @@ export const useQueryValidationResult =
       queryLanguage,
     });
   };
+
+export const useSegmentations = (): UseQueryResult<string[]> => {
+  const selectedCorpusNames = useSelectedCorpusNames();
+
+  return useSegmentationsQuery({
+    corpusNames: selectedCorpusNames,
+  });
+};
 
 export const useExportableAnnoKeys = (): UseQueryResult<ExportableAnnoKeys> => {
   const selectedCorpusNames = useSelectedCorpusNames();

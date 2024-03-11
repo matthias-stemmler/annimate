@@ -2,6 +2,7 @@ import {
   getCorpusNames,
   getExportableAnnoKeys,
   getQueryNodes,
+  getSegmentations,
   validateQuery,
 } from '@/lib/api';
 import {
@@ -19,6 +20,7 @@ import {
 const QUERY_KEY_CORPUS_NAMES = 'corpus-names';
 const QUERY_KEY_QUERY_NODES = 'query-nodes';
 const QUERY_KEY_QUERY_VALIDATION_RESULT = 'query-validation-result';
+const QUERY_KEY_SEGMENTATIONS = 'segmentations';
 const QUERY_KEY_EXPORTABLE_ANNO_KEYS = 'exportable-anno-keys';
 
 const corpusNamesQueryConfig = () => ({
@@ -57,6 +59,25 @@ export const useQueryValidationResultQuery = (params: {
     queryKey: [QUERY_KEY_QUERY_VALIDATION_RESULT, params],
     queryFn: () => validateQuery(params),
   });
+
+export const segmentationsQueryConfig = (params: {
+  corpusNames: string[];
+}) => ({
+  queryKey: [QUERY_KEY_SEGMENTATIONS, params],
+  queryFn: () => getSegmentations(params),
+});
+
+export const useSegmentationsQuery = (params: {
+  corpusNames: string[];
+}): UseQueryResult<string[]> => useQuery(segmentationsQueryConfig(params));
+
+export const useGetSegmentationsQueryData = (): ((params: {
+  corpusNames: string[];
+}) => Promise<string[]>) => {
+  const queryClient = useQueryClient();
+  return (params: { corpusNames: string[] }) =>
+    queryClient.ensureQueryData(segmentationsQueryConfig(params));
+};
 
 const exportableAnnoKeysQueryConfig = (params: { corpusNames: string[] }) => ({
   queryKey: [QUERY_KEY_EXPORTABLE_ANNO_KEYS, params],

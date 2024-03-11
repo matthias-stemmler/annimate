@@ -117,6 +117,11 @@ describe('store', () => {
           } satisfies QueryNodesResult;
         }
 
+        case 'get_segmentations': {
+          const { corpusNames } = args as { corpusNames: string[] };
+          return corpusNames.length === 0 ? [] : ['segmentation', ''];
+        }
+
         case 'validate_query': {
           const { corpusNames, aqlQuery, queryLanguage } = args as {
             corpusNames: string;
@@ -534,6 +539,70 @@ describe('store', () => {
     });
   });
 
+  test('selecting match_in_context export column data', async () => {
+    const { result } = renderHook(
+      () => ({
+        exportColumns: useExportColumnItems(),
+        addExportColumn: useAddExportColumn(),
+        updateExportColumn: useUpdateExportColumn(),
+        toggleCorpus: useToggleCorpus(),
+      }),
+      { wrapper: Wrapper },
+    );
+
+    result.current.toggleCorpus('a');
+    result.current.addExportColumn('match_in_context');
+
+    await waitFor(() => {
+      expect(result.current.exportColumns).toEqual([
+        {
+          id: 1,
+          type: 'match_in_context',
+          segmentation: '',
+        },
+      ]);
+    });
+
+    result.current.updateExportColumn(1, {
+      type: 'match_in_context',
+      segmentation: 'segmentation',
+    });
+
+    await waitFor(() => {
+      expect(result.current.exportColumns).toEqual([
+        {
+          id: 1,
+          type: 'match_in_context',
+          segmentation: 'segmentation',
+        },
+      ]);
+    });
+
+    result.current.toggleCorpus('a');
+
+    await waitFor(() => {
+      expect(result.current.exportColumns).toEqual([
+        {
+          id: 1,
+          type: 'match_in_context',
+          segmentation: undefined,
+        },
+      ]);
+    });
+
+    result.current.toggleCorpus('a');
+
+    await waitFor(() => {
+      expect(result.current.exportColumns).toEqual([
+        {
+          id: 1,
+          type: 'match_in_context',
+          segmentation: 'segmentation',
+        },
+      ]);
+    });
+  });
+
   type ChangeContext = {
     toggleCorpus: (corpusName: string) => void;
     setAqlQuery: (aqlQuery: string) => void;
@@ -565,6 +634,12 @@ describe('store', () => {
         type: 'anno_match',
         annoKey: ANNO_KEY_NODE,
         nodeRef: { index: 0, variables: ['1'] },
+      }),
+    (c) => c.addExportColumn('match_in_context'),
+    (c) =>
+      c.updateExportColumn(4, {
+        type: 'match_in_context',
+        segmentation: 'segmentation',
       }),
   ];
 
@@ -657,6 +732,12 @@ describe('store', () => {
       nodeRef: { index: 0, variables: ['1'] },
     });
 
+    result.current.addExportColumn('match_in_context');
+    result.current.updateExportColumn(5, {
+      type: 'match_in_context',
+      segmentation: 'segmentation',
+    });
+
     await waitFor(() => {
       expect(result.current.canExport).toBe(true);
     });
@@ -686,6 +767,10 @@ describe('store', () => {
         expect.objectContaining({
           type: 'anno_match',
           annoKey: ANNO_KEY_NODE,
+        }),
+        expect.objectContaining({
+          type: 'match_in_context',
+          segmentation: 'segmentation',
         }),
       ],
       outputFile: 'out.csv',

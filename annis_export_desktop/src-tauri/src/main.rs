@@ -16,6 +16,7 @@ fn main() {
             api::get_corpus_names,
             api::get_exportable_anno_keys,
             api::get_query_nodes,
+            api::get_segmentations,
             api::validate_query
         ])
         .run(tauri::generate_context!())

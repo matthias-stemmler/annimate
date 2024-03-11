@@ -26,6 +26,7 @@ const CORPUS_MANY_MATCHES = 'Corpus with many matches';
 const CORPUS_FAILING_EXPORT = 'Corpus with failing export';
 const CORPUS_NO_ANNO_KEYS = 'Corpus without anno keys';
 const CORPUS_MANY_ANNO_KEYS = 'Corpus with many anno keys';
+const CORPUS_MULTIPLE_SEGMENTATIONS = 'Corpus with multiple segmentations';
 const CORPUS_FAILING_ANNO_KEYS = 'Corpus with failing anno keys';
 
 const getMatchCountForCorpus = (corpusName: string): number => {
@@ -120,6 +121,7 @@ export const getCorpusNames = async (): Promise<string[]> => [
   CORPUS_FAILING_EXPORT,
   CORPUS_NO_ANNO_KEYS,
   CORPUS_MANY_ANNO_KEYS,
+  CORPUS_MULTIPLE_SEGMENTATIONS,
   CORPUS_FAILING_ANNO_KEYS,
 ];
 
@@ -175,6 +177,19 @@ export const getQueryNodes = async (params: {
   }
 
   return { type: 'valid', nodes };
+};
+
+export const getSegmentations = async (params: {
+  corpusNames: string[];
+}): Promise<string[]> => {
+  if (params.corpusNames.length === 0) {
+    return [];
+  }
+
+  return params.corpusNames.length === 1 &&
+    params.corpusNames[0] === CORPUS_MULTIPLE_SEGMENTATIONS
+    ? ['segmentation1', 'segmentation2', 'segmentation3', '']
+    : [''];
 };
 
 export const validateQuery = async (params: {

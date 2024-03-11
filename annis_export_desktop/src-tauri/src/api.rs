@@ -1,7 +1,8 @@
 use crate::error::Error;
 use annis_export_core::{
     AnnoKey, CorpusStorage, CsvExportColumn, CsvExportConfig, ExportData, ExportDataAnno,
-    ExportFormat, ExportableAnnoKeys, QueryAnalysisResult, QueryLanguage, QueryNodes,
+    ExportDataText, ExportFormat, ExportableAnnoKeys, QueryAnalysisResult, QueryLanguage,
+    QueryNodes,
 };
 use itertools::Itertools;
 use serde::Deserialize;
@@ -87,6 +88,20 @@ pub(crate) fn get_query_nodes(
 }
 
 #[tauri::command(async)]
+pub(crate) fn get_segmentations(
+    state: tauri::State<State>,
+    corpus_names: Vec<String>,
+) -> Result<Vec<String>, Error> {
+    if corpus_names.is_empty() {
+        Ok(Vec::new())
+    } else {
+        let mut segmentations = state.storage.segmentations(&corpus_names)?;
+        segmentations.push("".into());
+        Ok(segmentations)
+    }
+}
+
+#[tauri::command(async)]
 pub(crate) fn validate_query(
     state: tauri::State<State>,
     corpus_names: Vec<String>,
@@ -116,7 +131,9 @@ pub(crate) enum ExportColumn {
         anno_key: AnnoKey,
         node_ref: QueryNodeRef,
     },
-    MatchInContext,
+    MatchInContext {
+        segmentation: String,
+    },
 }
 
 #[derive(Deserialize)]
@@ -141,7 +158,14 @@ impl From<ExportColumn> for CsvExportColumn {
                     index: node_ref.index,
                 }))
             }
-            ExportColumn::MatchInContext => todo!(),
+            ExportColumn::MatchInContext { segmentation } => {
+                CsvExportColumn::Data(ExportData::Text(ExportDataText {
+                    left_context: 5,
+                    right_context: 5,
+                    segmentation: (!segmentation.is_empty()).then_some(segmentation),
+                    primary_node_indices: Vec::new(),
+                }))
+            }
         }
     }
 }
