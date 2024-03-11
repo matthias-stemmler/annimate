@@ -10,6 +10,7 @@ import { ReactNode } from 'react';
 
 export type SelectProps<T> = {
   disabled?: boolean;
+  id?: string;
   loading?: boolean;
   onChange?: (value: T) => void;
   options: SelectOption<T>[];
@@ -24,6 +25,7 @@ export type SelectOption<T> = {
 
 export const Select = <T extends string>({
   disabled,
+  id,
   loading,
   onChange,
   options,
@@ -44,6 +46,7 @@ export const Select = <T extends string>({
         className={cn(triggerClassName, {
           'disabled:cursor-wait': loading,
         })}
+        id={id}
       >
         <SelectValue
           children={

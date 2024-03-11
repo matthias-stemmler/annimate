@@ -7,12 +7,14 @@ import { FC } from 'react';
 export type AnnoSelectProps = {
   annoKey: AnnoKey | undefined;
   category: ExportableAnnoKeyCategory;
+  id?: string;
   onChange?: (annoKey: AnnoKey) => void;
 };
 
 export const AnnoSelect: FC<AnnoSelectProps> = ({
   annoKey,
   category,
+  id,
   onChange,
 }) => {
   const {
@@ -30,6 +32,7 @@ export const AnnoSelect: FC<AnnoSelectProps> = ({
   return (
     <Select
       disabled={disabled}
+      id={id}
       loading={isPending}
       onChange={(value) => onChange?.(valueToAnnoKey(value))}
       options={(exportableAnnoKeys?.[category] ?? []).map((e) => ({

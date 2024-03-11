@@ -4,19 +4,27 @@ import {
   ColumnConfigItem,
 } from '@/components/columns/layout';
 import { ColumnProps } from '@/components/columns/props';
-import { FC } from 'react';
+import { Label } from '@/components/ui/label';
+import { FC, useId } from 'react';
 
 export const AnnoCorpusColumn: FC<ColumnProps<'anno_corpus'>> = ({
   data,
   onChange,
-}) => (
-  <ColumnConfigGrid>
-    <ColumnConfigItem caption="Meta annotation">
-      <AnnoSelect
-        annoKey={data.annoKey}
-        category="corpus"
-        onChange={(annoKey) => onChange({ annoKey })}
-      />
-    </ColumnConfigItem>
-  </ColumnConfigGrid>
-);
+}) => {
+  const annoSelectId = useId();
+
+  return (
+    <ColumnConfigGrid>
+      <ColumnConfigItem>
+        <Label htmlFor={annoSelectId}>Meta annotation</Label>
+
+        <AnnoSelect
+          annoKey={data.annoKey}
+          category="corpus"
+          id={annoSelectId}
+          onChange={(annoKey) => onChange({ annoKey })}
+        />
+      </ColumnConfigItem>
+    </ColumnConfigGrid>
+  );
+};

@@ -5,39 +5,56 @@ import {
 } from '@/components/columns/layout';
 import { ColumnProps } from '@/components/columns/props';
 import { Select, SelectOption } from '@/components/ui/custom/select';
+import { Label } from '@/components/ui/label';
 import { QueryNodeRef } from '@/lib/api-types';
 import { useIsExporting, useQueryNodes } from '@/lib/store';
 import { groupBy } from '@/lib/utils';
-import { FC } from 'react';
+import { FC, useId } from 'react';
 
 export const AnnoMatchColumn: FC<ColumnProps<'anno_match'>> = ({
   data,
   onChange,
-}) => (
-  <ColumnConfigGrid>
-    <ColumnConfigItem caption="Annotation">
-      <AnnoSelect
-        annoKey={data.annoKey}
-        category="node"
-        onChange={(annoKey) => onChange({ annoKey })}
-      />
-    </ColumnConfigItem>
+}) => {
+  const annoSelectId = useId();
+  const queryNodeSelectId = useId();
 
-    <ColumnConfigItem caption="Query node">
-      <QueryNodeSelect
-        nodeRef={data.nodeRef}
-        onChange={(nodeRef) => onChange({ nodeRef })}
-      />
-    </ColumnConfigItem>
-  </ColumnConfigGrid>
-);
+  return (
+    <ColumnConfigGrid>
+      <ColumnConfigItem>
+        <Label htmlFor={annoSelectId}>Annotation</Label>
+
+        <AnnoSelect
+          annoKey={data.annoKey}
+          category="node"
+          id={annoSelectId}
+          onChange={(annoKey) => onChange({ annoKey })}
+        />
+      </ColumnConfigItem>
+
+      <ColumnConfigItem>
+        <Label htmlFor={queryNodeSelectId}>Query node</Label>
+
+        <QueryNodeSelect
+          id={queryNodeSelectId}
+          nodeRef={data.nodeRef}
+          onChange={(nodeRef) => onChange({ nodeRef })}
+        />
+      </ColumnConfigItem>
+    </ColumnConfigGrid>
+  );
+};
 
 type QueryNodeSelectProps = {
+  id?: string;
   nodeRef: QueryNodeRef | undefined;
   onChange?: (nodeRef: QueryNodeRef) => void;
 };
 
-const QueryNodeSelect: FC<QueryNodeSelectProps> = ({ nodeRef, onChange }) => {
+const QueryNodeSelect: FC<QueryNodeSelectProps> = ({
+  id,
+  nodeRef,
+  onChange,
+}) => {
   const { data: queryNodes, error, isPending } = useQueryNodes();
   const isExporting = useIsExporting();
   const disabled = isExporting;
@@ -51,6 +68,7 @@ const QueryNodeSelect: FC<QueryNodeSelectProps> = ({ nodeRef, onChange }) => {
   return (
     <Select
       disabled={disabled}
+      id={id}
       loading={isPending}
       onChange={(value) => {
         const index = parseInt(value);

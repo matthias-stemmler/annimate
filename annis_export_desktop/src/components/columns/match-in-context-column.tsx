@@ -4,17 +4,23 @@ import {
 } from '@/components/columns/layout';
 import { ColumnProps } from '@/components/columns/props';
 import { Select } from '@/components/ui/custom/select';
+import { Label } from '@/components/ui/label';
 import { useIsExporting, useSegmentations } from '@/lib/store';
-import { FC } from 'react';
+import { FC, useId } from 'react';
 
 export const MatchInContextColumn: FC<ColumnProps<'match_in_context'>> = ({
   data,
   onChange,
 }) => {
+  const segmentationSelectId = useId();
+
   return (
     <ColumnConfigGrid>
-      <ColumnConfigItem caption="Segmentation">
+      <ColumnConfigItem>
+        <Label htmlFor={segmentationSelectId}>Segmentation</Label>
+
         <SegmentationSelect
+          id={segmentationSelectId}
           segmentation={data.segmentation}
           onChange={(segmentation) => onChange({ segmentation })}
         />
@@ -24,11 +30,13 @@ export const MatchInContextColumn: FC<ColumnProps<'match_in_context'>> = ({
 };
 
 type SegmentationSelectProps = {
+  id?: string;
   segmentation: string | undefined;
   onChange?: (segmentation: string) => void;
 };
 
 const SegmentationSelect: FC<SegmentationSelectProps> = ({
+  id,
   segmentation,
   onChange,
 }) => {
@@ -43,6 +51,7 @@ const SegmentationSelect: FC<SegmentationSelectProps> = ({
   return (
     <Select
       disabled={disabled}
+      id={id}
       loading={isPending}
       onChange={(value) => onChange?.(value?.slice(1))}
       options={(segmentations ?? []).map((s) => ({
