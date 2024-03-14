@@ -131,7 +131,7 @@ export_matches_test! {
                 left_context: 4,
                 right_context: 4,
                 segmentation: None,
-                primary_node_indices: &[],
+                primary_node_indices: None,
             })),
         ],
     }
@@ -156,7 +156,7 @@ export_matches_test! {
                 left_context: 4,
                 right_context: 4,
                 segmentation: Some("diplomatic"),
-                primary_node_indices: &[],
+                primary_node_indices: None,
             })),
         ],
     }
@@ -181,7 +181,7 @@ export_matches_test! {
                 left_context: 4,
                 right_context: 4,
                 segmentation: Some("norm"),
-                primary_node_indices: &[],
+                primary_node_indices: None,
             })),
         ],
     }
@@ -210,7 +210,7 @@ export_matches_test! {
                 left_context: 1,
                 right_context: 1,
                 segmentation: None,
-                primary_node_indices: &[],
+                primary_node_indices: None,
             })),
         ],
     }
@@ -239,7 +239,7 @@ export_matches_test! {
                 left_context: 1,
                 right_context: 1,
                 segmentation: None,
-                primary_node_indices: &[],
+                primary_node_indices: None,
             })),
         ],
     }
@@ -260,7 +260,7 @@ export_matches_test! {
                 left_context: 1,
                 right_context: 1,
                 segmentation: Some("diplomatic"),
-                primary_node_indices: &[],
+                primary_node_indices: None,
             })),
         ],
     }
@@ -285,7 +285,7 @@ export_matches_test! {
                 left_context: 10,
                 right_context: 10,
                 segmentation: None,
-                primary_node_indices: &[1],
+                primary_node_indices: Some(&[1]),
             })),
         ],
     }
@@ -310,7 +310,7 @@ export_matches_test! {
                 left_context: 10,
                 right_context: 10,
                 segmentation: None,
-                primary_node_indices: &[1, 0],
+                primary_node_indices: Some(&[1, 0]),
             })),
         ],
     }
@@ -356,7 +356,7 @@ struct TestExportDataText {
     left_context: usize,
     right_context: usize,
     segmentation: Option<&'static str>,
-    primary_node_indices: &'static [usize],
+    primary_node_indices: Option<&'static [usize]>,
 }
 
 impl From<TestCsvExportColumn> for CsvExportColumn {
@@ -399,7 +399,7 @@ impl From<TestCsvExportColumn> for CsvExportColumn {
                     left_context,
                     right_context,
                     segmentation: segmentation.map(|s| s.to_string()),
-                    primary_node_indices: primary_node_indices.into(),
+                    primary_node_indices: primary_node_indices.map(Into::into),
                 }),
             }),
         }

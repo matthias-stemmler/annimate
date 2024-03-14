@@ -22,7 +22,7 @@ use graphannis_core::{
     errors::GraphAnnisCoreError,
     types::{AnnoKey, NodeID},
 };
-use itertools::{Either, Itertools};
+use itertools::Itertools;
 use std::{
     collections::{HashMap, HashSet},
     iter::{self, successors, StepBy},
@@ -44,7 +44,7 @@ impl ExportData {
     pub(crate) fn node_indices(&self) -> &[usize] {
         match self {
             ExportData::Anno(ExportDataAnno::MatchNode { index, .. }) => slice::from_ref(index),
-            ExportData::Text(text) => &text.primary_node_indices,
+            ExportData::Text(text) => text.primary_node_indices.as_deref().unwrap_or(&[]),
             _ => &[],
         }
     }
@@ -62,7 +62,7 @@ pub struct ExportDataText {
     pub left_context: usize,
     pub right_context: usize,
     pub segmentation: Option<String>,
-    pub primary_node_indices: Vec<usize>,
+    pub primary_node_indices: Option<Vec<usize>>,
 }
 
 impl ExportDataText {
@@ -520,11 +520,9 @@ fn get_parts(
         primary_node_indices,
     } = export_data;
 
-    let primary_node_indices = if primary_node_indices.is_empty() {
-        Either::Left(0..match_node_names.len())
-    } else {
-        Either::Right(primary_node_indices.iter().copied())
-    };
+    let primary_node_indices = primary_node_indices
+        .clone()
+        .unwrap_or_else(|| (0..match_node_names.len()).collect());
 
     let subgraph = storage.subgraph(
         corpus_name,
@@ -538,20 +536,16 @@ fn get_parts(
     let gap_storage = subgraph.get_graphstorage_as_ref(gap_ordering_component());
     let node_annos = subgraph.get_node_annos();
 
-    let primary_match_node_ids_with_index: Vec<_> = {
-        primary_node_indices
-            .map(|node_index| {
-                node_name_to_node_id(&subgraph, &match_node_names[node_index])
-                    .map(|node_id| (node_id, node_index))
-            })
-            .collect::<Result<_, _>>()
-    }?;
+    let match_node_ids: Vec<_> = match_node_names
+        .into_iter()
+        .map(|node_name| node_name_to_node_id(&subgraph, &node_name))
+        .try_collect()?;
 
     let mut seen_token_ids = HashSet::<NodeID>::new();
     let mut chains = HashMap::new();
     let mut chain_ids_with_predecessor = HashSet::new();
 
-    for &(match_node_id, _) in &primary_match_node_ids_with_index {
+    for &match_node_id in &match_node_ids {
         let Some(token_id) = graph_helper.get_covered_token_id(match_node_id)? else {
             continue;
         };
@@ -625,13 +619,13 @@ fn get_parts(
                 .expect("Value is present by choice of fragment_node_id")
                 .to_string();
 
-            let match_node_index = primary_match_node_ids_with_index
+            let match_node_index = primary_node_indices
                 .clone()
                 .into_iter()
                 .cartesian_product(token_ids.iter())
-                .find_map(|((match_node_id, node_index), &token_id)| {
+                .find_map(|(node_index, &token_id)| {
                     graph_helper
-                        .is_covering_node_id(match_node_id, token_id)
+                        .is_covering_node_id(match_node_ids[node_index], token_id)
                         .map(|is_covering| is_covering.then_some(node_index))
                         .transpose()
                 })

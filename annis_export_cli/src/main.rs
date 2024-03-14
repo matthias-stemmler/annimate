@@ -197,13 +197,15 @@ fn parse_csv_export_column(s: &str) -> anyhow::Result<CsvExportColumn> {
             left_context: left_context.parse().context("invalid left context")?,
             right_context: right_context.parse().context("invalid right context")?,
             primary_node_indices: if primary_node_indices.is_empty() {
-                Vec::new()
+                None
             } else {
-                primary_node_indices
-                    .split('>')
-                    .map(|i| i.parse())
-                    .try_collect()
-                    .context("invalid primary node indices")?
+                Some(
+                    primary_node_indices
+                        .split('>')
+                        .map(|i| i.parse())
+                        .try_collect()
+                        .context("invalid primary node indices")?,
+                )
             },
         })))
     } else {

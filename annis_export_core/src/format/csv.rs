@@ -136,10 +136,11 @@ impl Exporter for CsvExporter {
                             match c {
                                 (Match, _) if max_match_parts <= 1 => "Match".into(),
                                 (Match, i) => format!("Match {}", i + 1),
-                                (Context, 0) if max_match_parts <= 1 && text.has_left_context() => {
+                                (Context, 0) if max_match_parts == 0 => "Context".into(),
+                                (Context, 0) if max_match_parts == 1 && text.has_left_context() => {
                                     "Left context".into()
                                 }
-                                (Context, _) if max_match_parts <= 1 => "Right context".into(),
+                                (Context, _) if max_match_parts == 1 => "Right context".into(),
                                 (Context, i) => format!("Context {}", i + 1),
                             },
                             text.segmentation.as_deref().unwrap_or("tokens")
@@ -264,17 +265,20 @@ impl Iterator for TextColumns {
 #[derive(Clone, Copy, Debug)]
 struct ColumnTypes {
     column_count: usize,
+    has_match: bool,
     has_left_context: bool,
     has_right_context: bool,
 }
 
 impl ColumnTypes {
     fn new(match_count: usize, data: &ExportDataText) -> Self {
+        let has_match = match_count > 0;
         let has_left_context = data.has_left_context();
         let has_right_context = data.has_right_context();
 
         let column_count = match (match_count, has_left_context, has_right_context) {
-            (0, _, _) => 0,
+            (0, false, false) => 0,
+            (0, _, _) => 1,
             (n, false, false) => n,
             (n, true, false) | (n, false, true) => 2 * n,
             (n, true, true) => 2 * n + 1,
@@ -282,6 +286,7 @@ impl ColumnTypes {
 
         Self {
             column_count,
+            has_match,
             has_left_context,
             has_right_context,
         }
@@ -295,6 +300,7 @@ impl IntoIterator for ColumnTypes {
     fn into_iter(self) -> Self::IntoIter {
         ColumnTypesIter {
             column_indices: 0..self.column_count,
+            has_match: self.has_match,
             has_left_context: self.has_left_context,
             has_right_context: self.has_right_context,
         }
@@ -304,6 +310,7 @@ impl IntoIterator for ColumnTypes {
 #[derive(Debug)]
 struct ColumnTypesIter {
     column_indices: Range<usize>,
+    has_match: bool,
     has_left_context: bool,
     has_right_context: bool,
 }
@@ -316,12 +323,14 @@ impl Iterator for ColumnTypesIter {
 
         Some(
             match (
+                self.has_match,
                 self.has_left_context,
                 self.has_right_context,
                 column_index % 2,
             ) {
-                (false, false, _) => (Match, column_index),
-                (false, _, 0) | (true, _, 1) => (Match, column_index / 2),
+                (false, _, _, _) => (Context, column_index),
+                (_, false, false, _) => (Match, column_index),
+                (_, false, _, 0) | (_, true, _, 1) => (Match, column_index / 2),
                 _ => (Context, column_index / 2),
             },
         )
@@ -354,7 +363,7 @@ mod tests {
                     left_context: $left_context,
                     right_context: $right_context,
                     segmentation: None,
-                    primary_node_indices: Vec::new(),
+                    primary_node_indices: None,
                 };
 
                 let export_data_anno_doc = ExportDataAnno::Document {
@@ -397,22 +406,34 @@ mod tests {
     }
 
     csv_exporter_test! {
-        no_match_both_contexts: context=(1, 1), matches = [] => "
+        no_match_no_context: context=(0, 0), matches = [] => "
             Number,Document
+        "
+
+        no_match_only_left_context: context=(1, 0), matches = [] => "
+            Number,Document,Context (tokens)
+        "
+
+        no_match_only_right_context: context=(0, 1), matches = [] => "
+            Number,Document,Context (tokens)
+        "
+
+        no_match_both_contexts: context=(1, 1), matches = [] => "
+            Number,Document,Context (tokens)
         "
 
         no_match_node_both_contexts_no_parts: context=(1, 1), matches = [
             {doc_name = "doc1", parts = []}
         ] => "
-            Number,Document
-            1,doc1
+            Number,Document,Context (tokens)
+            1,doc1,
         "
 
         no_match_node_both_contexts_some_parts: context=(1, 1), matches = [
             {doc_name = "doc1", parts = [(C "111") (G) (C "222")]}
         ] => "
-            Number,Document
-            1,doc1
+            Number,Document,Context (tokens)
+            1,doc1,111 (...) 222
         "
 
         one_match_node_no_context: context=(0, 0), matches = [

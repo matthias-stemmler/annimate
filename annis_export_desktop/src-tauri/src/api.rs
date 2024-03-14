@@ -168,7 +168,7 @@ impl From<ExportColumn> for CsvExportColumn {
                 left_context: context,
                 right_context: context_right_override.unwrap_or(context),
                 segmentation: (!segmentation.is_empty()).then_some(segmentation),
-                primary_node_indices: Vec::new(),
+                primary_node_indices: None,
             })),
         }
     }
