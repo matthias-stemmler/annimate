@@ -88,6 +88,8 @@ const createExportColumn = (type: ExportColumnType): ExportColumn => {
     case 'match_in_context':
       return {
         type: 'match_in_context',
+        context: 20,
+        contextRightOverride: undefined,
         segmentation: '',
       };
   }
@@ -295,7 +297,12 @@ const isExportColumnValid = (exportColumn: ExportColumn): boolean => {
       );
 
     case 'match_in_context':
-      return exportColumn.segmentation !== undefined;
+      return (
+        !isNaN(exportColumn.context) &&
+        (exportColumn.contextRightOverride === undefined ||
+          !isNaN(exportColumn.contextRightOverride)) &&
+        exportColumn.segmentation !== undefined
+      );
 
     default:
       return true;

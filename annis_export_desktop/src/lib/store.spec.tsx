@@ -317,6 +317,7 @@ describe('store', () => {
         {
           id: 3,
           type: 'match_in_context',
+          context: 20,
         },
       ]);
     });
@@ -332,6 +333,7 @@ describe('store', () => {
         {
           id: 3,
           type: 'match_in_context',
+          context: 20,
         },
         {
           id: 1,
@@ -351,6 +353,7 @@ describe('store', () => {
         {
           id: 3,
           type: 'match_in_context',
+          context: 20,
         },
         {
           id: 1,
@@ -558,6 +561,7 @@ describe('store', () => {
         {
           id: 1,
           type: 'match_in_context',
+          context: 20,
           segmentation: '',
         },
       ]);
@@ -573,6 +577,7 @@ describe('store', () => {
         {
           id: 1,
           type: 'match_in_context',
+          context: 20,
           segmentation: 'segmentation',
         },
       ]);
@@ -585,6 +590,7 @@ describe('store', () => {
         {
           id: 1,
           type: 'match_in_context',
+          context: 20,
           segmentation: undefined,
         },
       ]);
@@ -597,6 +603,7 @@ describe('store', () => {
         {
           id: 1,
           type: 'match_in_context',
+          context: 20,
           segmentation: 'segmentation',
         },
       ]);
@@ -770,6 +777,8 @@ describe('store', () => {
         }),
         expect.objectContaining({
           type: 'match_in_context',
+          context: 20,
+          contextRightOverride: undefined,
           segmentation: 'segmentation',
         }),
       ],

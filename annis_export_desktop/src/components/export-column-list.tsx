@@ -154,6 +154,7 @@ export const ExportColumnList: FC = () => {
                         )}
                         {...dragHandleAttributes}
                         {...dragHandleListeners}
+                        tabIndex={-1}
                       >
                         {COLUMN_TYPE_TO_NAME[item.type]}
                       </p>

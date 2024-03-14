@@ -35,6 +35,8 @@ export type ExportColumn =
     }
   | {
       type: 'match_in_context';
+      context: number;
+      contextRightOverride: number | undefined;
       segmentation: string | undefined;
     };
 
