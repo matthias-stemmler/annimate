@@ -84,7 +84,7 @@ const QueryNodeSelect: FC<QueryNodeSelectProps> = ({
 
         return {
           caption: (
-            <div className="flex gap-2 mr-2">
+            <div className="flex gap-2 mr-2 font-mono">
               {options.map(([queryFragment, nodesForQueryFragment]) => (
                 <div
                   key={queryFragment}
