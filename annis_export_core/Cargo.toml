@@ -8,8 +8,8 @@ serde = ["dep:serde"]
 
 [dependencies]
 csv = "1.0"
-graphannis = "3.1"
-graphannis-core = "3.1"
+graphannis = "3.2"
+graphannis-core = "3.2"
 itertools = { workspace = true }
 regex = { workspace = true }
 serde = { workspace = true, optional = true }

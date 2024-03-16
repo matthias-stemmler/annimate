@@ -686,6 +686,10 @@ fn get_parts(
         }
     }
 
+    if !chains.is_empty() {
+        return Err(AnnisExportError::FailedToOrderChains);
+    }
+
     Ok(parts)
 }
 
