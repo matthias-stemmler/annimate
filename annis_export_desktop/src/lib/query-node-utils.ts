@@ -1,26 +1,12 @@
-import { QueryNode, QueryNodeRef } from '@/lib/api-types';
+import { QueryNodeRef } from '@/lib/api-types';
 
-export const findEligibleQueryNodeRef = (
-  eligibleNodes: QueryNode[][] | undefined,
-  nodeRef: QueryNodeRef | undefined,
-): QueryNodeRef | undefined => {
-  if (eligibleNodes === undefined || nodeRef === undefined) {
-    return undefined;
-  }
+export const findEligibleQueryNodeRefIndex = (
+  eligibleNodeRefs: QueryNodeRef[],
+  nodeRef: QueryNodeRef,
+): number | undefined => {
+  const indices = eligibleNodeRefs
+    .filter((n) => n.variables.some((v) => nodeRef.variables.includes(v)))
+    .map((n) => n.index);
 
-  const indices = eligibleNodes
-    .map((ns, i): [QueryNode[], number] => [ns, i])
-    .filter(([ns]) => ns.some((n) => nodeRef.variables.includes(n.variable)))
-    .map(([, i]) => i);
-
-  const index: number | undefined = indices.includes(nodeRef.index)
-    ? nodeRef.index
-    : indices[0];
-
-  return index === undefined
-    ? undefined
-    : {
-        index,
-        variables: eligibleNodes[index].map((n) => n.variable),
-      };
+  return indices.includes(nodeRef.index) ? nodeRef.index : indices[0];
 };

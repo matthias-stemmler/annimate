@@ -2,6 +2,7 @@ import {
   filterEligible,
   groupBy,
   lineColumnToCharacterIndex,
+  uniq,
 } from '@/lib/utils';
 import { describe, expect, it } from 'vitest';
 
@@ -83,6 +84,27 @@ describe('utils', () => {
         expectedGroups: readonly (readonly [number, readonly string[]])[],
       ) => {
         expect(groupBy(items, (s) => s.length)).toEqual(expectedGroups);
+      },
+    );
+  });
+
+  describe('uniq', () => {
+    it.each([
+      [[], []],
+      [['a'], ['a']],
+      [
+        ['a', 'b'],
+        ['a', 'b'],
+      ],
+      [['a', 'a', 'a'], ['a']],
+      [
+        ['a', 'b', 'b', 'a'],
+        ['a', 'b'],
+      ],
+    ] as const)(
+      'returns unique items (%j)',
+      (items: readonly string[], expectedUniqueItems: readonly string[]) => {
+        expect(uniq(items)).toEqual(expectedUniqueItems);
       },
     );
   });

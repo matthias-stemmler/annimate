@@ -5,6 +5,7 @@ import {
   ExportableAnnoKey,
   ExportableAnnoKeys,
   QueryLanguage,
+  QueryNode,
   QueryNodeRef,
   QueryNodesResult,
   QueryValidationResult,
@@ -21,7 +22,7 @@ import {
   useQueryValidationResultQuery,
   useSegmentationsQuery,
 } from '@/lib/queries';
-import { findEligibleQueryNodeRef } from '@/lib/query-node-utils';
+import { findEligibleQueryNodeRefIndex } from '@/lib/query-node-utils';
 import { filterEligible } from '@/lib/utils';
 import { UseQueryResult } from '@tanstack/react-query';
 import { createContext, useContext } from 'react';
@@ -283,7 +284,7 @@ const toExportColumns = (
               column.annoKey,
             ),
             nodeRef: findEligibleQueryNodeRef(
-              queryNodes?.type === 'valid' ? queryNodes.nodes : undefined,
+              queryNodes?.type === 'valid' ? queryNodes.nodes : [],
               column.nodeRef,
             ),
           };
@@ -302,6 +303,24 @@ const toExportColumns = (
           return column;
       }
     });
+
+const findEligibleQueryNodeRef = (
+  nodes: QueryNode[][],
+  nodeRef: QueryNodeRef | undefined,
+) => {
+  if (nodeRef === undefined) {
+    return undefined;
+  }
+
+  const nodeRefs = nodes.map((ns, index) => ({
+    index,
+    variables: ns.map((n) => n.variable),
+  }));
+
+  const nodeRefIndex = findEligibleQueryNodeRefIndex(nodeRefs, nodeRef);
+
+  return nodeRefIndex === undefined ? undefined : nodeRefs[nodeRefIndex];
+};
 
 const filterEligibleAnnoKey = (
   eligibleAnnoKeys: ExportableAnnoKey[] | undefined,

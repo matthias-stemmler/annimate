@@ -54,3 +54,13 @@ export const groupBy = <K, T>(
 
   return groups;
 };
+
+export const uniq = <T>(items: readonly T[]): T[] => {
+  const result: T[] = [];
+  for (const item of items) {
+    if (!result.includes(item)) {
+      result.push(item);
+    }
+  }
+  return result;
+};

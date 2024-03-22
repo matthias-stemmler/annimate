@@ -1,87 +1,60 @@
-import { QueryNode, QueryNodeRef } from '@/lib/api-types';
-import { findEligibleQueryNodeRef } from '@/lib/query-node-utils';
+import { QueryNodeRef } from '@/lib/api-types';
+import { findEligibleQueryNodeRefIndex } from '@/lib/query-node-utils';
 import { describe, expect, it } from 'vitest';
 
 describe('query-node-utils', () => {
-  describe('findEligibleQueryNodeRef', () => {
+  describe('findEligibleQueryNodeRefIndex', () => {
     it.each([
       [
         'given node ref uniquely eligible -> chooses it',
         [
-          [{ variable: 'a', queryFragment: '' }],
-          [
-            { variable: 'b', queryFragment: '' },
-            { variable: 'c', queryFragment: '' },
-          ],
-          [{ variable: 'd', queryFragment: '' }],
+          { index: 0, variables: ['a'] },
+          { index: 1, variables: ['b', 'c'] },
+          { index: 2, variables: ['d'] },
         ],
         { index: 1, variables: ['b'] },
-        { index: 1, variables: ['b', 'c'] },
+        1,
       ],
       [
         'given node ref non-uniquely eligible -> chooses it',
         [
-          [
-            { variable: 'a', queryFragment: '' },
-            { variable: 'b', queryFragment: '' },
-          ],
-          [
-            { variable: 'b', queryFragment: '' },
-            { variable: 'c', queryFragment: '' },
-          ],
-          [{ variable: 'd', queryFragment: '' }],
+          { index: 0, variables: ['a', 'b'] },
+          { index: 1, variables: ['b', 'c'] },
+          { index: 2, variables: ['d'] },
         ],
         { index: 1, variables: ['b'] },
-        { index: 1, variables: ['b', 'c'] },
+        1,
       ],
       [
         'only other node refs eligible -> chooses first eligible',
         [
-          [
-            { variable: 'a', queryFragment: '' },
-            { variable: 'b', queryFragment: '' },
-          ],
-          [{ variable: 'c', queryFragment: '' }],
-          [
-            { variable: 'b', queryFragment: '' },
-            { variable: 'd', queryFragment: '' },
-          ],
+          { index: 0, variables: ['a', 'b'] },
+          { index: 1, variables: ['c'] },
+          { index: 2, variables: ['b', 'd'] },
         ],
         { index: 1, variables: ['b'] },
-        { index: 0, variables: ['a', 'b'] },
+        0,
       ],
       [
         'no node refs eligible -> chooses none',
         [
-          [{ variable: 'a', queryFragment: '' }],
-          [{ variable: 'c', queryFragment: '' }],
-          [{ variable: 'd', queryFragment: '' }],
+          { index: 0, variables: ['a'] },
+          { index: 1, variables: ['c'] },
+          { index: 2, variables: ['d'] },
         ],
         { index: 1, variables: ['b'] },
-        undefined,
-      ],
-      [
-        'node ref undefined -> chooses none',
-        [[{ variable: '1', queryFragment: '' }]],
-        undefined,
-        undefined,
-      ],
-      [
-        'eligible nodes undefined -> chooses none',
-        undefined,
-        { index: 0, variables: ['1'] },
         undefined,
       ],
     ])(
       'finds eligible query node ref (%s)',
       (
         _description: string,
-        eligibleNodes: QueryNode[][] | undefined,
-        nodeRef: QueryNodeRef | undefined,
-        expectedEligibleNodeRef: QueryNodeRef | undefined,
+        eligibleNodeRefs: QueryNodeRef[],
+        nodeRef: QueryNodeRef,
+        expectedEligibleIndex: number | undefined,
       ) => {
-        expect(findEligibleQueryNodeRef(eligibleNodes, nodeRef)).toEqual(
-          expectedEligibleNodeRef,
+        expect(findEligibleQueryNodeRefIndex(eligibleNodeRefs, nodeRef)).toBe(
+          expectedEligibleIndex,
         );
       },
     );

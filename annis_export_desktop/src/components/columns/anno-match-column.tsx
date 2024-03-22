@@ -8,7 +8,7 @@ import { Select, SelectOption } from '@/components/ui/custom/select';
 import { Label } from '@/components/ui/label';
 import { QueryNodeRef } from '@/lib/api-types';
 import { useIsExporting, useQueryNodes } from '@/lib/store';
-import { groupBy } from '@/lib/utils';
+import { groupBy, uniq } from '@/lib/utils';
 import { FC, useId } from 'react';
 
 export const AnnoMatchColumn: FC<ColumnProps<'anno_match'>> = ({
@@ -90,14 +90,16 @@ const QueryNodeSelect: FC<QueryNodeSelectProps> = ({
                   key={queryFragment}
                   className="min-w-0 flex items-center gap-2 px-2 bg-gray-500 text-white rounded-sm"
                 >
-                  {nodesForQueryFragment.map(({ variable }, i) => (
-                    <span
-                      key={i}
-                      className="max-w-32 overflow-hidden text-ellipsis font-semibold"
-                    >
-                      #{variable}
-                    </span>
-                  ))}
+                  {uniq(nodesForQueryFragment.map((n) => n.variable)).map(
+                    (variable, i) => (
+                      <span
+                        key={i}
+                        className="max-w-32 overflow-hidden text-ellipsis font-semibold"
+                      >
+                        #{variable}
+                      </span>
+                    ),
+                  )}
                   <span className="flex-1 max-w-64 overflow-hidden text-ellipsis">
                     {queryFragment}
                   </span>
