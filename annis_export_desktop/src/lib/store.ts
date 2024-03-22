@@ -1,11 +1,11 @@
 import {
   AnnoKey,
   ExportColumn,
-  ExportColumnData,
   ExportColumnType,
   ExportableAnnoKey,
   ExportableAnnoKeys,
   QueryLanguage,
+  QueryNodeRef,
   QueryNodesResult,
   QueryValidationResult,
 } from '@/lib/api-types';
@@ -33,6 +33,50 @@ export type ExportColumnItem = ExportColumn & {
   id: number;
   removalIndex?: number;
 };
+
+export type ExportColumnUpdate =
+  | {
+      type: 'anno_corpus';
+      payload: {
+        type: 'update_anno_key';
+        annoKey: AnnoKey;
+      };
+    }
+  | {
+      type: 'anno_document';
+      payload: {
+        type: 'update_anno_key';
+        annoKey: AnnoKey;
+      };
+    }
+  | {
+      type: 'anno_match';
+      payload:
+        | {
+            type: 'update_anno_key';
+            annoKey: AnnoKey;
+          }
+        | {
+            type: 'update_node_ref';
+            nodeRef: QueryNodeRef;
+          };
+    }
+  | {
+      type: 'match_in_context';
+      payload:
+        | {
+            type: 'update_context';
+            context: number;
+          }
+        | {
+            type: 'update_context_right_override';
+            contextRightOverride: number | undefined;
+          }
+        | {
+            type: 'update_segmentation';
+            segmentation: string | undefined;
+          };
+    };
 
 export type State = {
   selectedCorpusNames: string[];
@@ -391,17 +435,32 @@ export const useAddExportColumn = (): ((type: ExportColumnType) => void) => {
   };
 };
 
-export const useUpdateExportColumn = <T extends ExportColumnType>(): ((
+export const useUpdateExportColumn = (): ((
   id: number,
-  exportColumn: Partial<ExportColumnData<T>>,
+  update: ExportColumnUpdate,
 ) => void) => {
   const setState = useSetState();
 
-  return (id: number, exportColumn: Partial<ExportColumnData<T>>) => {
+  return (id: number, { type, payload }: ExportColumnUpdate) => {
     setState((state) => ({
-      exportColumns: state.exportColumns.map((c) =>
-        c.id === id ? { ...c, ...exportColumn } : c,
-      ),
+      exportColumns: state.exportColumns.map((c) => {
+        if (c.id !== id || c.type !== type) {
+          return c;
+        }
+
+        switch (payload.type) {
+          case 'update_anno_key':
+            return { ...c, annoKey: payload.annoKey };
+          case 'update_node_ref':
+            return { ...c, nodeRef: payload.nodeRef };
+          case 'update_context':
+            return { ...c, context: payload.context };
+          case 'update_context_right_override':
+            return { ...c, contextRightOverride: payload.contextRightOverride };
+          case 'update_segmentation':
+            return { ...c, segmentation: payload.segmentation };
+        }
+      }),
     }));
   };
 };

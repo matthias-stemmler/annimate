@@ -29,16 +29,21 @@ export const MatchInContextColumn: FC<ColumnProps<'match_in_context'>> = ({
         <SegmentationSelect
           id={segmentationSelectId}
           segmentation={data.segmentation}
-          onChange={(segmentation) => onChange({ segmentation })}
+          onChange={(segmentation) =>
+            onChange({ type: 'update_segmentation', segmentation })
+          }
         />
       </ColumnConfigItem>
 
       <ContextInput
         value={data.context}
         valueRightOverride={data.contextRightOverride}
-        onChange={(context) => onChange({ context })}
+        onChange={(context) => onChange({ type: 'update_context', context })}
         onChangeRightOverride={(contextRightOverride) =>
-          onChange({ contextRightOverride })
+          onChange({
+            type: 'update_context_right_override',
+            contextRightOverride,
+          })
         }
       />
     </ColumnConfigGrid>

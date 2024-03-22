@@ -27,7 +27,7 @@ export const AnnoMatchColumn: FC<ColumnProps<'anno_match'>> = ({
           annoKey={data.annoKey}
           category="node"
           id={annoSelectId}
-          onChange={(annoKey) => onChange({ annoKey })}
+          onChange={(annoKey) => onChange({ type: 'update_anno_key', annoKey })}
         />
       </ColumnConfigItem>
 
@@ -37,7 +37,7 @@ export const AnnoMatchColumn: FC<ColumnProps<'anno_match'>> = ({
         <QueryNodeSelect
           id={queryNodeSelectId}
           nodeRef={data.nodeRef}
-          onChange={(nodeRef) => onChange({ nodeRef })}
+          onChange={(nodeRef) => onChange({ type: 'update_node_ref', nodeRef })}
         />
       </ColumnConfigItem>
     </ColumnConfigGrid>

@@ -161,10 +161,10 @@ export const ExportColumnList: FC = () => {
                       {item.type === 'anno_corpus' && (
                         <AnnoCorpusColumn
                           data={item}
-                          onChange={(data) =>
+                          onChange={(payload) =>
                             updateExportColumn(item.id, {
                               type: item.type,
-                              ...data,
+                              payload,
                             })
                           }
                         />
@@ -172,10 +172,10 @@ export const ExportColumnList: FC = () => {
                       {item.type === 'anno_document' && (
                         <AnnoDocumentColumn
                           data={item}
-                          onChange={(data) =>
+                          onChange={(payload) =>
                             updateExportColumn(item.id, {
                               type: item.type,
-                              ...data,
+                              payload,
                             })
                           }
                         />
@@ -183,10 +183,10 @@ export const ExportColumnList: FC = () => {
                       {item.type === 'anno_match' && (
                         <AnnoMatchColumn
                           data={item}
-                          onChange={(data) =>
+                          onChange={(payload) =>
                             updateExportColumn(item.id, {
                               type: item.type,
-                              ...data,
+                              payload,
                             })
                           }
                         />
@@ -194,10 +194,10 @@ export const ExportColumnList: FC = () => {
                       {item.type === 'match_in_context' && (
                         <MatchInContextColumn
                           data={item}
-                          onChange={(data) =>
+                          onChange={(payload) =>
                             updateExportColumn(item.id, {
                               type: item.type,
-                              ...data,
+                              payload,
                             })
                           }
                         />

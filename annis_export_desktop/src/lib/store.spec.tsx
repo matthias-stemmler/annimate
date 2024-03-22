@@ -1,7 +1,6 @@
 import { StoreProvider } from '@/components/store-provider';
 import {
   AnnoKey,
-  ExportColumn,
   ExportColumnType,
   ExportableAnnoKeys,
   QueryLanguage,
@@ -9,6 +8,7 @@ import {
   QueryValidationResult,
 } from '@/lib/api-types';
 import {
+  ExportColumnUpdate,
   useAddExportColumn,
   useAqlQuery,
   useCanExport,
@@ -280,7 +280,13 @@ describe('store', () => {
       ]);
     });
 
-    result.current.updateExportColumn(2, { type: 'anno_match' });
+    result.current.updateExportColumn(2, {
+      type: 'anno_document',
+      payload: {
+        type: 'update_anno_key',
+        annoKey: ANNO_KEY_DOCUMENT,
+      },
+    });
 
     await waitFor(() => {
       expect(result.current.exportColumns).toEqual([
@@ -290,7 +296,8 @@ describe('store', () => {
         },
         {
           id: 2,
-          type: 'anno_match',
+          type: 'anno_document',
+          annoKey: ANNO_KEY_DOCUMENT,
         },
       ]);
     });
@@ -348,7 +355,8 @@ describe('store', () => {
       expect(result.current.exportColumns).toEqual([
         {
           id: 2,
-          type: 'anno_match',
+          type: 'anno_document',
+          annoKey: ANNO_KEY_DOCUMENT,
         },
         {
           id: 3,
@@ -386,7 +394,10 @@ describe('store', () => {
 
     result.current.updateExportColumn(1, {
       type: 'anno_corpus',
-      annoKey: ANNO_KEY_CORPUS,
+      payload: {
+        type: 'update_anno_key',
+        annoKey: ANNO_KEY_CORPUS,
+      },
     });
 
     await waitFor(() => {
@@ -401,7 +412,10 @@ describe('store', () => {
 
     result.current.updateExportColumn(1, {
       type: 'anno_corpus',
-      annoKey: ANNO_KEY_UNKNOWN,
+      payload: {
+        type: 'update_anno_key',
+        annoKey: ANNO_KEY_UNKNOWN,
+      },
     });
 
     await waitFor(() => {
@@ -438,7 +452,10 @@ describe('store', () => {
 
     result.current.updateExportColumn(1, {
       type: 'anno_document',
-      annoKey: ANNO_KEY_DOCUMENT,
+      payload: {
+        type: 'update_anno_key',
+        annoKey: ANNO_KEY_DOCUMENT,
+      },
     });
 
     await waitFor(() => {
@@ -453,7 +470,10 @@ describe('store', () => {
 
     result.current.updateExportColumn(1, {
       type: 'anno_document',
-      annoKey: ANNO_KEY_UNKNOWN,
+      payload: {
+        type: 'update_anno_key',
+        annoKey: ANNO_KEY_UNKNOWN,
+      },
     });
 
     await waitFor(() => {
@@ -492,8 +512,17 @@ describe('store', () => {
 
     result.current.updateExportColumn(1, {
       type: 'anno_match',
-      annoKey: ANNO_KEY_NODE,
-      nodeRef: { index: 0, variables: ['1'] },
+      payload: {
+        type: 'update_anno_key',
+        annoKey: ANNO_KEY_NODE,
+      },
+    });
+    result.current.updateExportColumn(1, {
+      type: 'anno_match',
+      payload: {
+        type: 'update_node_ref',
+        nodeRef: { index: 0, variables: ['1'] },
+      },
     });
 
     await waitFor(() => {
@@ -509,8 +538,17 @@ describe('store', () => {
 
     result.current.updateExportColumn(1, {
       type: 'anno_match',
-      annoKey: ANNO_KEY_UNKNOWN,
-      nodeRef: { index: 1, variables: ['1', '2'] },
+      payload: {
+        type: 'update_anno_key',
+        annoKey: ANNO_KEY_UNKNOWN,
+      },
+    });
+    result.current.updateExportColumn(1, {
+      type: 'anno_match',
+      payload: {
+        type: 'update_node_ref',
+        nodeRef: { index: 1, variables: ['1', '2'] },
+      },
     });
 
     await waitFor(() => {
@@ -526,8 +564,17 @@ describe('store', () => {
 
     result.current.updateExportColumn(1, {
       type: 'anno_match',
-      annoKey: ANNO_KEY_NODE,
-      nodeRef: { index: 0, variables: ['2'] },
+      payload: {
+        type: 'update_anno_key',
+        annoKey: ANNO_KEY_NODE,
+      },
+    });
+    result.current.updateExportColumn(1, {
+      type: 'anno_match',
+      payload: {
+        type: 'update_node_ref',
+        nodeRef: { index: 0, variables: ['2'] },
+      },
     });
 
     await waitFor(() => {
@@ -569,7 +616,10 @@ describe('store', () => {
 
     result.current.updateExportColumn(1, {
       type: 'match_in_context',
-      segmentation: 'segmentation',
+      payload: {
+        type: 'update_segmentation',
+        segmentation: 'segmentation',
+      },
     });
 
     await waitFor(() => {
@@ -614,10 +664,7 @@ describe('store', () => {
     toggleCorpus: (corpusName: string) => void;
     setAqlQuery: (aqlQuery: string) => void;
     addExportColumn: (type: ExportColumnType) => void;
-    updateExportColumn: (
-      id: number,
-      exportColumn: Partial<ExportColumn>,
-    ) => void;
+    updateExportColumn: (id: number, update: ExportColumnUpdate) => void;
   };
 
   const allChanges: ((c: ChangeContext) => void)[] = [
@@ -627,26 +674,45 @@ describe('store', () => {
     (c) =>
       c.updateExportColumn(1, {
         type: 'anno_corpus',
-        annoKey: ANNO_KEY_CORPUS,
+        payload: {
+          type: 'update_anno_key',
+          annoKey: ANNO_KEY_CORPUS,
+        },
       }),
     (c) => c.addExportColumn('anno_document'),
     (c) =>
       c.updateExportColumn(2, {
         type: 'anno_document',
-        annoKey: ANNO_KEY_DOCUMENT,
+        payload: {
+          type: 'update_anno_key',
+          annoKey: ANNO_KEY_DOCUMENT,
+        },
       }),
     (c) => c.addExportColumn('anno_match'),
     (c) =>
       c.updateExportColumn(3, {
         type: 'anno_match',
-        annoKey: ANNO_KEY_NODE,
-        nodeRef: { index: 0, variables: ['1'] },
+        payload: {
+          type: 'update_anno_key',
+          annoKey: ANNO_KEY_NODE,
+        },
+      }),
+    (c) =>
+      c.updateExportColumn(3, {
+        type: 'anno_match',
+        payload: {
+          type: 'update_node_ref',
+          nodeRef: { index: 0, variables: ['1'] },
+        },
       }),
     (c) => c.addExportColumn('match_in_context'),
     (c) =>
       c.updateExportColumn(4, {
         type: 'match_in_context',
-        segmentation: 'segmentation',
+        payload: {
+          type: 'update_segmentation',
+          segmentation: 'segmentation',
+        },
       }),
   ];
 
@@ -723,26 +789,44 @@ describe('store', () => {
     result.current.addExportColumn('anno_corpus');
     result.current.updateExportColumn(2, {
       type: 'anno_corpus',
-      annoKey: ANNO_KEY_CORPUS,
+      payload: {
+        type: 'update_anno_key',
+        annoKey: ANNO_KEY_CORPUS,
+      },
     });
 
     result.current.addExportColumn('anno_document');
     result.current.updateExportColumn(3, {
       type: 'anno_document',
-      annoKey: ANNO_KEY_DOCUMENT,
+      payload: {
+        type: 'update_anno_key',
+        annoKey: ANNO_KEY_DOCUMENT,
+      },
     });
 
     result.current.addExportColumn('anno_match');
     result.current.updateExportColumn(4, {
       type: 'anno_match',
-      annoKey: ANNO_KEY_NODE,
-      nodeRef: { index: 0, variables: ['1'] },
+      payload: {
+        type: 'update_anno_key',
+        annoKey: ANNO_KEY_NODE,
+      },
+    });
+    result.current.updateExportColumn(4, {
+      type: 'anno_match',
+      payload: {
+        type: 'update_node_ref',
+        nodeRef: { index: 0, variables: ['1'] },
+      },
     });
 
     result.current.addExportColumn('match_in_context');
     result.current.updateExportColumn(5, {
       type: 'match_in_context',
-      segmentation: 'segmentation',
+      payload: {
+        type: 'update_segmentation',
+        segmentation: 'segmentation',
+      },
     });
 
     await waitFor(() => {

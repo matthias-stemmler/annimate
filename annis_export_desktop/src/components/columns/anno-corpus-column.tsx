@@ -22,7 +22,7 @@ export const AnnoCorpusColumn: FC<ColumnProps<'anno_corpus'>> = ({
           annoKey={data.annoKey}
           category="corpus"
           id={annoSelectId}
-          onChange={(annoKey) => onChange({ annoKey })}
+          onChange={(annoKey) => onChange({ type: 'update_anno_key', annoKey })}
         />
       </ColumnConfigItem>
     </ColumnConfigGrid>
