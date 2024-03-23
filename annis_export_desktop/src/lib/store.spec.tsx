@@ -113,7 +113,10 @@ describe('store', () => {
             nodes:
               aqlQuery === ''
                 ? []
-                : [[{ queryFragment: 'foo', variable: '1' }]],
+                : [
+                    [{ queryFragment: 'foo', variable: '1' }],
+                    [{ queryFragment: 'bar', variable: '2' }],
+                  ],
           } satisfies QueryNodesResult;
         }
 
@@ -325,6 +328,8 @@ describe('store', () => {
           id: 3,
           type: 'match_in_context',
           context: 20,
+          primaryNodeRefs: [],
+          secondaryNodeRefs: [],
         },
       ]);
     });
@@ -341,6 +346,8 @@ describe('store', () => {
           id: 3,
           type: 'match_in_context',
           context: 20,
+          primaryNodeRefs: [],
+          secondaryNodeRefs: [],
         },
         {
           id: 1,
@@ -362,6 +369,8 @@ describe('store', () => {
           id: 3,
           type: 'match_in_context',
           context: 20,
+          primaryNodeRefs: [],
+          secondaryNodeRefs: [],
         },
         {
           id: 1,
@@ -547,7 +556,7 @@ describe('store', () => {
       type: 'anno_match',
       payload: {
         type: 'update_node_ref',
-        nodeRef: { index: 1, variables: ['1', '2'] },
+        nodeRef: { index: 2, variables: ['1', '2'] },
       },
     });
 
@@ -573,7 +582,7 @@ describe('store', () => {
       type: 'anno_match',
       payload: {
         type: 'update_node_ref',
-        nodeRef: { index: 0, variables: ['2'] },
+        nodeRef: { index: 0, variables: ['3'] },
       },
     });
 
@@ -595,12 +604,14 @@ describe('store', () => {
         exportColumns: useExportColumnItems(),
         addExportColumn: useAddExportColumn(),
         updateExportColumn: useUpdateExportColumn(),
+        setAqlQuery: useSetAqlQuery(),
         toggleCorpus: useToggleCorpus(),
       }),
       { wrapper: Wrapper },
     );
 
     result.current.toggleCorpus('a');
+    result.current.setAqlQuery('valid');
     result.current.addExportColumn('match_in_context');
 
     await waitFor(() => {
@@ -609,6 +620,11 @@ describe('store', () => {
           id: 1,
           type: 'match_in_context',
           context: 20,
+          primaryNodeRefs: [
+            { index: 0, variables: ['1'] },
+            { index: 1, variables: ['2'] },
+          ],
+          secondaryNodeRefs: [],
           segmentation: '',
         },
       ]);
@@ -628,6 +644,11 @@ describe('store', () => {
           id: 1,
           type: 'match_in_context',
           context: 20,
+          primaryNodeRefs: [
+            { index: 0, variables: ['1'] },
+            { index: 1, variables: ['2'] },
+          ],
+          secondaryNodeRefs: [],
           segmentation: 'segmentation',
         },
       ]);
@@ -641,6 +662,11 @@ describe('store', () => {
           id: 1,
           type: 'match_in_context',
           context: 20,
+          primaryNodeRefs: [
+            { index: 0, variables: ['1'] },
+            { index: 1, variables: ['2'] },
+          ],
+          secondaryNodeRefs: [],
           segmentation: undefined,
         },
       ]);
@@ -654,6 +680,122 @@ describe('store', () => {
           id: 1,
           type: 'match_in_context',
           context: 20,
+          primaryNodeRefs: [
+            { index: 0, variables: ['1'] },
+            { index: 1, variables: ['2'] },
+          ],
+          secondaryNodeRefs: [],
+          segmentation: 'segmentation',
+        },
+      ]);
+    });
+
+    result.current.updateExportColumn(1, {
+      type: 'match_in_context',
+      payload: {
+        type: 'update_context',
+        context: 42,
+      },
+    });
+
+    result.current.updateExportColumn(1, {
+      type: 'match_in_context',
+      payload: {
+        type: 'update_context_right_override',
+        contextRightOverride: 43,
+      },
+    });
+
+    await waitFor(() => {
+      expect(result.current.exportColumns).toEqual([
+        {
+          id: 1,
+          type: 'match_in_context',
+          context: 42,
+          contextRightOverride: 43,
+          primaryNodeRefs: [
+            { index: 0, variables: ['1'] },
+            { index: 1, variables: ['2'] },
+          ],
+          secondaryNodeRefs: [],
+          segmentation: 'segmentation',
+        },
+      ]);
+    });
+
+    result.current.updateExportColumn(1, {
+      type: 'match_in_context',
+      payload: {
+        type: 'toggle_primary_node_ref',
+        nodeRef: {
+          index: 0,
+          variables: ['1'],
+        },
+      },
+    });
+
+    await waitFor(() => {
+      expect(result.current.exportColumns).toEqual([
+        {
+          id: 1,
+          type: 'match_in_context',
+          context: 42,
+          contextRightOverride: 43,
+          primaryNodeRefs: [{ index: 1, variables: ['2'] }],
+          secondaryNodeRefs: [{ index: 0, variables: ['1'] }],
+          segmentation: 'segmentation',
+        },
+      ]);
+    });
+
+    result.current.updateExportColumn(1, {
+      type: 'match_in_context',
+      payload: {
+        type: 'toggle_primary_node_ref',
+        nodeRef: {
+          index: 0,
+          variables: ['1'],
+        },
+      },
+    });
+
+    await waitFor(() => {
+      expect(result.current.exportColumns).toEqual([
+        {
+          id: 1,
+          type: 'match_in_context',
+          context: 42,
+          contextRightOverride: 43,
+          primaryNodeRefs: [
+            { index: 1, variables: ['2'] },
+            { index: 0, variables: ['1'] },
+          ],
+          secondaryNodeRefs: [],
+          segmentation: 'segmentation',
+        },
+      ]);
+    });
+
+    result.current.updateExportColumn(1, {
+      type: 'match_in_context',
+      payload: {
+        type: 'reorder_primary_node_refs',
+        reorder: (primaryNodeRefs) => [...primaryNodeRefs].reverse(),
+      },
+    });
+
+    await waitFor(() => {
+      expect(result.current.exportColumns).toEqual([
+        {
+          id: 1,
+          type: 'match_in_context',
+          context: 42,
+          contextRightOverride: 43,
+          primaryNodeRefs: [
+            { index: 0, variables: ['1'] },
+            { index: 1, variables: ['2'] },
+          ],
+          secondaryNodeRefs: [],
           segmentation: 'segmentation',
         },
       ]);
@@ -863,6 +1005,10 @@ describe('store', () => {
           type: 'match_in_context',
           context: 20,
           contextRightOverride: undefined,
+          primaryNodeRefs: [
+            { index: 0, variables: ['1'] },
+            { index: 1, variables: ['2'] },
+          ],
           segmentation: 'segmentation',
         }),
       ],

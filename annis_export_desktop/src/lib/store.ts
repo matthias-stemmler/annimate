@@ -1,6 +1,7 @@
 import {
   AnnoKey,
   ExportColumn,
+  ExportColumnData,
   ExportColumnType,
   ExportableAnnoKey,
   ExportableAnnoKeys,
@@ -25,7 +26,7 @@ import {
 import { findEligibleQueryNodeRefIndex } from '@/lib/query-node-utils';
 import { filterEligible } from '@/lib/utils';
 import { UseQueryResult } from '@tanstack/react-query';
-import { createContext, useContext } from 'react';
+import { createContext, useCallback, useContext } from 'react';
 import { StoreApi, createStore, useStore } from 'zustand';
 
 const MAX_REMOVED_COLUMNS = 3;
@@ -72,6 +73,14 @@ export type ExportColumnUpdate =
         | {
             type: 'update_context_right_override';
             contextRightOverride: number | undefined;
+          }
+        | {
+            type: 'toggle_primary_node_ref';
+            nodeRef: QueryNodeRef;
+          }
+        | {
+            type: 'reorder_primary_node_refs';
+            reorder: (primaryNodeRefs: QueryNodeRef[]) => QueryNodeRef[];
           }
         | {
             type: 'update_segmentation';
@@ -135,6 +144,8 @@ const createExportColumn = (type: ExportColumnType): ExportColumn => {
         type: 'match_in_context',
         context: 20,
         contextRightOverride: undefined,
+        primaryNodeRefs: [],
+        secondaryNodeRefs: [],
         segmentation: '',
       };
   }
@@ -219,12 +230,10 @@ export const useExportColumnItems = (): ExportColumnItem[] => {
 
 export const useGetExportColumns = (): (() => Promise<ExportColumn[]>) => {
   const getSelectedCorpusNames = useGetSelectedCorpusNames();
-  const getAqlQueryDebounced = useGetAqlQueryDebounced();
-  const getQueryLanguage = useGetQueryLanguage();
 
   const getExportableAnnoKeysQueryData = useGetExportableAnnoKeysQueryData();
-  const getQueryNodesQueryData = useGetQueryNodesQueryData();
   const getSegmentationsQueryData = useGetSegmentationsQueryData();
+  const getQueryNodes = useGetQueryNodes();
 
   const getState = useGetState();
 
@@ -233,10 +242,7 @@ export const useGetExportColumns = (): (() => Promise<ExportColumn[]>) => {
     const exportableAnnoKeys = await getExportableAnnoKeysQueryData({
       corpusNames,
     });
-    const queryNodes = await getQueryNodesQueryData({
-      aqlQuery: getAqlQueryDebounced(),
-      queryLanguage: getQueryLanguage(),
-    });
+    const queryNodes = await getQueryNodes();
     const segmentations = await getSegmentationsQueryData({ corpusNames });
     const { exportColumns } = getState();
     return toExportColumns(
@@ -246,6 +252,18 @@ export const useGetExportColumns = (): (() => Promise<ExportColumn[]>) => {
       exportColumns,
     );
   };
+};
+
+const useGetQueryNodes = (): (() => Promise<QueryNodesResult>) => {
+  const getQueryNodesQueryData = useGetQueryNodesQueryData();
+  const getAqlQueryDebounced = useGetAqlQueryDebounced();
+  const getQueryLanguage = useGetQueryLanguage();
+
+  return () =>
+    getQueryNodesQueryData({
+      aqlQuery: getAqlQueryDebounced(),
+      queryLanguage: getQueryLanguage(),
+    });
 };
 
 const toExportColumns = (
@@ -284,43 +302,35 @@ const toExportColumns = (
               column.annoKey,
             ),
             nodeRef: findEligibleQueryNodeRef(
-              queryNodes?.type === 'valid' ? queryNodes.nodes : [],
+              toNodeRefs(queryNodes),
               column.nodeRef,
             ),
           };
 
-        case 'match_in_context':
+        case 'match_in_context': {
+          const { primaryNodeRefs, secondaryNodeRefs } =
+            distributeQueryNodeRefs(
+              toNodeRefs(queryNodes),
+              column.primaryNodeRefs,
+              column.secondaryNodeRefs,
+            );
+
           return {
             ...column,
+            primaryNodeRefs,
+            secondaryNodeRefs,
             segmentation: filterEligible(
               segmentations,
               column.segmentation,
               (a, b) => a === b,
             ),
           };
+        }
 
         default:
           return column;
       }
     });
-
-const findEligibleQueryNodeRef = (
-  nodes: QueryNode[][],
-  nodeRef: QueryNodeRef | undefined,
-) => {
-  if (nodeRef === undefined) {
-    return undefined;
-  }
-
-  const nodeRefs = nodes.map((ns, index) => ({
-    index,
-    variables: ns.map((n) => n.variable),
-  }));
-
-  const nodeRefIndex = findEligibleQueryNodeRefIndex(nodeRefs, nodeRef);
-
-  return nodeRefIndex === undefined ? undefined : nodeRefs[nodeRefIndex];
-};
 
 const filterEligibleAnnoKey = (
   eligibleAnnoKeys: ExportableAnnoKey[] | undefined,
@@ -331,6 +341,67 @@ const filterEligibleAnnoKey = (
     annoKey,
     (e, a) => e.annoKey.ns === a.ns && e.annoKey.name === a.name,
   );
+
+const findEligibleQueryNodeRef = (
+  nodeRefs: QueryNodeRef[],
+  nodeRef: QueryNodeRef | undefined,
+) => {
+  if (nodeRef === undefined) {
+    return undefined;
+  }
+
+  const nodeRefIndex = findEligibleQueryNodeRefIndex(nodeRefs, nodeRef);
+  return nodeRefIndex === undefined ? undefined : nodeRefs[nodeRefIndex];
+};
+
+const distributeQueryNodeRefs = (
+  nodeRefs: QueryNodeRef[],
+  primaryNodeRefs: QueryNodeRef[],
+  secondaryNodeRefs: QueryNodeRef[],
+): { primaryNodeRefs: QueryNodeRef[]; secondaryNodeRefs: QueryNodeRef[] } => {
+  const targetPrimaryNodeRefsWithPrio: [QueryNodeRef, number][] = [];
+  const targetSecondaryNodeRefs: QueryNodeRef[] = [];
+
+  for (const nodeRef of nodeRefs) {
+    const primaryIndex = findEligibleQueryNodeRefIndex(
+      primaryNodeRefs,
+      nodeRef,
+    );
+
+    if (primaryIndex !== undefined) {
+      targetPrimaryNodeRefsWithPrio.push([nodeRef, primaryIndex]);
+    } else if (
+      findEligibleQueryNodeRefIndex(secondaryNodeRefs, nodeRef) !== undefined
+    ) {
+      targetSecondaryNodeRefs.push(nodeRef);
+    } else {
+      targetPrimaryNodeRefsWithPrio.push([
+        nodeRef,
+        nodeRefs.length + nodeRef.index,
+      ]);
+    }
+  }
+
+  const targetPrimaryNodeRefs = targetPrimaryNodeRefsWithPrio
+    .sort(([, i], [, j]) => i - j)
+    .map(([n]) => n);
+
+  return {
+    primaryNodeRefs: targetPrimaryNodeRefs,
+    secondaryNodeRefs: targetSecondaryNodeRefs,
+  };
+};
+
+const toNodeRefs = (
+  queryNodesResult: QueryNodesResult | undefined,
+): QueryNodeRef[] => {
+  const queryNodes: QueryNode[][] =
+    queryNodesResult?.type === 'valid' ? queryNodesResult.nodes : [];
+  return queryNodes.map((ns, index) => ({
+    index,
+    variables: ns.map((n) => n.variable),
+  }));
+};
 
 export const useCanExport = (): boolean => {
   const selectedCorpusNames = useSelectedCorpusNames();
@@ -457,30 +528,119 @@ export const useAddExportColumn = (): ((type: ExportColumnType) => void) => {
 export const useUpdateExportColumn = (): ((
   id: number,
   update: ExportColumnUpdate,
-) => void) => {
+) => Promise<void>) => {
   const setState = useSetState();
+  const getQueryNodes = useGetQueryNodes();
 
-  return (id: number, { type, payload }: ExportColumnUpdate) => {
-    setState((state) => ({
-      exportColumns: state.exportColumns.map((c) => {
-        if (c.id !== id || c.type !== type) {
-          return c;
+  const update = useCallback(
+    <T extends ExportColumnType>(
+      id: number,
+      type: T,
+      getUpdate: (c: ExportColumnData<T>) => Partial<ExportColumnData<T>>,
+    ) =>
+      setState((state) => ({
+        exportColumns: state.exportColumns.map((c) =>
+          c.id === id && c.type === type
+            ? { ...c, ...getUpdate(c as unknown as ExportColumnData<T>) }
+            : c,
+        ),
+      })),
+    [setState],
+  );
+
+  return async (id: number, { type, payload }: ExportColumnUpdate) => {
+    switch (payload.type) {
+      case 'update_anno_key': {
+        update(id, type, () => ({ annoKey: payload.annoKey }));
+        return;
+      }
+
+      case 'update_node_ref': {
+        update(id, type, () => ({ nodeRef: payload.nodeRef }));
+        return;
+      }
+
+      case 'update_context': {
+        update(id, type, () => ({ context: payload.context }));
+        return;
+      }
+
+      case 'update_context_right_override': {
+        update(id, type, () => ({
+          contextRightOverride: payload.contextRightOverride,
+        }));
+        return;
+      }
+
+      case 'toggle_primary_node_ref': {
+        if (type !== 'match_in_context') {
+          return;
         }
 
-        switch (payload.type) {
-          case 'update_anno_key':
-            return { ...c, annoKey: payload.annoKey };
-          case 'update_node_ref':
-            return { ...c, nodeRef: payload.nodeRef };
-          case 'update_context':
-            return { ...c, context: payload.context };
-          case 'update_context_right_override':
-            return { ...c, contextRightOverride: payload.contextRightOverride };
-          case 'update_segmentation':
-            return { ...c, segmentation: payload.segmentation };
+        const queryNodes = await getQueryNodes();
+
+        update(id, type, (c: ExportColumnData<'match_in_context'>) => {
+          const { primaryNodeRefs, secondaryNodeRefs } =
+            distributeQueryNodeRefs(
+              toNodeRefs(queryNodes),
+              c.primaryNodeRefs,
+              c.secondaryNodeRefs,
+            );
+
+          const nodeRefToToggle = payload.nodeRef;
+
+          const isPrimary = secondaryNodeRefs.every(
+            (n) => n.index !== nodeRefToToggle.index,
+          );
+
+          return isPrimary
+            ? {
+                primaryNodeRefs: primaryNodeRefs.filter(
+                  (n) => n.index !== nodeRefToToggle.index,
+                ),
+                secondaryNodeRefs: [...secondaryNodeRefs, nodeRefToToggle],
+              }
+            : {
+                primaryNodeRefs: [...primaryNodeRefs, nodeRefToToggle],
+                secondaryNodeRefs: secondaryNodeRefs.filter(
+                  (n) => n.index !== nodeRefToToggle.index,
+                ),
+              };
+        });
+
+        return;
+      }
+
+      case 'reorder_primary_node_refs': {
+        if (type !== 'match_in_context') {
+          return;
         }
-      }),
-    }));
+
+        const queryNodes = await getQueryNodes();
+
+        update(id, type, (c: ExportColumnData<'match_in_context'>) => {
+          const { primaryNodeRefs, secondaryNodeRefs } =
+            distributeQueryNodeRefs(
+              toNodeRefs(queryNodes),
+              c.primaryNodeRefs,
+              c.secondaryNodeRefs,
+            );
+
+          return {
+            primaryNodeRefs: payload.reorder(primaryNodeRefs),
+            secondaryNodeRefs,
+          };
+        });
+
+        return;
+      }
+
+      case 'update_segmentation': {
+        update(id, type, () => ({
+          segmentation: payload.segmentation,
+        }));
+      }
+    }
   };
 };
 

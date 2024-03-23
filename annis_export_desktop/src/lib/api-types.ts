@@ -37,6 +37,8 @@ export type ExportColumn =
       type: 'match_in_context';
       context: number;
       contextRightOverride: number | undefined;
+      primaryNodeRefs: QueryNodeRef[];
+      secondaryNodeRefs: QueryNodeRef[];
       segmentation: string | undefined;
     };
 

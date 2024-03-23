@@ -134,6 +134,7 @@ pub(crate) enum ExportColumn {
     MatchInContext {
         context: usize,
         context_right_override: Option<usize>,
+        primary_node_refs: Vec<QueryNodeRef>,
         segmentation: String,
     },
 }
@@ -163,12 +164,15 @@ impl From<ExportColumn> for CsvExportColumn {
             ExportColumn::MatchInContext {
                 context,
                 context_right_override,
+                primary_node_refs,
                 segmentation,
             } => CsvExportColumn::Data(ExportData::Text(ExportDataText {
                 left_context: context,
                 right_context: context_right_override.unwrap_or(context),
                 segmentation: (!segmentation.is_empty()).then_some(segmentation),
-                primary_node_indices: None,
+                primary_node_indices: Some(
+                    primary_node_refs.into_iter().map(|n| n.index).collect(),
+                ),
             })),
         }
     }

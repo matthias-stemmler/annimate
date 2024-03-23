@@ -4,9 +4,17 @@ export const findEligibleQueryNodeRefIndex = (
   eligibleNodeRefs: QueryNodeRef[],
   nodeRef: QueryNodeRef,
 ): number | undefined => {
-  const indices = eligibleNodeRefs
-    .filter((n) => n.variables.some((v) => nodeRef.variables.includes(v)))
-    .map((n) => n.index);
+  const eligibleNodeRefsWithIndex = eligibleNodeRefs
+    .map((n, i): [QueryNodeRef, number] => [n, i])
+    .filter(([n]) => n.variables.some((v) => nodeRef.variables.includes(v)));
 
-  return indices.includes(nodeRef.index) ? nodeRef.index : indices[0];
+  if (eligibleNodeRefsWithIndex.length === 0) {
+    return undefined;
+  }
+
+  const [, index] =
+    eligibleNodeRefsWithIndex.find(([n]) => n.index === nodeRef.index) ??
+    eligibleNodeRefsWithIndex[0];
+
+  return index;
 };
