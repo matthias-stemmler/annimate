@@ -4,12 +4,12 @@ import {
   ColumnConfigItem,
 } from '@/components/columns/layout';
 import { ColumnProps } from '@/components/columns/props';
+import { QueryNodesDisplay } from '@/components/columns/query-nodes-display';
 import { Select, SelectOption } from '@/components/ui/custom/select';
 import { Label } from '@/components/ui/label';
 import { QueryNodeRef } from '@/lib/api-types';
 import { useIsExporting, useQueryNodes } from '@/lib/store';
 import { FC, useId } from 'react';
-import { QueryNodesDisplay } from './query-nodes-display';
 
 export const AnnoMatchColumn: FC<ColumnProps<'anno_match'>> = ({
   data,

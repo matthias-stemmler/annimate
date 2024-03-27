@@ -24,10 +24,14 @@ import { CSS } from '@dnd-kit/utilities';
 import { CSSProperties, ReactNode, useState } from 'react';
 import { createPortal } from 'react-dom';
 
-export type ReorderListProps<T, I> = {
+export type ReorderListProps<T> = {
   disabled?: boolean;
+  getId: (item: T) => string;
+  idPrefix: string;
   items: T[];
-  onReorder: (reorder: <U extends { id: I }>(items: U[]) => U[]) => void;
+  onReorder: (
+    reorder: <U>(items: U[], getId: (item: U) => string) => U[],
+  ) => void;
   renderItem: (item: T, context: ReorderListContext) => ReactNode;
 };
 
@@ -40,13 +44,15 @@ export type ReorderListContext = {
   style: CSSProperties;
 };
 
-export const ReorderList = <T extends { id: I }, I extends UniqueIdentifier>({
+export const ReorderList = <T,>({
   disabled,
+  getId,
+  idPrefix,
   items,
   onReorder,
   renderItem,
-}: ReorderListProps<T, I>) => {
-  const [activeId, setActiveId] = useState<I | undefined>();
+}: ReorderListProps<T>) => {
+  const [activeId, setActiveId] = useState<string | undefined>();
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -56,14 +62,18 @@ export const ReorderList = <T extends { id: I }, I extends UniqueIdentifier>({
   );
 
   const handleDragStart = ({ active }: DragStartEvent) => {
-    setActiveId(active.id as I);
+    setActiveId(active.id as string);
   };
 
   const handleDragEnd = ({ active, over }: DragEndEvent) => {
     if (over !== null && active.id !== over.id) {
-      onReorder(<U extends { id: I }>(is: U[]) => {
-        const oldIndex = is.findIndex(({ id }) => id === active.id);
-        const newIndex = is.findIndex(({ id }) => id === over.id);
+      onReorder(<U,>(is: U[], getId: (item: U) => string) => {
+        const oldIndex = is.findIndex(
+          (item) => idPrefix + '-' + getId(item) === active.id,
+        );
+        const newIndex = is.findIndex(
+          (item) => idPrefix + '-' + getId(item) === over.id,
+        );
         return arrayMove(is, oldIndex, newIndex);
       });
     }
@@ -72,7 +82,7 @@ export const ReorderList = <T extends { id: I }, I extends UniqueIdentifier>({
   const activeItem =
     activeId === undefined
       ? undefined
-      : items.find(({ id }) => id === activeId);
+      : items.find((item) => idPrefix + '-' + getId(item) === activeId);
 
   return (
     <DndContext
@@ -87,12 +97,15 @@ export const ReorderList = <T extends { id: I }, I extends UniqueIdentifier>({
       onDragStart={handleDragStart}
       sensors={sensors}
     >
-      <SortableContext items={items} strategy={verticalListSortingStrategy}>
+      <SortableContext
+        items={items.map((item) => idPrefix + '-' + getId(item))}
+        strategy={verticalListSortingStrategy}
+      >
         {items.map((item) => (
           <ReorderListItem
-            key={item.id}
+            key={idPrefix + '-' + getId(item)}
             disabled={disabled}
-            id={item.id}
+            id={idPrefix + '-' + getId(item)}
             item={item}
             renderItem={renderItem}
           />
@@ -100,11 +113,11 @@ export const ReorderList = <T extends { id: I }, I extends UniqueIdentifier>({
       </SortableContext>
 
       {createPortal(
-        <DragOverlay>
+        <DragOverlay dropAnimation={null}>
           {activeItem !== undefined && (
             <ReorderListItem
-              key={activeItem.id}
-              id={activeItem.id}
+              key={idPrefix + '-' + getId(activeItem)}
+              id={idPrefix + '-' + getId(activeItem)}
               isOverlay
               item={activeItem}
               renderItem={renderItem}

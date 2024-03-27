@@ -12,11 +12,11 @@ export const QueryNodesDisplay: FC<QueryNodesDisplayProps> = ({
   const nodesByQueryFragment = groupBy(queryNodes, (n) => n.queryFragment);
 
   return (
-    <div className="flex gap-2 mr-2 font-mono">
+    <div className="min-w-0 flex gap-2 mr-2 font-mono">
       {nodesByQueryFragment.map(([queryFragment, nodesForQueryFragment]) => (
         <div
           key={queryFragment}
-          className="min-w-0 flex items-center gap-2 px-2 bg-gray-500 text-white rounded-sm"
+          className="h-5 min-w-0 flex items-center gap-2 px-2 bg-gray-500 text-white rounded-sm"
         >
           {uniq(nodesForQueryFragment.map((n) => n.variable)).map(
             (variable, i) => (

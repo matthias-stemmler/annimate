@@ -3,13 +3,17 @@ import {
   ColumnConfigItem,
 } from '@/components/columns/layout';
 import { ColumnProps } from '@/components/columns/props';
+import { QueryNodesDisplay } from '@/components/columns/query-nodes-display';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
+import { ReorderList } from '@/components/ui/custom/reorder-list';
 import { Select } from '@/components/ui/custom/select';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { useIsExporting, useSegmentations } from '@/lib/store';
+import { QueryNode, QueryNodeRef } from '@/lib/api-types';
+import { useIsExporting, useQueryNodes, useSegmentations } from '@/lib/store';
 import { cn } from '@/lib/utils';
-import { Link2, Unlink2 } from 'lucide-react';
+import { GripVertical, Link2, Unlink2 } from 'lucide-react';
 import { FC, useId } from 'react';
 
 const CONTEXT_MIN = 0;
@@ -46,6 +50,21 @@ export const MatchInContextColumn: FC<ColumnProps<'match_in_context'>> = ({
           })
         }
       />
+
+      <ColumnConfigItem wide>
+        <Label>Query node filter</Label>
+
+        <PrimaryNodesSelect
+          onReorder={(reorder: (nodeRefs: QueryNodeRef[]) => QueryNodeRef[]) =>
+            onChange({ type: 'reorder_primary_node_refs', reorder })
+          }
+          onToggle={(nodeRef: QueryNodeRef) =>
+            onChange({ type: 'toggle_primary_node_ref', nodeRef })
+          }
+          primaryNodeRefs={data.primaryNodeRefs}
+          secondaryNodeRefs={data.secondaryNodeRefs}
+        />
+      </ColumnConfigItem>
     </ColumnConfigGrid>
   );
 };
@@ -176,6 +195,142 @@ const ContextInput: FC<ContextInputProps> = ({
         />
       </ColumnConfigItem>
     </div>
+  );
+};
+
+type PrimaryNodesSelectProps = {
+  onReorder?: (reorder: (nodeRefs: QueryNodeRef[]) => QueryNodeRef[]) => void;
+  onToggle?: (nodeRef: QueryNodeRef) => void;
+  primaryNodeRefs: QueryNodeRef[];
+  secondaryNodeRefs: QueryNodeRef[];
+};
+
+const PrimaryNodesSelect: FC<PrimaryNodesSelectProps> = ({
+  onReorder,
+  onToggle,
+  primaryNodeRefs,
+  secondaryNodeRefs,
+}) => {
+  const { data: queryNodes, error } = useQueryNodes();
+  const isExporting = useIsExporting();
+  const disabled = isExporting;
+  const reorderDisabled = disabled || primaryNodeRefs.length <= 1;
+
+  if (error !== null) {
+    throw new Error(`Failed to determine query nodes: ${error}`);
+  }
+
+  const nodes = queryNodes?.type === 'valid' ? queryNodes.nodes : [];
+
+  if (nodes.length === 0) {
+    return (
+      <div className="h-7 text-sm text-gray-500">No query nodes available</div>
+    );
+  }
+
+  return (
+    <div>
+      <ReorderList
+        disabled={disabled}
+        getId={getNodeRefId}
+        idPrefix="primary-nodes"
+        items={primaryNodeRefs}
+        onReorder={(reorder) =>
+          onReorder?.((nodeRefs) => reorder(nodeRefs, getNodeRefId))
+        }
+        renderItem={(
+          nodeRef,
+          {
+            dragHandleAttributes,
+            dragHandleListeners,
+            isOverlay,
+            isPlaceholder,
+            ref,
+            style,
+          },
+        ) => (
+          <div
+            className={cn('flex items-center', {
+              'opacity-30': isPlaceholder,
+            })}
+            ref={ref}
+            style={style}
+          >
+            <Button
+              className={cn('h-5 min-w-5 p-0 hover:bg-inherit cursor-grab', {
+                'focus-visible:ring-transparent': isPlaceholder,
+                'cursor-grabbing': isOverlay || isPlaceholder,
+              })}
+              disabled={reorderDisabled}
+              variant="ghost"
+              {...dragHandleAttributes}
+              {...dragHandleListeners}
+            >
+              <GripVertical className="h-4 w-4" />
+            </Button>
+            <QueryNodesSelectItem
+              checked
+              disabled={disabled}
+              label={nodeRef.variables.map((v) => `#${v}`).join(' | ')}
+              onClick={() => onToggle?.(nodeRef)}
+              queryNodes={nodes[nodeRef.index]}
+            />
+          </div>
+        )}
+      />
+      {secondaryNodeRefs.map((n) => (
+        <QueryNodesSelectItem
+          key={n.index}
+          checked={false}
+          className="ml-5"
+          disabled={disabled}
+          label={n.variables.map((v) => `#${v}`).join(' | ')}
+          onClick={() => onToggle?.(n)}
+          queryNodes={nodes[n.index]}
+        />
+      ))}
+    </div>
+  );
+};
+
+const getNodeRefId = (nodeRef: QueryNodeRef): string => `${nodeRef.index}`;
+
+type QueryNodesSelectItemProps = {
+  checked?: boolean;
+  className?: string;
+  disabled?: boolean;
+  label: string;
+  onClick?: () => void;
+  queryNodes: QueryNode[];
+};
+
+const QueryNodesSelectItem: FC<QueryNodesSelectItemProps> = ({
+  checked,
+  className,
+  disabled,
+  label,
+  onClick,
+  queryNodes,
+}) => {
+  const id = useId();
+
+  return (
+    <Label
+      htmlFor={id}
+      className={cn(
+        'overflow-hidden cursor-pointer flex items-center gap-2 p-1 has-[:disabled]:cursor-not-allowed has-[:disabled]:opacity-70',
+        className,
+      )}
+    >
+      <Checkbox
+        id={id}
+        aria-label={label}
+        checked={checked}
+        disabled={disabled}
+        onClick={onClick}
+      />
+      <QueryNodesDisplay queryNodes={queryNodes} />
+    </Label>
   );
 };
 

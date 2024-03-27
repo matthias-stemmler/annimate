@@ -22,6 +22,7 @@ import {
 import { useToast } from '@/components/ui/use-toast';
 import { ExportColumnType } from '@/lib/api-types';
 import {
+  ExportColumnItem,
   useAddExportColumn,
   useExportColumnItems,
   useIsExporting,
@@ -101,8 +102,14 @@ export const ExportColumnList: FC = () => {
           <div className="flex flex-col gap-4 mb-1">
             <ReorderList
               disabled={reorderDisabled}
+              getId={getExportColumnId}
+              idPrefix="export-columns"
               items={exportColumns}
-              onReorder={reorderExportColumns}
+              onReorder={(reorder) =>
+                reorderExportColumns((items) =>
+                  reorder(items, getExportColumnId),
+                )
+              }
               renderItem={(
                 item,
                 {
@@ -265,6 +272,9 @@ export const ExportColumnList: FC = () => {
     </div>
   );
 };
+
+const getExportColumnId = (exportColumn: ExportColumnItem): string =>
+  `${exportColumn.id}`;
 
 type CardMenuItemProps = PropsWithChildren<{
   columnType: ExportColumnType;
