@@ -1,8 +1,9 @@
 /// <reference types="vitest" />
 
-import { defineConfig } from 'vite';
-import path from 'path';
 import react from '@vitejs/plugin-react';
+import path from 'path';
+import { defineConfig } from 'vite';
+import svgr from 'vite-plugin-svgr';
 
 // https://vitejs.dev/config/
 export default defineConfig(async () => {
@@ -14,7 +15,7 @@ export default defineConfig(async () => {
 
   return {
     clearScreen: false,
-    plugins: [react()],
+    plugins: [react(), svgr()],
     resolve: {
       alias: {
         '@/lib/api': path.resolve(

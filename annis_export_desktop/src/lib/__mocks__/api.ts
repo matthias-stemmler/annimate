@@ -29,6 +29,16 @@ const CORPUS_MANY_ANNO_KEYS = 'Corpus with many anno keys';
 const CORPUS_MULTIPLE_SEGMENTATIONS = 'Corpus with multiple segmentations';
 const CORPUS_FAILING_ANNO_KEYS = 'Corpus with failing anno keys';
 
+window.__ANNIMATE__ = {
+  versionInfo: {
+    annimateVersion: '<mock>',
+    graphannisVersion: '<mock>',
+  },
+};
+
+export const exit = async (exitCode?: number): Promise<void> =>
+  alert(`Exit\nexitCode: ${exitCode}`);
+
 const getMatchCountForCorpus = (corpusName: string): number => {
   switch (corpusName) {
     case CORPUS_NO_MATCHES:

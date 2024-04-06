@@ -2,6 +2,7 @@
 
 mod api;
 mod error;
+mod version;
 
 use api::State;
 use std::env;
@@ -19,6 +20,16 @@ fn main() {
             api::get_segmentations,
             api::validate_query
         ])
+        .on_page_load(|window, _| {
+            window
+                .eval(&format!(
+                    "window.__ANNIMATE__=JSON.parse('{}')",
+                    serde_json::json!({
+                        "versionInfo": version::VERSION_INFO
+                    })
+                ))
+                .expect("error while injecting global __ANNIMATE__");
+        })
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
