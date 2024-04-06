@@ -3,7 +3,6 @@ import { Button } from '@/components/ui/button';
 import {
   DialogClose,
   DialogContent,
-  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -24,8 +23,8 @@ export const AboutDialog = () => {
       <DialogHeader>
         <DialogTitle className="mb-4">About</DialogTitle>
 
-        <DialogDescription className="flex flex-col gap-4">
-          <p className="flex items-center">
+        <div className="flex flex-col gap-4">
+          <div className="flex items-center">
             <Button
               className="h-4 p-0"
               onClick={() => {
@@ -37,11 +36,11 @@ export const AboutDialog = () => {
               AnniMate v{window.__ANNIMATE__.versionInfo.annimateVersion} by
               Matthias Stemmler
             </Button>
-          </p>
+          </div>
 
           <div>
-            <p className="mb-1">based on:</p>
-            <p className="flex items-center">
+            <p className="text-sm mb-1">based on:</p>
+            <div className="flex items-center">
               <Button
                 className="h-4 p-0"
                 onClick={() => {
@@ -55,9 +54,9 @@ export const AboutDialog = () => {
                 }{' '}
                 by Thomas Krause
               </Button>
-            </p>
+            </div>
           </div>
-        </DialogDescription>
+        </div>
       </DialogHeader>
 
       <DialogFooter>
