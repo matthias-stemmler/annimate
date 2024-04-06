@@ -64,10 +64,10 @@ dependencies = [
 ]
 
 [[package]]
-name = "annis_export_cli"
+name = "annimate_cli"
 version = "0.1.0"
 dependencies = [
- "annis_export_core",
+ "annimate_core",
  "anyhow",
  "clap",
  "indicatif",
@@ -80,7 +80,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "annis_export_core"
+name = "annimate_core"
 version = "0.1.0"
 dependencies = [
  "csv",
@@ -96,10 +96,10 @@ dependencies = [
 ]
 
 [[package]]
-name = "annis_export_desktop"
+name = "annimate_desktop"
 version = "0.1.0"
 dependencies = [
- "annis_export_core",
+ "annimate_core",
  "cargo_metadata",
  "itertools 0.12.1",
  "serde",

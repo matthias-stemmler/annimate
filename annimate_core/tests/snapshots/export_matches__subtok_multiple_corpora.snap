@@ -1,0 +1,40 @@
+---
+source: annimate_core/tests/export_matches.rs
+info:
+  corpus_paths:
+    - subtok.demo_relANNIS.zip
+    - subtok.demo2_relANNIS.zip
+  corpus_names:
+    - subtok.demo
+    - subtok.demo2
+  aql_query: "pos=\"DT\""
+  query_language: AQL
+  export_columns:
+    - Number
+    - Data:
+        Anno:
+          Corpus:
+            anno_key:
+              - ""
+              - language
+    - Data:
+        Anno:
+          Document:
+            anno_key:
+              - annis
+              - doc
+    - Data:
+        Text:
+          left_context: 1
+          right_context: 1
+          segmentation: diplomatic
+          primary_node_indices: ~
+---
+Number,Corpus language,Document,Left context (diplomatic),Match (diplomatic),Right context (diplomatic)
+1,English,subtok.demo.doc01,,T his,is
+2,English,subtok.demo.doc01,is,an,example
+3,English,subtok.demo.doc01,of,a,ſub⸗
+4,English2,subtok.demo2.doc01,,T his,is
+5,English2,subtok.demo2.doc01,is,an,example
+6,English2,subtok.demo2.doc01,of,a,ſub⸗
+

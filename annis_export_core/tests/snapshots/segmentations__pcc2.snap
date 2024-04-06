@@ -1,9 +1,0 @@
----
-source: annis_export_core/tests/segmentations.rs
-info:
-  corpus_paths:
-    - pcc2_v7_relANNIS.zip
-  corpus_names:
-    - pcc2
----
-[]

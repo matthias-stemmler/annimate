@@ -1,8 +1,8 @@
 [workspace]
 members = [
-    "annis_export_cli",
-    "annis_export_core",
-    "annis_export_desktop/src-tauri",
+    "annimate_cli",
+    "annimate_core",
+    "annimate_desktop/src-tauri",
 ]
 resolver = "2"
 
