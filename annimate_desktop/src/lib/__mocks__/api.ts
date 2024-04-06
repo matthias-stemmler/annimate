@@ -36,8 +36,10 @@ window.__ANNIMATE__ = {
   },
 };
 
-export const exit = async (exitCode?: number): Promise<void> =>
+export const exit = async (exitCode?: number): Promise<void> => {
+  logAction('Exit', COLOR_BUILTIN_COMMAND, { exitCode });
   alert(`Exit\nexitCode: ${exitCode}`);
+};
 
 const getMatchCountForCorpus = (corpusName: string): number => {
   switch (corpusName) {
