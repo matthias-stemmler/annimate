@@ -17,6 +17,7 @@ mod format;
 mod node_name;
 mod query;
 mod util;
+mod version;
 
 pub use anno::{ExportableAnnoKey, ExportableAnnoKeys};
 pub use aql::{QueryAnalysisResult, QueryNode, QueryNodes};
@@ -24,6 +25,7 @@ pub use error::AnnisExportError;
 pub use format::{CsvExportColumn, CsvExportConfig, ExportFormat};
 pub use graphannis::{corpusstorage::CorpusInfo, graph::AnnoKey};
 pub use query::{ExportData, ExportDataAnno, ExportDataText, QueryLanguage};
+pub use version::{VersionInfo, VERSION_INFO};
 
 pub struct CorpusStorage(graphannis::CorpusStorage);
 

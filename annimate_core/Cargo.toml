@@ -6,6 +6,9 @@ edition.workspace = true
 [features]
 serde = ["dep:serde"]
 
+[build-dependencies]
+cargo_metadata = "0.18"
+
 [dependencies]
 csv = "1.0"
 graphannis = "3.2.1"

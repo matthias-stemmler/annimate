@@ -1,7 +1,7 @@
 use annimate_core::{
     AnnoKey, CorpusInfo, CorpusStorage, CsvExportColumn, CsvExportConfig, ExportData,
     ExportDataAnno, ExportDataText, ExportFormat, ExportableAnnoKey, QueryAnalysisResult,
-    QueryNode, StatusEvent,
+    QueryNode, StatusEvent, VERSION_INFO,
 };
 use anyhow::{anyhow, Context};
 use clap::{Parser, Subcommand, ValueEnum};
@@ -94,6 +94,9 @@ enum Commands {
         #[arg(short, long, value_enum, default_value_t = QueryLanguage::Aql)]
         language: QueryLanguage,
     },
+
+    /// Display version information
+    Version,
 }
 
 #[derive(Clone)]
@@ -270,6 +273,7 @@ fn main() -> anyhow::Result<()> {
                 QueryAnalysisResult::Invalid(err) => println!("Query is invalid\n{err}"),
             }
         }
+
         Commands::GetCorpusInfo {
             corpus_name_patterns,
         } => {
@@ -298,6 +302,7 @@ fn main() -> anyhow::Result<()> {
                 );
             }
         }
+
         Commands::ImportCorpora { path } => {
             let corpus_names = corpus_storage
                 .import_corpora_from_zip(
@@ -316,6 +321,7 @@ fn main() -> anyhow::Result<()> {
                 }
             }
         }
+
         Commands::ListAnnoKeys {
             corpus_name_patterns,
         } => {
@@ -349,6 +355,7 @@ fn main() -> anyhow::Result<()> {
             println!("\nNode annotation keys");
             print_exportable_anno_keys(&anno_keys.node);
         }
+
         Commands::ListSegmentations {
             corpus_name_patterns,
         } => {
@@ -362,6 +369,7 @@ fn main() -> anyhow::Result<()> {
                 println!("{segmentation}");
             }
         }
+
         Commands::Query {
             corpus_name_patterns,
             query,
@@ -404,6 +412,7 @@ fn main() -> anyhow::Result<()> {
 
             progress_reporter.finish();
         }
+
         Commands::ValidateQuery {
             corpus_name_patterns,
             query,
@@ -420,6 +429,13 @@ fn main() -> anyhow::Result<()> {
                 QueryAnalysisResult::Valid(_) => println!("Query is valid"),
                 QueryAnalysisResult::Invalid(err) => println!("Query is invalid\n{err}"),
             }
+        }
+
+        Commands::Version => {
+            println!(
+                "AnniMate v{} by Matthias Stemmler\n\nbased on:\ngraphANNIS v{} by Thomas Krause",
+                VERSION_INFO.annimate_version, VERSION_INFO.graphannis_version
+            )
         }
     }
 

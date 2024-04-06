@@ -4,7 +4,6 @@ version = "0.1.0"
 edition.workspace = true
 
 [build-dependencies]
-cargo_metadata = "0.18"
 tauri-build = { version = "1.5", features = [] }
 
 [dependencies]

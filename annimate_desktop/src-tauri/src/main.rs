@@ -2,7 +2,6 @@
 
 mod api;
 mod error;
-mod version;
 
 use api::State;
 use std::env;
@@ -25,7 +24,7 @@ fn main() {
                 .eval(&format!(
                     "window.__ANNIMATE__=JSON.parse('{}')",
                     serde_json::json!({
-                        "versionInfo": version::VERSION_INFO
+                        "versionInfo": annimate_core::VERSION_INFO
                     })
                 ))
                 .expect("error while injecting global __ANNIMATE__");
