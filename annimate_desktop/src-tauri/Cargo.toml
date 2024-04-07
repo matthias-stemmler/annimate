@@ -12,7 +12,7 @@ itertools = { workspace = true }
 tauri = { version = "1.5", features = [ "process-exit", "dialog-save", "objc-exception", "path-all", "process-relaunch", "shell-open", "wry"], default-features = false }
 serde = { workspace = true }
 serde_json = "1.0"
-tempfile = { workspace = true }
+tempfile = "3.10"
 thiserror = { workspace = true }
 
 [features]

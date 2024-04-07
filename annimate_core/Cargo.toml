@@ -11,7 +11,7 @@ csv = "1.0"
 graphannis = "3.2.1"
 graphannis-core = "3.2.1"
 itertools = { workspace = true }
-regex = { workspace = true }
+regex = "1.10"
 serde = { workspace = true }
 serde_with = "3.7"
 thiserror = { workspace = true }
