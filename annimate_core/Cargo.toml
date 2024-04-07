@@ -3,9 +3,6 @@ name = "annimate_core"
 version = "0.1.0"
 edition.workspace = true
 
-[features]
-serde = ["dep:serde"]
-
 [build-dependencies]
 cargo_metadata = "0.18"
 
@@ -15,8 +12,10 @@ graphannis = "3.2.1"
 graphannis-core = "3.2.1"
 itertools = { workspace = true }
 regex = { workspace = true }
-serde = { workspace = true, optional = true }
+serde = { workspace = true }
+serde_with = "3.7"
 thiserror = { workspace = true }
+toml = "0.8"
 urlencoding = "2.1"
 
 [dev-dependencies]

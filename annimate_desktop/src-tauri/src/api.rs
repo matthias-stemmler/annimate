@@ -1,8 +1,7 @@
 use crate::error::Error;
 use annimate_core::{
-    AnnoKey, CorpusStorage, CsvExportColumn, CsvExportConfig, ExportData, ExportDataAnno,
-    ExportDataText, ExportFormat, ExportableAnnoKeys, QueryAnalysisResult, QueryLanguage,
-    QueryNodes,
+    AnnoKey, CsvExportColumn, CsvExportConfig, ExportData, ExportDataAnno, ExportDataText,
+    ExportFormat, ExportableAnnoKeys, QueryAnalysisResult, QueryLanguage, QueryNodes, Storage,
 };
 use itertools::Itertools;
 use serde::Deserialize;
@@ -13,13 +12,13 @@ use std::{
 use tauri::Window;
 
 pub(crate) struct State {
-    storage: CorpusStorage,
+    storage: Storage,
 }
 
 impl State {
     pub(crate) fn from_db_dir(db_dir: PathBuf) -> Self {
         Self {
-            storage: CorpusStorage::from_db_dir(db_dir).expect("Failed to create corpus storage"),
+            storage: Storage::from_db_dir(db_dir).expect("Failed to create corpus storage"),
         }
     }
 }

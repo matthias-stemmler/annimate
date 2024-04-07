@@ -7,7 +7,7 @@ edition.workspace = true
 tauri-build = { version = "1.5", features = [] }
 
 [dependencies]
-annimate_core = { path = "../../annimate_core", features = ["serde"] }
+annimate_core = { path = "../../annimate_core" }
 itertools = { workspace = true }
 tauri = { version = "1.5", features = [ "process-exit", "dialog-save", "objc-exception", "path-all", "process-relaunch", "shell-open", "wry"], default-features = false }
 serde = { workspace = true }

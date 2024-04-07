@@ -3,7 +3,9 @@ use corpus::CorpusRef;
 use format::export;
 use graphannis::corpusstorage::CacheStrategy;
 use itertools::Itertools;
+use metadata::MetadataStorage;
 use query::Query;
+use serde::Serialize;
 use std::{
     io::{Read, Seek, Write},
     path::Path,
@@ -14,6 +16,7 @@ mod aql;
 mod corpus;
 mod error;
 mod format;
+mod metadata;
 mod node_name;
 mod query;
 mod util;
@@ -27,23 +30,29 @@ pub use graphannis::{corpusstorage::CorpusInfo, graph::AnnoKey};
 pub use query::{ExportData, ExportDataAnno, ExportDataText, QueryLanguage};
 pub use version::{VersionInfo, VERSION_INFO};
 
-pub struct CorpusStorage(graphannis::CorpusStorage);
+pub struct Storage {
+    corpus_storage: graphannis::CorpusStorage,
+    metadata_storage: MetadataStorage,
+}
 
-impl CorpusStorage {
+impl Storage {
     pub fn from_db_dir<P>(db_dir: P) -> Result<Self, AnnisExportError>
     where
         P: AsRef<Path>,
     {
-        Ok(Self(graphannis::CorpusStorage::with_cache_strategy(
-            db_dir.as_ref(),
-            CacheStrategy::PercentOfFreeMemory(25.0),
-            true,
-        )?))
+        Ok(Self {
+            corpus_storage: graphannis::CorpusStorage::with_cache_strategy(
+                db_dir.as_ref(),
+                CacheStrategy::PercentOfFreeMemory(25.0),
+                true,
+            )?,
+            metadata_storage: MetadataStorage::from_db_dir(&db_dir)?,
+        })
     }
 
     pub fn corpus_infos(&self) -> Result<Vec<CorpusInfo>, AnnisExportError> {
         Ok(self
-            .0
+            .corpus_storage
             .list()?
             .into_iter()
             .sorted_by(|a, b| a.name.cmp(&b.name))
@@ -59,7 +68,9 @@ impl CorpusStorage {
         F: Fn(&str),
         R: Read + Seek,
     {
-        Ok(self.0.import_all_from_zip(zip, false, false, on_status)?)
+        Ok(self
+            .corpus_storage
+            .import_all_from_zip(zip, false, false, on_status)?)
     }
 
     pub fn validate_query<S>(
@@ -83,7 +94,11 @@ impl CorpusStorage {
         aql_query: &str,
         query_language: QueryLanguage,
     ) -> Result<QueryAnalysisResult<QueryNodes>, AnnisExportError> {
-        Ok(aql::query_nodes(&self.0, aql_query, query_language)?)
+        Ok(aql::query_nodes(
+            &self.corpus_storage,
+            aql_query,
+            query_language,
+        )?)
     }
 
     pub fn exportable_anno_keys<S>(
@@ -140,16 +155,15 @@ impl CorpusStorage {
     }
 
     fn corpus_ref<'a, S>(&'a self, corpus_names: &'a [S]) -> CorpusRef<'a, S> {
-        CorpusRef::new(&self.0, corpus_names)
+        CorpusRef::new(&self.corpus_storage, corpus_names)
     }
 }
 
-#[derive(Debug)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize))]
-#[cfg_attr(feature = "serde", serde(tag = "type"))]
-#[cfg_attr(
-    feature = "serde",
-    serde(rename_all = "snake_case", rename_all_fields = "camelCase")
+#[derive(Debug, Serialize)]
+#[serde(
+    tag = "type",
+    rename_all = "snake_case",
+    rename_all_fields = "camelCase"
 )]
 pub enum StatusEvent {
     Found { count: usize },

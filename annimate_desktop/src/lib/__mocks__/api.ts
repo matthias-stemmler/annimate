@@ -125,17 +125,21 @@ export const exportMatches = async (params: {
   }
 };
 
-export const getCorpusNames = async (): Promise<string[]> => [
-  CORPUS_NORMAL,
-  CORPUS_INVALID_QUERY,
-  CORPUS_NO_MATCHES,
-  CORPUS_MANY_MATCHES,
-  CORPUS_FAILING_EXPORT,
-  CORPUS_NO_ANNO_KEYS,
-  CORPUS_MANY_ANNO_KEYS,
-  CORPUS_MULTIPLE_SEGMENTATIONS,
-  CORPUS_FAILING_ANNO_KEYS,
-];
+export const getCorpusNames = async (): Promise<string[]> => {
+  await sleep(500);
+
+  return [
+    CORPUS_NORMAL,
+    CORPUS_INVALID_QUERY,
+    CORPUS_NO_MATCHES,
+    CORPUS_MANY_MATCHES,
+    CORPUS_FAILING_EXPORT,
+    CORPUS_NO_ANNO_KEYS,
+    CORPUS_MANY_ANNO_KEYS,
+    CORPUS_MULTIPLE_SEGMENTATIONS,
+    CORPUS_FAILING_ANNO_KEYS,
+  ];
+};
 
 export const getExportableAnnoKeys = async (params: {
   corpusNames: string[];

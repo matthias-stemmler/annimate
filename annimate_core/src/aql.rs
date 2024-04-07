@@ -5,6 +5,7 @@ use graphannis::{
 };
 use itertools::{Itertools, Position};
 use regex::Regex;
+use serde::Serialize;
 use std::{collections::BTreeMap, sync::OnceLock, vec};
 
 pub fn validate_query<S>(
@@ -99,15 +100,11 @@ pub(crate) fn query_nodes_valid(
         .into())
 }
 
-#[derive(Debug)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize))]
-#[cfg_attr(
-    feature = "serde",
-    serde(
-        tag = "type",
-        rename_all = "snake_case",
-        rename_all_fields = "camelCase"
-    )
+#[derive(Debug, Serialize)]
+#[serde(
+    tag = "type",
+    rename_all = "snake_case",
+    rename_all_fields = "camelCase"
 )]
 pub enum QueryAnalysisResult<T = ()> {
     Valid(T),
@@ -135,9 +132,8 @@ impl<T> QueryAnalysisResult<T> {
     }
 }
 
-#[derive(Debug)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize))]
-#[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct QueryNodes {
     nodes: Vec<Vec<QueryNode>>,
 }
@@ -163,9 +159,8 @@ impl IntoIterator for QueryNodes {
     }
 }
 
-#[derive(Debug, PartialEq)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize))]
-#[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
+#[derive(Debug, PartialEq, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct QueryNode {
     pub query_fragment: String,
     pub variable: String,

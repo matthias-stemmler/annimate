@@ -1,4 +1,4 @@
-use annimate_core::{CorpusStorage, QueryLanguage::*, QueryNode};
+use annimate_core::{QueryLanguage::*, QueryNode, Storage};
 
 macro_rules! query_nodes_test {
     ($(
@@ -6,7 +6,7 @@ macro_rules! query_nodes_test {
     )*) => { $(
         #[test]
         fn $name() {
-            let storage = CorpusStorage::from_db_dir(concat!(
+            let storage = Storage::from_db_dir(concat!(
                 env!("CARGO_TARGET_TMPDIR"),
                 "/tests/query_nodes/",
                 stringify!($name)

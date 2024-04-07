@@ -10,6 +10,7 @@ use graphannis_core::{
     types::{AnnoKey, Component, NodeID},
 };
 use itertools::Itertools;
+use serde::Serialize;
 use std::{
     collections::{BTreeSet, HashSet},
     fmt::{self, Display, Formatter},
@@ -366,18 +367,16 @@ impl Display for AnnoKeyDisplay<'_> {
     }
 }
 
-#[derive(Debug)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize))]
-#[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct ExportableAnnoKeys {
     pub corpus: Vec<ExportableAnnoKey>,
     pub doc: Vec<ExportableAnnoKey>,
     pub node: Vec<ExportableAnnoKey>,
 }
 
-#[derive(Debug)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize))]
-#[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct ExportableAnnoKey {
     pub anno_key: AnnoKey,
     pub display_name: String,

@@ -1,6 +1,6 @@
 use graphannis::errors::GraphAnnisError;
 use graphannis_core::errors::GraphAnnisCoreError;
-use std::io;
+use std::{io, path::PathBuf};
 use thiserror::Error;
 
 #[derive(Debug, Error)]
@@ -10,6 +10,12 @@ pub enum AnnisExportError {
 
     #[error("Failed to order chains")]
     FailedToOrderChains,
+
+    #[error("Failed to read metadata from {path}: {err}")]
+    FailedToReadMetadata {
+        path: PathBuf,
+        err: AnnisExportMetadataError,
+    },
 
     #[error("Match node index {index} out of bounds, may be at most {max_index}")]
     MatchNodeIndexOutOfBounds { index: usize, max_index: usize },
@@ -28,6 +34,15 @@ pub enum AnnisExportError {
 
     #[error(transparent)]
     Io(#[from] io::Error),
+}
+
+#[derive(Debug, Error)]
+pub enum AnnisExportMetadataError {
+    #[error("Invalid format: {0}")]
+    InvalidFormat(#[from] toml::de::Error),
+
+    #[error("Unsupported version: {version}")]
+    UnsupportedVersion { version: usize },
 }
 
 impl From<GraphAnnisCoreError> for AnnisExportError {

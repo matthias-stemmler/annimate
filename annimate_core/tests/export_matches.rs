@@ -1,6 +1,6 @@
 use annimate_core::{
-    AnnoKey, CorpusStorage, CsvExportColumn, CsvExportConfig, ExportData, ExportDataAnno,
-    ExportDataText, ExportFormat, QueryLanguage,
+    AnnoKey, CsvExportColumn, CsvExportConfig, ExportData, ExportDataAnno, ExportDataText,
+    ExportFormat, QueryLanguage, Storage,
 };
 use itertools::Itertools;
 use serde::Serialize;
@@ -35,7 +35,7 @@ macro_rules! export_matches_test {
                     },
                 };
 
-                let storage = CorpusStorage::from_db_dir(concat!(
+                let storage = Storage::from_db_dir(concat!(
                     env!("CARGO_TARGET_TMPDIR"),
                     "/tests/export/",
                     stringify!($name)

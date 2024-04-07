@@ -24,7 +24,7 @@ export const SelectList = <T extends Key>({
   selectedValues,
   values,
 }: SelectListProps<T>) => (
-  <ScrollArea className="h-full pr-4">
+  <ScrollArea className="h-full">
     <ul aria-label={label} className="pb-1">
       <SelectListItem
         checked={

@@ -1,4 +1,4 @@
-use annimate_core::CorpusStorage;
+use annimate_core::Storage;
 use serde::Serialize;
 use std::fs::File;
 use std::path::Path;
@@ -18,7 +18,7 @@ macro_rules! exportable_anno_keys_test {
                     corpus_names: &$corpus_names,
                 };
 
-                let storage = CorpusStorage::from_db_dir(concat!(
+                let storage = Storage::from_db_dir(concat!(
                     env!("CARGO_TARGET_TMPDIR"),
                     "/tests/export/",
                     stringify!($name)

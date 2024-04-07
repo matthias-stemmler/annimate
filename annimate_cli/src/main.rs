@@ -1,7 +1,7 @@
 use annimate_core::{
-    AnnoKey, CorpusInfo, CorpusStorage, CsvExportColumn, CsvExportConfig, ExportData,
-    ExportDataAnno, ExportDataText, ExportFormat, ExportableAnnoKey, QueryAnalysisResult,
-    QueryNode, StatusEvent, VERSION_INFO,
+    AnnoKey, CorpusInfo, CsvExportColumn, CsvExportConfig, ExportData, ExportDataAnno,
+    ExportDataText, ExportFormat, ExportableAnnoKey, QueryAnalysisResult, QueryNode, StatusEvent,
+    Storage, VERSION_INFO,
 };
 use anyhow::{anyhow, Context};
 use clap::{Parser, Subcommand, ValueEnum};
@@ -242,12 +242,12 @@ fn main() -> anyhow::Result<()> {
     let db_dir =
         env::var("ANNIS_DB_DIR").context("Environment variable `ANNIS_DB_DIR` is not set")?;
 
-    let corpus_storage = CorpusStorage::from_db_dir(&db_dir)
+    let storage = Storage::from_db_dir(&db_dir)
         .with_context(|| format!("Failed to open corpus storage from {db_dir}"))?;
 
     match cli.command {
         Commands::DescribeQuery { query, language } => {
-            let query_nodes_result = corpus_storage
+            let query_nodes_result = storage
                 .query_nodes(&query, language.into())
                 .context("Failed to determine query nodes")?;
 
@@ -278,7 +278,7 @@ fn main() -> anyhow::Result<()> {
             corpus_name_patterns,
         } => {
             let corpus_infos: Vec<_> =
-                matching_corpus_infos(&corpus_storage, &corpus_name_patterns)?.collect();
+                matching_corpus_infos(&storage, &corpus_name_patterns)?.collect();
             let max_name_len = corpus_infos.iter().map(|c| c.name.len()).max().unwrap_or(0);
 
             for corpus_info in corpus_infos {
@@ -304,7 +304,7 @@ fn main() -> anyhow::Result<()> {
         }
 
         Commands::ImportCorpora { path } => {
-            let corpus_names = corpus_storage
+            let corpus_names = storage
                 .import_corpora_from_zip(
                     File::open(&path)
                         .with_context(|| format!("Failed to open file {}", path.display()))?,
@@ -339,11 +339,8 @@ fn main() -> anyhow::Result<()> {
                 }
             }
 
-            let anno_keys = corpus_storage
-                .exportable_anno_keys(&matching_corpus_names(
-                    &corpus_storage,
-                    &corpus_name_patterns,
-                )?)
+            let anno_keys = storage
+                .exportable_anno_keys(&matching_corpus_names(&storage, &corpus_name_patterns)?)
                 .context("Failed to list annotation keys")?;
 
             println!("Corpus annotation keys");
@@ -359,11 +356,8 @@ fn main() -> anyhow::Result<()> {
         Commands::ListSegmentations {
             corpus_name_patterns,
         } => {
-            for segmentation in corpus_storage
-                .segmentations(&matching_corpus_names(
-                    &corpus_storage,
-                    &corpus_name_patterns,
-                )?)
+            for segmentation in storage
+                .segmentations(&matching_corpus_names(&storage, &corpus_name_patterns)?)
                 .context("Failed to list segmentations")?
             {
                 println!("{segmentation}");
@@ -385,9 +379,9 @@ fn main() -> anyhow::Result<()> {
 
             let progress_reporter = ProgressReporter::new(cli.debug);
 
-            corpus_storage
+            storage
                 .export_matches(
-                    &matching_corpus_names(&corpus_storage, &corpus_name_patterns)?,
+                    &matching_corpus_names(&storage, &corpus_name_patterns)?,
                     &query,
                     language.into(),
                     ExportFormat::Csv(CsvExportConfig {
@@ -418,9 +412,9 @@ fn main() -> anyhow::Result<()> {
             query,
             language,
         } => {
-            let result = corpus_storage
+            let result = storage
                 .validate_query(
-                    &matching_corpus_names(&corpus_storage, &corpus_name_patterns)?,
+                    &matching_corpus_names(&storage, &corpus_name_patterns)?,
                     &query,
                     language.into(),
                 )
@@ -442,18 +436,15 @@ fn main() -> anyhow::Result<()> {
     Ok(())
 }
 
-fn matching_corpus_names<S>(
-    corpus_storage: &CorpusStorage,
-    patterns: &[S],
-) -> anyhow::Result<Vec<String>>
+fn matching_corpus_names<S>(storage: &Storage, patterns: &[S]) -> anyhow::Result<Vec<String>>
 where
     S: AsRef<str>,
 {
-    matching_corpus_infos(corpus_storage, patterns).map(|c| c.map(|c| c.name).collect())
+    matching_corpus_infos(storage, patterns).map(|c| c.map(|c| c.name).collect())
 }
 
 fn matching_corpus_infos<S>(
-    corpus_storage: &CorpusStorage,
+    storage: &Storage,
     patterns: &[S],
 ) -> anyhow::Result<impl Iterator<Item = CorpusInfo>>
 where
@@ -464,7 +455,7 @@ where
         .map(|p| WildMatch::new(p.as_ref()))
         .collect();
 
-    Ok(corpus_storage
+    Ok(storage
         .corpus_infos()
         .context("Failed to determine list of corpora")?
         .into_iter()
