@@ -13,9 +13,9 @@ import {
 } from '@/lib/api-types';
 import { useExportMatchesMutation } from '@/lib/mutations';
 import {
-  useCorpusNamesQuery,
+  useCorporaQuery,
   useExportableAnnoKeysQuery,
-  useGetCorpusNamesQueryData,
+  useGetCorporaQueryData,
   useGetExportableAnnoKeysQueryData,
   useGetQueryNodesQueryData,
   useGetSegmentationsQueryData,
@@ -172,19 +172,24 @@ const useSetState = (): StoreApi<State>['setState'] =>
 // STATE GET
 
 export const useSelectedCorpusNames = (): string[] => {
-  const { data: corpusNames } = useCorpusNamesQuery();
+  const { data: corpusNames } = useCorporaQuery(({ corpora }) =>
+    corpora.map((c) => c.name),
+  );
   const selectedCorpusNames = useSelector((state) => state.selectedCorpusNames);
   return toSelectedCorpusNames(corpusNames, selectedCorpusNames);
 };
 
 export const useGetSelectedCorpusNames = (): (() => Promise<string[]>) => {
-  const getCorpusNamesQueryData = useGetCorpusNamesQueryData();
+  const getCorporaQueryData = useGetCorporaQueryData();
   const getState = useGetState();
 
   return async () => {
-    const corpusNames = await getCorpusNamesQueryData();
+    const { corpora } = await getCorporaQueryData();
     const { selectedCorpusNames } = getState();
-    return toSelectedCorpusNames(corpusNames, selectedCorpusNames);
+    return toSelectedCorpusNames(
+      corpora.map((c) => c.name),
+      selectedCorpusNames,
+    );
   };
 };
 
@@ -446,31 +451,34 @@ const isExportColumnValid = (exportColumn: ExportColumn): boolean => {
 // STATE SET
 
 export const useToggleCorpus = (): ((corpusName: string) => Promise<void>) => {
-  const getCorpusNamesQueryData = useGetCorpusNamesQueryData();
+  const getCorporaQueryData = useGetCorporaQueryData();
   const setState = useSetState();
 
   return async (corpusName: string) => {
-    const corpusNames = await getCorpusNamesQueryData();
+    const { corpora } = await getCorporaQueryData();
     return setState((state) => ({
-      selectedCorpusNames: corpusNames.filter(
-        (c) => state.selectedCorpusNames.includes(c) !== (c === corpusName),
-      ),
+      selectedCorpusNames: corpora
+        .filter(
+          ({ name }) =>
+            state.selectedCorpusNames.includes(name) !== (name === corpusName),
+        )
+        .map((c) => c.name),
     }));
   };
 };
 
 export const useToggleAllCorpora = (): (() => Promise<void>) => {
-  const getCorpusNamesQueryData = useGetCorpusNamesQueryData();
+  const getCorporaQueryData = useGetCorporaQueryData();
   const setState = useSetState();
 
   return async () => {
-    const corpusNames = await getCorpusNamesQueryData();
+    const { corpora } = await getCorporaQueryData();
     setState((state) => ({
-      selectedCorpusNames: corpusNames.every((c) =>
-        state.selectedCorpusNames.includes(c),
+      selectedCorpusNames: corpora.every(({ name }) =>
+        state.selectedCorpusNames.includes(name),
       )
         ? []
-        : corpusNames,
+        : corpora.map((c) => c.name),
     }));
   };
 };
@@ -708,7 +716,7 @@ export const useUnremoveExportColumn = (): ((id: number) => void) => {
 // QUERIES
 
 export const useCorpusNames = (): UseQueryResult<string[]> =>
-  useCorpusNamesQuery();
+  useCorporaQuery(({ corpora }) => corpora.map((c) => c.name));
 
 export const useQueryNodes = (): UseQueryResult<QueryNodesResult> => {
   const aqlQueryDebounced = useSelector((state) => state.aqlQueryDebounced);

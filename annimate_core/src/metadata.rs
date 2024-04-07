@@ -42,6 +42,10 @@ impl MetadataStorage {
         }
     }
 
+    pub(crate) fn corpus_sets(&self) -> Vec<CorpusSet> {
+        self.metadata.read().unwrap().corpus_sets.clone()
+    }
+
     fn write(&self) -> io::Result<()> {
         fs::write(
             &self.path,
@@ -87,11 +91,11 @@ impl FromStr for Metadata {
     }
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 #[serde(rename_all = "kebab-case")]
-struct CorpusSet {
+pub(crate) struct CorpusSet {
     #[serde(rename = "$key$")]
-    name: String,
+    pub(crate) name: String,
 
-    corpus_names: Vec<String>,
+    pub(crate) corpus_names: Vec<String>,
 }

@@ -78,8 +78,15 @@ describe('store', () => {
           });
         }
 
-        case 'get_corpus_names': {
-          return ['a', 'b', 'c'];
+        case 'get_corpora': {
+          return {
+            corpora: [
+              { name: 'a', includedInSets: [] },
+              { name: 'b', includedInSets: [] },
+              { name: 'c', includedInSets: [] },
+            ],
+            sets: [],
+          };
         }
 
         case 'get_exportable_anno_keys': {

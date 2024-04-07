@@ -50,13 +50,32 @@ impl Storage {
         })
     }
 
-    pub fn corpus_infos(&self) -> Result<Vec<CorpusInfo>, AnnisExportError> {
-        Ok(self
+    pub fn corpora(&self) -> Result<Corpora, AnnisExportError> {
+        let sets = self.metadata_storage.corpus_sets();
+
+        let corpora = self
             .corpus_storage
             .list()?
             .into_iter()
             .sorted_by(|a, b| a.name.cmp(&b.name))
-            .collect())
+            .map(|c| {
+                let included_in_sets = sets
+                    .iter()
+                    .filter(|s| s.corpus_names.contains(&c.name))
+                    .map(|s| s.name.clone())
+                    .collect();
+
+                Corpus {
+                    name: c.name,
+                    included_in_sets,
+                }
+            })
+            .collect();
+
+        Ok(Corpora {
+            sets: sets.into_iter().map(|s| s.name).collect(),
+            corpora,
+        })
     }
 
     pub fn import_corpora_from_zip<F, R>(
@@ -157,6 +176,20 @@ impl Storage {
     fn corpus_ref<'a, S>(&'a self, corpus_names: &'a [S]) -> CorpusRef<'a, S> {
         CorpusRef::new(&self.corpus_storage, corpus_names)
     }
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct Corpora {
+    corpora: Vec<Corpus>,
+    sets: Vec<String>,
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct Corpus {
+    name: String,
+    included_in_sets: Vec<String>,
 }
 
 #[derive(Debug, Serialize)]

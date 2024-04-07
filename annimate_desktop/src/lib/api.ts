@@ -1,4 +1,5 @@
 import {
+  Corpora,
   ExportColumn,
   ExportableAnnoKeys,
   QueryLanguage,
@@ -24,8 +25,7 @@ export const exportMatches = (params: {
   outputFile: string;
 }): Promise<void> => invoke('export_matches', params);
 
-export const getCorpusNames = (): Promise<string[]> =>
-  invoke('get_corpus_names');
+export const getCorpora = (): Promise<Corpora> => invoke('get_corpora');
 
 export const getExportableAnnoKeys = (params: {
   corpusNames: string[];

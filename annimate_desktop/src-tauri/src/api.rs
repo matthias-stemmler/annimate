@@ -1,6 +1,6 @@
 use crate::error::Error;
 use annimate_core::{
-    AnnoKey, CsvExportColumn, CsvExportConfig, ExportData, ExportDataAnno, ExportDataText,
+    AnnoKey, Corpora, CsvExportColumn, CsvExportConfig, ExportData, ExportDataAnno, ExportDataText,
     ExportFormat, ExportableAnnoKeys, QueryAnalysisResult, QueryLanguage, QueryNodes, Storage,
 };
 use itertools::Itertools;
@@ -60,13 +60,8 @@ pub(crate) fn export_matches(
 }
 
 #[tauri::command(async)]
-pub(crate) fn get_corpus_names(state: tauri::State<State>) -> Result<Vec<String>, Error> {
-    Ok(state
-        .storage
-        .corpus_infos()?
-        .into_iter()
-        .map(|corpus_info| corpus_info.name)
-        .collect())
+pub(crate) fn get_corpora(state: tauri::State<State>) -> Result<Corpora, Error> {
+    Ok(state.storage.corpora()?)
 }
 
 #[tauri::command(async)]

@@ -1,11 +1,12 @@
 import {
-  getCorpusNames,
+  getCorpora,
   getExportableAnnoKeys,
   getQueryNodes,
   getSegmentations,
   validateQuery,
 } from '@/lib/api';
 import {
+  Corpora,
   ExportableAnnoKeys,
   QueryLanguage,
   QueryNodesResult,
@@ -17,23 +18,28 @@ import {
   useQueryClient,
 } from '@tanstack/react-query';
 
-const QUERY_KEY_CORPUS_NAMES = 'corpus-names';
+const QUERY_KEY_CORPORA = 'corpora';
 const QUERY_KEY_QUERY_NODES = 'query-nodes';
 const QUERY_KEY_QUERY_VALIDATION_RESULT = 'query-validation-result';
 const QUERY_KEY_SEGMENTATIONS = 'segmentations';
 const QUERY_KEY_EXPORTABLE_ANNO_KEYS = 'exportable-anno-keys';
 
-const corpusNamesQueryConfig = () => ({
-  queryKey: [QUERY_KEY_CORPUS_NAMES],
-  queryFn: getCorpusNames,
+const corporaQueryConfig = () => ({
+  queryKey: [QUERY_KEY_CORPORA],
+  queryFn: getCorpora,
 });
 
-export const useCorpusNamesQuery = (): UseQueryResult<string[]> =>
-  useQuery(corpusNamesQueryConfig());
+export const useCorporaQuery = <T>(
+  select: (corpora: Corpora) => T,
+): UseQueryResult<T> =>
+  useQuery({
+    ...corporaQueryConfig(),
+    select,
+  });
 
-export const useGetCorpusNamesQueryData = (): (() => Promise<string[]>) => {
+export const useGetCorporaQueryData = (): (() => Promise<Corpora>) => {
   const queryClient = useQueryClient();
-  return () => queryClient.ensureQueryData(corpusNamesQueryConfig());
+  return () => queryClient.ensureQueryData(corporaQueryConfig());
 };
 
 const queryNodesQueryConfig = (params: {

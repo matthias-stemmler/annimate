@@ -4,6 +4,7 @@
 
 import {
   AQLError,
+  Corpora,
   ExportColumn,
   ExportableAnnoKey,
   ExportableAnnoKeys,
@@ -125,20 +126,50 @@ export const exportMatches = async (params: {
   }
 };
 
-export const getCorpusNames = async (): Promise<string[]> => {
-  await sleep(500);
+export const getCorpora = async (): Promise<Corpora> => {
+  await sleep(1000);
 
-  return [
-    CORPUS_NORMAL,
-    CORPUS_INVALID_QUERY,
-    CORPUS_NO_MATCHES,
-    CORPUS_MANY_MATCHES,
-    CORPUS_FAILING_EXPORT,
-    CORPUS_NO_ANNO_KEYS,
-    CORPUS_MANY_ANNO_KEYS,
-    CORPUS_MULTIPLE_SEGMENTATIONS,
-    CORPUS_FAILING_ANNO_KEYS,
-  ];
+  return {
+    corpora: [
+      {
+        name: CORPUS_NORMAL,
+        included_in_sets: ['Normal', 'Working'],
+      },
+      {
+        name: CORPUS_INVALID_QUERY,
+        included_in_sets: ['Failing'],
+      },
+      {
+        name: CORPUS_NO_MATCHES,
+        included_in_sets: ['Working'],
+      },
+      {
+        name: CORPUS_MANY_MATCHES,
+        included_in_sets: ['Working'],
+      },
+      {
+        name: CORPUS_FAILING_EXPORT,
+        included_in_sets: ['Failing'],
+      },
+      {
+        name: CORPUS_NO_ANNO_KEYS,
+        included_in_sets: ['Working'],
+      },
+      {
+        name: CORPUS_MANY_ANNO_KEYS,
+        included_in_sets: ['Working'],
+      },
+      {
+        name: CORPUS_MULTIPLE_SEGMENTATIONS,
+        included_in_sets: ['Working'],
+      },
+      {
+        name: CORPUS_FAILING_ANNO_KEYS,
+        included_in_sets: ['Failing'],
+      },
+    ],
+    sets: ['Normal', 'Working', 'Failing'],
+  };
 };
 
 export const getExportableAnnoKeys = async (params: {

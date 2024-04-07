@@ -1,3 +1,13 @@
+export type Corpora = {
+  corpora: Corpus[];
+  sets: string[];
+};
+
+export type Corpus = {
+  name: string;
+  included_in_sets: string[];
+};
+
 export type ExportableAnnoKeys = {
   corpus: ExportableAnnoKey[];
   doc: ExportableAnnoKey[];

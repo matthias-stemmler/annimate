@@ -13,7 +13,7 @@ fn main() {
         .manage(State::from_db_dir(db_dir.into()))
         .invoke_handler(tauri::generate_handler![
             api::export_matches,
-            api::get_corpus_names,
+            api::get_corpora,
             api::get_exportable_anno_keys,
             api::get_query_nodes,
             api::get_segmentations,
