@@ -5,7 +5,7 @@ export type Corpora = {
 
 export type Corpus = {
   name: string;
-  included_in_sets: string[];
+  includedInSets: string[];
 };
 
 export type ExportableAnnoKeys = {

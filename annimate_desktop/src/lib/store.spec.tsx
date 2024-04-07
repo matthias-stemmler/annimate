@@ -12,7 +12,7 @@ import {
   useAddExportColumn,
   useAqlQuery,
   useCanExport,
-  useCorpusNames,
+  useCorpusNamesInSelectedSet,
   useExportColumnItems,
   useExportMatches,
   useIsExporting,
@@ -20,10 +20,12 @@ import {
   useQueryValidationResult,
   useRemoveExportColumn,
   useReorderExportColumns,
-  useSelectedCorpusNames,
+  useSelectedCorpusNamesInSelectedSet,
+  useSelectedCorpusSet,
   useSetAqlQuery,
   useSetQueryLanguage,
-  useToggleAllCorpora,
+  useSetSelectedCorpusSet,
+  useToggleAllCorporaInSelectedSet,
   useToggleCorpus,
   useUnremoveExportColumn,
   useUpdateExportColumn,
@@ -81,11 +83,11 @@ describe('store', () => {
         case 'get_corpora': {
           return {
             corpora: [
-              { name: 'a', includedInSets: [] },
-              { name: 'b', includedInSets: [] },
+              { name: 'a', includedInSets: ['set1', 'set2'] },
+              { name: 'b', includedInSets: ['set1'] },
               { name: 'c', includedInSets: [] },
             ],
-            sets: [],
+            sets: ['set1', 'set2'],
           };
         }
 
@@ -139,7 +141,7 @@ describe('store', () => {
             queryLanguage: QueryLanguage;
           };
 
-          if (corpusNames.length === 1 && corpusNames[0] === 'b') {
+          if (corpusNames.includes('b') || corpusNames.includes('c')) {
             return {
               type: 'invalid',
               desc: '',
@@ -177,13 +179,17 @@ describe('store', () => {
     vi.clearAllMocks();
   });
 
-  test('selecting corpora', async () => {
+  test('selecting corpus sets and corpora', async () => {
     const { result } = renderHook(
       () => ({
-        corpusNames: useCorpusNames(),
-        selectedCorpusNames: useSelectedCorpusNames(),
+        selectedCorpusSet: useSelectedCorpusSet(),
+        setSelectedCorpusSet: useSetSelectedCorpusSet(),
+
+        corpusNames: useCorpusNamesInSelectedSet(),
+        selectedCorpusNames: useSelectedCorpusNamesInSelectedSet(),
+
         toggleCorpus: useToggleCorpus(),
-        toggleAllCorpora: useToggleAllCorpora(),
+        toggleAllCorpora: useToggleAllCorporaInSelectedSet(),
       }),
       { wrapper: Wrapper },
     );
@@ -195,6 +201,17 @@ describe('store', () => {
     expect(result.current.corpusNames.data).toEqual(['a', 'b', 'c']);
     expect(result.current.selectedCorpusNames).toEqual([]);
 
+    result.current.toggleCorpus('c');
+    await waitFor(() => {
+      expect(result.current.selectedCorpusNames).toEqual(['c']);
+    });
+
+    result.current.setSelectedCorpusSet('set1');
+    await waitFor(() => {
+      expect(result.current.corpusNames.data).toEqual(['a', 'b']);
+      expect(result.current.selectedCorpusNames).toEqual([]);
+    });
+
     result.current.toggleCorpus('b');
     await waitFor(() => {
       expect(result.current.selectedCorpusNames).toEqual(['b']);
@@ -202,20 +219,27 @@ describe('store', () => {
 
     result.current.toggleAllCorpora();
     await waitFor(() => {
-      expect(result.current.selectedCorpusNames).toEqual(['a', 'b', 'c']);
+      expect(result.current.selectedCorpusNames).toEqual(['a', 'b']);
     });
 
     result.current.toggleAllCorpora();
     await waitFor(() => {
       expect(result.current.selectedCorpusNames).toEqual([]);
     });
+
+    result.current.setSelectedCorpusSet('');
+    await waitFor(() => {
+      expect(result.current.corpusNames.data).toEqual(['a', 'b', 'c']);
+      expect(result.current.selectedCorpusNames).toEqual(['c']);
+    });
   });
 
   test('validating AQL query', async () => {
     const { result } = renderHook(
       () => ({
-        corpusNames: useCorpusNames(),
-        selectedCorpusNames: useSelectedCorpusNames(),
+        setSelectedCorpusSet: useSetSelectedCorpusSet(),
+        corpusNames: useCorpusNamesInSelectedSet(),
+        selectedCorpusNames: useSelectedCorpusNamesInSelectedSet(),
         toggleCorpus: useToggleCorpus(),
 
         aqlQuery: useAqlQuery(),
@@ -230,6 +254,9 @@ describe('store', () => {
     await waitFor(() => {
       expect(result.current.corpusNames.isSuccess).toBe(true);
     });
+
+    result.current.toggleCorpus('c');
+    result.current.setSelectedCorpusSet('set1');
 
     expect(result.current.aqlQuery).toEqual('');
     expect(result.current.queryLanguage).toEqual('AQL');
@@ -810,6 +837,7 @@ describe('store', () => {
   });
 
   type ChangeContext = {
+    setSelectedCorpusSet: (corpusSet: string) => void;
     toggleCorpus: (corpusName: string) => void;
     setAqlQuery: (aqlQuery: string) => void;
     addExportColumn: (type: ExportColumnType) => void;
@@ -817,6 +845,7 @@ describe('store', () => {
   };
 
   const allChanges: ((c: ChangeContext) => void)[] = [
+    (c) => c.setSelectedCorpusSet('set1'),
     (c) => c.toggleCorpus('a'),
     (c) => c.setAqlQuery('valid'),
     (c) => c.addExportColumn('anno_corpus'),
@@ -881,7 +910,8 @@ describe('store', () => {
     async ({ changes, expectCanExport }) => {
       const { result } = renderHook(
         () => ({
-          corpusNames: useCorpusNames(),
+          setSelectedCorpusSet: useSetSelectedCorpusSet(),
+          corpusNames: useCorpusNamesInSelectedSet(),
           toggleCorpus: useToggleCorpus(),
 
           setAqlQuery: useSetAqlQuery(),
@@ -898,6 +928,7 @@ describe('store', () => {
         expect(result.current.corpusNames.isSuccess).toBe(true);
       });
 
+      result.current.toggleCorpus('c');
       changes.forEach((c) => c(result.current));
 
       await waitFor(() => {
@@ -909,7 +940,8 @@ describe('store', () => {
   test('exporting matches', async () => {
     const { result } = renderHook(
       () => ({
-        corpusNames: useCorpusNames(),
+        setSelectedCorpusSet: useSetSelectedCorpusSet(),
+        corpusNames: useCorpusNamesInSelectedSet(),
         toggleCorpus: useToggleCorpus(),
 
         setAqlQuery: useSetAqlQuery(),
@@ -930,6 +962,8 @@ describe('store', () => {
     });
 
     result.current.toggleCorpus('a');
+    result.current.toggleCorpus('c');
+    result.current.setSelectedCorpusSet('set1');
     result.current.setAqlQuery('valid');
     result.current.setQueryLanguage('AQLQuirksV3');
 

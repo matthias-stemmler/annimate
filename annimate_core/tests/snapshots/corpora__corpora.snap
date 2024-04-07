@@ -1,0 +1,20 @@
+---
+source: annimate_core/tests/corpora.rs
+---
+Corpora {
+    corpora: [
+        Corpus {
+            name: "subtok.demo",
+            included_in_sets: [
+                "Test set",
+            ],
+        },
+        Corpus {
+            name: "subtok.demo2",
+            included_in_sets: [],
+        },
+    ],
+    sets: [
+        "Test set",
+    ],
+}

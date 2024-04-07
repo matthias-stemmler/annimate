@@ -9,9 +9,12 @@ import {
 } from '@/components/ui/tooltip';
 import { useIsExporting } from '@/lib/mutations';
 import {
-  useCorpusNames,
-  useSelectedCorpusNames,
-  useToggleAllCorpora,
+  useCorpusNamesInSelectedSet,
+  useCorpusSets,
+  useSelectedCorpusNamesInSelectedSet,
+  useSelectedCorpusSet,
+  useSetSelectedCorpusSet,
+  useToggleAllCorporaInSelectedSet,
   useToggleCorpus,
 } from '@/lib/store';
 import { Settings } from 'lucide-react';
@@ -42,35 +45,42 @@ export const CorpusList: FC = () => {
 };
 
 const CorpusSetSelect: FC = () => {
-  const corpusSetNames = ['a', 'b', 'c'];
-  const isPending = false;
+  const selectedCorpusSet = useSelectedCorpusSet();
+  const setSelectedCorpusSet = useSetSelectedCorpusSet();
 
+  const { data: corpusSets, error, isPending } = useCorpusSets();
   const isExporting = useIsExporting();
+
+  if (error !== null) {
+    throw new Error(`Failed to load corpora: ${error}`);
+  }
 
   return (
     <Select
       disabled={isExporting}
       loading={isPending}
+      onChange={(value) => setSelectedCorpusSet(value.slice(1))}
       options={[
         {
-          caption: <span className="italic">All corpus sets</span>,
+          caption: <span className="italic">All corpora</span>,
           value: ':',
         },
-        ...(corpusSetNames?.map((s) => ({
+        ...(corpusSets?.map((s) => ({
           caption: s,
           value: `:${s}`,
         })) ?? []),
       ]}
+      value={`:${selectedCorpusSet}`}
     />
   );
 };
 
 const CorpusNamesSelect: FC = () => {
-  const selectedCorpusNames = useSelectedCorpusNames();
+  const selectedCorpusNames = useSelectedCorpusNamesInSelectedSet();
   const toggleCorpus = useToggleCorpus();
-  const toggleAllCorpora = useToggleAllCorpora();
+  const toggleAllCorpora = useToggleAllCorporaInSelectedSet();
 
-  const { data: corpusNames, error, isPending } = useCorpusNames();
+  const { data: corpusNames, error, isPending } = useCorpusNamesInSelectedSet();
   const isExporting = useIsExporting();
 
   if (error !== null) {
@@ -81,7 +91,16 @@ const CorpusNamesSelect: FC = () => {
     return <Spinner />;
   }
 
-  return (
+  return corpusNames.length === 0 ? (
+    <div className="text-center text-muted-foreground italic mt-4">
+      <p>No corpora available</p>
+      <p>
+        Import corpora by clicking on the{' '}
+        <Settings className="w-5 h-4 inline align-baseline translate-y-0.5" />{' '}
+        button
+      </p>
+    </div>
+  ) : (
     <SelectList
       disabled={isExporting}
       label="Corpora"

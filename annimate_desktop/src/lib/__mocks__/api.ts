@@ -133,39 +133,39 @@ export const getCorpora = async (): Promise<Corpora> => {
     corpora: [
       {
         name: CORPUS_NORMAL,
-        included_in_sets: ['Normal', 'Working'],
+        includedInSets: ['Normal', 'Working'],
       },
       {
         name: CORPUS_INVALID_QUERY,
-        included_in_sets: ['Failing'],
+        includedInSets: ['Failing'],
       },
       {
         name: CORPUS_NO_MATCHES,
-        included_in_sets: ['Working'],
+        includedInSets: ['Working'],
       },
       {
         name: CORPUS_MANY_MATCHES,
-        included_in_sets: ['Working'],
+        includedInSets: ['Working'],
       },
       {
         name: CORPUS_FAILING_EXPORT,
-        included_in_sets: ['Failing'],
+        includedInSets: ['Failing'],
       },
       {
         name: CORPUS_NO_ANNO_KEYS,
-        included_in_sets: ['Working'],
+        includedInSets: ['Working'],
       },
       {
         name: CORPUS_MANY_ANNO_KEYS,
-        included_in_sets: ['Working'],
+        includedInSets: ['Working'],
       },
       {
         name: CORPUS_MULTIPLE_SEGMENTATIONS,
-        included_in_sets: ['Working'],
+        includedInSets: ['Working'],
       },
       {
         name: CORPUS_FAILING_ANNO_KEYS,
-        included_in_sets: ['Failing'],
+        includedInSets: ['Failing'],
       },
     ],
     sets: ['Normal', 'Working', 'Failing'],
