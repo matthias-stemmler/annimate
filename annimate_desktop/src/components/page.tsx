@@ -1,4 +1,4 @@
-import { AboutDialog } from '@/about-dialog';
+import { AboutDialog } from '@/components/about-dialog';
 import { CorpusList } from '@/components/corpus-list';
 import { ExportSection } from '@/components/export-section';
 import { QueryInput } from '@/components/query-input';

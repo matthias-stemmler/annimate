@@ -7,7 +7,6 @@ import {
   DraggableSyntheticListeners,
   KeyboardSensor,
   PointerSensor,
-  UniqueIdentifier,
   closestCenter,
   useSensor,
   useSensors,
@@ -130,21 +129,21 @@ export const ReorderList = <T,>({
   );
 };
 
-type ReorderListItemProps<T, I> = {
-  id: I;
+type ReorderListItemProps<T> = {
+  id: string;
   disabled?: boolean;
   isOverlay?: boolean;
   item: T;
   renderItem: (item: T, context: ReorderListContext) => ReactNode;
 };
 
-const ReorderListItem = <T, I extends UniqueIdentifier>({
+const ReorderListItem = <T,>({
   id,
   disabled,
   isOverlay = false,
   item,
   renderItem,
-}: ReorderListItemProps<T, I>) => {
+}: ReorderListItemProps<T>) => {
   const {
     attributes,
     isDragging,
