@@ -19,9 +19,11 @@ import {
 } from '@/lib/store';
 import { Settings } from 'lucide-react';
 import { FC } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 export const CorpusList: FC = () => {
   const isExporting = useIsExporting();
+  const navigate = useNavigate();
 
   return (
     <div className="flex flex-col gap-2">
@@ -30,7 +32,13 @@ export const CorpusList: FC = () => {
 
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button disabled={isExporting} variant="ghost">
+            <Button
+              disabled={isExporting}
+              onClick={() => {
+                navigate('/manage', { replace: true });
+              }}
+              variant="ghost"
+            >
               <Settings className="w-4 h-4" />
             </Button>
           </TooltipTrigger>

@@ -1,11 +1,13 @@
-import { ErrorAlert } from '@/components/error-alert';
-import { ErrorBoundary } from '@/components/error-boundary';
-import { Page } from '@/components/page';
+import { ErrorBoundary, RouteErrorBoundary } from '@/components/error-boundary';
+import { MainPage } from '@/components/main-page';
+import { ManagePage } from '@/components/manage-page';
 import { StoreProvider } from '@/components/store-provider';
 import { Toaster } from '@/components/ui/toaster';
 import { TooltipProvider } from '@/components/ui/tooltip';
+import { Window } from '@/components/window';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { FC } from 'react';
+import { RouterProvider, createMemoryRouter } from 'react-router-dom';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -16,12 +18,30 @@ const queryClient = new QueryClient({
   },
 });
 
+const router = createMemoryRouter([
+  {
+    path: '/',
+    element: <Window />,
+    errorElement: <RouteErrorBoundary />,
+    children: [
+      {
+        path: '/',
+        element: <MainPage />,
+      },
+      {
+        path: '/manage',
+        element: <ManagePage />,
+      },
+    ],
+  },
+]);
+
 export const App: FC = () => (
-  <ErrorBoundary fallback={(err) => <ErrorAlert message={err.message} />}>
+  <ErrorBoundary>
     <QueryClientProvider client={queryClient}>
       <StoreProvider>
         <TooltipProvider>
-          <Page />
+          <RouterProvider router={router} />
           <Toaster />
         </TooltipProvider>
       </StoreProvider>

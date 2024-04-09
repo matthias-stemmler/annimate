@@ -1,18 +1,16 @@
-import { Component, PropsWithChildren, ReactNode } from 'react';
-
-export type ErrorBoundaryProps = PropsWithChildren<{
-  fallback: (error: Error) => ReactNode;
-}>;
+import { ErrorAlert } from '@/components/error-alert';
+import { Component, PropsWithChildren } from 'react';
+import { useRouteError } from 'react-router-dom';
 
 type ErrorBoundaryState = {
   error?: Error;
 };
 
 export class ErrorBoundary extends Component<
-  ErrorBoundaryProps,
+  PropsWithChildren,
   ErrorBoundaryState
 > {
-  constructor(props: ErrorBoundaryProps) {
+  constructor(props: PropsWithChildren) {
     super(props);
     this.state = { error: undefined };
   }
@@ -22,8 +20,21 @@ export class ErrorBoundary extends Component<
   }
 
   render() {
-    return this.state.error !== undefined
-      ? this.props.fallback(this.state.error)
-      : this.props.children;
+    return this.state.error !== undefined ? (
+      <ErrorAlert message={this.state.error.message} />
+    ) : (
+      this.props.children
+    );
   }
 }
+
+export const RouteErrorBoundary = () => {
+  const error = useRouteError();
+  return (
+    <ErrorAlert
+      message={
+        error instanceof Error ? error.message : 'Sorry, something went wrong'
+      }
+    />
+  );
+};
