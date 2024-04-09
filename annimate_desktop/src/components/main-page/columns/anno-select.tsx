@@ -1,4 +1,7 @@
-import { annoKeyToValue, valueToAnnoKey } from '@/components/columns/utils';
+import {
+  annoKeyToValue,
+  valueToAnnoKey,
+} from '@/components/main-page/columns/utils';
 import { Select } from '@/components/ui/custom/select';
 import { AnnoKey, ExportableAnnoKeyCategory } from '@/lib/api-types';
 import { useExportableAnnoKeys, useIsExporting } from '@/lib/store';

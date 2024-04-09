@@ -1,4 +1,7 @@
-import { annoKeyToValue, valueToAnnoKey } from '@/components/columns/utils';
+import {
+  annoKeyToValue,
+  valueToAnnoKey,
+} from '@/components/main-page/columns/utils';
 import { describe, expect, test } from 'vitest';
 
 describe('utils', () => {

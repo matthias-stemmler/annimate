@@ -1,9 +1,9 @@
 import {
   ColumnConfigGrid,
   ColumnConfigItem,
-} from '@/components/columns/layout';
-import { ColumnProps } from '@/components/columns/props';
-import { QueryNodesDisplay } from '@/components/columns/query-nodes-display';
+} from '@/components/main-page/columns/layout';
+import { ColumnProps } from '@/components/main-page/columns/props';
+import { QueryNodesDisplay } from '@/components/main-page/columns/query-nodes-display';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { ReorderList } from '@/components/ui/custom/reorder-list';

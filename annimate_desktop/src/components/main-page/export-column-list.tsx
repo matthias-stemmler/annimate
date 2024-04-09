@@ -1,7 +1,7 @@
-import { AnnoCorpusColumn } from '@/components/columns/anno-corpus-column';
-import { AnnoDocumentColumn } from '@/components/columns/anno-document-column';
-import { AnnoMatchColumn } from '@/components/columns/anno-match-column';
-import { MatchInContextColumn } from '@/components/columns/match-in-context-column';
+import { AnnoCorpusColumn } from '@/components/main-page/columns/anno-corpus-column';
+import { AnnoDocumentColumn } from '@/components/main-page/columns/anno-document-column';
+import { AnnoMatchColumn } from '@/components/main-page/columns/anno-match-column';
+import { MatchInContextColumn } from '@/components/main-page/columns/match-in-context-column';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { ReorderList } from '@/components/ui/custom/reorder-list';

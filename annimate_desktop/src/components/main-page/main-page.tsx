@@ -1,6 +1,6 @@
-import { CorpusList } from '@/components/corpus-list';
-import { ExportSection } from '@/components/export-section';
-import { QueryInput } from '@/components/query-input';
+import { CorpusList } from '@/components/main-page/corpus-list';
+import { ExportSection } from '@/components/main-page/export-section';
+import { QueryInput } from '@/components/main-page/query-input';
 import {
   ResizableHandle,
   ResizablePanel,

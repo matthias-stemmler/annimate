@@ -1,10 +1,10 @@
-import { AnnoSelect } from '@/components/columns/anno-select';
+import { AnnoSelect } from '@/components/main-page/columns/anno-select';
 import {
   ColumnConfigGrid,
   ColumnConfigItem,
-} from '@/components/columns/layout';
-import { ColumnProps } from '@/components/columns/props';
-import { QueryNodesDisplay } from '@/components/columns/query-nodes-display';
+} from '@/components/main-page/columns/layout';
+import { ColumnProps } from '@/components/main-page/columns/props';
+import { QueryNodesDisplay } from '@/components/main-page/columns/query-nodes-display';
 import { Select, SelectOption } from '@/components/ui/custom/select';
 import { Label } from '@/components/ui/label';
 import { QueryNodeRef } from '@/lib/api-types';

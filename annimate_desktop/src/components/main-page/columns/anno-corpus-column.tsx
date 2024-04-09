@@ -1,9 +1,9 @@
-import { AnnoSelect } from '@/components/columns/anno-select';
+import { AnnoSelect } from '@/components/main-page/columns/anno-select';
 import {
   ColumnConfigGrid,
   ColumnConfigItem,
-} from '@/components/columns/layout';
-import { ColumnProps } from '@/components/columns/props';
+} from '@/components/main-page/columns/layout';
+import { ColumnProps } from '@/components/main-page/columns/props';
 import { Label } from '@/components/ui/label';
 import { FC, useId } from 'react';
 

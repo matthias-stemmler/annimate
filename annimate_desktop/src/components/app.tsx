@@ -1,6 +1,6 @@
 import { ErrorBoundary, RouteErrorBoundary } from '@/components/error-boundary';
-import { MainPage } from '@/components/main-page';
-import { ManagePage } from '@/components/manage-page';
+import { MainPage } from '@/components/main-page/main-page';
+import { ManagePage } from '@/components/manage-page/manage-page';
 import { StoreProvider } from '@/components/store-provider';
 import { Toaster } from '@/components/ui/toaster';
 import { TooltipProvider } from '@/components/ui/tooltip';
