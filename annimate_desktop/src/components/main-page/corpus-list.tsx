@@ -100,7 +100,7 @@ const CorpusNamesSelect: FC = () => {
   }
 
   return corpusNames.length === 0 ? (
-    <div className="text-center text-muted-foreground italic mt-4">
+    <div className="text-center text-muted-foreground mt-4">
       <p>No corpora available</p>
       <p>
         Import corpora by clicking on the{' '}

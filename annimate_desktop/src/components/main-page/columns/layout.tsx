@@ -5,11 +5,11 @@ export const ColumnConfigGrid: FC<PropsWithChildren> = ({ children }) => (
   <div className="grid grid-cols-2 gap-x-4 gap-y-6 mb-2">{children}</div>
 );
 
-export type ColumnConfigItemProps = {
+export type ColumnConfigItemProps = PropsWithChildren<{
   wide?: boolean;
-};
+}>;
 
-export const ColumnConfigItem: FC<PropsWithChildren<ColumnConfigItemProps>> = ({
+export const ColumnConfigItem: FC<ColumnConfigItemProps> = ({
   children,
   wide = false,
 }) => (

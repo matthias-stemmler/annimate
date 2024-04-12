@@ -20,17 +20,12 @@ export const QueryNodesDisplay: FC<QueryNodesDisplayProps> = ({
         >
           {uniq(nodesForQueryFragment.map((n) => n.variable)).map(
             (variable, i) => (
-              <span
-                key={i}
-                className="max-w-32 overflow-hidden text-ellipsis font-semibold"
-              >
+              <span key={i} className="max-w-32 truncate font-semibold">
                 #{variable}
               </span>
             ),
           )}
-          <span className="flex-1 max-w-64 overflow-hidden text-ellipsis">
-            {queryFragment}
-          </span>
+          <span className="flex-1 max-w-64 truncate">{queryFragment}</span>
         </div>
       ))}
     </div>
