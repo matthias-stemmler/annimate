@@ -51,7 +51,7 @@ export const ExportTrigger = () => {
                         onClick={async () => open(await dirname(outputFile))}
                         variant="link"
                       >
-                        <Folder className="w-4 h-4 mr-2" />
+                        <Folder className="h-4 w-4 mr-2" />
                         Open folder
                       </Button>
 
@@ -60,7 +60,7 @@ export const ExportTrigger = () => {
                         onClick={() => open(outputFile)}
                         variant="link"
                       >
-                        <File className="w-4 h-4 mr-2" />
+                        <File className="h-4 w-4 mr-2" />
                         Open file
                       </Button>
                     </div>

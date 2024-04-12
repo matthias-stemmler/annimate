@@ -32,6 +32,11 @@ import { StoreApi, createStore, useStore } from 'zustand';
 
 const MAX_REMOVED_COLUMNS = 3;
 
+export type CorpusSetWithCount = {
+  corpusSet: string;
+  corpusCount: number;
+};
+
 export type ExportColumnItem = ExportColumn & {
   id: number;
   removalIndex?: number;
@@ -802,6 +807,17 @@ export const useCorpusNamesInSelectedSet = (): UseQueryResult<string[]> => {
 
 export const useCorpusSets = (): UseQueryResult<string[]> =>
   useCorporaQuery(({ sets }) => sets);
+
+export const useCorpusSetsWithCount = (): UseQueryResult<
+  CorpusSetWithCount[]
+> =>
+  useCorporaQuery(({ sets, corpora }) =>
+    sets.map((corpusSet) => ({
+      corpusSet,
+      corpusCount: corpora.filter((c) => c.includedInSets.includes(corpusSet))
+        .length,
+    })),
+  );
 
 export const useQueryNodes = (): UseQueryResult<QueryNodesResult> => {
   const aqlQueryDebounced = useSelector((state) => state.aqlQueryDebounced);

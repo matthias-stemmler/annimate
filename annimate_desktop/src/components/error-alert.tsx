@@ -11,7 +11,7 @@ export type ErrorMessageProps = {
 export const ErrorAlert: FC<ErrorMessageProps> = ({ message }) => (
   <div className="flex items-center h-full">
     <Alert variant="destructive" className="mx-10">
-      <AlertCircle className="w-4 h-4" />
+      <AlertCircle className="h-4 w-4" />
       <AlertTitle>Error</AlertTitle>
 
       <AlertDescription>
