@@ -79,9 +79,18 @@ export const CorpusSetList: FC<CorpusSetListProps> = ({
                     onClick={() => onChange?.(corpusSet)}
                   >
                     <div className="flex items-center">
-                      <Badge className="mx-4" variant="secondary">
-                        {corpusCount}
-                      </Badge>
+                      <Tooltip>
+                        <TooltipTrigger>
+                          <Badge className="mx-4" variant="secondary">
+                            {corpusCount}
+                          </Badge>
+                        </TooltipTrigger>
+
+                        <TooltipContent>
+                          Set contains {corpusCount}{' '}
+                          {corpusCount === 1 ? 'corpus' : 'corpora'}
+                        </TooltipContent>
+                      </Tooltip>
 
                       <Tooltip>
                         <TooltipTrigger asChild>
