@@ -791,6 +791,12 @@ export const useUnremoveExportColumn = (): ((id: number) => void) => {
 
 // QUERIES
 
+export const useCorpora = (): UseQueryResult<Corpus[]> =>
+  useCorporaQuery(({ corpora }) => corpora);
+
+export const useCorpusNames = (): UseQueryResult<string[]> =>
+  useCorporaQuery(({ corpora }) => corpora.map((c) => c.name));
+
 export const useCorpusNamesInSelectedSet = (): UseQueryResult<string[]> => {
   const selectedCorpusSet = useSelectedCorpusSet();
 

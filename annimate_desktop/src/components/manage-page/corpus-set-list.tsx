@@ -37,10 +37,9 @@ export const CorpusSetList: FC<CorpusSetListProps> = ({
   }
 
   return (
-    <div className="h-full flex flex-col gap-4">
+    <div className="h-full flex flex-col gap-6">
       <div className="border rounded-md overflow-hidden">
         <SelectableRow
-          buttonClassName="italic"
           caption="All corpora"
           isSelected={selectedCorpusSet === undefined}
           onClick={() => {
@@ -51,15 +50,15 @@ export const CorpusSetList: FC<CorpusSetListProps> = ({
 
       <div className="flex-1 h-0 flex flex-col gap-2">
         <div className="flex justify-between items-end">
-          <Label className="mb-2">Corpus sets</Label>
+          <Label className="truncate leading-5 mb-2">Corpus sets</Label>
 
-          <Button variant="secondary">
+          <Button className="ml-1" variant="secondary">
             <Plus className="h-4 w-4 mr-2" />
             Add corpus set
           </Button>
         </div>
 
-        <div className="flex-1 h-0 border rounded-md overflow-hidden">
+        <div className="flex-1 border rounded-md overflow-hidden">
           {corpusSetsWithCount.length === 0 ? (
             <p className="text-center text-muted-foreground mt-4">
               No corpus sets available
@@ -80,7 +79,7 @@ export const CorpusSetList: FC<CorpusSetListProps> = ({
                   >
                     <div className="flex items-center">
                       <Tooltip>
-                        <TooltipTrigger>
+                        <TooltipTrigger tabIndex={-1}>
                           <Badge className="mx-4" variant="secondary">
                             {corpusCount}
                           </Badge>
@@ -99,7 +98,7 @@ export const CorpusSetList: FC<CorpusSetListProps> = ({
                           </Button>
                         </TooltipTrigger>
 
-                        <TooltipContent>Rename corpus set</TooltipContent>
+                        <TooltipContent>Rename set</TooltipContent>
                       </Tooltip>
 
                       <Tooltip>
@@ -112,7 +111,7 @@ export const CorpusSetList: FC<CorpusSetListProps> = ({
                           </Button>
                         </TooltipTrigger>
 
-                        <TooltipContent>Delete corpus set</TooltipContent>
+                        <TooltipContent>Delete set</TooltipContent>
                       </Tooltip>
                     </div>
                   </SelectableRow>
@@ -127,14 +126,12 @@ export const CorpusSetList: FC<CorpusSetListProps> = ({
 };
 
 type SelectableRowProps = PropsWithChildren<{
-  buttonClassName?: string;
   caption: string;
   isSelected: boolean;
   onClick?: () => void;
 }>;
 
 const SelectableRow: FC<SelectableRowProps> = ({
-  buttonClassName,
   caption,
   children,
   isSelected,
@@ -149,13 +146,9 @@ const SelectableRow: FC<SelectableRowProps> = ({
     )}
   >
     <Button
-      className={cn(
-        buttonClassName,
-        'block w-0 truncate text-left flex-1 py-2',
-        {
-          'font-bold': isSelected,
-        },
-      )}
+      className={cn('block w-0 truncate leading-5 text-left flex-1 py-2', {
+        'font-bold': isSelected,
+      })}
       onClick={onClick}
       variant="link"
     >

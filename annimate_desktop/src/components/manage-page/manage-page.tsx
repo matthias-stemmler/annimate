@@ -1,3 +1,5 @@
+import { AllCorporaList } from '@/components/manage-page/all-corpora-list';
+import { CorporaInSetList } from '@/components/manage-page/corpora-in-set-list';
 import { CorpusSetList } from '@/components/manage-page/corpus-set-list';
 import { Button } from '@/components/ui/button';
 import {
@@ -57,11 +59,13 @@ export const ManagePage: FC = () => {
 
         <ResizableHandle withHandle />
 
-        <ResizablePanel
-          className="p-3"
-          defaultSize={50}
-          minSize={30}
-        ></ResizablePanel>
+        <ResizablePanel className="p-3" defaultSize={50} minSize={30}>
+          {selectedCorpusSet === undefined ? (
+            <AllCorporaList />
+          ) : (
+            <CorporaInSetList corpusSet={selectedCorpusSet} />
+          )}
+        </ResizablePanel>
       </ResizablePanelGroup>
     </div>
   );
