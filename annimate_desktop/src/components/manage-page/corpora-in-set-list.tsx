@@ -1,53 +1,44 @@
 import { Checkbox } from '@/components/ui/checkbox';
-import { Spinner } from '@/components/ui/custom/spinner';
 import { Label } from '@/components/ui/label';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
-import { useCorpora } from '@/lib/store';
+import { Corpus } from '@/lib/api-types';
 import { FC, useId } from 'react';
 
 export type CorporaInSetListProps = {
+  corpora: Corpus[];
   corpusSet: string;
 };
 
-export const CorporaInSetList: FC<CorporaInSetListProps> = ({ corpusSet }) => {
-  const { data: corpora, error, isPending } = useCorpora();
+export const CorporaInSetList: FC<CorporaInSetListProps> = ({
+  corpora,
+  corpusSet,
+}) => (
+  <div className="h-full flex flex-col gap-2">
+    <Label className="truncate leading-5 mb-2">
+      Corpora in set <span className="px-2">&ldquo;{corpusSet}&rdquo;</span>
+    </Label>
 
-  if (error !== null) {
-    throw new Error(`Failed to load corpora: ${error}`);
-  }
+    <div className="flex-1 border rounded-md overflow-hidden">
+      {corpora.length === 0 ? (
+        <p className="text-center text-muted-foreground mt-4">
+          No corpora available
+        </p>
+      ) : (
+        <ScrollArea className="h-full">
+          <ScrollBar orientation="horizontal" />
 
-  if (isPending) {
-    return <Spinner />;
-  }
-
-  return (
-    <div className="h-full flex flex-col gap-2">
-      <Label className="truncate leading-5 mb-2">
-        Corpora in set <span className="px-2">&ldquo;{corpusSet}&rdquo;</span>
-      </Label>
-
-      <div className="flex-1 border rounded-md overflow-hidden">
-        {corpora.length === 0 ? (
-          <p className="text-center text-muted-foreground mt-4">
-            No corpora available
-          </p>
-        ) : (
-          <ScrollArea className="h-full">
-            <ScrollBar orientation="horizontal" />
-
-            {corpora.map(({ name, includedInSets }) => (
-              <CorporaInSetListItem
-                key={name}
-                checked={includedInSets.includes(corpusSet)}
-                name={name}
-              />
-            ))}
-          </ScrollArea>
-        )}
-      </div>
+          {corpora.map(({ name, includedInSets }) => (
+            <CorporaInSetListItem
+              key={name}
+              checked={includedInSets.includes(corpusSet)}
+              name={name}
+            />
+          ))}
+        </ScrollArea>
+      )}
     </div>
-  );
-};
+  </div>
+);
 
 type CorporaInSetListItemProps = {
   checked: boolean;

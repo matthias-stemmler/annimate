@@ -1,6 +1,5 @@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Spinner } from '@/components/ui/custom/spinner';
 import { Label } from '@/components/ui/label';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import {
@@ -8,122 +7,107 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { useCorpusSetsWithCount } from '@/lib/store';
 import { cn } from '@/lib/utils';
 import { Pencil, Plus, Trash2 } from 'lucide-react';
 import { FC, PropsWithChildren } from 'react';
 
 export type CorpusSetListProps = {
+  corpusSetsWithCount: { corpusSet: string; corpusCount: number }[];
   onSelectCorpusSet?: (value: string | undefined) => void;
   selectedCorpusSet: string | undefined;
 };
 
 export const CorpusSetList: FC<CorpusSetListProps> = ({
+  corpusSetsWithCount,
   onSelectCorpusSet: onChange,
   selectedCorpusSet,
-}) => {
-  const {
-    data: corpusSetsWithCount,
-    error,
-    isPending,
-  } = useCorpusSetsWithCount();
+}) => (
+  <div className="h-full flex flex-col gap-6">
+    <div className="border rounded-md overflow-hidden">
+      <SelectableRow
+        caption="All corpora"
+        isSelected={selectedCorpusSet === undefined}
+        onClick={() => {
+          onChange?.(undefined);
+        }}
+      />
+    </div>
 
-  if (error !== null) {
-    throw new Error(`Failed to load corpora: ${error}`);
-  }
+    <div className="flex-1 h-0 flex flex-col gap-2">
+      <div className="flex justify-between items-end">
+        <Label className="truncate leading-5 mb-2">Corpus sets</Label>
 
-  if (isPending) {
-    return <Spinner />;
-  }
-
-  return (
-    <div className="h-full flex flex-col gap-6">
-      <div className="border rounded-md overflow-hidden">
-        <SelectableRow
-          caption="All corpora"
-          isSelected={selectedCorpusSet === undefined}
-          onClick={() => {
-            onChange?.(undefined);
-          }}
-        />
+        <Button className="ml-1" variant="secondary">
+          <Plus className="h-4 w-4 mr-2" />
+          Add corpus set
+        </Button>
       </div>
 
-      <div className="flex-1 h-0 flex flex-col gap-2">
-        <div className="flex justify-between items-end">
-          <Label className="truncate leading-5 mb-2">Corpus sets</Label>
+      <div className="flex-1 border rounded-md overflow-hidden">
+        {corpusSetsWithCount.length === 0 ? (
+          <p className="text-center text-muted-foreground mt-4">
+            No corpus sets available
+          </p>
+        ) : (
+          <ScrollArea className="h-full ">
+            <ScrollBar orientation="horizontal" />
 
-          <Button className="ml-1" variant="secondary">
-            <Plus className="h-4 w-4 mr-2" />
-            Add corpus set
-          </Button>
-        </div>
+            {corpusSetsWithCount.map(({ corpusSet, corpusCount }) => {
+              const isSelected = corpusSet === selectedCorpusSet;
 
-        <div className="flex-1 border rounded-md overflow-hidden">
-          {corpusSetsWithCount.length === 0 ? (
-            <p className="text-center text-muted-foreground mt-4">
-              No corpus sets available
-            </p>
-          ) : (
-            <ScrollArea className="h-full ">
-              <ScrollBar orientation="horizontal" />
+              return (
+                <SelectableRow
+                  key={corpusSet}
+                  caption={corpusSet}
+                  isSelected={isSelected}
+                  onClick={() => onChange?.(corpusSet)}
+                >
+                  <div className="flex items-center">
+                    <Tooltip>
+                      <TooltipTrigger tabIndex={-1}>
+                        <Badge className="mx-4" variant="secondary">
+                          {corpusCount}
+                        </Badge>
+                      </TooltipTrigger>
 
-              {corpusSetsWithCount.map(({ corpusSet, corpusCount }) => {
-                const isSelected = corpusSet === selectedCorpusSet;
+                      <TooltipContent>
+                        Set contains {corpusCount}{' '}
+                        {corpusCount === 1 ? 'corpus' : 'corpora'}
+                      </TooltipContent>
+                    </Tooltip>
 
-                return (
-                  <SelectableRow
-                    key={corpusSet}
-                    caption={corpusSet}
-                    isSelected={isSelected}
-                    onClick={() => onChange?.(corpusSet)}
-                  >
-                    <div className="flex items-center">
-                      <Tooltip>
-                        <TooltipTrigger tabIndex={-1}>
-                          <Badge className="mx-4" variant="secondary">
-                            {corpusCount}
-                          </Badge>
-                        </TooltipTrigger>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button variant="ghost">
+                          <Pencil />
+                        </Button>
+                      </TooltipTrigger>
 
-                        <TooltipContent>
-                          Set contains {corpusCount}{' '}
-                          {corpusCount === 1 ? 'corpus' : 'corpora'}
-                        </TooltipContent>
-                      </Tooltip>
+                      <TooltipContent>Rename set</TooltipContent>
+                    </Tooltip>
 
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button variant="ghost">
-                            <Pencil />
-                          </Button>
-                        </TooltipTrigger>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          className="text-destructive hover:text-destructive"
+                          variant="ghost"
+                        >
+                          <Trash2 />
+                        </Button>
+                      </TooltipTrigger>
 
-                        <TooltipContent>Rename set</TooltipContent>
-                      </Tooltip>
-
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button
-                            className="text-destructive hover:text-destructive"
-                            variant="ghost"
-                          >
-                            <Trash2 />
-                          </Button>
-                        </TooltipTrigger>
-
-                        <TooltipContent>Delete set</TooltipContent>
-                      </Tooltip>
-                    </div>
-                  </SelectableRow>
-                );
-              })}
-            </ScrollArea>
-          )}
-        </div>
+                      <TooltipContent>Delete set</TooltipContent>
+                    </Tooltip>
+                  </div>
+                </SelectableRow>
+              );
+            })}
+          </ScrollArea>
+        )}
       </div>
     </div>
-  );
-};
+  </div>
+);
 
 type SelectableRowProps = PropsWithChildren<{
   caption: string;

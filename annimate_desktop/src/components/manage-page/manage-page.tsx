@@ -1,26 +1,16 @@
-import { AllCorporaList } from '@/components/manage-page/all-corpora-list';
-import { CorporaInSetList } from '@/components/manage-page/corpora-in-set-list';
-import { CorpusSetList } from '@/components/manage-page/corpus-set-list';
+import { CorporaSection } from '@/components/manage-page/corpora-section';
 import { Button } from '@/components/ui/button';
-import {
-  ResizableHandle,
-  ResizablePanel,
-  ResizablePanelGroup,
-} from '@/components/ui/resizable';
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { ArrowLeft, FolderInput } from 'lucide-react';
-import { FC, useState } from 'react';
+import { FC } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 export const ManagePage: FC = () => {
   const navigate = useNavigate();
-  const [selectedCorpusSet, setSelectedCorpusSet] = useState<
-    string | undefined
-  >();
 
   return (
     <div className="h-full overflow-hidden flex flex-col">
@@ -49,24 +39,7 @@ export const ManagePage: FC = () => {
         </Button>
       </header>
 
-      <ResizablePanelGroup direction="horizontal">
-        <ResizablePanel className="p-3" defaultSize={50} minSize={30}>
-          <CorpusSetList
-            onSelectCorpusSet={setSelectedCorpusSet}
-            selectedCorpusSet={selectedCorpusSet}
-          />
-        </ResizablePanel>
-
-        <ResizableHandle withHandle />
-
-        <ResizablePanel className="p-3" defaultSize={50} minSize={30}>
-          {selectedCorpusSet === undefined ? (
-            <AllCorporaList />
-          ) : (
-            <CorporaInSetList corpusSet={selectedCorpusSet} />
-          )}
-        </ResizablePanel>
-      </ResizablePanelGroup>
+      <CorporaSection />
     </div>
   );
 };
