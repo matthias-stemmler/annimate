@@ -18,11 +18,11 @@ import {
   useQueryClient,
 } from '@tanstack/react-query';
 
-const QUERY_KEY_CORPORA = 'corpora';
-const QUERY_KEY_QUERY_NODES = 'query-nodes';
-const QUERY_KEY_QUERY_VALIDATION_RESULT = 'query-validation-result';
-const QUERY_KEY_SEGMENTATIONS = 'segmentations';
-const QUERY_KEY_EXPORTABLE_ANNO_KEYS = 'exportable-anno-keys';
+export const QUERY_KEY_CORPORA = 'corpora';
+export const QUERY_KEY_QUERY_NODES = 'query-nodes';
+export const QUERY_KEY_QUERY_VALIDATION_RESULT = 'query-validation-result';
+export const QUERY_KEY_SEGMENTATIONS = 'segmentations';
+export const QUERY_KEY_EXPORTABLE_ANNO_KEYS = 'exportable-anno-keys';
 
 const corporaQueryConfig = () => ({
   queryKey: [QUERY_KEY_CORPORA],

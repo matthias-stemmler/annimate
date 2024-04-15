@@ -4,7 +4,7 @@ use annimate_core::{
 };
 use itertools::Itertools;
 use serde::Serialize;
-use std::fs::File;
+use std::fs::{self, File};
 use std::path::Path;
 
 macro_rules! export_matches_test {
@@ -35,12 +35,14 @@ macro_rules! export_matches_test {
                     },
                 };
 
-                let storage = Storage::from_db_dir(concat!(
+                let db_dir = (concat!(
                     env!("CARGO_TARGET_TMPDIR"),
-                    "/tests/export/",
+                    "/tests/export_matches/",
                     stringify!($name)
-                ))
-                .unwrap();
+                ));
+
+                fs::remove_dir_all(db_dir).unwrap();
+                let storage = Storage::from_db_dir(db_dir).unwrap();
 
                 for corpus_path in test_data.corpus_paths {
                     storage

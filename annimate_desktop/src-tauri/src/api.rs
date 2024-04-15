@@ -96,6 +96,17 @@ pub(crate) fn get_segmentations(
 }
 
 #[tauri::command(async)]
+pub(crate) fn toggle_corpus_in_set(
+    state: tauri::State<State>,
+    corpus_set: &str,
+    corpus_name: &str,
+) -> Result<(), Error> {
+    Ok(state
+        .storage
+        .toggle_corpus_in_set(corpus_set, corpus_name)?)
+}
+
+#[tauri::command(async)]
 pub(crate) fn validate_query(
     state: tauri::State<State>,
     corpus_names: Vec<String>,

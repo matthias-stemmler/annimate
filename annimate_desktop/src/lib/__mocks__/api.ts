@@ -29,6 +29,47 @@ const CORPUS_NO_ANNO_KEYS = 'Corpus without anno keys';
 const CORPUS_MANY_ANNO_KEYS = 'Corpus with many anno keys';
 const CORPUS_MULTIPLE_SEGMENTATIONS = 'Corpus with multiple segmentations';
 const CORPUS_FAILING_ANNO_KEYS = 'Corpus with failing anno keys';
+const CORPUS_FAILING_TOGGLE = 'Corpus that fails to toggle';
+
+const corpusNames = [
+  CORPUS_NORMAL,
+  CORPUS_INVALID_QUERY,
+  CORPUS_NO_MATCHES,
+  CORPUS_MANY_MATCHES,
+  CORPUS_FAILING_EXPORT,
+  CORPUS_NO_ANNO_KEYS,
+  CORPUS_MANY_ANNO_KEYS,
+  CORPUS_MULTIPLE_SEGMENTATIONS,
+  CORPUS_FAILING_ANNO_KEYS,
+  CORPUS_FAILING_TOGGLE,
+];
+
+let corpusSets = [
+  {
+    name: 'Normal',
+    corpusNames: [CORPUS_NORMAL],
+  },
+  {
+    name: 'Working',
+    corpusNames: [
+      CORPUS_NORMAL,
+      CORPUS_NO_MATCHES,
+      CORPUS_MANY_MATCHES,
+      CORPUS_NO_ANNO_KEYS,
+      CORPUS_MANY_ANNO_KEYS,
+      CORPUS_MULTIPLE_SEGMENTATIONS,
+    ],
+  },
+  {
+    name: 'Failing',
+    corpusNames: [
+      CORPUS_INVALID_QUERY,
+      CORPUS_FAILING_EXPORT,
+      CORPUS_FAILING_ANNO_KEYS,
+      CORPUS_FAILING_TOGGLE,
+    ],
+  },
+];
 
 window.__ANNIMATE__ = {
   versionInfo: {
@@ -126,49 +167,23 @@ export const exportMatches = async (params: {
   }
 };
 
+let corporaFetched = false;
+
 export const getCorpora = async (): Promise<Corpora> => {
-  await sleep(1000);
+  if (!corporaFetched) {
+    await sleep(1000);
+  }
+
+  corporaFetched = true;
 
   return {
-    corpora: [
-      {
-        name: CORPUS_NORMAL,
-        includedInSets: ['Normal', 'Working'],
-      },
-      {
-        name: CORPUS_INVALID_QUERY,
-        includedInSets: ['Failing'],
-      },
-      {
-        name: CORPUS_NO_MATCHES,
-        includedInSets: ['Working'],
-      },
-      {
-        name: CORPUS_MANY_MATCHES,
-        includedInSets: ['Working'],
-      },
-      {
-        name: CORPUS_FAILING_EXPORT,
-        includedInSets: ['Failing'],
-      },
-      {
-        name: CORPUS_NO_ANNO_KEYS,
-        includedInSets: ['Working'],
-      },
-      {
-        name: CORPUS_MANY_ANNO_KEYS,
-        includedInSets: ['Working'],
-      },
-      {
-        name: CORPUS_MULTIPLE_SEGMENTATIONS,
-        includedInSets: ['Working'],
-      },
-      {
-        name: CORPUS_FAILING_ANNO_KEYS,
-        includedInSets: ['Failing'],
-      },
-    ],
-    sets: ['Normal', 'Working', 'Failing'],
+    corpora: corpusNames.map((c) => ({
+      name: c,
+      includedInSets: corpusSets
+        .filter((s) => s.corpusNames.includes(c))
+        .map((s) => s.name),
+    })),
+    sets: corpusSets.map((s) => s.name),
   };
 };
 
@@ -237,6 +252,26 @@ export const getSegmentations = async (params: {
     params.corpusNames[0] === CORPUS_MULTIPLE_SEGMENTATIONS
     ? ['segmentation1', 'segmentation2', 'segmentation3', '']
     : [''];
+};
+
+export const toggleCorpusInSet = async (params: {
+  corpusSet: string;
+  corpusName: string;
+}): Promise<void> => {
+  if (params.corpusName === CORPUS_FAILING_TOGGLE) {
+    throw new Error('This corpus cannot be toggled.');
+  }
+
+  corpusSets = corpusSets.map((s) =>
+    s.name === params.corpusSet
+      ? {
+          ...s,
+          corpusNames: s.corpusNames.includes(params.corpusName)
+            ? s.corpusNames.filter((c) => c !== params.corpusName)
+            : [...s.corpusNames, params.corpusName],
+        }
+      : s,
+  );
 };
 
 export const validateQuery = async (params: {

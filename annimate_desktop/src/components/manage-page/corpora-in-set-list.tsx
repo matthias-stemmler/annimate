@@ -1,7 +1,9 @@
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
+import { useToast } from '@/components/ui/use-toast';
 import { Corpus } from '@/lib/api-types';
+import { useToggleCorpusInSetMutation } from '@/lib/mutations';
 import { FC, useId } from 'react';
 
 export type CorporaInSetListProps = {
@@ -31,7 +33,8 @@ export const CorporaInSetList: FC<CorporaInSetListProps> = ({
             <CorporaInSetListItem
               key={name}
               checked={includedInSets.includes(corpusSet)}
-              name={name}
+              corpusName={name}
+              corpusSet={corpusSet}
             />
           ))}
         </ScrollArea>
@@ -42,23 +45,47 @@ export const CorporaInSetList: FC<CorporaInSetListProps> = ({
 
 type CorporaInSetListItemProps = {
   checked: boolean;
-  name: string;
+  corpusName: string;
+  corpusSet: string;
 };
 
 const CorporaInSetListItem: FC<CorporaInSetListItemProps> = ({
   checked,
-  name,
+  corpusName,
+  corpusSet,
 }) => {
   const id = useId();
+  const { mutate: toggleCorpusInSet } = useToggleCorpusInSetMutation();
+  const { toast } = useToast();
 
   return (
     <Label
       htmlFor={id}
       className="group cursor-pointer flex items-center gap-2 shadow-[0_1px] shadow-gray-200 px-4 py-3"
     >
-      <Checkbox id={id} aria-label={name} checked={checked} />
+      <Checkbox
+        id={id}
+        aria-label={corpusName}
+        checked={checked}
+        onClick={() => {
+          toggleCorpusInSet(
+            { corpusSet, corpusName },
+            {
+              onError: (error: Error) => {
+                toast({
+                  className: 'break-all',
+                  description: error.toString(),
+                  duration: 15000,
+                  title: 'Failed to toggle corpus',
+                  variant: 'destructive',
+                });
+              },
+            },
+          );
+        }}
+      />
       <div className="h-6 w-0 flex-1 truncate leading-5 group-hover:underline underline-offset-4 translate-y-0.5">
-        {name}
+        {corpusName}
       </div>
     </Label>
   );

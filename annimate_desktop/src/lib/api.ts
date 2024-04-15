@@ -40,6 +40,11 @@ export const getSegmentations = (params: {
   corpusNames: string[];
 }): Promise<string[]> => invoke('get_segmentations', params);
 
+export const toggleCorpusInSet = (params: {
+  corpusSet: string;
+  corpusName: string;
+}): Promise<void> => invoke('toggle_corpus_in_set', params);
+
 export const validateQuery = (params: {
   corpusNames: string[];
   aqlQuery: string;

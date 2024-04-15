@@ -40,13 +40,24 @@ impl Storage {
     where
         P: AsRef<Path>,
     {
+        let corpus_storage = graphannis::CorpusStorage::with_cache_strategy(
+            db_dir.as_ref(),
+            CacheStrategy::PercentOfFreeMemory(25.0),
+            true,
+        )?;
+
+        let metadata_storage = MetadataStorage::from_db_dir(
+            &db_dir,
+            &corpus_storage
+                .list()?
+                .into_iter()
+                .map(|c| c.name)
+                .collect_vec(),
+        )?;
+
         Ok(Self {
-            corpus_storage: graphannis::CorpusStorage::with_cache_strategy(
-                db_dir.as_ref(),
-                CacheStrategy::PercentOfFreeMemory(25.0),
-                true,
-            )?,
-            metadata_storage: MetadataStorage::from_db_dir(&db_dir)?,
+            corpus_storage,
+            metadata_storage,
         })
     }
 
@@ -90,6 +101,24 @@ impl Storage {
         Ok(self
             .corpus_storage
             .import_all_from_zip(zip, false, false, on_status)?)
+    }
+
+    pub fn toggle_corpus_in_set(
+        &self,
+        corpus_set: &str,
+        corpus_name: &str,
+    ) -> Result<(), AnnisExportError> {
+        self.metadata_storage.update_corpus_sets(|corpus_sets| {
+            if let Some(corpus_set) = corpus_sets.iter_mut().find(|s| s.name == corpus_set) {
+                if corpus_set.corpus_names.iter().any(|c| c == corpus_name) {
+                    corpus_set.corpus_names.retain(|c| c != corpus_name);
+                } else {
+                    corpus_set.corpus_names.push(corpus_name.into());
+                }
+            }
+        })?;
+
+        Ok(())
     }
 
     pub fn validate_query<S>(

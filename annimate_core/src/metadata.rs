@@ -16,44 +16,67 @@ pub(crate) struct MetadataStorage {
 }
 
 impl MetadataStorage {
-    pub(crate) fn from_db_dir<P>(db_dir: P) -> Result<Self, AnnisExportError>
+    pub(crate) fn from_db_dir<P, S>(db_dir: P, corpus_names: &[S]) -> Result<Self, AnnisExportError>
     where
         P: AsRef<Path>,
+        S: AsRef<str>,
     {
         let path = db_dir.as_ref().join("annimate.toml");
 
-        if path.try_exists()? {
+        let metadata = if path.try_exists()? {
             let data = fs::read_to_string(&path)?;
 
             match data.parse() {
-                Ok(metadata) => Ok(Self {
-                    path,
-                    metadata: RwLock::new(metadata),
-                }),
-                Err(err) => Err(AnnisExportError::FailedToReadMetadata { path, err }),
+                Ok(mut metadata) => {
+                    cleanup_metadata(&mut metadata, corpus_names);
+                    metadata
+                }
+                Err(err) => return Err(AnnisExportError::FailedToReadMetadata { path, err }),
             }
         } else {
-            let storage = Self {
-                path,
-                metadata: Default::default(),
-            };
-            storage.write()?;
-            Ok(storage)
-        }
+            let metadata = Metadata::default();
+            write_metadata(&path, &metadata)?;
+            metadata
+        };
+
+        Ok(Self {
+            path,
+            metadata: RwLock::new(metadata),
+        })
     }
 
     pub(crate) fn corpus_sets(&self) -> Vec<CorpusSet> {
         self.metadata.read().unwrap().corpus_sets.clone()
     }
 
-    fn write(&self) -> io::Result<()> {
-        fs::write(
-            &self.path,
-            toml::to_string_pretty(&self.metadata)
-                .expect("Failed to serialize metadata")
-                .as_bytes(),
-        )
+    pub(crate) fn update_corpus_sets(
+        &self,
+        mut op: impl FnMut(&mut Vec<CorpusSet>),
+    ) -> io::Result<()> {
+        let mut metadata = self.metadata.write().unwrap();
+        op(&mut metadata.corpus_sets);
+        write_metadata(&self.path, &metadata)
     }
+}
+
+fn cleanup_metadata<S>(metadata: &mut Metadata, corpus_names: &[S])
+where
+    S: AsRef<str>,
+{
+    for corpus_set in &mut metadata.corpus_sets {
+        corpus_set
+            .corpus_names
+            .retain(|corpus_name| corpus_names.iter().any(|c| c.as_ref() == corpus_name));
+    }
+}
+
+fn write_metadata(path: &Path, metadata: &Metadata) -> io::Result<()> {
+    fs::write(
+        path,
+        toml::to_string_pretty(metadata)
+            .expect("Failed to serialize metadata")
+            .as_bytes(),
+    )
 }
 
 #[serde_as]

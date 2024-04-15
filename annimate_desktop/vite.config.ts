@@ -14,6 +14,9 @@ export default defineConfig(async () => {
   }
 
   return {
+    build: {
+      chunkSizeWarningLimit: 1024,
+    },
     clearScreen: false,
     plugins: [react(), svgr()],
     resolve: {

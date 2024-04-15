@@ -1,0 +1,8 @@
+---
+source: annimate_core/tests/corpora.rs
+---
+metadata-version = 1
+
+[corpus-sets."Test set"]
+corpus-names = ["subtok.demo2"]
+

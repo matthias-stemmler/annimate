@@ -17,6 +17,7 @@ fn main() {
             api::get_exportable_anno_keys,
             api::get_query_nodes,
             api::get_segmentations,
+            api::toggle_corpus_in_set,
             api::validate_query
         ])
         .on_page_load(|window, _| {
