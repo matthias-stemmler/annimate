@@ -76,4 +76,8 @@ fn corpora() {
         .unwrap();
 
     snapshot_metadata!("toggle2");
+
+    storage.delete_corpus("subtok.demo2").unwrap();
+
+    snapshot_metadata!("delete");
 }

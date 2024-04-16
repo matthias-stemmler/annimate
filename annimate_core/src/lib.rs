@@ -89,6 +89,16 @@ impl Storage {
         })
     }
 
+    pub fn delete_corpus(&self, corpus_name: &str) -> Result<(), AnnisExportError> {
+        self.corpus_storage.delete(corpus_name)?;
+        self.metadata_storage.update_corpus_sets(|corpus_sets| {
+            for corpus_set in corpus_sets {
+                corpus_set.corpus_names.retain(|c| c != corpus_name);
+            }
+        })?;
+        Ok(())
+    }
+
     pub fn import_corpora_from_zip<F, R>(
         &self,
         zip: R,

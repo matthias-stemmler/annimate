@@ -30,8 +30,9 @@ const CORPUS_MANY_ANNO_KEYS = 'Corpus with many anno keys';
 const CORPUS_MULTIPLE_SEGMENTATIONS = 'Corpus with multiple segmentations';
 const CORPUS_FAILING_ANNO_KEYS = 'Corpus with failing anno keys';
 const CORPUS_FAILING_TOGGLE = 'Corpus that fails to toggle';
+const CORPUS_FAILING_DELETE = 'Corpus that fails to delete';
 
-const corpusNames = [
+let corpusNames = [
   CORPUS_NORMAL,
   CORPUS_INVALID_QUERY,
   CORPUS_NO_MATCHES,
@@ -42,6 +43,7 @@ const corpusNames = [
   CORPUS_MULTIPLE_SEGMENTATIONS,
   CORPUS_FAILING_ANNO_KEYS,
   CORPUS_FAILING_TOGGLE,
+  CORPUS_FAILING_DELETE,
 ];
 
 let corpusSets = [
@@ -67,6 +69,7 @@ let corpusSets = [
       CORPUS_FAILING_EXPORT,
       CORPUS_FAILING_ANNO_KEYS,
       CORPUS_FAILING_TOGGLE,
+      CORPUS_FAILING_DELETE,
     ],
   },
 ];
@@ -135,6 +138,22 @@ export const relaunch = async (): Promise<void> => {
 export const save = async (): Promise<string | null> => {
   logAction('Save', COLOR_BUILTIN_COMMAND);
   return prompt('Save\nEnter file path:');
+};
+
+export const deleteCorpus = async (params: {
+  corpusName: string;
+}): Promise<void> => {
+  logAction('Delete corpus', COLOR_CUSTOM_COMMAND, params);
+
+  if (params.corpusName === CORPUS_FAILING_DELETE) {
+    throw new Error('This corpus cannot be deleted.');
+  }
+
+  corpusNames = corpusNames.filter((c) => c !== params.corpusName);
+  corpusSets = corpusSets.map((s) => ({
+    ...s,
+    corpusNames: s.corpusNames.filter((c) => c !== params.corpusName),
+  }));
 };
 
 export const exportMatches = async (params: {
@@ -258,6 +277,8 @@ export const toggleCorpusInSet = async (params: {
   corpusSet: string;
   corpusName: string;
 }): Promise<void> => {
+  logAction('Toggle corpus in set', COLOR_CUSTOM_COMMAND, params);
+
   if (params.corpusName === CORPUS_FAILING_TOGGLE) {
     throw new Error('This corpus cannot be toggled.');
   }

@@ -24,6 +24,11 @@ impl State {
 }
 
 #[tauri::command(async)]
+pub(crate) fn delete_corpus(state: tauri::State<State>, corpus_name: &str) -> Result<(), Error> {
+    Ok(state.storage.delete_corpus(corpus_name)?)
+}
+
+#[tauri::command(async)]
 pub(crate) fn export_matches(
     state: tauri::State<State>,
     window: Window,

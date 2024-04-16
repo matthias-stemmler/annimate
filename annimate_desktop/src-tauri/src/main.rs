@@ -12,6 +12,7 @@ fn main() {
     tauri::Builder::default()
         .manage(State::from_db_dir(db_dir.into()))
         .invoke_handler(tauri::generate_handler![
+            api::delete_corpus,
             api::export_matches,
             api::get_corpora,
             api::get_exportable_anno_keys,

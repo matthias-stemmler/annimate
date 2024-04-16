@@ -1,4 +1,5 @@
 import {
+  deleteCorpus,
   exportMatches,
   subscribeToExportStatus,
   toggleCorpusInSet,
@@ -13,6 +14,17 @@ import { useState } from 'react';
 import { QUERY_KEY_CORPORA } from '@/lib/queries';
 
 const MUTATION_KEY_EXPORT_MATCHES = 'export-matches';
+
+export const useDeleteCorpusMutation = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (args: { corpusName: string }) => deleteCorpus(args),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEY_CORPORA] });
+    },
+  });
+};
 
 export const useExportMatchesMutation = (
   getParams: () => Promise<{

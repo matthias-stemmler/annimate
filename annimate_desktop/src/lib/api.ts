@@ -17,6 +17,9 @@ import { appWindow } from '@tauri-apps/api/window';
 
 export { dirname, exit, open, relaunch, save };
 
+export const deleteCorpus = (params: { corpusName: string }): Promise<void> =>
+  invoke('delete_corpus', params);
+
 export const exportMatches = (params: {
   corpusNames: string[];
   aqlQuery: string;

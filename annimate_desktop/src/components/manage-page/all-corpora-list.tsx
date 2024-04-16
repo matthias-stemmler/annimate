@@ -1,4 +1,6 @@
+import { DeleteCorpusDialog } from '@/components/dialogs/delete-corpus-dialog';
 import { Button } from '@/components/ui/button';
+import { Dialog, DialogTrigger } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import {
@@ -39,12 +41,18 @@ export const AllCorporaList: FC<AllCorporaListProps> = ({ corpusNames }) => (
 
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button
-                    className="text-destructive hover:text-destructive"
-                    variant="ghost"
-                  >
-                    <Trash2 />
-                  </Button>
+                  <Dialog>
+                    <DialogTrigger>
+                      <Button
+                        className="text-destructive hover:text-destructive"
+                        variant="ghost"
+                      >
+                        <Trash2 />
+                      </Button>
+                    </DialogTrigger>
+
+                    <DeleteCorpusDialog corpusName={corpusName} />
+                  </Dialog>
                 </TooltipTrigger>
 
                 <TooltipContent>Delete corpus</TooltipContent>

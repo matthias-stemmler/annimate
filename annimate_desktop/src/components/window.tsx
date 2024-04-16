@@ -1,4 +1,4 @@
-import { AboutDialog } from '@/components/about-dialog';
+import { AboutDialog } from '@/components/dialogs/about-dialog';
 import { Dialog, DialogTrigger } from '@/components/ui/dialog';
 import {
   Menubar,
