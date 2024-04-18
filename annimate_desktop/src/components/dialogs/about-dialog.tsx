@@ -7,7 +7,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { open } from '@/lib/api';
+import { shellOpen } from '@/lib/api';
 import { useRef } from 'react';
 
 export const AboutDialog = () => {
@@ -28,7 +28,7 @@ export const AboutDialog = () => {
             <Button
               className="h-4 p-0"
               onClick={() => {
-                open('https://github.com/matthias-stemmler/annimate');
+                shellOpen('https://github.com/matthias-stemmler/annimate');
               }}
               variant="link"
             >
@@ -44,7 +44,7 @@ export const AboutDialog = () => {
               <Button
                 className="h-4 p-0"
                 onClick={() => {
-                  open('https://github.com/korpling/graphANNIS');
+                  shellOpen('https://github.com/korpling/graphANNIS');
                 }}
                 variant="link"
               >

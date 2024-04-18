@@ -46,16 +46,11 @@ module.exports = {
       },
     },
 
-    // Allow relative imports in mocks
+    // Allow Tauri imports (for types) and relative imports in mocks
     {
       files: ['src/**/__mocks__/**'],
       rules: {
-        'no-restricted-imports': [
-          'error',
-          {
-            patterns: [importRuleNoTauri],
-          },
-        ],
+        'no-restricted-imports': 'off',
       },
     },
   ],

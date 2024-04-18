@@ -7,15 +7,15 @@ import {
   QueryValidationResult,
   StatusEvent,
 } from '@/lib/api-types';
-import { save } from '@tauri-apps/api/dialog';
+import { open as fileOpen, save } from '@tauri-apps/api/dialog';
 import { UnlistenFn } from '@tauri-apps/api/event';
 import { dirname } from '@tauri-apps/api/path';
 import { exit, relaunch } from '@tauri-apps/api/process';
-import { open } from '@tauri-apps/api/shell';
+import { open as shellOpen } from '@tauri-apps/api/shell';
 import { invoke } from '@tauri-apps/api/tauri';
 import { appWindow } from '@tauri-apps/api/window';
 
-export { dirname, exit, open, relaunch, save };
+export { dirname, exit, fileOpen, relaunch, save, shellOpen };
 
 export const deleteCorpus = (params: { corpusName: string }): Promise<void> =>
   invoke('delete_corpus', params);

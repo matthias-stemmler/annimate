@@ -123,7 +123,7 @@ const SelectableRow: FC<SelectableRowProps> = ({
 }) => (
   <div
     className={cn(
-      'flex gap-2 items-stretch justify-between shadow-[0_1px] shadow-gray-200 pl-4 pr-3 py-1',
+      'flex gap-2 items-stretch justify-between shadow-[0_1px] shadow-gray-200 dark:shadow-gray-800 pl-4 pr-3 py-1',
       {
         'border-l-gray-400 border-l-8 pl-2': isSelected,
       },

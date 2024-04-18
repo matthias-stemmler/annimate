@@ -1,7 +1,7 @@
 import { Button } from '@/components/ui/button';
 import { ProgressPercent } from '@/components/ui/custom/progress-percent';
 import { useToast } from '@/components/ui/use-toast';
-import { dirname, open, save } from '@/lib/api';
+import { dirname, save, shellOpen } from '@/lib/api';
 import { useCanExport, useExportMatches } from '@/lib/store';
 import { File, Folder } from 'lucide-react';
 
@@ -53,7 +53,9 @@ export const ExportTrigger = () => {
                     <div className="flex gap-8">
                       <Button
                         className="px-0"
-                        onClick={async () => open(await dirname(outputFile))}
+                        onClick={async () =>
+                          shellOpen(await dirname(outputFile))
+                        }
                         variant="link"
                       >
                         <Folder className="h-4 w-4 mr-2" />
@@ -62,7 +64,7 @@ export const ExportTrigger = () => {
 
                       <Button
                         className="px-0"
-                        onClick={() => open(outputFile)}
+                        onClick={() => shellOpen(outputFile)}
                         variant="link"
                       >
                         <File className="h-4 w-4 mr-2" />

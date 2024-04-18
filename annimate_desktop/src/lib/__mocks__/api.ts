@@ -15,6 +15,7 @@ import {
   StatusEvent,
   UnlistenFn,
 } from '@/lib/api-types';
+import { OpenDialogOptions, SaveDialogOptions } from '@tauri-apps/api/dialog';
 
 const COLOR_BUILTIN_COMMAND = '#93c5fd';
 const COLOR_CUSTOM_COMMAND = '#86efac';
@@ -126,17 +127,30 @@ const exportStatusListeners: Set<(statusEvent: StatusEvent) => void> =
 export const dirname = async (path: string): Promise<string> =>
   `<Dirname of ${path}>`;
 
-export const open = async (path: string, openWith?: string): Promise<void> => {
-  logAction('Open', COLOR_BUILTIN_COMMAND, { path, openWith });
-  alert(`Open\npath: ${path}\nopenWith: ${openWith}`);
+export const fileOpen = async (
+  options: OpenDialogOptions,
+): Promise<null | string | string[]> => {
+  logAction('File Open', COLOR_BUILTIN_COMMAND, options);
+  const answer = prompt('File Open\nEnter file paths (comma-separated):');
+  return answer === null ? null : answer.split(',');
+};
+
+export const shellOpen = async (
+  path: string,
+  openWith?: string,
+): Promise<void> => {
+  logAction('Shell Open', COLOR_BUILTIN_COMMAND, { path, openWith });
+  alert(`Shell Open\npath: ${path}\nopenWith: ${openWith}`);
 };
 
 export const relaunch = async (): Promise<void> => {
   window.location.reload();
 };
 
-export const save = async (): Promise<string | null> => {
-  logAction('Save', COLOR_BUILTIN_COMMAND);
+export const save = async (
+  options?: SaveDialogOptions,
+): Promise<string | null> => {
+  logAction('Save', COLOR_BUILTIN_COMMAND, options);
   return prompt('Save\nEnter file path:');
 };
 

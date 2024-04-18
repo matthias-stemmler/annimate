@@ -32,17 +32,17 @@ export const AllCorporaList: FC<AllCorporaListProps> = ({ corpusNames }) => (
             <div
               key={corpusName}
               className={
-                'flex gap-2 items-center justify-between shadow-[0_1px] shadow-gray-200 pl-4 pr-3 py-1'
+                'flex gap-2 items-center justify-between shadow-[0_1px] shadow-gray-200 dark:shadow-gray-800 pl-4 pr-3 py-1'
               }
             >
               <Label className="w-0 flex-1 truncate leading-5">
                 {corpusName}
               </Label>
 
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Dialog>
-                    <DialogTrigger>
+              <Dialog>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <DialogTrigger asChild>
                       <Button
                         className="text-destructive hover:text-destructive"
                         variant="ghost"
@@ -50,13 +50,13 @@ export const AllCorporaList: FC<AllCorporaListProps> = ({ corpusNames }) => (
                         <Trash2 />
                       </Button>
                     </DialogTrigger>
+                  </TooltipTrigger>
 
-                    <DeleteCorpusDialog corpusName={corpusName} />
-                  </Dialog>
-                </TooltipTrigger>
+                  <TooltipContent>Delete corpus</TooltipContent>
+                </Tooltip>
 
-                <TooltipContent>Delete corpus</TooltipContent>
-              </Tooltip>
+                <DeleteCorpusDialog corpusName={corpusName} />
+              </Dialog>
             </div>
           ))}
         </ScrollArea>
