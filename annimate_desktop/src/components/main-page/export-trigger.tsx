@@ -28,7 +28,12 @@ export const ExportTrigger = () => {
       className="w-full mt-4"
       disabled={!canExport}
       onClick={async () => {
-        const outputFile = await save();
+        const outputFile = await save({
+          filters: [
+            { name: 'Comma-separated values (*.csv)', extensions: ['csv'] },
+          ],
+          title: 'Export to file',
+        });
         if (outputFile !== null) {
           exportMatches(
             { outputFile },
