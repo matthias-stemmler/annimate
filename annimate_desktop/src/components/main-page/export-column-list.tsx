@@ -197,7 +197,7 @@ export const ExportColumnList: FC = () => {
                             })
                           }
                         />
-                      )}{' '}
+                      )}
                       {item.type === 'match_in_context' && (
                         <MatchInContextColumn
                           data={item}
