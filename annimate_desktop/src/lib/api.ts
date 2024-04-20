@@ -5,7 +5,7 @@ import {
   QueryLanguage,
   QueryNodesResult,
   QueryValidationResult,
-  StatusEvent,
+  ExportStatusEvent,
 } from '@/lib/api-types';
 import { open as fileOpen, save } from '@tauri-apps/api/dialog';
 import { UnlistenFn } from '@tauri-apps/api/event';
@@ -43,6 +43,9 @@ export const getSegmentations = (params: {
   corpusNames: string[];
 }): Promise<string[]> => invoke('get_segmentations', params);
 
+export const importCorpora = (params: { paths: string[] }): Promise<void> =>
+  invoke('import_corpora', params);
+
 export const toggleCorpusInSet = (params: {
   corpusSet: string;
   corpusName: string;
@@ -55,8 +58,8 @@ export const validateQuery = (params: {
 }): Promise<QueryValidationResult> => invoke('validate_query', params);
 
 export const subscribeToExportStatus = (
-  callback: (statusEvent: StatusEvent) => void,
+  callback: (statusEvent: ExportStatusEvent) => void,
 ): Promise<UnlistenFn> =>
-  appWindow.listen<StatusEvent>('export_status', ({ payload }) =>
+  appWindow.listen<ExportStatusEvent>('export_status', ({ payload }) =>
     callback(payload),
   );

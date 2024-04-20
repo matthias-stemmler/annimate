@@ -33,9 +33,13 @@ module.exports = {
     ],
   },
   overrides: [
-    // Allow Tauri imports in api.ts and tests
+    // Allow Tauri imports in api and tests
     {
-      files: ['src/lib/api.ts', 'src/**/*.{test,spec}.?(c|m)[jt]s?(x)'],
+      files: [
+        'src/lib/api.ts',
+        'src/lib/api-types.ts',
+        'src/**/*.{test,spec}.?(c|m)[jt]s?(x)',
+      ],
       rules: {
         'no-restricted-imports': [
           'error',
@@ -46,11 +50,16 @@ module.exports = {
       },
     },
 
-    // Allow Tauri imports (for types) and relative imports in mocks
+    // Allow relative imports in mocks
     {
       files: ['src/**/__mocks__/**'],
       rules: {
-        'no-restricted-imports': 'off',
+        'no-restricted-imports': [
+          'error',
+          {
+            patterns: [importRuleNoTauri],
+          },
+        ],
       },
     },
   ],

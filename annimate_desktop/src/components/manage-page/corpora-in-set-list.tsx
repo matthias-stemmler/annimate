@@ -3,7 +3,7 @@ import { Label } from '@/components/ui/label';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { useToast } from '@/components/ui/use-toast';
 import { Corpus } from '@/lib/api-types';
-import { useToggleCorpusInSetMutation } from '@/lib/mutations';
+import { useToggleCorpusInSet } from '@/lib/store';
 import { FC, useId } from 'react';
 
 export type CorporaInSetListProps = {
@@ -55,7 +55,9 @@ const CorporaInSetListItem: FC<CorporaInSetListItemProps> = ({
   corpusSet,
 }) => {
   const id = useId();
-  const { mutate: toggleCorpusInSet } = useToggleCorpusInSetMutation();
+  const {
+    mutation: { mutate: toggleCorpusInSet },
+  } = useToggleCorpusInSet();
   const { toast } = useToast();
 
   return (

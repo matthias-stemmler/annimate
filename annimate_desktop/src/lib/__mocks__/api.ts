@@ -6,16 +6,17 @@ import {
   AQLError,
   Corpora,
   ExportColumn,
+  ExportStatusEvent,
   ExportableAnnoKey,
   ExportableAnnoKeys,
+  OpenDialogOptions,
   QueryLanguage,
   QueryNode,
   QueryNodesResult,
   QueryValidationResult,
-  StatusEvent,
+  SaveDialogOptions,
   UnlistenFn,
 } from '@/lib/api-types';
-import { OpenDialogOptions, SaveDialogOptions } from '@tauri-apps/api/dialog';
 
 const COLOR_BUILTIN_COMMAND = '#93c5fd';
 const COLOR_CUSTOM_COMMAND = '#86efac';
@@ -121,14 +122,14 @@ const makeExportableAnnoKeys = (count: number): ExportableAnnoKeys => {
   return { corpus, doc, node };
 };
 
-const exportStatusListeners: Set<(statusEvent: StatusEvent) => void> =
+const exportStatusListeners: Set<(statusEvent: ExportStatusEvent) => void> =
   new Set();
 
 export const dirname = async (path: string): Promise<string> =>
   `<Dirname of ${path}>`;
 
 export const fileOpen = async (
-  options: OpenDialogOptions,
+  options?: OpenDialogOptions,
 ): Promise<null | string | string[]> => {
   logAction('File Open', COLOR_BUILTIN_COMMAND, options);
   const answer = prompt('File Open\nEnter file paths (comma-separated):');
@@ -287,6 +288,12 @@ export const getSegmentations = async (params: {
     : [''];
 };
 
+export const importCorpora = async (params: {
+  paths: string[];
+}): Promise<void> => {
+  logAction('Import', COLOR_CUSTOM_COMMAND, params);
+};
+
 export const toggleCorpusInSet = async (params: {
   corpusSet: string;
   corpusName: string;
@@ -366,7 +373,7 @@ const getQuerySyntaxError = (
 };
 
 export const subscribeToExportStatus = async (
-  callback: (statusEvent: StatusEvent) => void,
+  callback: (statusEvent: ExportStatusEvent) => void,
 ): Promise<UnlistenFn> => {
   exportStatusListeners.add(callback);
 
@@ -385,7 +392,7 @@ export const subscribeToExportStatus = async (
   };
 };
 
-const emitExportStatusEvent = (statusEvent: StatusEvent) => {
+const emitExportStatusEvent = (statusEvent: ExportStatusEvent) => {
   exportStatusListeners.forEach((l) => l(statusEvent));
 };
 

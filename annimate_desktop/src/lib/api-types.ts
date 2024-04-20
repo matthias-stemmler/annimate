@@ -1,3 +1,8 @@
+export type {
+  OpenDialogOptions,
+  SaveDialogOptions,
+} from '@tauri-apps/api/dialog';
+
 export type Corpora = {
   corpora: Corpus[];
   sets: string[];
@@ -93,7 +98,7 @@ export type LineColumn = {
   column: number;
 };
 
-export type StatusEvent =
+export type ExportStatusEvent =
   | { type: 'found'; count: number }
   | { type: 'exported'; progress: number };
 

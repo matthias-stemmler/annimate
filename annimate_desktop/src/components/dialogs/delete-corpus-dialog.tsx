@@ -7,7 +7,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { useToast } from '@/components/ui/use-toast';
-import { useDeleteCorpusMutation } from '@/lib/mutations';
+import { useDeleteCorpus } from '@/lib/store';
 import { FC } from 'react';
 
 export type DeleteCorpusDialogProps = {
@@ -17,7 +17,9 @@ export type DeleteCorpusDialogProps = {
 export const DeleteCorpusDialog: FC<DeleteCorpusDialogProps> = ({
   corpusName,
 }) => {
-  const { mutate: deleteCorpus } = useDeleteCorpusMutation();
+  const {
+    mutation: { mutate: deleteCorpus },
+  } = useDeleteCorpus();
   const { toast } = useToast();
 
   return (

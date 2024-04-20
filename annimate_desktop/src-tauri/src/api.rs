@@ -101,6 +101,11 @@ pub(crate) fn get_segmentations(
 }
 
 #[tauri::command(async)]
+pub(crate) fn import_corpora(state: tauri::State<State>, paths: Vec<String>) -> Result<(), Error> {
+    Ok(state.storage.import_corpora(paths)?)
+}
+
+#[tauri::command(async)]
 pub(crate) fn toggle_corpus_in_set(
     state: tauri::State<State>,
     corpus_set: &str,

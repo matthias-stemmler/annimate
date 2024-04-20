@@ -13,7 +13,12 @@ import {
   QueryNodesResult,
   QueryValidationResult,
 } from '@/lib/api-types';
-import { useExportMatchesMutation } from '@/lib/mutations';
+import {
+  useDeleteCorpusMutation,
+  useExportMatchesMutation,
+  useImportCorporaMutation,
+  useToggleCorpusInSetMutation,
+} from '@/lib/mutations';
 import {
   useCorporaQuery,
   useExportableAnnoKeysQuery,
@@ -848,6 +853,8 @@ export const useExportableAnnoKeys = (): UseQueryResult<ExportableAnnoKeys> => {
 
 // MUTATIONS
 
+export const useDeleteCorpus = useDeleteCorpusMutation;
+
 export const useExportMatches = () => {
   const getSelectedCorpusNamesInSelectedSet =
     useGetSelectedCorpusNamesInSelectedSet();
@@ -862,5 +869,9 @@ export const useExportMatches = () => {
     exportColumns: await getExportColumns(),
   }));
 };
+
+export const useImportCorpora = useImportCorporaMutation;
+
+export const useToggleCorpusInSet = useToggleCorpusInSetMutation;
 
 export { useIsExporting } from '@/lib/mutations';

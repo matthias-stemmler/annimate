@@ -99,6 +99,19 @@ impl Storage {
         Ok(())
     }
 
+    pub fn import_corpora<I, P>(&self, paths: I) -> Result<(), AnnisExportError>
+    where
+        I: IntoIterator<Item = P>,
+        P: AsRef<Path>,
+    {
+        for p in paths {
+            println!("{}", p.as_ref().display());
+        }
+
+        Ok(())
+    }
+
+    // TODO replace with `import_corpora`
     pub fn import_corpora_from_zip<F, R>(
         &self,
         zip: R,
@@ -186,7 +199,7 @@ impl Storage {
         mut on_status: F,
     ) -> Result<(), AnnisExportError>
     where
-        F: FnMut(StatusEvent),
+        F: FnMut(ExportStatusEvent),
         S: AsRef<str>,
         W: Write,
     {
@@ -194,7 +207,7 @@ impl Storage {
         let query = Query::new(self.corpus_ref(corpus_names), aql_query, query_language)?;
         let matches = query.find(format.get_export_data().cloned())?;
 
-        on_status(StatusEvent::Found {
+        on_status(ExportStatusEvent::Found {
             count: matches.total_count(),
         });
 
@@ -204,7 +217,7 @@ impl Storage {
             query.nodes(),
             anno_keys.format(),
             &mut out,
-            |progress| on_status(StatusEvent::Exported { progress }),
+            |progress| on_status(ExportStatusEvent::Exported { progress }),
         )?;
 
         out.flush()?;
@@ -237,7 +250,7 @@ pub struct Corpus {
     rename_all = "snake_case",
     rename_all_fields = "camelCase"
 )]
-pub enum StatusEvent {
+pub enum ExportStatusEvent {
     Found { count: usize },
     Exported { progress: f32 },
 }
