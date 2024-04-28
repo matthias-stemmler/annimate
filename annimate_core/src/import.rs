@@ -1,3 +1,4 @@
+use std::collections::HashSet;
 use std::fmt::Debug;
 use std::fs::{self, File};
 use std::io;
@@ -12,22 +13,33 @@ use zip::ZipArchive;
 
 pub(crate) fn find_importable_corpora(paths: Vec<PathBuf>) -> io::Result<Vec<ImportableCorpus>> {
     let mut importable_corpora = Vec::new();
+    let mut seen_paths = HashSet::new();
     let mut stack = paths
         .into_iter()
         .map(|path| Location {
             parents: Vec::new(),
-            path: path.into(),
+            scoped_path: path.into(),
         })
         .rev()
         .collect_vec();
 
     while let Some(location) = stack.pop() {
+        if !location.scoped_path.has_temp_dir()
+            && !seen_paths.insert(location.scoped_path.path.clone())
+        {
+            continue;
+        }
+
         match import_path_type(&location)? {
             Some(ImportPathType::Corpus(format)) => importable_corpora.push({
-                let relative_path = location.path.relative_path().to_string_lossy().into_owned();
+                let relative_path = location
+                    .scoped_path
+                    .relative_path()
+                    .to_string_lossy()
+                    .into_owned();
 
                 let file_name = location
-                    .path
+                    .scoped_path
                     .as_ref()
                     .file_name()
                     .map(|f| f.to_string_lossy().into_owned())
@@ -46,7 +58,7 @@ pub(crate) fn find_importable_corpora(paths: Vec<PathBuf>) -> io::Result<Vec<Imp
                 ImportableCorpus {
                     file_name,
                     format,
-                    path: location.path,
+                    path: location.scoped_path,
                     trace,
                 }
             }),
@@ -57,7 +69,7 @@ pub(crate) fn find_importable_corpora(paths: Vec<PathBuf>) -> io::Result<Vec<Imp
                     .read_dir()?
                     .map_ok(|entry| Location {
                         parents: location.parents.clone(),
-                        path: location.path.in_scope(entry.path()),
+                        scoped_path: location.scoped_path.in_scope(entry.path()),
                     })
                     .try_collect()?;
 
@@ -75,10 +87,10 @@ pub(crate) fn find_importable_corpora(paths: Vec<PathBuf>) -> io::Result<Vec<Imp
                         .cloned()
                         .chain([FilesystemEntity {
                             kind: FilesystemEntityKind::Archive,
-                            path: location.path.relative_path().to_path_buf(),
+                            path: location.scoped_path.relative_path().to_path_buf(),
                         }])
                         .collect(),
-                    path: temp_dir.into(),
+                    scoped_path: temp_dir.into(),
                 });
             }
 
@@ -140,12 +152,12 @@ pub(crate) enum FilesystemEntityKind {
 #[derive(Debug)]
 struct Location {
     parents: Vec<FilesystemEntity<PathBuf>>,
-    path: ScopedPath,
+    scoped_path: ScopedPath,
 }
 
 impl AsRef<Path> for Location {
     fn as_ref(&self) -> &Path {
-        self.path.as_ref()
+        self.scoped_path.as_ref()
     }
 }
 
@@ -156,6 +168,10 @@ pub(crate) struct ScopedPath {
 }
 
 impl ScopedPath {
+    fn has_temp_dir(&self) -> bool {
+        self.temp_dir.is_some()
+    }
+
     fn in_scope(&self, path: PathBuf) -> ScopedPath {
         ScopedPath {
             path,
