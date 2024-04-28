@@ -1,12 +1,14 @@
-use crate::corpus::CorpusRef;
-use graphannis::{
-    corpusstorage::{QueryAttributeDescription, QueryLanguage},
-    errors::{AQLError, GraphAnnisError},
-};
+use std::collections::BTreeMap;
+use std::sync::OnceLock;
+use std::vec;
+
+use graphannis::corpusstorage::{QueryAttributeDescription, QueryLanguage};
+use graphannis::errors::{AQLError, GraphAnnisError};
 use itertools::{Itertools, Position};
 use regex::Regex;
 use serde::Serialize;
-use std::{collections::BTreeMap, sync::OnceLock, vec};
+
+use crate::corpus::CorpusRef;
 
 pub fn validate_query<S>(
     corpus_ref: CorpusRef<S>,
@@ -21,8 +23,9 @@ where
         return Ok(QueryAnalysisResult::Valid(()));
     }
 
-    // When there are no corpora, graphannis::CorpusStorage::validate_query always succeeds, even when there are syntax errors
-    // So we catch these by using graphannis::CorpusStorage::node_descriptions instead
+    // When there are no corpora, graphannis::CorpusStorage::validate_query always succeeds, even
+    // when there are syntax errors So we catch these by using
+    // graphannis::CorpusStorage::node_descriptions instead
     QueryAnalysisResult::from_result(if corpus_ref.names.is_empty() {
         corpus_ref
             .storage

@@ -1,6 +1,8 @@
+use std::io;
+use std::path::PathBuf;
+
 use graphannis::errors::GraphAnnisError;
 use graphannis_core::errors::GraphAnnisCoreError;
-use std::{io, path::PathBuf};
 use thiserror::Error;
 
 #[derive(Debug, Error)]

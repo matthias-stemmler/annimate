@@ -3,8 +3,9 @@
 mod api;
 mod error;
 
-use api::State;
 use std::env;
+
+use api::State;
 
 fn main() {
     let db_dir = env::var("ANNIS_DB_DIR").expect("Environment variable `ANNIS_DB_DIR` is not set");

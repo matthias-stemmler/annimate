@@ -1,13 +1,12 @@
+use std::fmt::Debug;
+use std::fs::{self, File};
+use std::io;
+use std::path::{Path, PathBuf};
+use std::rc::Rc;
+
 use graphannis::errors::GraphAnnisError;
 use itertools::Itertools;
 use serde::Serialize;
-use std::{
-    fmt::Debug,
-    fs::{self, File},
-    io,
-    path::{Path, PathBuf},
-    rc::Rc,
-};
 use tempfile::TempDir;
 use zip::ZipArchive;
 

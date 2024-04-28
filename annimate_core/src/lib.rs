@@ -1,3 +1,6 @@
+use std::io::Write;
+use std::path::{Path, PathBuf};
+
 use anno::AnnoKeys;
 use corpus::CorpusRef;
 use format::export;
@@ -7,10 +10,6 @@ use itertools::Itertools;
 use metadata::MetadataStorage;
 use query::Query;
 use serde::Serialize;
-use std::{
-    io::Write,
-    path::{Path, PathBuf},
-};
 
 mod anno;
 mod aql;
@@ -28,7 +27,8 @@ pub use anno::{ExportableAnnoKey, ExportableAnnoKeys};
 pub use aql::{QueryAnalysisResult, QueryNode, QueryNodes};
 pub use error::AnnisExportError;
 pub use format::{CsvExportColumn, CsvExportConfig, ExportFormat};
-pub use graphannis::{corpusstorage::CorpusInfo, graph::AnnoKey};
+pub use graphannis::corpusstorage::CorpusInfo;
+pub use graphannis::graph::AnnoKey;
 pub use import::ImportedCorpus;
 pub use query::{ExportData, ExportDataAnno, ExportDataText, QueryLanguage};
 pub use version::{VersionInfo, VERSION_INFO};

@@ -1,11 +1,12 @@
+use std::fs;
+use std::path::Path;
+
 use annimate_core::{
     AnnoKey, CsvExportColumn, CsvExportConfig, ExportData, ExportDataAnno, ExportDataText,
     ExportFormat, QueryLanguage, Storage,
 };
 use itertools::Itertools;
 use serde::Serialize;
-use std::fs;
-use std::path::Path;
 
 macro_rules! export_matches_test {
     ($(

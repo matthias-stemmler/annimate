@@ -1,12 +1,13 @@
-use crate::{error::AnnisExportMetadataError, AnnisExportError};
+use std::path::{Path, PathBuf};
+use std::str::FromStr;
+use std::sync::RwLock;
+use std::{fs, io};
+
 use serde::{Deserialize, Serialize};
 use serde_with::{serde_as, KeyValueMap};
-use std::{
-    fs, io,
-    path::{Path, PathBuf},
-    str::FromStr,
-    sync::RwLock,
-};
+
+use crate::error::AnnisExportMetadataError;
+use crate::AnnisExportError;
 
 const METADATA_VERSION: usize = 1;
 

@@ -1,5 +1,7 @@
+use std::fs;
+use std::path::Path;
+
 use annimate_core::Storage;
-use std::{fs, path::Path};
 
 const DB_DIR: &str = concat!(env!("CARGO_TARGET_TMPDIR"), "/tests/corpora");
 const METADATA_FILE: &str = "annimate.toml";

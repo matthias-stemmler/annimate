@@ -1,21 +1,19 @@
-use crate::{corpus::CorpusRef, error::AnnisExportError, node_name::node_name_to_node_id};
-use graphannis::{
-    corpusstorage::{QueryLanguage, ResultOrder, SearchQuery},
-    errors::GraphAnnisError,
-    model::AnnotationComponentType,
-    AnnotationGraph,
-};
-use graphannis_core::{
-    graph::{ANNIS_NS, DEFAULT_NS},
-    types::{AnnoKey, Component, NodeID},
-};
+use std::collections::{BTreeSet, HashSet};
+use std::fmt::{self, Display, Formatter};
+use std::sync::OnceLock;
+
+use graphannis::corpusstorage::{QueryLanguage, ResultOrder, SearchQuery};
+use graphannis::errors::GraphAnnisError;
+use graphannis::model::AnnotationComponentType;
+use graphannis::AnnotationGraph;
+use graphannis_core::graph::{ANNIS_NS, DEFAULT_NS};
+use graphannis_core::types::{AnnoKey, Component, NodeID};
 use itertools::Itertools;
 use serde::Serialize;
-use std::{
-    collections::{BTreeSet, HashSet},
-    fmt::{self, Display, Formatter},
-    sync::OnceLock,
-};
+
+use crate::corpus::CorpusRef;
+use crate::error::AnnisExportError;
+use crate::node_name::node_name_to_node_id;
 
 pub(crate) fn token_anno_key() -> &'static AnnoKey {
     static ANNO_KEY: OnceLock<AnnoKey> = OnceLock::new();
@@ -199,7 +197,8 @@ impl AnnoKeys {
             .try_collect()?;
 
         // Anno keys with name "tok" are invalid in AQL queries (when qualified with a namespace),
-        // so we just assume those don't appear on the corpus and document levels, but they do appear on the node level
+        // so we just assume those don't appear on the corpus and document levels, but they do
+        // appear on the node level
 
         let doc_anno_keys = filter_anno_keys_by_query(
             corpus_ref,

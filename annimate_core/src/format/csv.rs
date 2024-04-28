@@ -1,17 +1,15 @@
-use super::Exporter;
-use crate::{
-    anno::{is_doc_anno_key, AnnoKeyFormat},
-    error::AnnisExportError,
-    query::{ExportData, ExportDataAnno, ExportDataText, Match, TextPart},
-    QueryNode,
-};
+use std::collections::{BTreeSet, HashMap};
+use std::io::Write;
+use std::ops::Range;
+use std::vec;
+
 use itertools::{put_back, Itertools, PutBack};
-use std::{
-    collections::{BTreeSet, HashMap},
-    io::Write,
-    ops::Range,
-    vec,
-};
+
+use super::Exporter;
+use crate::anno::{is_doc_anno_key, AnnoKeyFormat};
+use crate::error::AnnisExportError;
+use crate::query::{ExportData, ExportDataAnno, ExportDataText, Match, TextPart};
+use crate::QueryNode;
 
 #[derive(Clone, Copy, Debug)]
 enum ColumnType {
@@ -345,9 +343,12 @@ impl From<csv::Error> for AnnisExportError {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-    use graphannis_core::{graph::ANNIS_NS, types::AnnoKey};
     use std::array;
+
+    use graphannis_core::graph::ANNIS_NS;
+    use graphannis_core::types::AnnoKey;
+
+    use super::*;
 
     macro_rules! csv_exporter_test {
         ($(

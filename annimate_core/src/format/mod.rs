@@ -1,6 +1,10 @@
-use self::csv::CsvExporter;
-use crate::{anno::AnnoKeyFormat, error::AnnisExportError, query::Match, ExportData, QueryNode};
 use std::io::Write;
+
+use self::csv::CsvExporter;
+use crate::anno::AnnoKeyFormat;
+use crate::error::AnnisExportError;
+use crate::query::Match;
+use crate::{ExportData, QueryNode};
 
 mod csv;
 

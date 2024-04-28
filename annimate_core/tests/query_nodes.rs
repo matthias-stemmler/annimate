@@ -1,5 +1,7 @@
-use annimate_core::{QueryLanguage::*, QueryNode, Storage};
 use std::fs;
+
+use annimate_core::QueryLanguage::*;
+use annimate_core::{QueryNode, Storage};
 
 macro_rules! query_nodes_test {
     ($(

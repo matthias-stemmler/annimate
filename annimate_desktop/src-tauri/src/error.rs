@@ -1,6 +1,7 @@
+use std::io;
+
 use annimate_core::AnnisExportError;
 use serde::{Serialize, Serializer};
-use std::io;
 use thiserror::Error;
 
 #[derive(Debug, Error)]

@@ -1,15 +1,15 @@
-use crate::error::Error;
+use std::io::{self, Write};
+use std::path::PathBuf;
+
 use annimate_core::{
     AnnoKey, Corpora, CsvExportColumn, CsvExportConfig, ExportData, ExportDataAnno, ExportDataText,
     ExportFormat, ExportableAnnoKeys, QueryAnalysisResult, QueryLanguage, QueryNodes, Storage,
 };
 use itertools::Itertools;
 use serde::Deserialize;
-use std::{
-    io::{self, Write},
-    path::PathBuf,
-};
 use tauri::Window;
+
+use crate::error::Error;
 
 pub(crate) struct State {
     storage: Storage,

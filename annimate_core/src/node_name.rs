@@ -1,6 +1,8 @@
-use graphannis::{errors::GraphAnnisError, AnnotationGraph};
-use graphannis_core::types::NodeID;
 use std::borrow::Cow;
+
+use graphannis::errors::GraphAnnisError;
+use graphannis::AnnotationGraph;
+use graphannis_core::types::NodeID;
 
 use crate::AnnisExportError;
 
