@@ -177,7 +177,7 @@ const CorpusStatusDisplay: FC<CorpusStatusDisplayProps> = ({
                     className="outline-none"
                     tabIndex={-1}
                   >
-                    <TriangleAlert className="h-4 w-4 ml-2 inline fill-yellow-200" />
+                    <TriangleAlert className="h-4 w-4 ml-2 inline fill-yellow-200 dark:text-yellow-800" />
                   </TooltipTrigger>
 
                   <TooltipContent className="max-w-[80vw]">
