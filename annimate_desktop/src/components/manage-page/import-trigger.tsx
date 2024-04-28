@@ -1,5 +1,6 @@
+import { ImportDialog } from '@/components/dialogs/import-dialog';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogClose, DialogContent } from '@/components/ui/dialog';
+import { Dialog } from '@/components/ui/dialog';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -15,6 +16,9 @@ import { useState } from 'react';
 export const ImportTrigger = () => {
   const {
     mutation: { mutate },
+    corporaStatus,
+    messages,
+    result,
   } = useImportCorpora();
   const [dialogOpen, setDialogOpen] = useState(false);
 
@@ -79,14 +83,15 @@ export const ImportTrigger = () => {
         </DropdownMenuContent>
       </DropdownMenu>
 
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent>
-          <div>Import</div>
-
-          <DialogClose asChild>
-            <Button variant="secondary">OK</Button>
-          </DialogClose>
-        </DialogContent>
+      <Dialog open={dialogOpen}>
+        <ImportDialog
+          corporaStatus={corporaStatus}
+          messages={messages}
+          onConfirm={() => {
+            setDialogOpen(false);
+          }}
+          result={result}
+        />
       </Dialog>
     </>
   );

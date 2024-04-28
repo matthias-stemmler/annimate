@@ -102,4 +102,50 @@ export type ExportStatusEvent =
   | { type: 'found'; count: number }
   | { type: 'exported'; progress: number };
 
+export type ImportStatusEvent =
+  | {
+      type: 'corpora_found';
+      corpora: ImportCorpus[];
+    }
+  | {
+      type: 'corpus_import_started';
+      index: number;
+    }
+  | {
+      type: 'corpus_import_finished';
+      index: number;
+      result: ImportCorpusResult;
+    }
+  | {
+      type: 'message';
+      index: number;
+      message: string;
+    };
+
+export type ImportCorpus = {
+  fileName: string;
+  format: ImportFormat;
+  trace: FilesystemEntity[];
+};
+
+export type ImportFormat = 'RelANNIS' | 'GraphML';
+
+export type FilesystemEntity = {
+  kind: FilesystemEntityKind;
+  path: string;
+};
+
+export type FilesystemEntityKind =
+  | { type: 'archive' }
+  | { type: 'corpus'; format: ImportFormat };
+
+export type ImportCorpusResult =
+  | { type: 'imported'; corpus: ImportedCorpus }
+  | { type: 'failed'; message: string };
+
+export type ImportedCorpus = {
+  importedName: string;
+  conflictingName: string | null;
+};
+
 export type UnlistenFn = () => void;

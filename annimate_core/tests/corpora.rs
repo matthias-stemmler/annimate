@@ -1,8 +1,5 @@
 use annimate_core::Storage;
-use std::{
-    fs::{self, File},
-    path::Path,
-};
+use std::{fs, path::Path};
 
 const DB_DIR: &str = concat!(env!("CARGO_TARGET_TMPDIR"), "/tests/corpora");
 const METADATA_FILE: &str = "annimate.toml";
@@ -46,11 +43,10 @@ fn corpora() {
     let storage = Storage::from_db_dir(DB_DIR).unwrap();
     for corpus_path in ["subtok.demo_relANNIS.zip", "subtok.demo2_relANNIS.zip"] {
         storage
-            .import_corpora_from_zip(
-                File::open(
+            .import_corpora(
+                vec![
                     Path::new(concat!(env!("CARGO_MANIFEST_DIR"), "/tests/data")).join(corpus_path),
-                )
-                .unwrap(),
+                ],
                 |_| (),
             )
             .unwrap();

@@ -62,7 +62,7 @@ export const AboutDialog = () => {
       <DialogFooter>
         <DialogClose asChild>
           <Button ref={closeButtonRef} variant="secondary">
-            OK
+            Close
           </Button>
         </DialogClose>
       </DialogFooter>

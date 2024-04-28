@@ -101,8 +101,18 @@ pub(crate) fn get_segmentations(
 }
 
 #[tauri::command(async)]
-pub(crate) fn import_corpora(state: tauri::State<State>, paths: Vec<String>) -> Result<(), Error> {
-    Ok(state.storage.import_corpora(paths)?)
+pub(crate) fn import_corpora(
+    state: tauri::State<State>,
+    window: Window,
+    paths: Vec<PathBuf>,
+) -> Result<(), Error> {
+    state.storage.import_corpora(paths, |status_event| {
+        window
+            .emit("import_status", &status_event)
+            .expect("Failed to emit import_status event");
+    })?;
+
+    Ok(())
 }
 
 #[tauri::command(async)]

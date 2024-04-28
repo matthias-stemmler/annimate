@@ -11,6 +11,7 @@ edition = "2021"
 [workspace.dependencies]
 itertools = "0.12"
 serde = { version = "1.0", features = ["derive"] }
+tempfile = "3.10"
 thiserror = "1.0"
 
 [profile.release]

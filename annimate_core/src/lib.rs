@@ -2,13 +2,14 @@ use anno::AnnoKeys;
 use corpus::CorpusRef;
 use format::export;
 use graphannis::corpusstorage::CacheStrategy;
+use import::{FilesystemEntity, ImportFormat, ImportableCorpus};
 use itertools::Itertools;
 use metadata::MetadataStorage;
 use query::Query;
 use serde::Serialize;
 use std::{
-    io::{Read, Seek, Write},
-    path::Path,
+    io::Write,
+    path::{Path, PathBuf},
 };
 
 mod anno;
@@ -16,6 +17,7 @@ mod aql;
 mod corpus;
 mod error;
 mod format;
+mod import;
 mod metadata;
 mod node_name;
 mod query;
@@ -27,6 +29,7 @@ pub use aql::{QueryAnalysisResult, QueryNode, QueryNodes};
 pub use error::AnnisExportError;
 pub use format::{CsvExportColumn, CsvExportConfig, ExportFormat};
 pub use graphannis::{corpusstorage::CorpusInfo, graph::AnnoKey};
+pub use import::ImportedCorpus;
 pub use query::{ExportData, ExportDataAnno, ExportDataText, QueryLanguage};
 pub use version::{VersionInfo, VERSION_INFO};
 
@@ -99,31 +102,54 @@ impl Storage {
         Ok(())
     }
 
-    pub fn import_corpora<I, P>(&self, paths: I) -> Result<(), AnnisExportError>
-    where
-        I: IntoIterator<Item = P>,
-        P: AsRef<Path>,
-    {
-        for p in paths {
-            println!("{}", p.as_ref().display());
-        }
-
-        Ok(())
-    }
-
-    // TODO replace with `import_corpora`
-    pub fn import_corpora_from_zip<F, R>(
+    pub fn import_corpora<F>(
         &self,
-        zip: R,
+        paths: Vec<PathBuf>,
         on_status: F,
     ) -> Result<Vec<String>, AnnisExportError>
     where
-        F: Fn(&str),
-        R: Read + Seek,
+        F: Fn(ImportStatusEvent),
     {
-        Ok(self
-            .corpus_storage
-            .import_all_from_zip(zip, false, false, on_status)?)
+        let mut imported_corpus_names = Vec::new();
+
+        let importable_corpora = import::find_importable_corpora(paths)?;
+        on_status(ImportStatusEvent::CorporaFound {
+            corpora: importable_corpora
+                .iter()
+                .map(ImportCorpus::borrow_from_importable)
+                .collect(),
+        });
+
+        for (index, corpus) in importable_corpora.into_iter().enumerate() {
+            on_status(ImportStatusEvent::CorpusImportStarted { index });
+
+            let result = import::import_corpus(&self.corpus_storage, corpus, |message| {
+                on_status(ImportStatusEvent::Message { index, message });
+            });
+
+            match result {
+                Ok(imported_corpus) => {
+                    imported_corpus_names.push(imported_corpus.imported_name.clone());
+
+                    on_status(ImportStatusEvent::CorpusImportFinished {
+                        index,
+                        result: ImportCorpusResult::Imported {
+                            corpus: imported_corpus,
+                        },
+                    });
+                }
+                Err(err) => {
+                    on_status(ImportStatusEvent::CorpusImportFinished {
+                        index,
+                        result: ImportCorpusResult::Failed {
+                            message: err.to_string(),
+                        },
+                    });
+                }
+            }
+        }
+
+        Ok(imported_corpus_names)
     }
 
     pub fn toggle_corpus_in_set(
@@ -196,10 +222,10 @@ impl Storage {
         query_language: QueryLanguage,
         format: ExportFormat,
         mut out: W,
-        mut on_status: F,
+        on_status: F,
     ) -> Result<(), AnnisExportError>
     where
-        F: FnMut(ExportStatusEvent),
+        F: Fn(ExportStatusEvent),
         S: AsRef<str>,
         W: Write,
     {
@@ -253,4 +279,54 @@ pub struct Corpus {
 pub enum ExportStatusEvent {
     Found { count: usize },
     Exported { progress: f32 },
+}
+
+#[derive(Debug, Serialize)]
+#[serde(
+    tag = "type",
+    rename_all = "snake_case",
+    rename_all_fields = "camelCase"
+)]
+pub enum ImportStatusEvent<'a> {
+    CorporaFound {
+        corpora: Vec<ImportCorpus<'a>>,
+    },
+    CorpusImportStarted {
+        index: usize,
+    },
+    CorpusImportFinished {
+        index: usize,
+        result: ImportCorpusResult,
+    },
+    Message {
+        index: usize,
+        message: &'a str,
+    },
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ImportCorpus<'a> {
+    file_name: &'a str,
+    format: ImportFormat,
+    trace: &'a [FilesystemEntity<String>],
+}
+
+impl<'a> ImportCorpus<'a> {
+    fn borrow_from_importable(importable_corpus: &'a ImportableCorpus) -> Self {
+        Self {
+            file_name: &importable_corpus.file_name,
+            format: importable_corpus.format,
+            trace: &importable_corpus.trace,
+        }
+    }
+}
+
+#[derive(Debug, Serialize)]
+#[serde(tag = "type")]
+#[serde(rename_all = "snake_case")]
+#[serde(rename_all_fields = "camelCase")]
+pub enum ImportCorpusResult {
+    Imported { corpus: ImportedCorpus },
+    Failed { message: String },
 }

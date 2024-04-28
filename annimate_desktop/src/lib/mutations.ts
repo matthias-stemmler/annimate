@@ -3,11 +3,15 @@ import {
   exportMatches,
   importCorpora,
   subscribeToExportStatus,
+  subscribeToImportStatus,
   toggleCorpusInSet,
 } from '@/lib/api';
 import {
   ExportColumn,
   ExportStatusEvent,
+  ImportCorpus,
+  ImportCorpusResult,
+  ImportStatusEvent,
   QueryLanguage,
 } from '@/lib/api-types';
 import { QUERY_KEY_CORPORA } from '@/lib/queries';
@@ -76,17 +80,104 @@ export const useExportMatchesMutation = (
 export const useIsExporting = (): boolean =>
   useIsMutating({ mutationKey: [MUTATION_KEY_EXPORT_MATCHES] }) > 0;
 
+export type ImportCorpusMessage = {
+  index: number;
+  message: string;
+};
+
+export type ImportCorpusStatus = {
+  importCorpus: ImportCorpus;
+} & (
+  | { type: 'idle' }
+  | { type: 'pending' }
+  | { type: 'finished'; result: ImportCorpusResult }
+);
+
+export type ImportResult =
+  | {
+      type: 'imported';
+      corpusNames: string[];
+    }
+  | {
+      type: 'failed';
+      message: string;
+    };
+
 export const useImportCorporaMutation = () => {
   const queryClient = useQueryClient();
 
+  const [corporaStatus, setCorporaStatus] = useState<
+    ImportCorpusStatus[] | undefined
+  >();
+  const [messages, setMessages] = useState<ImportCorpusMessage[]>([]);
+  const [result, setResult] = useState<ImportResult | undefined>();
+
   const mutation = useMutation({
     mutationFn: (args: { paths: string[] }) => importCorpora(args),
-    onSuccess: () => {
+    onMutate: async () => {
+      setCorporaStatus(undefined);
+      setMessages([]);
+      setResult(undefined);
+
+      const unsubscribe = await subscribeToImportStatus(
+        (statusEvent: ImportStatusEvent) => {
+          if (statusEvent.type === 'corpora_found') {
+            setCorporaStatus(
+              statusEvent.corpora.map((importCorpus) => ({
+                importCorpus,
+                type: 'idle',
+              })),
+            );
+          } else if (statusEvent.type === 'corpus_import_started') {
+            setCorporaStatus((importCorpora) =>
+              (importCorpora ?? []).map((importCorpus, index) =>
+                index === statusEvent.index
+                  ? {
+                      ...importCorpus,
+                      type: 'pending',
+                    }
+                  : importCorpus,
+              ),
+            );
+          } else if (statusEvent.type === 'corpus_import_finished') {
+            setCorporaStatus((importCorpora) =>
+              (importCorpora ?? []).map((importCorpus, index) =>
+                index === statusEvent.index
+                  ? {
+                      ...importCorpus,
+                      type: 'finished',
+                      result: statusEvent.result,
+                    }
+                  : importCorpus,
+              ),
+            );
+          } else if (statusEvent.type === 'message') {
+            setMessages((messages) => [
+              ...messages,
+              {
+                index: statusEvent.index,
+                message: statusEvent.message,
+              },
+            ]);
+          }
+        },
+      );
+
+      return { unsubscribe };
+    },
+    onSettled: (_data, _error, _variables, context) => {
+      context?.unsubscribe();
+    },
+    onSuccess: (corpusNames: string[]) => {
+      setResult({ type: 'imported', corpusNames });
       queryClient.invalidateQueries({ queryKey: [QUERY_KEY_CORPORA] });
+    },
+    onError: (error: Error) => {
+      setResult({ type: 'failed', message: error.message });
     },
   });
 
-  return { mutation };
+  return { mutation, corporaStatus, messages, result };
 };
 
 export const useToggleCorpusInSetMutation = () => {

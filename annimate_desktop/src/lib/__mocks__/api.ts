@@ -9,6 +9,9 @@ import {
   ExportStatusEvent,
   ExportableAnnoKey,
   ExportableAnnoKeys,
+  ImportCorpus,
+  ImportCorpusResult,
+  ImportStatusEvent,
   OpenDialogOptions,
   QueryLanguage,
   QueryNode,
@@ -76,6 +79,107 @@ let corpusSets = [
   },
 ];
 
+type MockImportCorpus = {
+  importCorpus: ImportCorpus;
+  result: ImportCorpusResult;
+};
+
+const IMPORT_CORPORA: MockImportCorpus[] = [
+  {
+    importCorpus: {
+      fileName: '/path/to/new_relannis_corpus',
+      format: 'RelANNIS',
+      trace: [
+        {
+          kind: { type: 'archive' },
+          path: '/path/to/corpora.zip',
+        },
+        {
+          kind: { type: 'corpus', format: 'RelANNIS' },
+          path: '/path/to/new_relannis_corpus',
+        },
+      ],
+    },
+    result: {
+      type: 'imported',
+      corpus: {
+        importedName: 'New RelANNIS corpus',
+        conflictingName: null,
+      },
+    },
+  },
+  {
+    importCorpus: {
+      fileName: '/path/to/normal_corpus',
+      format: 'RelANNIS',
+      trace: [
+        {
+          kind: { type: 'archive' },
+          path: '/path/to/corpora.zip',
+        },
+        {
+          kind: { type: 'archive' },
+          path: '/path/to/corpora_inner.zip',
+        },
+        {
+          kind: { type: 'corpus', format: 'RelANNIS' },
+          path: '/path/to/normal_corpus',
+        },
+      ],
+    },
+    result: {
+      type: 'imported',
+      corpus: {
+        importedName: 'Normal corpus (1)',
+        conflictingName: 'Normal corpus',
+      },
+    },
+  },
+  {
+    importCorpus: {
+      fileName: '/path/to/new_graphml_corpus.graphml',
+      format: 'GraphML',
+      trace: [
+        {
+          kind: { type: 'archive' },
+          path: '/path/to/corpora.zip',
+        },
+        {
+          kind: { type: 'corpus', format: 'GraphML' },
+          path: '/path/to/new_graphml_corpus.graphml',
+        },
+      ],
+    },
+    result: {
+      type: 'imported',
+      corpus: {
+        importedName: 'New GraphML corpus',
+        conflictingName: null,
+      },
+    },
+  },
+  {
+    importCorpus: {
+      fileName: '/path/to/corpus_failing_to_import',
+      format: 'RelANNIS',
+      trace: [
+        {
+          kind: { type: 'archive' },
+          path: '/path/to/corpora.zip',
+        },
+        {
+          kind: { type: 'corpus', format: 'RelANNIS' },
+          path: '/path/to/corpus_failing_to_import',
+        },
+      ],
+    },
+    result: {
+      type: 'failed',
+      message: 'This corpus could not be imported',
+    },
+  },
+];
+
 window.__ANNIMATE__ = {
   versionInfo: {
     annimateVersion: '<mock>',
@@ -125,6 +229,9 @@ const makeExportableAnnoKeys = (count: number): ExportableAnnoKeys => {
 const exportStatusListeners: Set<(statusEvent: ExportStatusEvent) => void> =
   new Set();
 
+const importStatusListeners: Set<(statusEvent: ImportStatusEvent) => void> =
+  new Set();
+
 export const dirname = async (path: string): Promise<string> =>
   `<Dirname of ${path}>`;
 
@@ -133,7 +240,10 @@ export const fileOpen = async (
 ): Promise<null | string | string[]> => {
   logAction('File Open', COLOR_BUILTIN_COMMAND, options);
   const answer = prompt('File Open\nEnter file paths (comma-separated):');
-  return answer === null ? null : answer.split(',');
+  if (answer === null) {
+    return null;
+  }
+  return answer === '' ? [] : answer.split(',');
 };
 
 export const shellOpen = async (
@@ -292,6 +402,65 @@ export const importCorpora = async (params: {
   paths: string[];
 }): Promise<void> => {
   logAction('Import', COLOR_CUSTOM_COMMAND, params);
+
+  await sleep(2000);
+
+  if (params.paths.includes('fail')) {
+    throw new Error('Failed to find importable corpora!');
+  }
+
+  if (params.paths.length === 0) {
+    emitImportStatusEvent({
+      type: 'corpora_found',
+      corpora: [],
+    });
+
+    return;
+  }
+
+  emitImportStatusEvent({
+    type: 'corpora_found',
+    corpora: IMPORT_CORPORA.map(({ importCorpus }) => importCorpus),
+  });
+
+  for (let i = 0; i < IMPORT_CORPORA.length; i++) {
+    const { importCorpus, result } = IMPORT_CORPORA[i];
+
+    emitImportStatusEvent({
+      type: 'corpus_import_started',
+      index: i,
+    });
+
+    emitImportStatusEvent({
+      type: 'message',
+      index: i,
+      message: `Importing ${importCorpus.fileName}`,
+    });
+
+    for (let i = 0; i < 9; i++) {
+      await sleep(200);
+
+      emitImportStatusEvent({
+        type: 'message',
+        index: i,
+        message: `Still working at ${importCorpus.fileName} ...`,
+      });
+    }
+
+    await sleep(200);
+
+    emitImportStatusEvent({
+      type: 'message',
+      index: i,
+      message: `Finished importing ${importCorpus.fileName}`,
+    });
+
+    emitImportStatusEvent({
+      type: 'corpus_import_finished',
+      index: i,
+      result,
+    });
+  }
 };
 
 export const toggleCorpusInSet = async (params: {
@@ -394,6 +563,30 @@ export const subscribeToExportStatus = async (
 
 const emitExportStatusEvent = (statusEvent: ExportStatusEvent) => {
   exportStatusListeners.forEach((l) => l(statusEvent));
+};
+
+export const subscribeToImportStatus = async (
+  callback: (statusEvent: ImportStatusEvent) => void,
+): Promise<UnlistenFn> => {
+  importStatusListeners.add(callback);
+
+  logAction(
+    `Subscribed to import status, number of listeners = ${importStatusListeners.size}`,
+    COLOR_SUBSCRIPTION,
+  );
+
+  return () => {
+    importStatusListeners.delete(callback);
+
+    logAction(
+      `Unsubscribed from import status, number of listeners = ${importStatusListeners.size}`,
+      COLOR_SUBSCRIPTION,
+    );
+  };
+};
+
+const emitImportStatusEvent = (statusEvent: ImportStatusEvent) => {
+  importStatusListeners.forEach((l) => l(statusEvent));
 };
 
 const logAction = (name: string, color: string, payload?: unknown) => {

@@ -1,6 +1,6 @@
 use annimate_core::Storage;
 use serde::Serialize;
-use std::fs::{self, File};
+use std::fs;
 use std::path::Path;
 
 macro_rules! segmentations_test {
@@ -29,11 +29,10 @@ macro_rules! segmentations_test {
 
                 for corpus_path in test_data.corpus_paths {
                     storage
-                        .import_corpora_from_zip(
-                            File::open(
+                        .import_corpora(
+                            vec![
                                 Path::new(concat!(env!("CARGO_MANIFEST_DIR"), "/tests/data")).join(corpus_path),
-                            )
-                            .unwrap(),
+                            ],
                             |_| (),
                         )
                         .unwrap();

@@ -1,11 +1,12 @@
 import {
   Corpora,
   ExportColumn,
+  ExportStatusEvent,
   ExportableAnnoKeys,
+  ImportStatusEvent,
   QueryLanguage,
   QueryNodesResult,
   QueryValidationResult,
-  ExportStatusEvent,
 } from '@/lib/api-types';
 import { open as fileOpen, save } from '@tauri-apps/api/dialog';
 import { UnlistenFn } from '@tauri-apps/api/event';
@@ -43,7 +44,7 @@ export const getSegmentations = (params: {
   corpusNames: string[];
 }): Promise<string[]> => invoke('get_segmentations', params);
 
-export const importCorpora = (params: { paths: string[] }): Promise<void> =>
+export const importCorpora = (params: { paths: string[] }): Promise<string[]> =>
   invoke('import_corpora', params);
 
 export const toggleCorpusInSet = (params: {
@@ -61,5 +62,12 @@ export const subscribeToExportStatus = (
   callback: (statusEvent: ExportStatusEvent) => void,
 ): Promise<UnlistenFn> =>
   appWindow.listen<ExportStatusEvent>('export_status', ({ payload }) =>
+    callback(payload),
+  );
+
+export const subscribeToImportStatus = (
+  callback: (statusEvent: ImportStatusEvent) => void,
+): Promise<UnlistenFn> =>
+  appWindow.listen<ImportStatusEvent>('import_status', ({ payload }) =>
     callback(payload),
   );
