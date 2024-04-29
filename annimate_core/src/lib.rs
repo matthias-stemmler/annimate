@@ -114,17 +114,17 @@ impl Storage {
 
         let importable_corpora = import::find_importable_corpora(paths)?;
         on_status(ImportStatusEvent::CorporaFound {
-            corpora: importable_corpora
-                .iter()
-                .map(ImportCorpus::borrow_from_importable)
-                .collect(),
+            corpora: importable_corpora.iter().map_into().collect(),
         });
 
         for (index, corpus) in importable_corpora.into_iter().enumerate() {
             on_status(ImportStatusEvent::CorpusImportStarted { index });
 
             let result = import::import_corpus(&self.corpus_storage, corpus, |message| {
-                on_status(ImportStatusEvent::Message { index, message });
+                on_status(ImportStatusEvent::Message {
+                    index,
+                    message: message.into(),
+                });
             });
 
             match result {
@@ -281,15 +281,15 @@ pub enum ExportStatusEvent {
     Exported { progress: f32 },
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Clone, Debug, Serialize)]
 #[serde(
     tag = "type",
     rename_all = "snake_case",
     rename_all_fields = "camelCase"
 )]
-pub enum ImportStatusEvent<'a> {
+pub enum ImportStatusEvent {
     CorporaFound {
-        corpora: Vec<ImportCorpus<'a>>,
+        corpora: Vec<ImportCorpus>,
     },
     CorpusImportStarted {
         index: usize,
@@ -300,29 +300,29 @@ pub enum ImportStatusEvent<'a> {
     },
     Message {
         index: usize,
-        message: &'a str,
+        message: String,
     },
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Clone, Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
-pub struct ImportCorpus<'a> {
-    file_name: &'a str,
+pub struct ImportCorpus {
+    file_name: String,
     format: ImportFormat,
-    trace: &'a [FilesystemEntity<String>],
+    trace: Vec<FilesystemEntity<String>>,
 }
 
-impl<'a> ImportCorpus<'a> {
-    fn borrow_from_importable(importable_corpus: &'a ImportableCorpus) -> Self {
-        Self {
-            file_name: &importable_corpus.file_name,
+impl From<&ImportableCorpus> for ImportCorpus {
+    fn from(importable_corpus: &ImportableCorpus) -> ImportCorpus {
+        ImportCorpus {
+            file_name: importable_corpus.file_name.clone(),
             format: importable_corpus.format,
-            trace: &importable_corpus.trace,
+            trace: importable_corpus.trace.clone(),
         }
     }
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Clone, Debug, Serialize)]
 #[serde(tag = "type")]
 #[serde(rename_all = "snake_case")]
 #[serde(rename_all_fields = "camelCase")]

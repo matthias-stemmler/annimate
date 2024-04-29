@@ -4,6 +4,9 @@ use std::path::Path;
 use annimate_core::Storage;
 use serde::Serialize;
 
+const DATA_DIR: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/tests/data");
+const DB_DIR: &str = concat!(env!("CARGO_TARGET_TMPDIR"), "/tests/segmentations");
+
 macro_rules! segmentations_test {
     ($(
         $name:ident: {
@@ -19,24 +22,13 @@ macro_rules! segmentations_test {
                     corpus_names: &$corpus_names,
                 };
 
-                let db_dir = (concat!(
-                    env!("CARGO_TARGET_TMPDIR"),
-                    "/tests/segmentations/",
-                    stringify!($name)
-                ));
+                let db_dir = Path::new(DB_DIR).join(stringify!($name));
 
-                fs::remove_dir_all(db_dir).unwrap();
+                let _ = fs::remove_dir_all(&db_dir);
                 let storage = Storage::from_db_dir(db_dir).unwrap();
 
                 for corpus_path in test_data.corpus_paths {
-                    storage
-                        .import_corpora(
-                            vec![
-                                Path::new(concat!(env!("CARGO_MANIFEST_DIR"), "/tests/data")).join(corpus_path),
-                            ],
-                            |_| (),
-                        )
-                        .unwrap();
+                    storage.import_corpora(vec![Path::new(DATA_DIR).join(corpus_path)], |_| ()).unwrap();
                 }
 
                 let segmentations = storage.segmentations(test_data.corpus_names).unwrap();

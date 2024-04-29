@@ -1,0 +1,78 @@
+---
+source: annimate_core/tests/import.rs
+---
+- type: corpora_found
+  corpora:
+    - fileName: subtok.demo_relANNIS
+      format: RelANNIS
+      trace:
+        - kind:
+            type: corpus
+            format: RelANNIS
+          path: "[path]"
+    - fileName: subtok.demo2_relANNIS
+      format: RelANNIS
+      trace:
+        - kind:
+            type: corpus
+            format: RelANNIS
+          path: "[path]"
+    - fileName: subtok.demo3_relANNIS
+      format: RelANNIS
+      trace:
+        - kind:
+            type: archive
+          path: "[path]"
+        - kind:
+            type: archive
+          path: "[path]"
+        - kind:
+            type: corpus
+            format: RelANNIS
+          path: "[path]"
+    - fileName: subtok.demo.graphml
+      format: GraphML
+      trace:
+        - kind:
+            type: archive
+          path: "[path]"
+        - kind:
+            type: corpus
+            format: GraphML
+          path: "[path]"
+- type: corpus_import_started
+  index: 0
+- type: corpus_import_finished
+  index: 0
+  result:
+    type: imported
+    corpus:
+      importedName: subtok.demo
+      conflictingName: ~
+- type: corpus_import_started
+  index: 1
+- type: corpus_import_finished
+  index: 1
+  result:
+    type: imported
+    corpus:
+      importedName: subtok.demo2
+      conflictingName: ~
+- type: corpus_import_started
+  index: 2
+- type: corpus_import_finished
+  index: 2
+  result:
+    type: imported
+    corpus:
+      importedName: subtok.demo3
+      conflictingName: ~
+- type: corpus_import_started
+  index: 3
+- type: corpus_import_finished
+  index: 3
+  result:
+    type: imported
+    corpus:
+      importedName: subtok.demo (1)
+      conflictingName: subtok.demo

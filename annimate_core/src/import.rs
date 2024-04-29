@@ -328,7 +328,7 @@ where
     }
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Clone, Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ImportedCorpus {
     pub(crate) imported_name: String,

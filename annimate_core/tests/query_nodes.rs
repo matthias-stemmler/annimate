@@ -1,7 +1,10 @@
 use std::fs;
+use std::path::Path;
 
 use annimate_core::QueryLanguage::*;
 use annimate_core::{QueryNode, Storage};
+
+const DB_DIR: &str = concat!(env!("CARGO_TARGET_TMPDIR"), "/tests/query_nodes");
 
 macro_rules! query_nodes_test {
     ($(
@@ -9,13 +12,9 @@ macro_rules! query_nodes_test {
     )*) => { $(
         #[test]
         fn $name() {
-            let db_dir = (concat!(
-                env!("CARGO_TARGET_TMPDIR"),
-                "/tests/query_nodes/",
-                stringify!($name)
-            ));
+            let db_dir = Path::new(DB_DIR).join(stringify!($name));
 
-            fs::remove_dir_all(db_dir).unwrap();
+            let _ = fs::remove_dir_all(&db_dir);
             let storage = Storage::from_db_dir(db_dir).unwrap();
 
             let actual: Vec<_> = storage

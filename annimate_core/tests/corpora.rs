@@ -3,6 +3,7 @@ use std::path::Path;
 
 use annimate_core::Storage;
 
+const DATA_DIR: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/tests/data");
 const DB_DIR: &str = concat!(env!("CARGO_TARGET_TMPDIR"), "/tests/corpora");
 const METADATA_FILE: &str = "annimate.toml";
 
@@ -41,16 +42,11 @@ macro_rules! snapshot_metadata {
 
 #[test]
 fn corpora() {
-    fs::remove_dir_all(DB_DIR).unwrap();
+    let _ = fs::remove_dir_all(DB_DIR);
     let storage = Storage::from_db_dir(DB_DIR).unwrap();
     for corpus_path in ["subtok.demo_relANNIS.zip", "subtok.demo2_relANNIS.zip"] {
         storage
-            .import_corpora(
-                vec![
-                    Path::new(concat!(env!("CARGO_MANIFEST_DIR"), "/tests/data")).join(corpus_path),
-                ],
-                |_| (),
-            )
+            .import_corpora(vec![Path::new(DATA_DIR).join(corpus_path)], |_| ())
             .unwrap();
     }
 
