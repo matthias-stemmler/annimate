@@ -1,5 +1,5 @@
 use std::collections::HashSet;
-use std::fmt::Debug;
+use std::fmt::{self, Debug, Display, Formatter};
 use std::fs::{self, File};
 use std::io;
 use std::path::{Path, PathBuf};
@@ -11,7 +11,13 @@ use serde::Serialize;
 use tempfile::TempDir;
 use zip::ZipArchive;
 
-pub(crate) fn find_importable_corpora(paths: Vec<PathBuf>) -> io::Result<Vec<ImportableCorpus>> {
+pub(crate) fn find_importable_corpora<F>(
+    paths: Vec<PathBuf>,
+    on_progress: F,
+) -> io::Result<Vec<ImportableCorpus>>
+where
+    F: Fn(&str),
+{
     let mut importable_corpora = Vec::new();
     let mut seen_paths = HashSet::new();
     let mut stack = paths
@@ -31,39 +37,52 @@ pub(crate) fn find_importable_corpora(paths: Vec<PathBuf>) -> io::Result<Vec<Imp
         }
 
         match import_path_type(&location)? {
-            Some(ImportPathType::Corpus(format)) => importable_corpora.push({
-                let relative_path = location
-                    .scoped_path
-                    .relative_path()
-                    .to_string_lossy()
-                    .into_owned();
-
-                let file_name = location
-                    .scoped_path
-                    .as_ref()
-                    .file_name()
-                    .map(|f| f.to_string_lossy().into_owned())
-                    .unwrap_or_else(|| relative_path.clone());
-
-                let trace = location
-                    .parents
-                    .into_iter()
-                    .map(|p| p.to_string_lossy())
-                    .chain([FilesystemEntity {
-                        kind: FilesystemEntityKind::Corpus { format },
-                        path: relative_path,
-                    }])
-                    .collect();
-
-                ImportableCorpus {
-                    file_name,
+            Some(ImportPathType::Corpus(format)) => {
+                on_progress(&format!(
+                    "found {} corpus at {}",
                     format,
-                    path: location.scoped_path,
-                    trace,
-                }
-            }),
+                    location.as_ref().display(),
+                ));
+
+                importable_corpora.push({
+                    let relative_path = location
+                        .scoped_path
+                        .relative_path()
+                        .to_string_lossy()
+                        .into_owned();
+
+                    let file_name = location
+                        .scoped_path
+                        .as_ref()
+                        .file_name()
+                        .map(|f| f.to_string_lossy().into_owned())
+                        .unwrap_or_else(|| relative_path.clone());
+
+                    let trace = location
+                        .parents
+                        .into_iter()
+                        .map(|p| p.to_string_lossy())
+                        .chain([FilesystemEntity {
+                            kind: FilesystemEntityKind::Corpus { format },
+                            path: relative_path,
+                        }])
+                        .collect();
+
+                    ImportableCorpus {
+                        file_name,
+                        format,
+                        path: location.scoped_path,
+                        trace,
+                    }
+                })
+            }
 
             Some(ImportPathType::Directory) => {
+                on_progress(&format!(
+                    "found directory at {}, scanning",
+                    location.as_ref().display(),
+                ));
+
                 let entries: Vec<_> = location
                     .as_ref()
                     .read_dir()?
@@ -78,6 +97,13 @@ pub(crate) fn find_importable_corpora(paths: Vec<PathBuf>) -> io::Result<Vec<Imp
 
             Some(ImportPathType::Archive) => {
                 let temp_dir = TempDir::new()?;
+
+                on_progress(&format!(
+                    "found archive at {}, extracting into {}",
+                    location.as_ref().display(),
+                    temp_dir.path().display(),
+                ));
+
                 extract_zip(&location, &temp_dir)?;
 
                 stack.push(Location {
@@ -113,6 +139,15 @@ pub(crate) struct ImportableCorpus {
 pub(crate) enum ImportFormat {
     RelANNIS,
     GraphML,
+}
+
+impl Display for ImportFormat {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        match self {
+            ImportFormat::RelANNIS => write!(f, "RelANNIS"),
+            ImportFormat::GraphML => write!(f, "GraphML"),
+        }
+    }
 }
 
 impl From<ImportFormat> for graphannis::corpusstorage::ImportFormat {
@@ -291,12 +326,20 @@ where
         )
     };
 
+    on_progress(&format!(
+        "importing {} corpus from {}",
+        corpus.format,
+        corpus.path.as_ref().display(),
+    ));
+
     let conflicting_name = match import(None) {
         Ok(imported_name) => {
+            on_progress(&format!("done importing corpus {imported_name}"));
+
             return Ok(ImportedCorpus {
                 imported_name,
                 conflicting_name: None,
-            })
+            });
         }
 
         Err(GraphAnnisError::CorpusExists(conflicting_name)) => conflicting_name,
@@ -310,17 +353,34 @@ where
         .map(|i| format!("{conflicting_name} ({i})"))
         .find(|name| corpus_infos.iter().all(|c| &c.name != name))
     {
-        Some(name) => name,
-        None => return Err(GraphAnnisError::CorpusExists(conflicting_name)),
+        Some(name) => {
+            on_progress(&format!(
+                "corpus {conflicting_name} already exists, using fallback name {name}",
+            ));
+
+            name
+        }
+        None => {
+            on_progress(&format!(
+                "corpus {conflicting_name} already exists, cannot find fallback name",
+            ));
+
+            return Err(GraphAnnisError::CorpusExists(conflicting_name));
+        }
     };
 
-    match import(Some(fallback_name)) {
-        Ok(imported_name) => Ok(ImportedCorpus {
-            imported_name,
-            conflicting_name: Some(conflicting_name),
-        }),
+    match import(Some(fallback_name.clone())) {
+        Ok(imported_name) => {
+            on_progress(&format!("done importing corpus {imported_name}"));
+
+            Ok(ImportedCorpus {
+                imported_name,
+                conflicting_name: Some(conflicting_name),
+            })
+        }
 
         Err(GraphAnnisError::CorpusExists(_)) => {
+            on_progress(&format!("corpus {fallback_name} already exists"));
             Err(GraphAnnisError::CorpusExists(conflicting_name))
         }
 

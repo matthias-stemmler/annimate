@@ -12,7 +12,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Label } from '@/components/ui/label';
-import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { ToastAction } from '@/components/ui/toast';
 import {
   Tooltip,
@@ -96,9 +96,10 @@ export const ExportColumnList: FC = () => {
           Please add a column to be exported.
         </div>
       ) : (
-        <ScrollArea className="flex-1 p-3 border rounded-md bg-gray-100 dark:bg-gray-800">
-          <ScrollBar orientation="horizontal" />
-
+        <ScrollArea
+          className="flex-1 p-3 border rounded-md bg-gray-100 dark:bg-gray-800"
+          orientation="both"
+        >
           <div className="flex flex-col gap-4 mb-1">
             <ReorderList
               disabled={reorderDisabled}

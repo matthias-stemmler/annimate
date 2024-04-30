@@ -118,7 +118,7 @@ export type ImportStatusEvent =
     }
   | {
       type: 'message';
-      index: number;
+      index: number | null;
       message: string;
     };
 

@@ -1,6 +1,6 @@
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
-import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { useToast } from '@/components/ui/use-toast';
 import { Corpus } from '@/lib/api-types';
 import { useToggleCorpusInSet } from '@/lib/store';
@@ -27,8 +27,6 @@ export const CorporaInSetList: FC<CorporaInSetListProps> = ({
         </p>
       ) : (
         <ScrollArea className="h-full">
-          <ScrollBar orientation="horizontal" />
-
           {corpora.map(({ name, includedInSets }) => (
             <CorporaInSetListItem
               key={name}

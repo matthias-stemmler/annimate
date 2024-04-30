@@ -81,7 +81,8 @@ export const useIsExporting = (): boolean =>
   useIsMutating({ mutationKey: [MUTATION_KEY_EXPORT_MATCHES] }) > 0;
 
 export type ImportCorpusMessage = {
-  index: number;
+  id: number;
+  index: number | null;
   message: string;
 };
 
@@ -102,6 +103,8 @@ export type ImportResult =
       type: 'failed';
       message: string;
     };
+
+const MAX_IMPORT_MESSAGE_COUNT = 1024;
 
 export const useImportCorporaMutation = () => {
   const queryClient = useQueryClient();
@@ -152,13 +155,26 @@ export const useImportCorporaMutation = () => {
               ),
             );
           } else if (statusEvent.type === 'message') {
-            setMessages((messages) => [
-              ...messages,
-              {
-                index: statusEvent.index,
-                message: statusEvent.message,
-              },
-            ]);
+            setMessages((messages) => {
+              const lastMessage =
+                messages.length === 0
+                  ? undefined
+                  : messages[messages.length - 1];
+              const id = (lastMessage?.id ?? 0) + 1;
+              const excessiveMessageCount = Math.max(
+                0,
+                messages.length + 1 - MAX_IMPORT_MESSAGE_COUNT,
+              );
+
+              return [
+                ...messages,
+                {
+                  id,
+                  index: statusEvent.index,
+                  message: statusEvent.message,
+                },
+              ].slice(excessiveMessageCount);
+            });
           }
         },
       );

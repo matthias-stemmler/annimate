@@ -13,7 +13,9 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Progress } from '@/components/ui/progress';
-import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Separator } from '@/components/ui/separator';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   Tooltip,
   TooltipContent,
@@ -46,6 +48,7 @@ export type ImportDialogProps = {
 
 export const ImportDialog: FC<ImportDialogProps> = ({
   corporaStatus,
+  messages,
   onConfirm,
   result,
 }) => {
@@ -65,42 +68,53 @@ export const ImportDialog: FC<ImportDialogProps> = ({
         <DialogTitle>Corpus import</DialogTitle>
       </DialogHeader>
 
-      {result?.type === 'failed' ? (
-        <div className="h-96 flex items-center">
-          <Alert variant="destructive">
-            <AlertCircle className="h-4 w-4" />
-            <AlertTitle>Import failed</AlertTitle>
+      <div className="mb-1">
+        <div className="flex justify-between mb-1">
+          <p className="w-0 grow-[2] truncate">
+            {result?.type === 'failed'
+              ? 'Failed'
+              : corporaStatus === undefined
+                ? 'Collecting corpora ...'
+                : `Processed ${finishedCorporaCount}${totalCorporaCount === 0 ? '' : ` of ${totalCorporaCount}`} corpora`}
+          </p>
 
-            <AlertDescription>
-              <p>{result.message}</p>
-            </AlertDescription>
-          </Alert>
+          {failedCorporaCount > 0 && (
+            <p className="w-0 grow truncate text-right text-destructive">
+              {failedCorporaCount} failed
+            </p>
+          )}
         </div>
-      ) : (
-        <>
-          <div>
-            <div className="flex justify-between mb-1">
-              <p className="w-0 grow-[2] truncate">
-                {corporaStatus === undefined
-                  ? 'Searching corpora ...'
-                  : `Processed ${finishedCorporaCount}${totalCorporaCount === 0 ? '' : ` of ${totalCorporaCount}`} corpora`}
-              </p>
 
-              {failedCorporaCount > 0 && (
-                <p className="w-0 grow truncate text-right text-destructive">
-                  {failedCorporaCount} failed
-                </p>
-              )}
+        <Progress value={Math.round(progress * 100)} />
+      </div>
+
+      <Tabs defaultValue="status">
+        <TabsList className="w-full grid grid-cols-2">
+          <TabsTrigger value="status">Status</TabsTrigger>
+          <TabsTrigger value="messages">Messages</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="status" tabIndex={-1}>
+          {result?.type === 'failed' ? (
+            <div className="h-80">
+              <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertTitle>Import failed</AlertTitle>
+
+                <AlertDescription>
+                  <p>{result.message}</p>
+                </AlertDescription>
+              </Alert>
             </div>
-
-            <Progress value={Math.round(progress * 100)} />
-          </div>
-
-          <div className="flex mb-1">
+          ) : (
             <CorporaStatusDisplay corporaStatus={corporaStatus} />
-          </div>
-        </>
-      )}
+          )}
+        </TabsContent>
+
+        <TabsContent value="messages" tabIndex={-1}>
+          <MessagesDisplay messages={messages} />
+        </TabsContent>
+      </Tabs>
 
       <DialogFooter>
         <Button
@@ -132,14 +146,16 @@ const CorporaStatusDisplay: FC<CorporaStatusDisplayProps> = ({
   }
 
   return (
-    <div className="w-0 flex-1">
-      <ScrollArea className="h-80 border rounded-md p-3">
-        <div className="mt-1 mr-1">
-          {(corporaStatus ?? []).map((corpusStatus, index) => (
-            <CorpusStatusDisplay key={index} corpusStatus={corpusStatus} />
-          ))}
-        </div>
-      </ScrollArea>
+    <div className="flex">
+      <div className="w-0 flex-1">
+        <ScrollArea className="h-80 border rounded-md p-3">
+          <div className="mt-1 mr-1">
+            {(corporaStatus ?? []).map((corpusStatus, index) => (
+              <CorpusStatusDisplay key={index} corpusStatus={corpusStatus} />
+            ))}
+          </div>
+        </ScrollArea>
+      </div>
     </div>
   );
 };
@@ -236,9 +252,10 @@ type CorpusTraceDisplayProps = {
 };
 
 const CorpusTraceDisplay: FC<CorpusTraceDisplayProps> = ({ trace }) => (
-  <ScrollArea className="w-full border rounded-md p-1">
-    <ScrollBar orientation="horizontal" />
-
+  <ScrollArea
+    className="w-full border rounded-md p-1 pb-2"
+    orientation="horizontal"
+  >
     <div className="flex flex-col gap-1">
       {trace.map(({ kind, path }, index) => (
         <div
@@ -253,9 +270,47 @@ const CorpusTraceDisplay: FC<CorpusTraceDisplayProps> = ({ trace }) => (
               RelANNIS: <Folder className="h-4 w-4" />,
             }[kind.type === 'corpus' ? kind.format : kind.type]
           }
-          <div className="w-0">{path}</div>
+          <div className="w-0 whitespace-nowrap">{path}</div>
         </div>
       ))}
     </div>
   </ScrollArea>
+);
+
+type MessagesDisplayProps = {
+  messages: ImportCorpusMessage[];
+};
+
+const MessagesDisplay: FC<MessagesDisplayProps> = ({ messages }) => (
+  <div className="flex">
+    <div className="w-0 flex-1">
+      <ScrollArea className="h-80 border rounded-md p-3" orientation="both">
+        <div className="mt-1 mr-1 text-sm">
+          {Array.from(
+            (function* () {
+              let currentIndex = undefined;
+
+              for (const { id, index, message } of messages) {
+                if (index !== currentIndex) {
+                  if (currentIndex !== undefined) {
+                    yield (
+                      <Separator key={`separator-${index}`} className="my-2" />
+                    );
+                  }
+
+                  currentIndex = index;
+                }
+
+                yield (
+                  <div key={`message-${id}`} className="whitespace-nowrap">
+                    {message}
+                  </div>
+                );
+              }
+            })(),
+          )}
+        </div>
+      </ScrollArea>
+    </div>
+  </div>
 );

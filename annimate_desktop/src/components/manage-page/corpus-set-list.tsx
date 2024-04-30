@@ -1,7 +1,7 @@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import {
   Tooltip,
   TooltipContent,
@@ -49,9 +49,7 @@ export const CorpusSetList: FC<CorpusSetListProps> = ({
             No corpus sets available
           </p>
         ) : (
-          <ScrollArea className="h-full ">
-            <ScrollBar orientation="horizontal" />
-
+          <ScrollArea className="h-full">
             {corpusSetsWithCount.map(({ corpusSet, corpusCount }) => {
               const isSelected = corpusSet === selectedCorpusSet;
 

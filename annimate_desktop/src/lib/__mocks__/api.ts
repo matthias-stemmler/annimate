@@ -403,9 +403,23 @@ export const importCorpora = async (params: {
 }): Promise<void> => {
   logAction('Import', COLOR_CUSTOM_COMMAND, params);
 
-  await sleep(2000);
+  for (let j = 0; j < 9; j++) {
+    await sleep(200);
+
+    emitImportStatusEvent({
+      type: 'message',
+      index: null,
+      message: `Collecting corpora ...`,
+    });
+  }
 
   if (params.paths.includes('fail')) {
+    emitImportStatusEvent({
+      type: 'message',
+      index: null,
+      message: 'Failed to find importable corpora!',
+    });
+
     throw new Error('Failed to find importable corpora!');
   }
 
@@ -437,7 +451,7 @@ export const importCorpora = async (params: {
       message: `Importing ${importCorpus.fileName}`,
     });
 
-    for (let i = 0; i < 9; i++) {
+    for (let j = 0; j < 9; j++) {
       await sleep(200);
 
       emitImportStatusEvent({

@@ -112,7 +112,13 @@ impl Storage {
     {
         let mut imported_corpus_names = Vec::new();
 
-        let importable_corpora = import::find_importable_corpora(paths)?;
+        let importable_corpora = import::find_importable_corpora(paths, |message| {
+            on_status(ImportStatusEvent::Message {
+                index: None,
+                message: message.into(),
+            });
+        })?;
+
         on_status(ImportStatusEvent::CorporaFound {
             corpora: importable_corpora.iter().map_into().collect(),
         });
@@ -122,7 +128,7 @@ impl Storage {
 
             let result = import::import_corpus(&self.corpus_storage, corpus, |message| {
                 on_status(ImportStatusEvent::Message {
-                    index,
+                    index: Some(index),
                     message: message.into(),
                 });
             });
@@ -299,7 +305,7 @@ pub enum ImportStatusEvent {
         result: ImportCorpusResult,
     },
     Message {
-        index: usize,
+        index: Option<usize>,
         message: String,
     },
 }
