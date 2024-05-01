@@ -6,30 +6,48 @@ import { cn } from '@/lib/utils';
 const ScrollArea = React.forwardRef<
   React.ElementRef<typeof ScrollAreaPrimitive.Root>,
   React.ComponentPropsWithoutRef<typeof ScrollAreaPrimitive.Root> & {
+    onScroll?: React.UIEventHandler<HTMLDivElement>;
     orientation?:
       | React.ComponentProps<
           typeof ScrollAreaPrimitive.ScrollAreaScrollbar
         >['orientation']
       | 'both';
+    viewportRef?: React.RefObject<HTMLDivElement>;
   }
->(({ className, children, orientation = 'vertical', ...props }, ref) => (
-  <ScrollAreaPrimitive.Root
-    ref={ref}
-    className={cn('relative overflow-hidden', className)}
-    {...props}
-  >
-    <ScrollAreaPrimitive.Viewport className="h-full w-full rounded-[inherit]">
-      {children}
-    </ScrollAreaPrimitive.Viewport>
-    {(orientation === 'horizontal' || orientation === 'both') && (
-      <ScrollBar orientation="horizontal" />
-    )}
-    {(orientation === 'vertical' || orientation === 'both') && (
-      <ScrollBar orientation="vertical" />
-    )}
-    <ScrollAreaPrimitive.Corner />
-  </ScrollAreaPrimitive.Root>
-));
+>(
+  (
+    {
+      className,
+      children,
+      onScroll,
+      orientation = 'vertical',
+      viewportRef,
+      ...props
+    },
+    ref,
+  ) => (
+    <ScrollAreaPrimitive.Root
+      ref={ref}
+      className={cn('relative overflow-hidden', className)}
+      {...props}
+    >
+      <ScrollAreaPrimitive.Viewport
+        ref={viewportRef}
+        className="h-full w-full rounded-[inherit]"
+        onScroll={onScroll}
+      >
+        {children}
+      </ScrollAreaPrimitive.Viewport>
+      {(orientation === 'horizontal' || orientation === 'both') && (
+        <ScrollBar orientation="horizontal" />
+      )}
+      {(orientation === 'vertical' || orientation === 'both') && (
+        <ScrollBar orientation="vertical" />
+      )}
+      <ScrollAreaPrimitive.Corner />
+    </ScrollAreaPrimitive.Root>
+  ),
+);
 ScrollArea.displayName = ScrollAreaPrimitive.Root.displayName;
 
 const ScrollBar = React.forwardRef<

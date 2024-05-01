@@ -27,8 +27,10 @@ import {
   ImportCorpusStatus,
   ImportResult,
 } from '@/lib/mutations';
+import { cn } from '@/lib/utils';
 import {
   AlertCircle,
+  ArrowDown,
   CheckCircle2,
   ChevronsUpDown,
   File,
@@ -37,7 +39,7 @@ import {
   TriangleAlert,
   XCircle,
 } from 'lucide-react';
-import { FC } from 'react';
+import { FC, RefObject, useEffect, useRef, useState } from 'react';
 
 export type ImportDialogProps = {
   corporaStatus: ImportCorpusStatus[] | undefined;
@@ -281,36 +283,99 @@ type MessagesDisplayProps = {
   messages: ImportCorpusMessage[];
 };
 
-const MessagesDisplay: FC<MessagesDisplayProps> = ({ messages }) => (
-  <div className="flex">
-    <div className="w-0 flex-1">
-      <ScrollArea className="h-80 border rounded-md p-3" orientation="both">
-        <div className="mt-1 mr-1 text-sm">
-          {Array.from(
-            (function* () {
-              let currentIndex = undefined;
+const MessagesDisplay: FC<MessagesDisplayProps> = ({ messages }) => {
+  const [autoscroll, setAutoscroll] = useState(true);
+  const [hasUnreadMessages, setHasUnreadMessages] = useState(false);
+  const scrollAreaViewportRef = useRef<HTMLDivElement>(null);
 
-              for (const { id, index, message } of messages) {
-                if (index !== currentIndex) {
-                  if (currentIndex !== undefined) {
-                    yield (
-                      <Separator key={`separator-${index}`} className="my-2" />
-                    );
+  useEffect(() => {
+    if (autoscroll) {
+      scrollToBottom(scrollAreaViewportRef);
+    }
+  }, [autoscroll, messages, scrollAreaViewportRef]);
+
+  useEffect(() => {
+    if (!isScrolledToBottom(scrollAreaViewportRef)) {
+      setHasUnreadMessages(true);
+    }
+  }, [messages, scrollAreaViewportRef]);
+
+  return (
+    <div className="flex">
+      <div className="w-0 flex-1 relative">
+        <ScrollArea
+          className="h-80 border rounded-md p-3"
+          onScroll={() => {
+            if (isScrolledToBottom(scrollAreaViewportRef)) {
+              setAutoscroll(true);
+              setHasUnreadMessages(false);
+            } else {
+              setAutoscroll(false);
+            }
+          }}
+          orientation="both"
+          viewportRef={scrollAreaViewportRef}
+        >
+          <div className="mt-1 mr-1 text-sm">
+            {Array.from(
+              (function* () {
+                let currentIndex = undefined;
+
+                for (const { id, index, message } of messages) {
+                  if (index !== currentIndex) {
+                    if (currentIndex !== undefined) {
+                      yield (
+                        <Separator
+                          key={`separator-${index}`}
+                          className="my-2"
+                        />
+                      );
+                    }
+
+                    currentIndex = index;
                   }
 
-                  currentIndex = index;
+                  yield (
+                    <div key={`message-${id}`} className="whitespace-nowrap">
+                      {message}
+                    </div>
+                  );
                 }
+              })(),
+            )}
+          </div>
+        </ScrollArea>
 
-                yield (
-                  <div key={`message-${id}`} className="whitespace-nowrap">
-                    {message}
-                  </div>
-                );
-              }
-            })(),
-          )}
-        </div>
-      </ScrollArea>
+        {autoscroll ? null : (
+          <Button
+            className={cn('absolute right-3 bottom-3 rounded-full', {
+              'animate-pulse': hasUnreadMessages,
+            })}
+            onClick={() => {
+              scrollToBottom(scrollAreaViewportRef);
+            }}
+            size="icon"
+            variant="secondary"
+          >
+            <ArrowDown className="h-4 w-4" />
+          </Button>
+        )}
+      </div>
     </div>
-  </div>
-);
+  );
+};
+
+const isScrolledToBottom = (viewportRef: RefObject<HTMLDivElement>) => {
+  const viewport = viewportRef.current;
+  return (
+    viewport !== null &&
+    viewport.scrollTop + viewport.clientHeight >= viewport.scrollHeight
+  );
+};
+
+const scrollToBottom = (viewportRef: RefObject<HTMLDivElement>) => {
+  const viewport = viewportRef.current;
+  if (viewport !== null) {
+    viewport.scrollTop = viewport.scrollHeight;
+  }
+};
