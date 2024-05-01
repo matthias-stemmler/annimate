@@ -42,6 +42,7 @@ export const CorporaSection = () => {
     <ResizablePanelGroup direction="horizontal">
       <ResizablePanel className="p-3" defaultSize={50} minSize={30}>
         <CorpusSetList
+          corpusCount={corpora.length}
           corpusSetsWithCount={corpusSetsWithCount}
           onSelectCorpusSet={setSelectedCorpusSet}
           selectedCorpusSet={selectedCorpusSet}

@@ -12,12 +12,14 @@ import { Pencil, Plus, Trash2 } from 'lucide-react';
 import { FC, PropsWithChildren } from 'react';
 
 export type CorpusSetListProps = {
+  corpusCount: number;
   corpusSetsWithCount: { corpusSet: string; corpusCount: number }[];
   onSelectCorpusSet?: (value: string | undefined) => void;
   selectedCorpusSet: string | undefined;
 };
 
 export const CorpusSetList: FC<CorpusSetListProps> = ({
+  corpusCount,
   corpusSetsWithCount,
   onSelectCorpusSet: onChange,
   selectedCorpusSet,
@@ -30,7 +32,21 @@ export const CorpusSetList: FC<CorpusSetListProps> = ({
         onClick={() => {
           onChange?.(undefined);
         }}
-      />
+      >
+        <div className="flex items-center mr-28">
+          <Tooltip>
+            <TooltipTrigger tabIndex={-1}>
+              <Badge className="mx-4" variant="secondary">
+                {corpusCount}
+              </Badge>
+            </TooltipTrigger>
+
+            <TooltipContent>
+              {corpusCount} {corpusCount === 1 ? 'corpus' : 'corpora'} in total
+            </TooltipContent>
+          </Tooltip>
+        </div>
+      </SelectableRow>
     </div>
 
     <div className="flex-1 h-0 flex flex-col gap-2">
