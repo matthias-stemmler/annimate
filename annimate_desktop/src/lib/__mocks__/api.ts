@@ -80,12 +80,14 @@ let corpusSets = [
 ];
 
 type MockImportCorpus = {
+  corpusName: string;
   importCorpus: ImportCorpus;
   result: ImportCorpusResult;
 };
 
 const IMPORT_CORPORA: MockImportCorpus[] = [
   {
+    corpusName: 'New RelANNIS corpus',
     importCorpus: {
       fileName: '/path/to/new_relannis_corpus',
       format: 'RelANNIS',
@@ -109,6 +111,7 @@ const IMPORT_CORPORA: MockImportCorpus[] = [
     },
   },
   {
+    corpusName: CORPUS_NORMAL,
     importCorpus: {
       fileName: '/path/to/normal_corpus',
       format: 'RelANNIS',
@@ -136,6 +139,7 @@ const IMPORT_CORPORA: MockImportCorpus[] = [
     },
   },
   {
+    corpusName: 'New GraphML corpus',
     importCorpus: {
       fileName: '/path/to/new_graphml_corpus.graphml',
       format: 'GraphML',
@@ -159,6 +163,7 @@ const IMPORT_CORPORA: MockImportCorpus[] = [
     },
   },
   {
+    corpusName: 'Corpus failing to import',
     importCorpus: {
       fileName: '/path/to/corpus_failing_to_import',
       format: 'RelANNIS',
@@ -400,11 +405,13 @@ export const getSegmentations = async (params: {
 
 export const importCorpora = async (params: {
   paths: string[];
-}): Promise<void> => {
+}): Promise<string[]> => {
   logAction('Import', COLOR_CUSTOM_COMMAND, params);
 
+  const delay = params.paths.includes('fast') ? 20 : 200;
+
   for (let j = 0; j < 9; j++) {
-    await sleep(200);
+    await sleep(delay);
 
     emitImportStatusEvent({
       type: 'message',
@@ -429,7 +436,7 @@ export const importCorpora = async (params: {
       corpora: [],
     });
 
-    return;
+    return [];
   }
 
   emitImportStatusEvent({
@@ -437,8 +444,10 @@ export const importCorpora = async (params: {
     corpora: IMPORT_CORPORA.map(({ importCorpus }) => importCorpus),
   });
 
+  const importedCorpusNames = [];
+
   for (let i = 0; i < IMPORT_CORPORA.length; i++) {
-    const { importCorpus, result } = IMPORT_CORPORA[i];
+    const { corpusName, importCorpus, result } = IMPORT_CORPORA[i];
 
     emitImportStatusEvent({
       type: 'corpus_import_started',
@@ -452,7 +461,7 @@ export const importCorpora = async (params: {
     });
 
     for (let j = 0; j < 9; j++) {
-      await sleep(200);
+      await sleep(delay);
 
       emitImportStatusEvent({
         type: 'message',
@@ -461,7 +470,7 @@ export const importCorpora = async (params: {
       });
     }
 
-    await sleep(200);
+    await sleep(delay);
 
     emitImportStatusEvent({
       type: 'message',
@@ -474,7 +483,13 @@ export const importCorpora = async (params: {
       index: i,
       result,
     });
+
+    if (result.type === 'imported') {
+      importedCorpusNames.push(corpusName);
+    }
   }
+
+  return importedCorpusNames;
 };
 
 export const toggleCorpusInSet = async (params: {

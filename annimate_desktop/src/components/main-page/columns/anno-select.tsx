@@ -34,6 +34,7 @@ export const AnnoSelect: FC<AnnoSelectProps> = ({
 
   return (
     <Select
+      className="h-8"
       disabled={disabled}
       id={id}
       loading={isPending}
@@ -42,7 +43,6 @@ export const AnnoSelect: FC<AnnoSelectProps> = ({
         caption: <span className="font-mono">{e.displayName}</span>,
         value: annoKeyToValue(e.annoKey),
       }))}
-      triggerClassName="h-8"
       value={annoKey === undefined ? undefined : annoKeyToValue(annoKey)}
     />
   );

@@ -15,7 +15,7 @@ import { useState } from 'react';
 
 export const ImportTrigger = () => {
   const {
-    mutation: { mutate },
+    mutation: { mutate: importCorpora },
     corporaStatus,
     messages,
     result,
@@ -26,7 +26,7 @@ export const ImportTrigger = () => {
     const pathsRaw = await fileOpen(options);
 
     if (pathsRaw !== null) {
-      mutate({ paths: Array.isArray(pathsRaw) ? pathsRaw : [pathsRaw] });
+      importCorpora({ paths: Array.isArray(pathsRaw) ? pathsRaw : [pathsRaw] });
       setDialogOpen(true);
     }
   };
@@ -85,9 +85,11 @@ export const ImportTrigger = () => {
 
       <Dialog open={dialogOpen}>
         <ImportDialog
+          key={+dialogOpen}
           corporaStatus={corporaStatus}
           messages={messages}
-          onConfirm={() => {
+          onConfirm={(addToSet) => {
+            console.log({ addToSet });
             setDialogOpen(false);
           }}
           result={result}

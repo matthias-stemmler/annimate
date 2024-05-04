@@ -5,6 +5,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
+import { Select } from '@/components/ui/custom/select';
 import { Spinner } from '@/components/ui/custom/spinner';
 import {
   DialogContent,
@@ -12,7 +13,10 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -27,6 +31,7 @@ import {
   ImportCorpusStatus,
   ImportResult,
 } from '@/lib/mutations';
+import { useCorpusSets } from '@/lib/store';
 import { cn } from '@/lib/utils';
 import {
   AlertCircle,
@@ -39,12 +44,12 @@ import {
   TriangleAlert,
   XCircle,
 } from 'lucide-react';
-import { FC, RefObject, useEffect, useRef, useState } from 'react';
+import { FC, RefObject, useEffect, useId, useRef, useState } from 'react';
 
 export type ImportDialogProps = {
   corporaStatus: ImportCorpusStatus[] | undefined;
   messages: ImportCorpusMessage[];
-  onConfirm?: () => void;
+  onConfirm?: (addToSet: string | undefined) => void;
   result: ImportResult | undefined;
 };
 
@@ -52,6 +57,271 @@ export const ImportDialog: FC<ImportDialogProps> = ({
   corporaStatus,
   messages,
   onConfirm,
+  result,
+}) => {
+  const [addToSetActive, setAddToSetActive] = useState(false);
+  const [option, setOption] = useState('none');
+  const [newSet, setNewSet] = useState<string>('');
+  const [existingSet, setExistingSet] = useState<string | undefined>();
+
+  const noneOptionId = useId();
+  const newOptionId = useId();
+  const existingOptionId = useId();
+
+  const {
+    data: corpusSets,
+    error: corpusSetsError,
+    isPending: isCorpusSetsPending,
+  } = useCorpusSets();
+
+  if (corpusSetsError !== null) {
+    throw new Error(`Failed to load corpora: ${corpusSetsError}`);
+  }
+
+  const importPending = result === undefined;
+  const canAddToSet =
+    !importPending &&
+    result.type === 'imported' &&
+    result.corpusNames.length > 0;
+  const noSetsAvailable = (corpusSets ?? []).length === 0;
+
+  const addToSet =
+    option === 'new' ? newSet : option === 'existing' ? existingSet : undefined;
+  const addToSetValid =
+    option === 'none' ||
+    (option === 'new' &&
+      newSet !== '' &&
+      corpusSets !== undefined &&
+      !corpusSets?.includes(newSet)) ||
+    (option === 'existing' && existingSet !== undefined);
+
+  return (
+    <DialogContent className="max-w-[48rem]" noClose>
+      <DialogHeader>
+        <DialogTitle>Corpus import</DialogTitle>
+      </DialogHeader>
+
+      {/* Keep mounted to preserve state (including scroll position) */}
+      <ImportStatusDisplay
+        active={!addToSetActive}
+        corporaStatus={corporaStatus}
+        messages={messages}
+        result={result}
+      />
+
+      {canAddToSet && addToSetActive && (
+        <div>
+          <p className="mt-1 mb-4">
+            Add the{' '}
+            {result.corpusNames.length === 1 ? (
+              <>
+                imported corpus{' '}
+                <span className="mx-1">
+                  &ldquo;{result.corpusNames[0]}&rdquo;
+                </span>
+              </>
+            ) : (
+              <>{result.corpusNames.length} imported corpora</>
+            )}{' '}
+            to a set?
+          </p>
+
+          <RadioGroup onValueChange={setOption} value={option}>
+            <div
+              className={cn(
+                'cursor-pointer shadow-[0_0_0_1px] shadow-border rounded-md px-4 py-7 mb-4',
+                {
+                  'shadow-[0_0_0_2px] shadow-gray-400': option === 'none',
+                },
+              )}
+              onClick={() => {
+                setOption('none');
+              }}
+            >
+              <div className="flex items-center gap-3 mb-2">
+                <RadioGroupItem id={noneOptionId} value="none" />
+
+                <Label
+                  htmlFor={noneOptionId}
+                  className="cursor-pointer text-md"
+                >
+                  Do not add to a set
+                </Label>
+              </div>
+
+              <div className="flex flex-col ml-7 text-sm italic">
+                The {result.corpusNames.length === 1 ? 'corpus' : 'corpora'}{' '}
+                will be available under &ldquo;All corpora&rdquo; and can be
+                added to a set later.
+              </div>
+            </div>
+
+            <div
+              className={cn(
+                'cursor-pointer shadow-[0_0_0_1px] shadow-border rounded-md p-4 pb-6 mb-3',
+                {
+                  'shadow-[0_0_0_2px] shadow-gray-400': option === 'new',
+                },
+              )}
+              onClick={() => {
+                setOption('new');
+              }}
+            >
+              <div className="flex items-center gap-3 mb-1">
+                <RadioGroupItem id={newOptionId} className="peer" value="new" />
+
+                <Label
+                  htmlFor={newOptionId}
+                  className="cursor-pointer grow text-md peer-disabled:opacity-50"
+                >
+                  Add to a new set:
+                </Label>
+
+                {option === 'new' &&
+                  newSet !== '' &&
+                  corpusSets?.includes(newSet) && (
+                    <div className="text-destructive peer-disabled:opacity-50">
+                      This set already exists. Add to the existing set?{' '}
+                      <Button
+                        className="h-4"
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          setExistingSet(newSet);
+                          setNewSet('');
+                          setOption('existing');
+                        }}
+                        tabIndex={option === 'new' ? 0 : -1}
+                        variant="link"
+                      >
+                        Yes
+                      </Button>
+                    </div>
+                  )}
+              </div>
+
+              <div className="flex flex-col gap-2 ml-7">
+                <Input
+                  className="disabled:pointer-events-none"
+                  disabled={option !== 'new'}
+                  maxLength={64}
+                  onChange={(event) => {
+                    setNewSet(event.target.value);
+                  }}
+                  placeholder="Choose a name"
+                  tabIndex={option === 'new' ? 0 : -1}
+                  value={newSet}
+                />
+              </div>
+            </div>
+
+            <div
+              className={cn(
+                'cursor-pointer shadow-[0_0_0_1px] shadow-border rounded-md p-4 pb-6 mb-4 text-md',
+                {
+                  'cursor-not-allowed': noSetsAvailable,
+                  'shadow-[0_0_0_2px] shadow-gray-400': option === 'existing',
+                },
+              )}
+              onClick={() => {
+                !noSetsAvailable && setOption('existing');
+              }}
+            >
+              <div className="flex items-center gap-3 mb-1">
+                <RadioGroupItem
+                  id={existingOptionId}
+                  className="peer"
+                  disabled={noSetsAvailable}
+                  value="existing"
+                />
+
+                <Label
+                  htmlFor={existingOptionId}
+                  className="cursor-pointer text-md peer-disabled:opacity-50"
+                >
+                  Add to an existing set:
+                </Label>
+              </div>
+
+              <div className="flex flex-col ml-7">
+                <Select
+                  className="disabled:pointer-events-none"
+                  disabled={option !== 'existing'}
+                  loading={isCorpusSetsPending}
+                  onChange={(value) => {
+                    setExistingSet(value.slice(1));
+                  }}
+                  options={
+                    corpusSets?.map((s) => ({
+                      caption: s,
+                      value: `:${s}`,
+                    })) ?? []
+                  }
+                  tabIndex={option === 'existing' ? 0 : -1}
+                  value={
+                    existingSet === undefined ? undefined : `:${existingSet}`
+                  }
+                />
+              </div>
+            </div>
+          </RadioGroup>
+        </div>
+      )}
+
+      <DialogFooter>
+        {addToSetActive ? (
+          <>
+            <Button
+              className="min-w-32"
+              onClick={() => {
+                setAddToSetActive(false);
+              }}
+              variant="secondary"
+            >
+              Back
+            </Button>
+
+            <Button
+              className="min-w-32"
+              disabled={!addToSetValid}
+              onClick={() => {
+                onConfirm?.(addToSet);
+              }}
+            >
+              OK
+            </Button>
+          </>
+        ) : (
+          <Button
+            className="min-w-32"
+            disabled={importPending}
+            onClick={() => {
+              if (canAddToSet) {
+                setAddToSetActive(true);
+              } else {
+                onConfirm?.(undefined);
+              }
+            }}
+            variant="secondary"
+          >
+            {importPending ? 'Please wait' : canAddToSet ? 'Continue' : 'Close'}
+          </Button>
+        )}
+      </DialogFooter>
+    </DialogContent>
+  );
+};
+
+type ImportStatusDisplayProps = {
+  active: boolean;
+  corporaStatus: ImportCorpusStatus[] | undefined;
+  messages: ImportCorpusMessage[];
+  result: ImportResult | undefined;
+};
+
+const ImportStatusDisplay: FC<ImportStatusDisplayProps> = ({
+  active,
+  corporaStatus,
+  messages,
   result,
 }) => {
   const totalCorporaCount = corporaStatus?.length ?? 0;
@@ -65,12 +335,8 @@ export const ImportDialog: FC<ImportDialogProps> = ({
     totalCorporaCount === 0 ? 0 : finishedCorporaCount / totalCorporaCount;
 
   return (
-    <DialogContent className="max-w-[48rem]" noClose>
-      <DialogHeader>
-        <DialogTitle>Corpus import</DialogTitle>
-      </DialogHeader>
-
-      <div className="mb-1">
+    <div hidden={!active}>
+      <div className="mb-4">
         <div className="flex justify-between mb-1">
           <p className="w-0 grow-[2] truncate">
             {result?.type === 'failed'
@@ -91,12 +357,18 @@ export const ImportDialog: FC<ImportDialogProps> = ({
       </div>
 
       <Tabs defaultValue="status">
-        <TabsList className="w-full grid grid-cols-2">
+        <TabsList className="w-full grid grid-cols-2 mb-2">
           <TabsTrigger value="status">Status</TabsTrigger>
           <TabsTrigger value="messages">Messages</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="status" tabIndex={-1}>
+        {/* Keep tabs mounted to preserve state (including scroll position) when switching tabs */}
+        <TabsContent
+          className="data-[state=inactive]:invisible"
+          forceMount
+          tabIndex={-1}
+          value="status"
+        >
           {result?.type === 'failed' ? (
             <div className="h-80">
               <Alert variant="destructive">
@@ -113,22 +385,18 @@ export const ImportDialog: FC<ImportDialogProps> = ({
           )}
         </TabsContent>
 
-        <TabsContent value="messages" tabIndex={-1}>
+        <TabsContent
+          // Use `visibility: hidden` instead of `display: none`
+          // because WebKit would otherwise reset the scroll position
+          className="data-[state=inactive]:invisible -mt-80"
+          forceMount
+          tabIndex={-1}
+          value="messages"
+        >
           <MessagesDisplay messages={messages} />
         </TabsContent>
       </Tabs>
-
-      <DialogFooter>
-        <Button
-          className="min-w-32"
-          disabled={result === undefined}
-          onClick={onConfirm}
-          variant="secondary"
-        >
-          {result === undefined ? 'Please wait' : 'Close'}
-        </Button>
-      </DialogFooter>
-    </DialogContent>
+    </div>
   );
 };
 

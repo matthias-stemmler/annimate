@@ -6,15 +6,17 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
-import { ReactNode } from 'react';
+import { ComponentPropsWithoutRef, ReactNode } from 'react';
 
-export type SelectProps<T> = {
+export type SelectProps<T> = Omit<
+  ComponentPropsWithoutRef<typeof SelectTrigger>,
+  'onChange'
+> & {
   disabled?: boolean;
   id?: string;
   loading?: boolean;
   onChange?: (value: T) => void;
   options: SelectOption<T>[];
-  triggerClassName?: string;
   value?: T;
 };
 
@@ -24,13 +26,14 @@ export type SelectOption<T> = {
 };
 
 export const Select = <T extends string>({
+  className,
   disabled,
   id,
   loading,
   onChange,
   options,
-  triggerClassName,
   value,
+  ...triggerProps
 }: SelectProps<T>) => {
   const placeholder =
     (loading && 'Loading ...') ||
@@ -43,10 +46,11 @@ export const Select = <T extends string>({
       value={value ?? ''}
     >
       <SelectTrigger
-        className={cn(triggerClassName, {
+        className={cn(className, {
           'disabled:cursor-wait': loading,
         })}
         id={id}
+        {...triggerProps}
       >
         <SelectValue
           children={

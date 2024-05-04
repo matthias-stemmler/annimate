@@ -90,6 +90,7 @@ const SegmentationSelect: FC<SegmentationSelectProps> = ({
 
   return (
     <Select
+      className="h-8"
       disabled={disabled}
       id={id}
       loading={isPending}
@@ -103,7 +104,6 @@ const SegmentationSelect: FC<SegmentationSelectProps> = ({
           ),
         value: `:${s}`,
       }))}
-      triggerClassName="h-8"
       value={segmentation === undefined ? undefined : `:${segmentation}`}
     />
   );

@@ -46,13 +46,13 @@ export const QueryInput: FC = () => {
         </Label>
 
         <Select
+          className="w-[220px]"
           disabled={disabled}
           onChange={setQueryLanguage}
           options={[
             { value: 'AQL', caption: 'AQL (latest)' },
             { value: 'AQLQuirksV3', caption: 'AQL (compatibility mode)' },
           ]}
-          triggerClassName="w-[220px]"
           value={queryLanguage}
         />
       </div>

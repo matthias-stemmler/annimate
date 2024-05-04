@@ -67,6 +67,7 @@ const QueryNodeSelect: FC<QueryNodeSelectProps> = ({
 
   return (
     <Select
+      className="h-8"
       disabled={disabled}
       id={id}
       loading={isPending}
@@ -85,7 +86,6 @@ const QueryNodeSelect: FC<QueryNodeSelectProps> = ({
           value: `${i}`,
         }),
       )}
-      triggerClassName="h-8"
       value={nodeRef === undefined ? undefined : `${nodeRef.index}`}
     />
   );
