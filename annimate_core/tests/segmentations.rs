@@ -27,9 +27,16 @@ macro_rules! segmentations_test {
                 let _ = fs::remove_dir_all(&db_dir);
                 let storage = Storage::from_db_dir(db_dir).unwrap();
 
-                for corpus_path in test_data.corpus_paths {
-                    storage.import_corpora(vec![Path::new(DATA_DIR).join(corpus_path)], |_| ()).unwrap();
-                }
+                storage
+                    .import_corpora(
+                        test_data
+                            .corpus_paths
+                            .into_iter()
+                            .map(|p| Path::new(DATA_DIR).join(p))
+                            .collect(),
+                        |_| (),
+                    )
+                    .unwrap();
 
                 let segmentations = storage.segmentations(test_data.corpus_names).unwrap();
 

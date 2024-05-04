@@ -1,10 +1,10 @@
+use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
 use std::str::FromStr;
 use std::sync::RwLock;
 use std::{fs, io};
 
 use serde::{Deserialize, Serialize};
-use serde_with::{serde_as, KeyValueMap};
 
 use crate::error::AnnisExportMetadataError;
 use crate::AnnisExportError;
@@ -30,6 +30,7 @@ impl MetadataStorage {
             match data.parse() {
                 Ok(mut metadata) => {
                     cleanup_metadata(&mut metadata, corpus_names);
+                    write_metadata(&path, &metadata)?;
                     metadata
                 }
                 Err(err) => return Err(AnnisExportError::FailedToReadMetadata { path, err }),
@@ -46,13 +47,13 @@ impl MetadataStorage {
         })
     }
 
-    pub(crate) fn corpus_sets(&self) -> Vec<CorpusSet> {
+    pub(crate) fn corpus_sets(&self) -> BTreeMap<String, CorpusSet> {
         self.metadata.read().unwrap().corpus_sets.clone()
     }
 
     pub(crate) fn update_corpus_sets(
         &self,
-        mut op: impl FnMut(&mut Vec<CorpusSet>),
+        mut op: impl FnMut(&mut BTreeMap<String, CorpusSet>),
     ) -> io::Result<()> {
         let mut metadata = self.metadata.write().unwrap();
         op(&mut metadata.corpus_sets);
@@ -64,7 +65,7 @@ fn cleanup_metadata<S>(metadata: &mut Metadata, corpus_names: &[S])
 where
     S: AsRef<str>,
 {
-    for corpus_set in &mut metadata.corpus_sets {
+    for corpus_set in &mut metadata.corpus_sets.values_mut() {
         corpus_set
             .corpus_names
             .retain(|corpus_name| corpus_names.iter().any(|c| c.as_ref() == corpus_name));
@@ -80,14 +81,11 @@ fn write_metadata(path: &Path, metadata: &Metadata) -> io::Result<()> {
     )
 }
 
-#[serde_as]
 #[derive(Debug, Deserialize, Serialize)]
 #[serde(rename_all = "kebab-case")]
 struct Metadata {
     metadata_version: usize,
-
-    #[serde_as(as = "KeyValueMap<_>")]
-    corpus_sets: Vec<CorpusSet>,
+    corpus_sets: BTreeMap<String, CorpusSet>,
 }
 
 impl Default for Metadata {
@@ -115,11 +113,8 @@ impl FromStr for Metadata {
     }
 }
 
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Default, Deserialize, Serialize)]
 #[serde(rename_all = "kebab-case")]
 pub(crate) struct CorpusSet {
-    #[serde(rename = "$key$")]
-    pub(crate) name: String,
-
-    pub(crate) corpus_names: Vec<String>,
+    pub(crate) corpus_names: BTreeSet<String>,
 }

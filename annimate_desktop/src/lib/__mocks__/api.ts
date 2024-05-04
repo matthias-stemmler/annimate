@@ -51,13 +51,11 @@ let corpusNames = [
   CORPUS_FAILING_DELETE,
 ];
 
-let corpusSets = [
-  {
-    name: 'Normal',
+const corpusSets: Record<string, { corpusNames: string[] }> = {
+  Normal: {
     corpusNames: [CORPUS_NORMAL],
   },
-  {
-    name: 'Working',
+  Working: {
     corpusNames: [
       CORPUS_NORMAL,
       CORPUS_NO_MATCHES,
@@ -67,8 +65,7 @@ let corpusSets = [
       CORPUS_MULTIPLE_SEGMENTATIONS,
     ],
   },
-  {
-    name: 'Failing',
+  Failing: {
     corpusNames: [
       CORPUS_INVALID_QUERY,
       CORPUS_FAILING_EXPORT,
@@ -77,7 +74,7 @@ let corpusSets = [
       CORPUS_FAILING_DELETE,
     ],
   },
-];
+};
 
 type MockImportCorpus = {
   corpusName: string;
@@ -270,6 +267,21 @@ export const save = async (
   return prompt('Save\nEnter file path:');
 };
 
+export const addCorporaToSet = async (params: {
+  corpusSet: string;
+  corpusNames: string[];
+}): Promise<void> => {
+  if (corpusNames.length === 0) {
+    return;
+  }
+
+  corpusSets[params.corpusSet] = corpusSets[params.corpusSet] ?? {
+    corpusNames: [],
+  };
+
+  corpusSets[params.corpusSet].corpusNames.push(...corpusNames);
+};
+
 export const deleteCorpus = async (params: {
   corpusName: string;
 }): Promise<void> => {
@@ -280,10 +292,11 @@ export const deleteCorpus = async (params: {
   }
 
   corpusNames = corpusNames.filter((c) => c !== params.corpusName);
-  corpusSets = corpusSets.map((s) => ({
-    ...s,
-    corpusNames: s.corpusNames.filter((c) => c !== params.corpusName),
-  }));
+  for (const corpusSet of Object.values(corpusSets)) {
+    corpusSet.corpusNames = corpusSet.corpusNames.filter(
+      (c) => c !== params.corpusName,
+    );
+  }
 };
 
 export const exportMatches = async (params: {
@@ -328,11 +341,11 @@ export const getCorpora = async (): Promise<Corpora> => {
   return {
     corpora: corpusNames.map((c) => ({
       name: c,
-      includedInSets: corpusSets
-        .filter((s) => s.corpusNames.includes(c))
-        .map((s) => s.name),
+      includedInSets: Object.entries(corpusSets)
+        .filter(([, { corpusNames }]) => corpusNames.includes(c))
+        .map(([s]) => s),
     })),
-    sets: corpusSets.map((s) => s.name),
+    sets: Object.keys(corpusSets),
   };
 };
 
@@ -502,16 +515,12 @@ export const toggleCorpusInSet = async (params: {
     throw new Error('This corpus cannot be toggled.');
   }
 
-  corpusSets = corpusSets.map((s) =>
-    s.name === params.corpusSet
-      ? {
-          ...s,
-          corpusNames: s.corpusNames.includes(params.corpusName)
-            ? s.corpusNames.filter((c) => c !== params.corpusName)
-            : [...s.corpusNames, params.corpusName],
-        }
-      : s,
-  );
+  const corpusSet = corpusSets[params.corpusSet];
+  if (corpusSet !== undefined) {
+    corpusSet.corpusNames = corpusSet.corpusNames.includes(params.corpusName)
+      ? corpusSet.corpusNames.filter((c) => c !== params.corpusName)
+      : [...corpusSet.corpusNames, params.corpusName];
+  }
 };
 
 export const validateQuery = async (params: {

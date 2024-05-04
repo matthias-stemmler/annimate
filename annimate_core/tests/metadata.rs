@@ -41,14 +41,18 @@ macro_rules! snapshot_metadata {
 }
 
 #[test]
-fn corpora() {
+fn metadata() {
     let _ = fs::remove_dir_all(DB_DIR);
     let storage = Storage::from_db_dir(DB_DIR).unwrap();
-    for corpus_path in ["subtok.demo_relANNIS.zip", "subtok.demo2_relANNIS.zip"] {
-        storage
-            .import_corpora(vec![Path::new(DATA_DIR).join(corpus_path)], |_| ())
-            .unwrap();
-    }
+    storage
+        .import_corpora(
+            vec![
+                Path::new(DATA_DIR).join("subtok.demo_relANNIS.zip"),
+                Path::new(DATA_DIR).join("subtok.demo2_relANNIS.zip"),
+            ],
+            |_| (),
+        )
+        .unwrap();
 
     snapshot_metadata!("default");
 
@@ -74,4 +78,26 @@ fn corpora() {
     storage.delete_corpus("subtok.demo2").unwrap();
 
     snapshot_metadata!("delete");
+
+    storage
+        .add_corpora_to_set("Test set", &["subtok.demo", "subtok.demo2"])
+        .unwrap();
+
+    snapshot_metadata!("add_corpora_to_set_existing1");
+
+    storage
+        .add_corpora_to_set("Test set", &["subtok.demo"])
+        .unwrap();
+
+    snapshot_metadata!("add_corpora_to_set_existing2");
+
+    storage.add_corpora_to_set("Test set 2", &[""; 0]).unwrap();
+
+    snapshot_metadata!("add_corpora_to_set_new1");
+
+    storage
+        .add_corpora_to_set("Test set 2", &["subtok.demo"])
+        .unwrap();
+
+    snapshot_metadata!("add_corpora_to_set_new2");
 }

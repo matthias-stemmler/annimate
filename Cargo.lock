@@ -76,7 +76,6 @@ dependencies = [
  "itertools 0.12.1",
  "regex",
  "serde",
- "serde_with",
  "tempfile",
  "thiserror",
  "toml 0.8.12",

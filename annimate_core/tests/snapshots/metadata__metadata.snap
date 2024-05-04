@@ -1,5 +1,5 @@
 ---
-source: annimate_core/tests/corpora.rs
+source: annimate_core/tests/metadata.rs
 ---
 Corpora {
     corpora: [

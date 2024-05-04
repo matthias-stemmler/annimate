@@ -1,5 +1,5 @@
 use std::io::{self, Write};
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 use annimate_core::{
     AnnoKey, Corpora, CsvExportColumn, CsvExportConfig, ExportData, ExportDataAnno, ExportDataText,
@@ -24,6 +24,17 @@ impl State {
 }
 
 #[tauri::command(async)]
+pub(crate) fn add_corpora_to_set(
+    state: tauri::State<State>,
+    corpus_set: &str,
+    corpus_names: Vec<&str>,
+) -> Result<(), Error> {
+    Ok(state
+        .storage
+        .add_corpora_to_set(corpus_set, &corpus_names)?)
+}
+
+#[tauri::command(async)]
 pub(crate) fn delete_corpus(state: tauri::State<State>, corpus_name: &str) -> Result<(), Error> {
     Ok(state.storage.delete_corpus(corpus_name)?)
 }
@@ -32,11 +43,11 @@ pub(crate) fn delete_corpus(state: tauri::State<State>, corpus_name: &str) -> Re
 pub(crate) fn export_matches(
     state: tauri::State<State>,
     window: Window,
-    corpus_names: Vec<String>,
-    aql_query: String,
+    corpus_names: Vec<&str>,
+    aql_query: &str,
     query_language: QueryLanguage,
     export_columns: Vec<ExportColumn>,
-    output_file: PathBuf,
+    output_file: &Path,
 ) -> Result<(), Error> {
     let mut out = tempfile::Builder::new()
         .prefix(".annimate_")
@@ -72,7 +83,7 @@ pub(crate) fn get_corpora(state: tauri::State<State>) -> Result<Corpora, Error> 
 #[tauri::command(async)]
 pub(crate) fn get_exportable_anno_keys(
     state: tauri::State<State>,
-    corpus_names: Vec<String>,
+    corpus_names: Vec<&str>,
 ) -> Result<ExportableAnnoKeys, Error> {
     Ok(state.storage.exportable_anno_keys(&corpus_names)?)
 }
@@ -80,7 +91,7 @@ pub(crate) fn get_exportable_anno_keys(
 #[tauri::command(async)]
 pub(crate) fn get_query_nodes(
     state: tauri::State<State>,
-    aql_query: String,
+    aql_query: &str,
     query_language: QueryLanguage,
 ) -> Result<QueryAnalysisResult<QueryNodes>, Error> {
     Ok(state.storage.query_nodes(&aql_query, query_language)?)
@@ -89,7 +100,7 @@ pub(crate) fn get_query_nodes(
 #[tauri::command(async)]
 pub(crate) fn get_segmentations(
     state: tauri::State<State>,
-    corpus_names: Vec<String>,
+    corpus_names: Vec<&str>,
 ) -> Result<Vec<String>, Error> {
     if corpus_names.is_empty() {
         Ok(Vec::new())
@@ -129,8 +140,8 @@ pub(crate) fn toggle_corpus_in_set(
 #[tauri::command(async)]
 pub(crate) fn validate_query(
     state: tauri::State<State>,
-    corpus_names: Vec<String>,
-    aql_query: String,
+    corpus_names: Vec<&str>,
+    aql_query: &str,
     query_language: QueryLanguage,
 ) -> Result<QueryAnalysisResult<()>, Error> {
     Ok(state

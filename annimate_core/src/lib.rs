@@ -7,7 +7,7 @@ use format::export;
 use graphannis::corpusstorage::CacheStrategy;
 use import::{FilesystemEntity, ImportFormat, ImportableCorpus};
 use itertools::Itertools;
-use metadata::MetadataStorage;
+use metadata::{CorpusSet, MetadataStorage};
 use query::Query;
 use serde::Serialize;
 
@@ -75,8 +75,8 @@ impl Storage {
             .map(|c| {
                 let included_in_sets = sets
                     .iter()
-                    .filter(|s| s.corpus_names.contains(&c.name))
-                    .map(|s| s.name.clone())
+                    .filter(|(_, CorpusSet { corpus_names })| corpus_names.contains(&c.name))
+                    .map(|(name, _)| name.clone())
                     .collect();
 
                 Corpus {
@@ -87,7 +87,7 @@ impl Storage {
             .collect();
 
         Ok(Corpora {
-            sets: sets.into_iter().map(|s| s.name).collect(),
+            sets: sets.keys().cloned().collect(),
             corpora,
         })
     }
@@ -95,8 +95,8 @@ impl Storage {
     pub fn delete_corpus(&self, corpus_name: &str) -> Result<(), AnnisExportError> {
         self.corpus_storage.delete(corpus_name)?;
         self.metadata_storage.update_corpus_sets(|corpus_sets| {
-            for corpus_set in corpus_sets {
-                corpus_set.corpus_names.retain(|c| c != corpus_name);
+            for CorpusSet { corpus_names } in corpus_sets.values_mut() {
+                corpus_names.remove(corpus_name);
             }
         })?;
         Ok(())
@@ -158,17 +158,38 @@ impl Storage {
         Ok(imported_corpus_names)
     }
 
+    pub fn add_corpora_to_set<S>(
+        &self,
+        corpus_set_name: &str,
+        corpus_names: &[S],
+    ) -> Result<(), AnnisExportError>
+    where
+        S: AsRef<str>,
+    {
+        if corpus_names.is_empty() {
+            return Ok(());
+        }
+
+        self.metadata_storage.update_corpus_sets(|corpus_sets| {
+            corpus_sets
+                .entry(corpus_set_name.into())
+                .or_default()
+                .corpus_names
+                .extend(corpus_names.iter().map(|c| c.as_ref().into()));
+        })?;
+
+        Ok(())
+    }
+
     pub fn toggle_corpus_in_set(
         &self,
-        corpus_set: &str,
+        corpus_set_name: &str,
         corpus_name: &str,
     ) -> Result<(), AnnisExportError> {
         self.metadata_storage.update_corpus_sets(|corpus_sets| {
-            if let Some(corpus_set) = corpus_sets.iter_mut().find(|s| s.name == corpus_set) {
-                if corpus_set.corpus_names.iter().any(|c| c == corpus_name) {
-                    corpus_set.corpus_names.retain(|c| c != corpus_name);
-                } else {
-                    corpus_set.corpus_names.push(corpus_name.into());
+            if let Some(CorpusSet { corpus_names }) = corpus_sets.get_mut(corpus_set_name) {
+                if !corpus_names.remove(corpus_name) {
+                    corpus_names.insert(corpus_name.into());
                 }
             }
         })?;

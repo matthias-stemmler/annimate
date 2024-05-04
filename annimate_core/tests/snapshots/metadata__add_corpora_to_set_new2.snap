@@ -1,0 +1,13 @@
+---
+source: annimate_core/tests/metadata.rs
+---
+metadata-version = 1
+
+[corpus-sets."Test set"]
+corpus-names = [
+    "subtok.demo",
+    "subtok.demo2",
+]
+
+[corpus-sets."Test set 2"]
+corpus-names = ["subtok.demo"]

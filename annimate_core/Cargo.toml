@@ -13,7 +13,6 @@ graphannis-core = "3.2.1"
 itertools = { workspace = true }
 regex = "1.10"
 serde = { workspace = true }
-serde_with = "3.7"
 tempfile = { workspace = true }
 thiserror = { workspace = true }
 toml = "0.8"

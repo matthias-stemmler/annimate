@@ -13,6 +13,7 @@ fn main() {
     tauri::Builder::default()
         .manage(State::from_db_dir(db_dir.into()))
         .invoke_handler(tauri::generate_handler![
+            api::add_corpora_to_set,
             api::delete_corpus,
             api::export_matches,
             api::get_corpora,

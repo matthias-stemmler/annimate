@@ -132,17 +132,14 @@ where
 
     for i in 0..archive.len() {
         let mut entry = archive.by_index(i).unwrap();
+        let output_path = output_dir.as_ref().join(entry.enclosed_name().unwrap());
 
-        if let Some(enclosed_path) = entry.enclosed_name() {
-            let output_path = output_dir.as_ref().join(enclosed_path);
-
-            if entry.is_dir() {
-                fs::create_dir_all(output_path).unwrap();
-            } else if let Some(parent) = output_path.parent() {
-                fs::create_dir_all(parent).unwrap();
-                let mut output_file = File::create(&output_path).unwrap();
-                io::copy(&mut entry, &mut output_file).unwrap();
-            }
+        if entry.is_dir() {
+            fs::create_dir_all(output_path).unwrap();
+        } else if let Some(parent) = output_path.parent() {
+            fs::create_dir_all(parent).unwrap();
+            let mut output_file = File::create(&output_path).unwrap();
+            io::copy(&mut entry, &mut output_file).unwrap();
         }
     }
 }

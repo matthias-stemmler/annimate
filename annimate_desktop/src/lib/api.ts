@@ -29,6 +29,11 @@ export const exportMatches = (params: {
   outputFile: string;
 }): Promise<void> => invoke('export_matches', params);
 
+export const addCorporaToSet = (params: {
+  corpusSet: string;
+  corpusNames: string[];
+}): Promise<void> => invoke('add_corpora_to_set', params);
+
 export const getCorpora = (): Promise<Corpora> => invoke('get_corpora');
 
 export const getExportableAnnoKeys = (params: {
