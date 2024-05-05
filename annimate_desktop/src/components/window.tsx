@@ -5,76 +5,44 @@ import {
   MenubarContent,
   MenubarItem,
   MenubarMenu,
-  MenubarRadioGroup,
-  MenubarRadioItem,
   MenubarTrigger,
 } from '@/components/ui/menubar';
 import { exit } from '@/lib/api';
 import { FC } from 'react';
-import { Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { Outlet } from 'react-router-dom';
 
-export const Window: FC = () => {
-  const { pathname } = useLocation();
-  const navigate = useNavigate();
+export const Window: FC = () => (
+  <div className="flex flex-col h-full">
+    <Dialog>
+      <Menubar>
+        <MenubarMenu>
+          <MenubarTrigger>File</MenubarTrigger>
 
-  return (
-    <div className="flex flex-col h-full">
-      <Dialog>
-        <Menubar>
-          <MenubarMenu>
-            <MenubarTrigger>File</MenubarTrigger>
+          <MenubarContent>
+            <MenubarItem
+              onClick={() => {
+                exit(0);
+              }}
+            >
+              Quit
+            </MenubarItem>
+          </MenubarContent>
+        </MenubarMenu>
 
-            <MenubarContent>
-              <MenubarItem
-                onClick={() => {
-                  exit(0);
-                }}
-              >
-                Quit
-              </MenubarItem>
-            </MenubarContent>
-          </MenubarMenu>
+        <MenubarMenu>
+          <MenubarTrigger>Help</MenubarTrigger>
 
-          <MenubarMenu>
-            <MenubarTrigger>View</MenubarTrigger>
+          <MenubarContent>
+            <DialogTrigger asChild>
+              <MenubarItem>About</MenubarItem>
+            </DialogTrigger>
+          </MenubarContent>
+        </MenubarMenu>
+      </Menubar>
 
-            <MenubarContent>
-              <MenubarRadioGroup value={pathname}>
-                <MenubarRadioItem
-                  onClick={() => {
-                    navigate('/', { replace: true });
-                  }}
-                  value="/"
-                >
-                  Export matches
-                </MenubarRadioItem>
-                <MenubarRadioItem
-                  onClick={() => {
-                    navigate('/manage', { replace: true });
-                  }}
-                  value="/manage"
-                >
-                  Manage corpora
-                </MenubarRadioItem>
-              </MenubarRadioGroup>
-            </MenubarContent>
-          </MenubarMenu>
+      <AboutDialog />
+    </Dialog>
 
-          <MenubarMenu>
-            <MenubarTrigger>Help</MenubarTrigger>
-
-            <MenubarContent>
-              <DialogTrigger asChild>
-                <MenubarItem>About</MenubarItem>
-              </DialogTrigger>
-            </MenubarContent>
-          </MenubarMenu>
-        </Menubar>
-
-        <AboutDialog />
-      </Dialog>
-
-      <Outlet />
-    </div>
-  );
-};
+    <Outlet />
+  </div>
+);
