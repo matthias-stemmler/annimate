@@ -7,11 +7,14 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { ArrowLeft } from 'lucide-react';
-import { FC } from 'react';
+import { FC, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 export const ManagePage: FC = () => {
   const navigate = useNavigate();
+  const [selectedCorpusSet, setSelectedCorpusSet] = useState<
+    string | undefined
+  >();
 
   return (
     <div className="h-full overflow-hidden flex flex-col">
@@ -34,10 +37,13 @@ export const ManagePage: FC = () => {
 
         <h1 className="text-lg font-semibold">Manage corpora</h1>
 
-        <ImportTrigger />
+        <ImportTrigger onImportedIntoCorpusSet={setSelectedCorpusSet} />
       </header>
 
-      <CorporaSection />
+      <CorporaSection
+        onSelectCorpusSet={setSelectedCorpusSet}
+        selectedCorpusSet={selectedCorpusSet}
+      />
     </div>
   );
 };

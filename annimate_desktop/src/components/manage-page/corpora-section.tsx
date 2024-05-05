@@ -8,12 +8,14 @@ import {
   ResizablePanelGroup,
 } from '@/components/ui/resizable';
 import { useCorpora } from '@/lib/store';
-import { useState } from 'react';
+import { FC } from 'react';
 
-export const CorporaSection = () => {
-  const [selectedCorpusSetState, setSelectedCorpusSet] = useState<
-    string | undefined
-  >();
+export type CorporaSectionProps = {
+  onSelectCorpusSet?: (corpusSet: string | undefined) => void;
+  selectedCorpusSet: string | undefined;
+};
+
+export const CorporaSection: FC<CorporaSectionProps> = (props) => {
   const { data: corporaData, error, isPending } = useCorpora();
 
   if (error !== null) {
@@ -26,9 +28,9 @@ export const CorporaSection = () => {
 
   const { corpora, sets } = corporaData;
   const selectedCorpusSet =
-    selectedCorpusSetState !== undefined &&
-    sets.includes(selectedCorpusSetState)
-      ? selectedCorpusSetState
+    props.selectedCorpusSet !== undefined &&
+    sets.includes(props.selectedCorpusSet)
+      ? props.selectedCorpusSet
       : undefined;
 
   const corpusNames = corpora.map((c) => c.name);
@@ -44,7 +46,7 @@ export const CorporaSection = () => {
         <CorpusSetList
           corpusCount={corpora.length}
           corpusSetsWithCount={corpusSetsWithCount}
-          onSelectCorpusSet={setSelectedCorpusSet}
+          onSelectCorpusSet={props.onSelectCorpusSet}
           selectedCorpusSet={selectedCorpusSet}
         />
       </ResizablePanel>

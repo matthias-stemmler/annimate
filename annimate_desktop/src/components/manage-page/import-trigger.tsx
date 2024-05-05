@@ -7,19 +7,33 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { useToast } from '@/components/ui/use-toast';
 import { fileOpen } from '@/lib/api';
 import { OpenDialogOptions } from '@/lib/api-types';
-import { useImportCorpora } from '@/lib/store';
+import { useAddCorporaToSet, useImportCorpora } from '@/lib/store';
 import { File, Folder, FolderInput } from 'lucide-react';
-import { useState } from 'react';
+import { FC, useState } from 'react';
 
-export const ImportTrigger = () => {
+export type ImportTriggerProps = {
+  onImportedIntoCorpusSet?: (corpusSet: string | undefined) => void;
+};
+
+export const ImportTrigger: FC<ImportTriggerProps> = ({
+  onImportedIntoCorpusSet,
+}) => {
   const {
     mutation: { mutate: importCorpora },
     corporaStatus,
     messages,
     result,
   } = useImportCorpora();
+
+  const {
+    mutation: { mutate: addCorporaToSet },
+  } = useAddCorporaToSet();
+
+  const { toast } = useToast();
+
   const [dialogOpen, setDialogOpen] = useState(false);
 
   const importCorporaFromDialog = async (options: OpenDialogOptions) => {
@@ -89,7 +103,28 @@ export const ImportTrigger = () => {
           corporaStatus={corporaStatus}
           messages={messages}
           onConfirm={(addToSet) => {
-            console.log({ addToSet });
+            onImportedIntoCorpusSet?.(addToSet);
+
+            if (addToSet !== undefined && result?.type === 'imported') {
+              addCorporaToSet(
+                {
+                  corpusSet: addToSet,
+                  corpusNames: result.corpusNames,
+                },
+                {
+                  onError: (error: Error) => {
+                    toast({
+                      className: 'break-all',
+                      description: error.toString(),
+                      duration: 15000,
+                      title: `Failed to add ${result.corpusNames.length === 1 ? 'imported corpus' : `${result.corpusNames.length} imported corpora`} to set`,
+                      variant: 'destructive',
+                    });
+                  },
+                },
+              );
+            }
+
             setDialogOpen(false);
           }}
           result={result}

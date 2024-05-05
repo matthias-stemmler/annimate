@@ -271,6 +271,8 @@ export const addCorporaToSet = async (params: {
   corpusSet: string;
   corpusNames: string[];
 }): Promise<void> => {
+  logAction('Add corpora to set', COLOR_CUSTOM_COMMAND, params);
+
   if (corpusNames.length === 0) {
     return;
   }
@@ -279,7 +281,7 @@ export const addCorporaToSet = async (params: {
     corpusNames: [],
   };
 
-  corpusSets[params.corpusSet].corpusNames.push(...corpusNames);
+  corpusSets[params.corpusSet].corpusNames.push(...params.corpusNames);
 };
 
 export const deleteCorpus = async (params: {
@@ -460,7 +462,7 @@ export const importCorpora = async (params: {
   const importedCorpusNames = [];
 
   for (let i = 0; i < IMPORT_CORPORA.length; i++) {
-    const { corpusName, importCorpus, result } = IMPORT_CORPORA[i];
+    const { importCorpus, result } = IMPORT_CORPORA[i];
 
     emitImportStatusEvent({
       type: 'corpus_import_started',
@@ -498,7 +500,8 @@ export const importCorpora = async (params: {
     });
 
     if (result.type === 'imported') {
-      importedCorpusNames.push(corpusName);
+      corpusNames.push(result.corpus.importedName);
+      importedCorpusNames.push(result.corpus.importedName);
     }
   }
 

@@ -56,7 +56,7 @@ pub(crate) fn export_matches(
 
     state.storage.export_matches(
         &corpus_names,
-        &aql_query,
+        aql_query,
         query_language,
         ExportFormat::Csv(CsvExportConfig {
             columns: export_columns.into_iter().map_into().collect(),
@@ -94,7 +94,7 @@ pub(crate) fn get_query_nodes(
     aql_query: &str,
     query_language: QueryLanguage,
 ) -> Result<QueryAnalysisResult<QueryNodes>, Error> {
-    Ok(state.storage.query_nodes(&aql_query, query_language)?)
+    Ok(state.storage.query_nodes(aql_query, query_language)?)
 }
 
 #[tauri::command(async)]
@@ -116,14 +116,14 @@ pub(crate) fn import_corpora(
     state: tauri::State<State>,
     window: Window,
     paths: Vec<PathBuf>,
-) -> Result<(), Error> {
-    state.storage.import_corpora(paths, |status_event| {
+) -> Result<Vec<String>, Error> {
+    let corpus_names = state.storage.import_corpora(paths, |status_event| {
         window
             .emit("import_status", &status_event)
             .expect("Failed to emit import_status event");
     })?;
 
-    Ok(())
+    Ok(corpus_names)
 }
 
 #[tauri::command(async)]
@@ -146,7 +146,7 @@ pub(crate) fn validate_query(
 ) -> Result<QueryAnalysisResult<()>, Error> {
     Ok(state
         .storage
-        .validate_query(&corpus_names, &aql_query, query_language)?)
+        .validate_query(&corpus_names, aql_query, query_language)?)
 }
 
 #[derive(Deserialize)]

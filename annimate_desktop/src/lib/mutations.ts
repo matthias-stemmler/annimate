@@ -1,4 +1,5 @@
 import {
+  addCorporaToSet,
   deleteCorpus,
   exportMatches,
   importCorpora,
@@ -23,6 +24,20 @@ import {
 import { useState } from 'react';
 
 const MUTATION_KEY_EXPORT_MATCHES = 'export-matches';
+
+export const useAddCorporaToSetMutation = () => {
+  const queryClient = useQueryClient();
+
+  const mutation = useMutation({
+    mutationFn: (args: { corpusSet: string; corpusNames: string[] }) =>
+      addCorporaToSet(args),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEY_CORPORA] });
+    },
+  });
+
+  return { mutation };
+};
 
 export const useDeleteCorpusMutation = () => {
   const queryClient = useQueryClient();
