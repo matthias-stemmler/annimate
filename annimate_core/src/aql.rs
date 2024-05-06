@@ -24,7 +24,7 @@ where
     }
 
     // When there are no corpora, graphannis::CorpusStorage::validate_query always succeeds, even
-    // when there are syntax errors So we catch these by using
+    // when there are syntax errors. So we catch these by using
     // graphannis::CorpusStorage::node_descriptions instead
     QueryAnalysisResult::from_result(if corpus_ref.names.is_empty() {
         corpus_ref

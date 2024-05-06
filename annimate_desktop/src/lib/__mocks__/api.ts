@@ -108,6 +108,28 @@ const IMPORT_CORPORA: MockImportCorpus[] = [
     },
   },
   {
+    corpusName: 'Corpus failing to import',
+    importCorpus: {
+      fileName: '/path/to/corpus_failing_to_import',
+      format: 'RelANNIS',
+      trace: [
+        {
+          kind: { type: 'archive' },
+          path: '/path/to/corpora.zip',
+        },
+        {
+          kind: { type: 'corpus', format: 'RelANNIS' },
+          path: '/path/to/corpus_failing_to_import',
+        },
+      ],
+    },
+    result: {
+      type: 'failed',
+      message: 'This corpus could not be imported',
+      cancelled: false,
+    },
+  },
+  {
     corpusName: CORPUS_NORMAL,
     importCorpus: {
       fileName: '/path/to/normal_corpus',
@@ -159,27 +181,6 @@ const IMPORT_CORPORA: MockImportCorpus[] = [
       },
     },
   },
-  {
-    corpusName: 'Corpus failing to import',
-    importCorpus: {
-      fileName: '/path/to/corpus_failing_to_import',
-      format: 'RelANNIS',
-      trace: [
-        {
-          kind: { type: 'archive' },
-          path: '/path/to/corpora.zip',
-        },
-        {
-          kind: { type: 'corpus', format: 'RelANNIS' },
-          path: '/path/to/corpus_failing_to_import',
-        },
-      ],
-    },
-    result: {
-      type: 'failed',
-      message: 'This corpus could not be imported',
-    },
-  },
 ];
 
 window.__ANNIMATE__ = {
@@ -187,11 +188,6 @@ window.__ANNIMATE__ = {
     annimateVersion: '<mock>',
     graphannisVersion: '<mock>',
   },
-};
-
-export const exit = async (exitCode?: number): Promise<void> => {
-  logAction('Exit', COLOR_BUILTIN_COMMAND, { exitCode });
-  alert(`Exit\nexitCode: ${exitCode}`);
 };
 
 const getMatchCountForCorpus = (corpusName: string): number => {
@@ -231,11 +227,18 @@ const makeExportableAnnoKeys = (count: number): ExportableAnnoKeys => {
 const exportStatusListeners: Set<(statusEvent: ExportStatusEvent) => void> =
   new Set();
 
+const importCancelRequestedListeners: Set<() => void> = new Set();
+
 const importStatusListeners: Set<(statusEvent: ImportStatusEvent) => void> =
   new Set();
 
 export const dirname = async (path: string): Promise<string> =>
   `<Dirname of ${path}>`;
+
+export const exit = async (exitCode?: number): Promise<void> => {
+  logAction('Exit', COLOR_BUILTIN_COMMAND, { exitCode });
+  alert(`Exit\nexitCode: ${exitCode}`);
+};
 
 export const fileOpen = async (
   options?: OpenDialogOptions,
@@ -248,14 +251,6 @@ export const fileOpen = async (
   return answer === '' ? [] : answer.split(',');
 };
 
-export const shellOpen = async (
-  path: string,
-  openWith?: string,
-): Promise<void> => {
-  logAction('Shell Open', COLOR_BUILTIN_COMMAND, { path, openWith });
-  alert(`Shell Open\npath: ${path}\nopenWith: ${openWith}`);
-};
-
 export const relaunch = async (): Promise<void> => {
   window.location.reload();
 };
@@ -265,6 +260,14 @@ export const save = async (
 ): Promise<string | null> => {
   logAction('Save', COLOR_BUILTIN_COMMAND, options);
   return prompt('Save\nEnter file path:');
+};
+
+export const shellOpen = async (
+  path: string,
+  openWith?: string,
+): Promise<void> => {
+  logAction('Shell Open', COLOR_BUILTIN_COMMAND, { path, openWith });
+  alert(`Shell Open\npath: ${path}\nopenWith: ${openWith}`);
 };
 
 export const addCorporaToSet = async (params: {
@@ -423,89 +426,131 @@ export const importCorpora = async (params: {
 }): Promise<string[]> => {
   logAction('Import', COLOR_CUSTOM_COMMAND, params);
 
-  const delay = params.paths.includes('fast') ? 20 : 200;
+  let cancelRequested = false;
 
-  for (let j = 0; j < 9; j++) {
-    await sleep(delay);
-
-    emitImportStatusEvent({
-      type: 'message',
-      index: null,
-      message: `Collecting corpora ...`,
-    });
-  }
-
-  if (params.paths.includes('fail')) {
-    emitImportStatusEvent({
-      type: 'message',
-      index: null,
-      message: 'Failed to find importable corpora!',
-    });
-
-    throw new Error('Failed to find importable corpora!');
-  }
-
-  if (params.paths.length === 0) {
-    emitImportStatusEvent({
-      type: 'corpora_found',
-      corpora: [],
-    });
-
-    return [];
-  }
-
-  emitImportStatusEvent({
-    type: 'corpora_found',
-    corpora: IMPORT_CORPORA.map(({ importCorpus }) => importCorpus),
+  const unsubscribe = await subscribeToImportCancelRequestedEvent(() => {
+    cancelRequested = true;
   });
 
-  const importedCorpusNames = [];
-
-  for (let i = 0; i < IMPORT_CORPORA.length; i++) {
-    const { importCorpus, result } = IMPORT_CORPORA[i];
-
-    emitImportStatusEvent({
-      type: 'corpus_import_started',
-      index: i,
-    });
-
-    emitImportStatusEvent({
-      type: 'message',
-      index: i,
-      message: `Importing ${importCorpus.fileName}`,
-    });
+  try {
+    const delay = params.paths.includes('fast') ? 20 : 200;
 
     for (let j = 0; j < 9; j++) {
       await sleep(delay);
 
       emitImportStatusEvent({
         type: 'message',
-        index: i,
-        message: `Still working at ${importCorpus.fileName} ...`,
+        index: null,
+        message: `Collecting corpora ...`,
       });
     }
 
-    await sleep(delay);
+    if (params.paths.includes('fail')) {
+      emitImportStatusEvent({
+        type: 'message',
+        index: null,
+        message: 'Failed to find importable corpora!',
+      });
 
-    emitImportStatusEvent({
-      type: 'message',
-      index: i,
-      message: `Finished importing ${importCorpus.fileName}`,
-    });
-
-    emitImportStatusEvent({
-      type: 'corpus_import_finished',
-      index: i,
-      result,
-    });
-
-    if (result.type === 'imported') {
-      corpusNames.push(result.corpus.importedName);
-      importedCorpusNames.push(result.corpus.importedName);
+      throw new Error('Failed to find importable corpora!');
     }
-  }
 
-  return importedCorpusNames;
+    if (cancelRequested) throw new CancelledError();
+
+    if (params.paths.length === 0) {
+      emitImportStatusEvent({
+        type: 'corpora_found',
+        corpora: [],
+      });
+
+      return [];
+    }
+
+    emitImportStatusEvent({
+      type: 'corpora_found',
+      corpora: IMPORT_CORPORA.map(({ importCorpus }) => importCorpus),
+    });
+
+    const importedCorpusNames = [];
+
+    for (let i = 0; i < IMPORT_CORPORA.length; i++) {
+      if (cancelRequested) {
+        emitImportStatusEvent({
+          type: 'corpus_import_finished',
+          index: i,
+          result: {
+            type: 'failed',
+            message: 'Import cancelled',
+            cancelled: true,
+          },
+        });
+
+        continue;
+      }
+
+      const { importCorpus, result } = IMPORT_CORPORA[i];
+
+      emitImportStatusEvent({
+        type: 'corpus_import_started',
+        index: i,
+      });
+
+      emitImportStatusEvent({
+        type: 'message',
+        index: i,
+        message: `Importing ${importCorpus.fileName}`,
+      });
+
+      for (let j = 0; j < 9; j++) {
+        await sleep(delay);
+
+        emitImportStatusEvent({
+          type: 'message',
+          index: i,
+          message: `Still working at ${importCorpus.fileName} ...`,
+        });
+      }
+
+      await sleep(delay);
+
+      emitImportStatusEvent({
+        type: 'message',
+        index: i,
+        message: `Finished importing ${importCorpus.fileName}`,
+      });
+
+      emitImportStatusEvent({
+        type: 'corpus_import_finished',
+        index: i,
+        result,
+      });
+
+      if (result.type === 'imported') {
+        corpusNames.push(result.corpus.importedName);
+        importedCorpusNames.push(result.corpus.importedName);
+      }
+    }
+
+    return importedCorpusNames;
+  } finally {
+    unsubscribe();
+  }
+};
+
+export const emitImportCancelRequestedEvent = async () => {
+  logAction('Emit import cancel requested event', COLOR_CUSTOM_COMMAND);
+
+  importCancelRequestedListeners.forEach((l) => l());
+};
+
+const subscribeToImportCancelRequestedEvent = async (
+  callback: () => void,
+): Promise<UnlistenFn> => {
+  importCancelRequestedListeners.add(callback);
+
+  return () => {
+    importCancelRequestedListeners.delete(callback);
+  };
 };
 
 export const toggleCorpusInSet = async (params: {
@@ -641,3 +686,11 @@ const logAction = (name: string, color: string, payload?: unknown) => {
 
 const sleep = (ms: number): Promise<void> =>
   new Promise((resolve) => setTimeout(resolve, ms));
+
+class CancelledError extends Error {
+  constructor() {
+    super('Import cancelled');
+  }
+
+  cancelled = true;
+}

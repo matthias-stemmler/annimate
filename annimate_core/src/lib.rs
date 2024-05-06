@@ -3,6 +3,7 @@ use std::path::{Path, PathBuf};
 
 use anno::AnnoKeys;
 use corpus::CorpusRef;
+use error::cancel_if;
 use format::export;
 use graphannis::corpusstorage::CacheStrategy;
 use import::{FilesystemEntity, ImportFormat, ImportableCorpus};
@@ -102,36 +103,46 @@ impl Storage {
         Ok(())
     }
 
-    pub fn import_corpora<F>(
+    pub fn import_corpora<F, G>(
         &self,
         paths: Vec<PathBuf>,
         on_status: F,
+        cancel_requested: G,
     ) -> Result<Vec<String>, AnnisExportError>
     where
         F: Fn(ImportStatusEvent),
+        G: Fn() -> bool,
     {
         let mut imported_corpus_names = Vec::new();
 
-        let importable_corpora = import::find_importable_corpora(paths, |message| {
-            on_status(ImportStatusEvent::Message {
-                index: None,
-                message: message.into(),
-            });
-        })?;
+        let importable_corpora = import::find_importable_corpora(
+            paths,
+            |message| {
+                on_status(ImportStatusEvent::Message {
+                    index: None,
+                    message: message.into(),
+                });
+            },
+            &cancel_requested,
+        )?;
 
         on_status(ImportStatusEvent::CorporaFound {
             corpora: importable_corpora.iter().map_into().collect(),
         });
 
         for (index, corpus) in importable_corpora.into_iter().enumerate() {
-            on_status(ImportStatusEvent::CorpusImportStarted { index });
-
-            let result = import::import_corpus(&self.corpus_storage, corpus, |message| {
-                on_status(ImportStatusEvent::Message {
-                    index: Some(index),
-                    message: message.into(),
-                });
-            });
+            let result = import::import_corpus(
+                &self.corpus_storage,
+                corpus,
+                || on_status(ImportStatusEvent::CorpusImportStarted { index }),
+                |message| {
+                    on_status(ImportStatusEvent::Message {
+                        index: Some(index),
+                        message: message.into(),
+                    });
+                },
+                &cancel_requested,
+            );
 
             match result {
                 Ok(imported_corpus) => {
@@ -149,6 +160,7 @@ impl Storage {
                         index,
                         result: ImportCorpusResult::Failed {
                             message: err.to_string(),
+                            cancelled: err.cancelled(),
                         },
                     });
                 }
@@ -290,6 +302,12 @@ pub struct Corpora {
     sets: Vec<String>,
 }
 
+impl Corpora {
+    pub fn corpus_count(&self) -> usize {
+        self.corpora.len()
+    }
+}
+
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Corpus {
@@ -355,5 +373,5 @@ impl From<&ImportableCorpus> for ImportCorpus {
 #[serde(rename_all_fields = "camelCase")]
 pub enum ImportCorpusResult {
     Imported { corpus: ImportedCorpus },
-    Failed { message: String },
+    Failed { message: String, cancelled: bool },
 }

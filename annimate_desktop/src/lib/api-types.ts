@@ -141,7 +141,7 @@ export type FilesystemEntityKind =
 
 export type ImportCorpusResult =
   | { type: 'imported'; corpus: ImportedCorpus }
-  | { type: 'failed'; message: string };
+  | { type: 'failed'; message: string; cancelled: boolean };
 
 export type ImportedCorpus = {
   importedName: string;

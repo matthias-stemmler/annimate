@@ -60,7 +60,7 @@ const CorpusSetSelect: FC = () => {
   const isExporting = useIsExporting();
 
   if (error !== null) {
-    throw new Error(`Failed to load corpora: ${error}`);
+    throw new Error(`Failed to load corpora: ${error.message}`);
   }
 
   return (
@@ -92,7 +92,7 @@ const CorpusNamesSelect: FC = () => {
   const isExporting = useIsExporting();
 
   if (error !== null) {
-    throw new Error(`Failed to load corpora: ${error}`);
+    throw new Error(`Failed to load corpora: ${error.message}`);
   }
 
   if (isPending) {

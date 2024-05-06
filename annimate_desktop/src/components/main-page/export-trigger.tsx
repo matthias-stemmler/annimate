@@ -41,7 +41,7 @@ export const ExportTrigger = () => {
               onError: (error: Error) => {
                 toast({
                   className: 'break-all',
-                  description: error.toString(),
+                  description: error.message,
                   duration: 15000,
                   title: 'Export failed',
                   variant: 'destructive',

@@ -9,7 +9,7 @@ import {
   QueryValidationResult,
 } from '@/lib/api-types';
 import { open as fileOpen, save } from '@tauri-apps/api/dialog';
-import { UnlistenFn } from '@tauri-apps/api/event';
+import { UnlistenFn, emit } from '@tauri-apps/api/event';
 import { dirname } from '@tauri-apps/api/path';
 import { exit, relaunch } from '@tauri-apps/api/process';
 import { open as shellOpen } from '@tauri-apps/api/shell';
@@ -20,6 +20,9 @@ export { dirname, exit, fileOpen, relaunch, save, shellOpen };
 
 export const deleteCorpus = (params: { corpusName: string }): Promise<void> =>
   invoke('delete_corpus', params);
+
+export const emitImportCancelRequestedEvent = (): Promise<void> =>
+  emit('import_cancel_requested');
 
 export const exportMatches = (params: {
   corpusNames: string[];

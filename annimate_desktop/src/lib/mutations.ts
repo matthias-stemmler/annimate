@@ -1,6 +1,7 @@
 import {
   addCorporaToSet,
   deleteCorpus,
+  emitImportCancelRequestedEvent,
   exportMatches,
   importCorpora,
   subscribeToExportStatus,
@@ -14,6 +15,7 @@ import {
   ImportCorpusResult,
   ImportStatusEvent,
   QueryLanguage,
+  UnlistenFn,
 } from '@/lib/api-types';
 import { QUERY_KEY_CORPORA } from '@/lib/queries';
 import {
@@ -21,7 +23,9 @@ import {
   useMutation,
   useQueryClient,
 } from '@tanstack/react-query';
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
+
+type CancellableOperationError = Error & { cancelled: boolean };
 
 const MUTATION_KEY_EXPORT_MATCHES = 'export-matches';
 
@@ -117,6 +121,7 @@ export type ImportResult =
   | {
       type: 'failed';
       message: string;
+      cancelled: boolean;
     };
 
 const MAX_IMPORT_MESSAGE_COUNT = 1024;
@@ -130,9 +135,17 @@ export const useImportCorporaMutation = () => {
   const [messages, setMessages] = useState<ImportCorpusMessage[]>([]);
   const [result, setResult] = useState<ImportResult | undefined>();
 
-  const mutation = useMutation({
-    mutationFn: (args: { paths: string[] }) => importCorpora(args),
+  const [cancelRequested, setCancelRequested] = useState(false);
+
+  const mutation = useMutation<
+    string[],
+    CancellableOperationError,
+    { paths: string[] },
+    { unsubscribe: UnlistenFn }
+  >({
+    mutationFn: importCorpora,
     onMutate: async () => {
+      setCancelRequested(false);
       setCorporaStatus(undefined);
       setMessages([]);
       setResult(undefined);
@@ -203,12 +216,28 @@ export const useImportCorporaMutation = () => {
       setResult({ type: 'imported', corpusNames });
       queryClient.invalidateQueries({ queryKey: [QUERY_KEY_CORPORA] });
     },
-    onError: (error: Error) => {
-      setResult({ type: 'failed', message: error.message });
+    onError: (error: CancellableOperationError) => {
+      setResult({
+        type: 'failed',
+        message: error.message,
+        cancelled: error.cancelled,
+      });
     },
   });
 
-  return { mutation, corporaStatus, messages, result };
+  const requestCancel = useCallback(() => {
+    emitImportCancelRequestedEvent();
+    setCancelRequested(true);
+  }, []);
+
+  return {
+    mutation,
+    corporaStatus,
+    messages,
+    result,
+    cancelRequested,
+    requestCancel,
+  };
 };
 
 export const useToggleCorpusInSetMutation = () => {

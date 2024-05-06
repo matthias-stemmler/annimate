@@ -85,7 +85,7 @@ const SegmentationSelect: FC<SegmentationSelectProps> = ({
   const disabled = isExporting;
 
   if (error !== null) {
-    throw new Error(`Failed to determine segmentations: ${error}`);
+    throw new Error(`Failed to determine segmentations: ${error.message}`);
   }
 
   return (
@@ -217,7 +217,7 @@ const PrimaryNodesSelect: FC<PrimaryNodesSelectProps> = ({
   const reorderDisabled = disabled || primaryNodeRefs.length <= 1;
 
   if (error !== null) {
-    throw new Error(`Failed to determine query nodes: ${error}`);
+    throw new Error(`Failed to determine query nodes: ${error.message}`);
   }
 
   const nodes = queryNodes?.type === 'valid' ? queryNodes.nodes : [];

@@ -38,24 +38,41 @@ import {
   ArrowDown,
   CheckCircle2,
   ChevronsUpDown,
+  CircleMinus,
   File,
   Folder,
+  Hourglass,
   Package,
   TriangleAlert,
+  X,
   XCircle,
 } from 'lucide-react';
-import { FC, RefObject, useEffect, useId, useRef, useState } from 'react';
+import {
+  FC,
+  Fragment,
+  RefObject,
+  useEffect,
+  useId,
+  useRef,
+  useState,
+} from 'react';
 
 export type ImportDialogProps = {
+  cancelStatus: CancelStatus;
   corporaStatus: ImportCorpusStatus[] | undefined;
   messages: ImportCorpusMessage[];
+  onCancelRequested?: () => void;
   onConfirm?: (addToSet: string | undefined) => void;
   result: ImportResult | undefined;
 };
 
+export type CancelStatus = 'pending' | 'enabled' | 'disabled';
+
 export const ImportDialog: FC<ImportDialogProps> = ({
+  cancelStatus,
   corporaStatus,
   messages,
+  onCancelRequested,
   onConfirm,
   result,
 }) => {
@@ -75,7 +92,7 @@ export const ImportDialog: FC<ImportDialogProps> = ({
   } = useCorpusSets();
 
   if (corpusSetsError !== null) {
-    throw new Error(`Failed to load corpora: ${corpusSetsError}`);
+    throw new Error(`Failed to load corpora: ${corpusSetsError.message}`);
   }
 
   const importPending = result === undefined;
@@ -104,8 +121,10 @@ export const ImportDialog: FC<ImportDialogProps> = ({
       {/* Keep mounted to preserve state (including scroll position) */}
       <ImportStatusDisplay
         active={!addToSetActive}
+        cancelStatus={cancelStatus}
         corporaStatus={corporaStatus}
         messages={messages}
+        onCancelRequested={onCancelRequested}
         result={result}
       />
 
@@ -269,7 +288,7 @@ export const ImportDialog: FC<ImportDialogProps> = ({
 
       <DialogFooter>
         {addToSetActive ? (
-          <>
+          <Fragment key="add-to-set-buttons">
             <Button
               className="min-w-32"
               onClick={() => {
@@ -289,22 +308,28 @@ export const ImportDialog: FC<ImportDialogProps> = ({
             >
               OK
             </Button>
-          </>
+          </Fragment>
         ) : (
-          <Button
-            className="min-w-32"
-            disabled={importPending}
-            onClick={() => {
-              if (canAddToSet) {
-                setAddToSetActive(true);
-              } else {
-                onConfirm?.(undefined);
-              }
-            }}
-            variant="secondary"
-          >
-            {importPending ? 'Please wait' : canAddToSet ? 'Continue' : 'Close'}
-          </Button>
+          <Fragment key="status-buttons">
+            <Button
+              className="min-w-32"
+              disabled={importPending}
+              onClick={() => {
+                if (canAddToSet) {
+                  setAddToSetActive(true);
+                } else {
+                  onConfirm?.(undefined);
+                }
+              }}
+              variant="secondary"
+            >
+              {importPending
+                ? 'Please wait'
+                : canAddToSet
+                  ? 'Continue'
+                  : 'Close'}
+            </Button>
+          </Fragment>
         )}
       </DialogFooter>
     </DialogContent>
@@ -313,15 +338,19 @@ export const ImportDialog: FC<ImportDialogProps> = ({
 
 type ImportStatusDisplayProps = {
   active: boolean;
+  cancelStatus: CancelStatus;
   corporaStatus: ImportCorpusStatus[] | undefined;
   messages: ImportCorpusMessage[];
+  onCancelRequested?: () => void;
   result: ImportResult | undefined;
 };
 
 const ImportStatusDisplay: FC<ImportStatusDisplayProps> = ({
   active,
+  cancelStatus,
   corporaStatus,
   messages,
+  onCancelRequested,
   result,
 }) => {
   const totalCorporaCount = corporaStatus?.length ?? 0;
@@ -334,31 +363,69 @@ const ImportStatusDisplay: FC<ImportStatusDisplayProps> = ({
   const progress =
     totalCorporaCount === 0 ? 0 : finishedCorporaCount / totalCorporaCount;
 
+  const statusTabRef = useRef<HTMLButtonElement>(null);
+
+  // Focus status tab when mounted to prevent cancel button from being focused first
+  useEffect(() => {
+    statusTabRef.current?.focus();
+  }, [statusTabRef]);
+
   return (
     <div hidden={!active}>
-      <div className="mb-4">
-        <div className="flex justify-between mb-1">
-          <p className="w-0 grow-[2] truncate">
-            {result?.type === 'failed'
-              ? 'Failed'
-              : corporaStatus === undefined
-                ? 'Collecting corpora ...'
-                : `Processed ${finishedCorporaCount}${totalCorporaCount === 0 ? '' : ` of ${totalCorporaCount}`} corpora`}
-          </p>
+      <div className="flex items-end gap-8 mb-4">
+        <div className="grow">
+          <div className="flex justify-between mb-1">
+            <p className="w-0 grow-[2] truncate">
+              {(() => {
+                if (result?.type === 'failed') {
+                  return result.cancelled ? 'Stopped' : 'Failed';
+                }
 
-          {failedCorporaCount > 0 && (
-            <p className="w-0 grow truncate text-right text-destructive">
-              {failedCorporaCount} failed
+                if (corporaStatus !== undefined) {
+                  return `Processed ${finishedCorporaCount}${totalCorporaCount === 0 ? '' : ` of ${totalCorporaCount}`} corpora`;
+                }
+
+                return cancelStatus === 'pending'
+                  ? 'Stopping ...'
+                  : 'Collecting corpora ...';
+              })()}
             </p>
-          )}
+
+            {failedCorporaCount > 0 && (
+              <p className="w-0 grow truncate text-right text-destructive">
+                {failedCorporaCount} not imported
+              </p>
+            )}
+          </div>
+
+          <Progress value={Math.round(progress * 100)} />
         </div>
 
-        <Progress value={Math.round(progress * 100)} />
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              className="h-8 w-8 p-0"
+              disabled={cancelStatus !== 'enabled'}
+              onClick={onCancelRequested}
+              variant="destructive"
+            >
+              {cancelStatus === 'pending' ? (
+                <Hourglass className="h-4 w-4" />
+              ) : (
+                <X className="h-4 w-4" />
+              )}
+            </Button>
+          </TooltipTrigger>
+
+          <TooltipContent>Stop import</TooltipContent>
+        </Tooltip>
       </div>
 
       <Tabs defaultValue="status">
         <TabsList className="w-full grid grid-cols-2 mb-2">
-          <TabsTrigger value="status">Status</TabsTrigger>
+          <TabsTrigger ref={statusTabRef} value="status">
+            Status
+          </TabsTrigger>
           <TabsTrigger value="messages">Messages</TabsTrigger>
         </TabsList>
 
@@ -371,14 +438,21 @@ const ImportStatusDisplay: FC<ImportStatusDisplayProps> = ({
         >
           {result?.type === 'failed' ? (
             <div className="h-80">
-              <Alert variant="destructive">
-                <AlertCircle className="h-4 w-4" />
-                <AlertTitle>Import failed</AlertTitle>
+              {result.cancelled ? (
+                <Alert>
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertTitle>Import stopped</AlertTitle>
+                </Alert>
+              ) : (
+                <Alert variant="destructive">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertTitle>Import failed</AlertTitle>
 
-                <AlertDescription>
-                  <p>{result.message}</p>
-                </AlertDescription>
-              </Alert>
+                  <AlertDescription>
+                    <p>{result.message}</p>
+                  </AlertDescription>
+                </Alert>
+              )}
             </div>
           ) : (
             <CorporaStatusDisplay corporaStatus={corporaStatus} />
@@ -482,7 +556,8 @@ const CorpusStatusDisplay: FC<CorpusStatusDisplayProps> = ({
 
     <CollapsibleContent className="text-sm px-8 my-1">
       {corpusStatus.type === 'finished' &&
-        corpusStatus.result.type === 'failed' && (
+        corpusStatus.result.type === 'failed' &&
+        !corpusStatus.result.cancelled && (
           <div className="w-full flex my-1">
             <p className="w-0 overflow-hidden flex-1 text-destructive">
               {corpusStatus.result.message}
@@ -501,8 +576,12 @@ type CorpusStatusIconProps = {
 const CorpusStatusIcon: FC<CorpusStatusIconProps> = ({ corpusStatus }) =>
   corpusStatus.type === 'finished' && corpusStatus.result.type === 'failed' ? (
     <Tooltip delayDuration={0}>
-      <TooltipTrigger asChild className="outline-none" tabIndex={-1}>
-        <XCircle className="h-6 w-6 fill-destructive text-white" />
+      <TooltipTrigger className="outline-none" tabIndex={-1}>
+        {corpusStatus.result.cancelled ? (
+          <CircleMinus className="h-6 w-6 fill-destructive text-white" />
+        ) : (
+          <XCircle className="h-6 w-6 fill-destructive text-white" />
+        )}
       </TooltipTrigger>
 
       <TooltipContent className="max-w-[80vw]">

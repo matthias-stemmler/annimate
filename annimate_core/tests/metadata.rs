@@ -51,6 +51,7 @@ fn metadata() {
                 Path::new(DATA_DIR).join("subtok.demo2_relANNIS.zip"),
             ],
             |_| (),
+            || false,
         )
         .unwrap();
 

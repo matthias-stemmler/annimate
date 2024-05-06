@@ -60,7 +60,7 @@ const QueryNodeSelect: FC<QueryNodeSelectProps> = ({
   const disabled = isExporting;
 
   if (error !== null) {
-    throw new Error(`Failed to determine query nodes: ${error}`);
+    throw new Error(`Failed to determine query nodes: ${error.message}`);
   }
 
   const nodes = queryNodes?.type === 'valid' ? queryNodes.nodes : [];

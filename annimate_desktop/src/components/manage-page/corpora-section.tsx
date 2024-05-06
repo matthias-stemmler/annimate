@@ -19,7 +19,7 @@ export const CorporaSection: FC<CorporaSectionProps> = (props) => {
   const { data: corporaData, error, isPending } = useCorpora();
 
   if (error !== null) {
-    throw new Error(`Failed to load corpora: ${error}`);
+    throw new Error(`Failed to load corpora: ${error.message}`);
   }
 
   if (isPending) {

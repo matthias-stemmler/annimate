@@ -43,7 +43,7 @@ export const DeleteCorpusDialog: FC<DeleteCorpusDialogProps> = ({
                   onError: (error: Error) => {
                     toast({
                       className: 'break-all',
-                      description: error.toString(),
+                      description: error.message,
                       duration: 15000,
                       title: 'Failed to delete corpus',
                       variant: 'destructive',

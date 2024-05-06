@@ -1,23 +1,28 @@
 use std::io;
 
 use annimate_core::AnnisExportError;
-use serde::{Serialize, Serializer};
-use thiserror::Error;
+use serde::Serialize;
 
-#[derive(Debug, Error)]
-pub(crate) enum Error {
-    #[error(transparent)]
-    AnnisExport(#[from] AnnisExportError),
-
-    #[error(transparent)]
-    Io(#[from] io::Error),
+#[derive(Debug, Serialize)]
+pub(crate) struct Error {
+    message: String,
+    cancelled: bool,
 }
 
-impl Serialize for Error {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        serializer.serialize_str(self.to_string().as_ref())
+impl From<AnnisExportError> for Error {
+    fn from(err: AnnisExportError) -> Self {
+        Self {
+            message: err.to_string(),
+            cancelled: err.cancelled(),
+        }
+    }
+}
+
+impl From<io::Error> for Error {
+    fn from(err: io::Error) -> Self {
+        Self {
+            message: err.to_string(),
+            cancelled: false,
+        }
     }
 }

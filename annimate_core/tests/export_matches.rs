@@ -52,6 +52,7 @@ macro_rules! export_matches_test {
                             .map(|p| Path::new(DATA_DIR).join(p))
                             .collect(),
                         |_| (),
+                        || false,
                     )
                     .unwrap();
 

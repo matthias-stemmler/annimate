@@ -1,5 +1,7 @@
 use std::io::{self, Write};
 use std::path::{Path, PathBuf};
+use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::Arc;
 
 use annimate_core::{
     AnnoKey, Corpora, CsvExportColumn, CsvExportConfig, ExportData, ExportDataAnno, ExportDataText,
@@ -7,7 +9,7 @@ use annimate_core::{
 };
 use itertools::Itertools;
 use serde::Deserialize;
-use tauri::Window;
+use tauri::{EventHandler, Window};
 
 use crate::error::Error;
 
@@ -117,11 +119,27 @@ pub(crate) fn import_corpora(
     window: Window,
     paths: Vec<PathBuf>,
 ) -> Result<Vec<String>, Error> {
-    let corpus_names = state.storage.import_corpora(paths, |status_event| {
-        window
-            .emit("import_status", &status_event)
-            .expect("Failed to emit import_status event");
-    })?;
+    let cancel_requested = Arc::new(AtomicBool::new(false));
+
+    let _guard = EventHandlerGuard::new(
+        &window,
+        window.once("import_cancel_requested", {
+            let cancel_requested = Arc::clone(&cancel_requested);
+            move |_| {
+                cancel_requested.store(true, Ordering::Relaxed);
+            }
+        }),
+    );
+
+    let corpus_names = state.storage.import_corpora(
+        paths,
+        |status_event| {
+            window
+                .emit("import_status", &status_event)
+                .expect("Failed to emit import_status event");
+        },
+        || cancel_requested.load(Ordering::Relaxed),
+    )?;
 
     Ok(corpus_names)
 }
@@ -211,5 +229,26 @@ impl From<ExportColumn> for CsvExportColumn {
                 ),
             })),
         }
+    }
+}
+
+#[derive(Debug)]
+struct EventHandlerGuard<'a> {
+    window: &'a Window,
+    event_handler: EventHandler,
+}
+
+impl<'a> EventHandlerGuard<'a> {
+    fn new(window: &'a Window, event_handler: EventHandler) -> Self {
+        Self {
+            window,
+            event_handler,
+        }
+    }
+}
+
+impl Drop for EventHandlerGuard<'_> {
+    fn drop(&mut self) {
+        self.window.unlisten(self.event_handler);
     }
 }

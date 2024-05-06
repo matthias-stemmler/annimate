@@ -29,7 +29,7 @@ export const AnnoSelect: FC<AnnoSelectProps> = ({
   const disabled = isExporting;
 
   if (error !== null) {
-    throw new Error(`Failed to load exportable annotations: ${error}`);
+    throw new Error(`Failed to load exportable annotations: ${error.message}`);
   }
 
   return (

@@ -22,10 +22,12 @@ export const ImportTrigger: FC<ImportTriggerProps> = ({
   onImportedIntoCorpusSet,
 }) => {
   const {
-    mutation: { mutate: importCorpora },
+    mutation: { mutate: importCorpora, isPending },
     corporaStatus,
     messages,
     result,
+    cancelRequested,
+    requestCancel,
   } = useImportCorpora();
 
   const {
@@ -100,8 +102,16 @@ export const ImportTrigger: FC<ImportTriggerProps> = ({
       <Dialog open={dialogOpen}>
         <ImportDialog
           key={+dialogOpen}
+          cancelStatus={
+            cancelRequested && isPending
+              ? 'pending'
+              : isPending
+                ? 'enabled'
+                : 'disabled'
+          }
           corporaStatus={corporaStatus}
           messages={messages}
+          onCancelRequested={requestCancel}
           onConfirm={(addToSet) => {
             onImportedIntoCorpusSet?.(addToSet);
 
@@ -115,7 +125,7 @@ export const ImportTrigger: FC<ImportTriggerProps> = ({
                   onError: (error: Error) => {
                     toast({
                       className: 'break-all',
-                      description: error.toString(),
+                      description: error.message,
                       duration: 15000,
                       title: `Failed to add ${result.corpusNames.length === 1 ? 'imported corpus' : `${result.corpusNames.length} imported corpora`} to set`,
                       variant: 'destructive',

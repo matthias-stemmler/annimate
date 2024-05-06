@@ -74,7 +74,7 @@ const CorporaInSetListItem: FC<CorporaInSetListItemProps> = ({
               onError: (error: Error) => {
                 toast({
                   className: 'break-all',
-                  description: error.toString(),
+                  description: error.message,
                   duration: 15000,
                   title: 'Failed to toggle corpus',
                   variant: 'destructive',

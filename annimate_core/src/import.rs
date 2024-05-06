@@ -11,12 +11,16 @@ use serde::Serialize;
 use tempfile::TempDir;
 use zip::ZipArchive;
 
-pub(crate) fn find_importable_corpora<F>(
+use crate::{cancel_if, AnnisExportError};
+
+pub(crate) fn find_importable_corpora<F, G>(
     paths: Vec<PathBuf>,
     on_progress: F,
-) -> io::Result<Vec<ImportableCorpus>>
+    cancel_requested: G,
+) -> Result<Vec<ImportableCorpus>, AnnisExportError>
 where
     F: Fn(&str),
+    G: Fn() -> bool,
 {
     let mut importable_corpora = Vec::new();
     let mut seen_paths = HashSet::new();
@@ -30,6 +34,8 @@ where
         .collect_vec();
 
     while let Some(location) = stack.pop() {
+        cancel_if(&cancel_requested)?;
+
         if !location.scoped_path.has_temp_dir()
             && !seen_paths.insert(location.scoped_path.path.clone())
         {
@@ -104,7 +110,7 @@ where
                     temp_dir.path().display(),
                 ));
 
-                extract_zip(&location, &temp_dir)?;
+                extract_zip(&location, &temp_dir, &cancel_requested)?;
 
                 stack.push(Location {
                     parents: location
@@ -281,14 +287,21 @@ enum ImportPathType {
     Directory,
 }
 
-fn extract_zip<P, Q>(zip_path: P, output_dir: Q) -> io::Result<()>
+fn extract_zip<F, P, Q>(
+    zip_path: P,
+    output_dir: Q,
+    cancel_requested: F,
+) -> Result<(), AnnisExportError>
 where
+    F: Fn() -> bool,
     P: AsRef<Path>,
     Q: AsRef<Path>,
 {
     let mut archive = ZipArchive::new(File::open(zip_path.as_ref())?)?;
 
     for i in 0..archive.len() {
+        cancel_if(&cancel_requested)?;
+
         let mut entry = archive.by_index(i)?;
 
         if let Some(enclosed_path) = entry.enclosed_name() {
@@ -307,14 +320,22 @@ where
     Ok(())
 }
 
-pub(crate) fn import_corpus<F>(
+pub(crate) fn import_corpus<F, G, H>(
     storage: &graphannis::CorpusStorage,
     corpus: ImportableCorpus,
-    on_progress: F,
-) -> Result<ImportedCorpus, GraphAnnisError>
+    on_started: F,
+    on_progress: G,
+    cancel_requested: H,
+) -> Result<ImportedCorpus, AnnisExportError>
 where
-    F: Fn(&str),
+    F: Fn(),
+    G: Fn(&str),
+    H: Fn() -> bool,
 {
+    cancel_if(&cancel_requested)?;
+
+    on_started();
+
     let import = |name| {
         storage.import_from_fs(
             corpus.path.as_ref(),
@@ -344,8 +365,10 @@ where
 
         Err(GraphAnnisError::CorpusExists(conflicting_name)) => conflicting_name,
 
-        Err(err) => return Err(err),
+        Err(err) => return Err(err.into()),
     };
+
+    cancel_if(&cancel_requested)?;
 
     let corpus_infos = storage.list()?;
 
@@ -365,7 +388,7 @@ where
                 "corpus {conflicting_name} already exists, cannot find fallback name",
             ));
 
-            return Err(GraphAnnisError::CorpusExists(conflicting_name));
+            return Err(GraphAnnisError::CorpusExists(conflicting_name).into());
         }
     };
 
@@ -381,10 +404,10 @@ where
 
         Err(GraphAnnisError::CorpusExists(_)) => {
             on_progress(&format!("corpus {fallback_name} already exists"));
-            Err(GraphAnnisError::CorpusExists(conflicting_name))
+            Err(GraphAnnisError::CorpusExists(conflicting_name).into())
         }
 
-        Err(err) => Err(err),
+        Err(err) => Err(err.into()),
     }
 }
 
