@@ -26,13 +26,20 @@ export const QueryInput: FC = () => {
   const setAqlQuery = useSetAqlQuery();
   const setQueryLanguage = useSetQueryLanguage();
 
-  const { data: validationResult, isFetching: validationIsFetching } =
-    useQueryValidationResult();
+  const {
+    data: validationResult,
+    error: validationError,
+    isFetching: validationIsFetching,
+  } = useQueryValidationResult();
   const isExporting = useIsExporting();
   const disabled = isExporting;
 
   const textAreaId = useId();
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
+
+  if (validationError !== null) {
+    throw new Error(`Failed to validate query: ${validationError.message}`);
+  }
 
   const status = validationIsFetching ? 'validating' : validationResult?.type;
   const isValid = validationResult?.type === 'valid';
