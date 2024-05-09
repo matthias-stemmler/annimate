@@ -6,7 +6,7 @@
     "distDir": "../dist"
   },
   "package": {
-    "productName": "annimate_desktop"
+    "productName": "AnniMate"
   },
   "tauri": {
     "allowlist": {
@@ -29,6 +29,7 @@
       "active": true,
       "targets": "all",
       "identifier": "com.github.matthias-stemmler.annimate",
+      "publisher": "Matthias Stemmler",
       "icon": [
         "icons/32x32.png",
         "icons/128x128.png",
@@ -42,6 +43,7 @@
     },
     "windows": [
       {
+        "fileDropEnabled": false,
         "fullscreen": false,
         "resizable": true,
         "title": "AnniMate",
