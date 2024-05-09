@@ -1,3 +1,4 @@
+import AnnimateLogo from '@/assets/annimate-logo.svg?react';
 import GithubLogo from '@/assets/github-mark.svg?react';
 import { Button } from '@/components/ui/button';
 import {
@@ -8,10 +9,16 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { shellOpen } from '@/lib/api';
-import { useRef } from 'react';
+import { RefObject, useCallback, useEffect, useRef } from 'react';
+
+const ANIMATION_DURATION = 2000;
+const ANIMATION_INITIAL_DELAY = 3000;
+const logoTiming = (t: number) => 1 - Math.pow(t - 1, 2);
 
 export const AboutDialog = () => {
   const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const logoRef = useRef<HTMLDivElement>(null);
+  const triggerLogoAnimation = useLogoAnimation(logoRef);
 
   return (
     <DialogContent
@@ -21,9 +28,17 @@ export const AboutDialog = () => {
       }}
     >
       <DialogHeader>
-        <DialogTitle className="mb-4">About</DialogTitle>
+        <DialogTitle className="mb-4">About AnniMate</DialogTitle>
 
         <div className="flex flex-col gap-4">
+          <div
+            ref={logoRef}
+            className="w-36 mx-auto mb-8"
+            onClick={triggerLogoAnimation}
+          >
+            <AnnimateLogo />
+          </div>
+
           <div className="flex items-center">
             <Button
               className="h-4 p-0"
@@ -68,4 +83,55 @@ export const AboutDialog = () => {
       </DialogFooter>
     </DialogContent>
   );
+};
+
+// JS instead of CSS animation because the native webview used by Tauri doesn't seem to support animation-timing-function
+const useLogoAnimation = (logoRef: RefObject<HTMLElement>) => {
+  const animationFrameRef = useRef<number | null>(null);
+  const delayRef = useRef(ANIMATION_INITIAL_DELAY);
+  const startTimeRef = useRef<number | null>(null);
+
+  const animationFrame = useCallback(
+    (time: number) => {
+      if (startTimeRef.current === null) {
+        startTimeRef.current = time;
+      }
+
+      const timeDelta = time - startTimeRef.current;
+
+      if (timeDelta >= delayRef.current) {
+        const progress = logoTiming(
+          (timeDelta - delayRef.current) / ANIMATION_DURATION,
+        );
+
+        if (logoRef.current !== null) {
+          logoRef.current.style.transform = `rotate(${progress * 180}deg)`;
+        }
+      }
+
+      if (timeDelta < delayRef.current + ANIMATION_DURATION) {
+        requestAnimationFrame(animationFrame);
+      } else {
+        startTimeRef.current = null;
+      }
+    },
+    [delayRef, logoRef, startTimeRef],
+  );
+
+  useEffect(() => {
+    animationFrameRef.current = requestAnimationFrame(animationFrame);
+
+    return () => {
+      if (animationFrameRef.current !== null) {
+        cancelAnimationFrame(animationFrameRef.current);
+      }
+    };
+  }, [animationFrame, animationFrameRef]);
+
+  return () => {
+    if (startTimeRef.current === null) {
+      delayRef.current = 0;
+      animationFrameRef.current = requestAnimationFrame(animationFrame);
+    }
+  };
 };

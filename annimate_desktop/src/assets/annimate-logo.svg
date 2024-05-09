@@ -1,0 +1,21 @@
+<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+        <path id="f1" d="M0 -50C-10 -25,-10 -25,0 0C10 -25,10 -25,0,-50" stroke="1" />
+
+        <g id="f">
+            <use href="#f1" transform="translate(50 50)" fill="#d9985a" />
+            <use href="#f1" transform="translate(50 50) scale(0.4 1)" fill="#46200e" />
+        </g>
+    </defs>
+
+    <use href="#f" />
+    <use href="#f" transform="rotate(45 50 50)" />
+    <use href="#f" transform="rotate(90 50 50)" />
+    <use href="#f" transform="rotate(135 50 50)" />
+    <use href="#f" transform="rotate(180 50 50)" />
+    <use href="#f" transform="rotate(225 50 50)" />
+    <use href="#f" transform="rotate(270 50 50)" />
+    <use href="#f" transform="rotate(315 50 50)" />
+
+    <circle cx="50" cy="50" r="5" fill="#d9985a" />
+</svg>

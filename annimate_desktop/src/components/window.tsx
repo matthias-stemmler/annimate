@@ -8,41 +8,45 @@ import {
   MenubarTrigger,
 } from '@/components/ui/menubar';
 import { exit } from '@/lib/api';
-import { FC } from 'react';
+import { FC, useState } from 'react';
 import { Outlet } from 'react-router-dom';
 
-export const Window: FC = () => (
-  <div className="flex flex-col h-full">
-    <Dialog>
-      <Menubar>
-        <MenubarMenu>
-          <MenubarTrigger>File</MenubarTrigger>
+export const Window: FC = () => {
+  const [aboutDialogOpen, setAboutDialogOpen] = useState(false);
 
-          <MenubarContent>
-            <MenubarItem
-              onClick={() => {
-                exit(0);
-              }}
-            >
-              Quit
-            </MenubarItem>
-          </MenubarContent>
-        </MenubarMenu>
+  return (
+    <div className="flex flex-col h-full">
+      <Dialog onOpenChange={setAboutDialogOpen} open={aboutDialogOpen}>
+        <Menubar>
+          <MenubarMenu>
+            <MenubarTrigger>File</MenubarTrigger>
 
-        <MenubarMenu>
-          <MenubarTrigger>Help</MenubarTrigger>
+            <MenubarContent>
+              <MenubarItem
+                onClick={() => {
+                  exit(0);
+                }}
+              >
+                Quit
+              </MenubarItem>
+            </MenubarContent>
+          </MenubarMenu>
 
-          <MenubarContent>
-            <DialogTrigger asChild>
-              <MenubarItem>About</MenubarItem>
-            </DialogTrigger>
-          </MenubarContent>
-        </MenubarMenu>
-      </Menubar>
+          <MenubarMenu>
+            <MenubarTrigger>Help</MenubarTrigger>
 
-      <AboutDialog />
-    </Dialog>
+            <MenubarContent>
+              <DialogTrigger asChild>
+                <MenubarItem>About</MenubarItem>
+              </DialogTrigger>
+            </MenubarContent>
+          </MenubarMenu>
+        </Menubar>
 
-    <Outlet />
-  </div>
-);
+        <AboutDialog key={+aboutDialogOpen} />
+      </Dialog>
+
+      <Outlet />
+    </div>
+  );
+};
