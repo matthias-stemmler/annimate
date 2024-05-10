@@ -41,7 +41,7 @@ export const AboutDialog = () => {
 
           <div className="flex items-center">
             <Button
-              className="h-4 p-0"
+              className="min-w-32 h-4 p-0"
               onClick={() => {
                 shellOpen('https://github.com/matthias-stemmler/annimate');
               }}

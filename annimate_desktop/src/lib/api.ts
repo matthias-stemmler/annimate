@@ -40,6 +40,9 @@ export const addCorporaToSet = (params: {
   corpusNames: string[];
 }): Promise<void> => invoke('add_corpora_to_set', params);
 
+export const createCorpusSet = (params: { corpusSet: string }): Promise<void> =>
+  invoke('create_corpus_set', params);
+
 export const getCorpora = (): Promise<Corpora> => invoke('get_corpora');
 
 export const getExportableAnnoKeys = (params: {
@@ -57,6 +60,11 @@ export const getSegmentations = (params: {
 
 export const importCorpora = (params: { paths: string[] }): Promise<string[]> =>
   invoke('import_corpora', params);
+
+export const renameCorpusSet = (params: {
+  corpusSet: string;
+  newCorpusSet: string;
+}): Promise<void> => invoke('rename_corpus_set', params);
 
 export const toggleCorpusInSet = (params: {
   corpusSet: string;

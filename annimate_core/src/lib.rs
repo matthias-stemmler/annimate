@@ -1,3 +1,4 @@
+use std::collections::btree_map::Entry;
 use std::io::{self, Write};
 use std::path::{Path, PathBuf};
 
@@ -170,9 +171,40 @@ impl Storage {
         Ok(imported_corpus_names)
     }
 
-    pub fn add_corpora_to_set<S>(
+    pub fn create_corpus_set(&self, corpus_set_name: String) -> Result<(), AnnisExportError> {
+        self.metadata_storage.try_update_corpus_sets(|corpus_sets| {
+            match corpus_sets.entry(corpus_set_name) {
+                Entry::Vacant(entry) => {
+                    entry.insert(Default::default());
+                    Ok(())
+                }
+                Entry::Occupied(_) => Err(AnnisExportError::CorpusSetAlreadyExists),
+            }
+        })
+    }
+
+    pub fn rename_corpus_set(
         &self,
         corpus_set_name: &str,
+        new_corpus_set_name: String,
+    ) -> Result<(), AnnisExportError> {
+        self.metadata_storage.try_update_corpus_sets(|corpus_sets| {
+            match corpus_sets.remove(corpus_set_name) {
+                Some(corpus_set) => match corpus_sets.entry(new_corpus_set_name) {
+                    Entry::Vacant(entry) => {
+                        entry.insert(corpus_set);
+                        Ok(())
+                    }
+                    Entry::Occupied(_) => Err(AnnisExportError::CorpusSetAlreadyExists),
+                },
+                None => Ok(()),
+            }
+        })
+    }
+
+    pub fn add_corpora_to_set<S>(
+        &self,
+        corpus_set_name: String,
         corpus_names: &[S],
     ) -> Result<(), AnnisExportError>
     where
@@ -184,7 +216,7 @@ impl Storage {
 
         self.metadata_storage.update_corpus_sets(|corpus_sets| {
             corpus_sets
-                .entry(corpus_set_name.into())
+                .entry(corpus_set_name)
                 .or_default()
                 .corpus_names
                 .extend(corpus_names.iter().map(|c| c.as_ref().into()));

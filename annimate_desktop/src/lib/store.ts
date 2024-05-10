@@ -850,9 +850,11 @@ export const useExportableAnnoKeys = (): UseQueryResult<ExportableAnnoKeys> => {
 
 export {
   useAddCorporaToSetMutation as useAddCorporaToSet,
+  useCreateCorpusSetMutation as useCreateCorpusSet,
   useDeleteCorpusMutation as useDeleteCorpus,
   useImportCorporaMutation as useImportCorpora,
   useIsExporting,
+  useRenameCorpusSetMutation as useRenameCorpusSet,
   useToggleCorpusInSetMutation as useToggleCorpusInSet,
 } from '@/lib/mutations';
 

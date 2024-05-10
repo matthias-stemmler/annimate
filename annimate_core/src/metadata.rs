@@ -53,11 +53,24 @@ impl MetadataStorage {
 
     pub(crate) fn update_corpus_sets(
         &self,
-        mut op: impl FnMut(&mut BTreeMap<String, CorpusSet>),
+        op: impl FnOnce(&mut BTreeMap<String, CorpusSet>),
     ) -> io::Result<()> {
         let mut metadata = self.metadata.write().unwrap();
         op(&mut metadata.corpus_sets);
         write_metadata(&self.path, &metadata)
+    }
+
+    pub(crate) fn try_update_corpus_sets<E>(
+        &self,
+        op: impl FnOnce(&mut BTreeMap<String, CorpusSet>) -> Result<(), E>,
+    ) -> Result<(), AnnisExportError>
+    where
+        AnnisExportError: From<E>,
+    {
+        let mut metadata = self.metadata.write().unwrap();
+        op(&mut metadata.corpus_sets)?;
+        write_metadata(&self.path, &metadata)?;
+        Ok(())
     }
 }
 

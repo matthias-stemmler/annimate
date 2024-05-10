@@ -1,10 +1,12 @@
 import {
   addCorporaToSet,
+  createCorpusSet,
   deleteCorpus,
   emitExportCancelRequestedEvent,
   emitImportCancelRequestedEvent,
   exportMatches,
   importCorpora,
+  renameCorpusSet,
   subscribeToExportStatus,
   subscribeToImportStatus,
   toggleCorpusInSet,
@@ -36,6 +38,19 @@ export const useAddCorporaToSetMutation = () => {
   const mutation = useMutation({
     mutationFn: (args: { corpusSet: string; corpusNames: string[] }) =>
       addCorporaToSet(args),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEY_CORPORA] });
+    },
+  });
+
+  return { mutation };
+};
+
+export const useCreateCorpusSetMutation = () => {
+  const queryClient = useQueryClient();
+
+  const mutation = useMutation({
+    mutationFn: (args: { corpusSet: string }) => createCorpusSet(args),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [QUERY_KEY_CORPORA] });
     },
@@ -253,6 +268,20 @@ export const useImportCorporaMutation = () => {
     cancelRequested,
     requestCancel,
   };
+};
+
+export const useRenameCorpusSetMutation = () => {
+  const queryClient = useQueryClient();
+
+  const mutation = useMutation({
+    mutationFn: (args: { corpusSet: string; newCorpusSet: string }) =>
+      renameCorpusSet(args),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEY_CORPORA] });
+    },
+  });
+
+  return { mutation };
 };
 
 export const useToggleCorpusInSetMutation = () => {

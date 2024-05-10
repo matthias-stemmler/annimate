@@ -1,5 +1,6 @@
+use std::cell::Cell;
+use std::fs;
 use std::path::Path;
-use std::{cell::Cell, fs};
 
 use annimate_core::{
     AnnisExportError, AnnoKey, CsvExportColumn, CsvExportConfig, ExportConfig, ExportData,

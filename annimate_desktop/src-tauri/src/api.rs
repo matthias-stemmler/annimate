@@ -28,12 +28,20 @@ impl State {
 #[tauri::command(async)]
 pub(crate) fn add_corpora_to_set(
     state: tauri::State<State>,
-    corpus_set: &str,
+    corpus_set: String,
     corpus_names: Vec<&str>,
 ) -> Result<(), Error> {
     Ok(state
         .storage
         .add_corpora_to_set(corpus_set, &corpus_names)?)
+}
+
+#[tauri::command(async)]
+pub(crate) fn create_corpus_set(
+    state: tauri::State<State>,
+    corpus_set: String,
+) -> Result<(), Error> {
+    Ok(state.storage.create_corpus_set(corpus_set)?)
 }
 
 #[tauri::command(async)]
@@ -149,6 +157,17 @@ pub(crate) fn import_corpora(
     )?;
 
     Ok(corpus_names)
+}
+
+#[tauri::command(async)]
+pub(crate) fn rename_corpus_set(
+    state: tauri::State<State>,
+    corpus_set: &str,
+    new_corpus_set: String,
+) -> Result<(), Error> {
+    Ok(state
+        .storage
+        .rename_corpus_set(corpus_set, new_corpus_set)?)
 }
 
 #[tauri::command(async)]

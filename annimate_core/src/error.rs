@@ -14,6 +14,9 @@ pub enum AnnisExportError {
     #[error("Corpus name decodes to invalid UTF-8: {0}")]
     CorpusNameDecodesToInvalidUtf8(String),
 
+    #[error("Corpus set already exists")]
+    CorpusSetAlreadyExists,
+
     #[error("Failed to order chains")]
     FailedToOrderChains,
 

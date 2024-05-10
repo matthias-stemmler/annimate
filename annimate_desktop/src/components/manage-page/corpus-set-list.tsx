@@ -1,5 +1,8 @@
+import { CorpusSetDialog } from '@/components/dialogs/corpus-set-dialog';
+import { useDialogState } from '@/components/dialogs/use-dialog-state';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Dialog, DialogTrigger } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import {
@@ -7,6 +10,8 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { useToast } from '@/components/ui/use-toast';
+import { useCreateCorpusSet, useRenameCorpusSet } from '@/lib/store';
 import { cn } from '@/lib/utils';
 import { Pencil, Plus, Trash2 } from 'lucide-react';
 import { FC, PropsWithChildren } from 'react';
@@ -21,7 +26,7 @@ export type CorpusSetListProps = {
 export const CorpusSetList: FC<CorpusSetListProps> = ({
   corpusCount,
   corpusSetsWithCount,
-  onSelectCorpusSet: onChange,
+  onSelectCorpusSet,
   selectedCorpusSet,
 }) => (
   <div className="h-full flex flex-col gap-6">
@@ -30,7 +35,7 @@ export const CorpusSetList: FC<CorpusSetListProps> = ({
         caption="All corpora"
         isSelected={selectedCorpusSet === undefined}
         onClick={() => {
-          onChange?.(undefined);
+          onSelectCorpusSet?.(undefined);
         }}
       >
         <div className="flex items-center mr-28">
@@ -53,10 +58,7 @@ export const CorpusSetList: FC<CorpusSetListProps> = ({
       <div className="flex justify-between items-end">
         <Label className="truncate leading-5 mb-2">Corpus sets</Label>
 
-        <Button className="ml-1" variant="secondary">
-          <Plus className="h-4 w-4 mr-2" />
-          Add corpus set
-        </Button>
+        <AddCorpusSetTrigger onCorpusSetAdded={onSelectCorpusSet} />
       </div>
 
       <div className="flex-1 border rounded-md overflow-hidden">
@@ -74,7 +76,7 @@ export const CorpusSetList: FC<CorpusSetListProps> = ({
                   key={corpusSet}
                   caption={corpusSet}
                   isSelected={isSelected}
-                  onClick={() => onChange?.(corpusSet)}
+                  onClick={() => onSelectCorpusSet?.(corpusSet)}
                 >
                   <div className="flex items-center">
                     <Tooltip>
@@ -90,15 +92,7 @@ export const CorpusSetList: FC<CorpusSetListProps> = ({
                       </TooltipContent>
                     </Tooltip>
 
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button variant="ghost">
-                          <Pencil />
-                        </Button>
-                      </TooltipTrigger>
-
-                      <TooltipContent>Rename set</TooltipContent>
-                    </Tooltip>
+                    <RenameCorpusSetTrigger corpusSet={corpusSet} />
 
                     <Tooltip>
                       <TooltipTrigger asChild>
@@ -122,6 +116,112 @@ export const CorpusSetList: FC<CorpusSetListProps> = ({
     </div>
   </div>
 );
+
+type AddCorpusSetTriggerProps = {
+  onCorpusSetAdded?: (corpusSet: string) => void;
+};
+
+const AddCorpusSetTrigger: FC<AddCorpusSetTriggerProps> = ({
+  onCorpusSetAdded,
+}) => {
+  const [open, setOpen, key] = useDialogState();
+  const {
+    mutation: { mutate: createCorpusSet },
+  } = useCreateCorpusSet();
+  const { toast } = useToast();
+
+  return (
+    <Dialog onOpenChange={setOpen} open={open}>
+      <DialogTrigger asChild>
+        <Button className="ml-1" variant="secondary">
+          <Plus className="h-4 w-4 mr-2" />
+          Add corpus set
+        </Button>
+      </DialogTrigger>
+
+      <CorpusSetDialog
+        key={key}
+        onConfirm={(newName) => {
+          createCorpusSet(
+            { corpusSet: newName },
+            {
+              onSuccess: () => {
+                onCorpusSetAdded?.(newName);
+              },
+              onError: (error: Error) => {
+                toast({
+                  className: 'break-all',
+                  description: error.message,
+                  duration: 15000,
+                  title: 'Failed to create corpus set',
+                  variant: 'destructive',
+                });
+              },
+            },
+          );
+        }}
+        title="Add corpus set"
+      />
+    </Dialog>
+  );
+};
+
+type RenameCorpusSetTriggerProps = {
+  corpusSet: string;
+};
+
+const RenameCorpusSetTrigger: FC<RenameCorpusSetTriggerProps> = ({
+  corpusSet,
+}) => {
+  const [open, setOpen, key] = useDialogState();
+  const {
+    mutation: { mutate: renameCorpusSet },
+  } = useRenameCorpusSet();
+  const { toast } = useToast();
+
+  return (
+    <Dialog onOpenChange={setOpen} open={open}>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <DialogTrigger asChild>
+            <Button variant="ghost">
+              <Pencil />
+            </Button>
+          </DialogTrigger>
+        </TooltipTrigger>
+
+        <TooltipContent>Rename set</TooltipContent>
+      </Tooltip>
+
+      <CorpusSetDialog
+        key={key}
+        currentName={corpusSet}
+        onConfirm={(newName) => {
+          renameCorpusSet(
+            { corpusSet, newCorpusSet: newName },
+            {
+              onError: (error: Error) => {
+                toast({
+                  className: 'break-all',
+                  description: error.message,
+                  duration: 15000,
+                  title: 'Failed to rename corpus set',
+                  variant: 'destructive',
+                });
+              },
+            },
+          );
+        }}
+        title={
+          <>
+            <span className="mr-1">Rename corpus set</span> &ldquo;{corpusSet}
+            &rdquo;
+          </>
+        }
+      />
+    </Dialog>
+  );
+};
 
 type SelectableRowProps = PropsWithChildren<{
   caption: string;

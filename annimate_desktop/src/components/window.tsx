@@ -1,4 +1,5 @@
 import { AboutDialog } from '@/components/dialogs/about-dialog';
+import { useDialogState } from '@/components/dialogs/use-dialog-state';
 import { Dialog, DialogTrigger } from '@/components/ui/dialog';
 import {
   Menubar,
@@ -8,11 +9,12 @@ import {
   MenubarTrigger,
 } from '@/components/ui/menubar';
 import { exit } from '@/lib/api';
-import { FC, useState } from 'react';
+import { FC } from 'react';
 import { Outlet } from 'react-router-dom';
 
 export const Window: FC = () => {
-  const [aboutDialogOpen, setAboutDialogOpen] = useState(false);
+  const [aboutDialogOpen, setAboutDialogOpen, aboutDialogKey] =
+    useDialogState();
 
   return (
     <div className="flex flex-col h-full">
@@ -43,7 +45,7 @@ export const Window: FC = () => {
           </MenubarMenu>
         </Menubar>
 
-        <AboutDialog key={+aboutDialogOpen} />
+        <AboutDialog key={aboutDialogKey} />
       </Dialog>
 
       <Outlet />

@@ -14,6 +14,7 @@ fn main() {
         .manage(State::from_db_dir(db_dir.into()))
         .invoke_handler(tauri::generate_handler![
             api::add_corpora_to_set,
+            api::create_corpus_set,
             api::delete_corpus,
             api::export_matches,
             api::get_corpora,
@@ -21,6 +22,7 @@ fn main() {
             api::get_query_nodes,
             api::get_segmentations,
             api::import_corpora,
+            api::rename_corpus_set,
             api::toggle_corpus_in_set,
             api::validate_query
         ])

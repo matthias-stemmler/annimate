@@ -289,6 +289,14 @@ export const addCorporaToSet = async (params: {
   corpusSets[params.corpusSet].corpusNames.push(...params.corpusNames);
 };
 
+export const createCorpusSet = async (params: {
+  corpusSet: string;
+}): Promise<void> => {
+  logAction('Create corpus set', COLOR_CUSTOM_COMMAND, params);
+
+  corpusSets[params.corpusSet] = { corpusNames: [] };
+};
+
 export const deleteCorpus = async (params: {
   corpusName: string;
 }): Promise<void> => {
@@ -376,13 +384,13 @@ export const getCorpora = async (): Promise<Corpora> => {
   corporaFetched = true;
 
   return {
-    corpora: corpusNames.map((c) => ({
+    corpora: [...corpusNames].sort().map((c) => ({
       name: c,
       includedInSets: Object.entries(corpusSets)
         .filter(([, { corpusNames }]) => corpusNames.includes(c))
         .map(([s]) => s),
     })),
-    sets: Object.keys(corpusSets),
+    sets: Object.keys(corpusSets).sort(),
   };
 };
 
@@ -583,6 +591,16 @@ const subscribeToImportCancelRequestedEvent = (
   return () => {
     importCancelRequestedListeners.delete(callback);
   };
+};
+
+export const renameCorpusSet = async (params: {
+  corpusSet: string;
+  newCorpusSet: string;
+}): Promise<void> => {
+  logAction('Rename corpus set', COLOR_CUSTOM_COMMAND, params);
+
+  corpusSets[params.newCorpusSet] = corpusSets[params.corpusSet];
+  delete corpusSets[params.corpusSet];
 };
 
 export const toggleCorpusInSet = async (params: {

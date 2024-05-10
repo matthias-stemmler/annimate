@@ -81,24 +81,36 @@ fn metadata() {
     snapshot_metadata!("delete");
 
     storage
-        .add_corpora_to_set("Test set", &["subtok.demo", "subtok.demo2"])
+        .add_corpora_to_set("Test set".into(), &["subtok.demo", "subtok.demo2"])
         .unwrap();
 
     snapshot_metadata!("add_corpora_to_set_existing1");
 
     storage
-        .add_corpora_to_set("Test set", &["subtok.demo"])
+        .add_corpora_to_set("Test set".into(), &["subtok.demo"])
         .unwrap();
 
     snapshot_metadata!("add_corpora_to_set_existing2");
 
-    storage.add_corpora_to_set("Test set 2", &[""; 0]).unwrap();
+    storage
+        .add_corpora_to_set("Test set 2".into(), &[""; 0])
+        .unwrap();
 
     snapshot_metadata!("add_corpora_to_set_new1");
 
     storage
-        .add_corpora_to_set("Test set 2", &["subtok.demo"])
+        .add_corpora_to_set("Test set 2".into(), &["subtok.demo"])
         .unwrap();
 
     snapshot_metadata!("add_corpora_to_set_new2");
+
+    storage.create_corpus_set("Test set 3".into()).unwrap();
+
+    snapshot_metadata!("create_corpus_set");
+
+    storage
+        .rename_corpus_set("Test set 2", "Test set 2 new".into())
+        .unwrap();
+
+    snapshot_metadata!("rename_corpus_set");
 }
