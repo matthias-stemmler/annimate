@@ -224,6 +224,8 @@ const makeExportableAnnoKeys = (count: number): ExportableAnnoKeys => {
   return { corpus, doc, node };
 };
 
+const exportCancelRequestedListeners: Set<() => void> = new Set();
+
 const exportStatusListeners: Set<(statusEvent: ExportStatusEvent) => void> =
   new Set();
 
@@ -313,25 +315,55 @@ export const exportMatches = async (params: {
 }): Promise<void> => {
   logAction('Export', COLOR_CUSTOM_COMMAND, params);
 
-  const matchCount = params.corpusNames.reduce(
-    (acc, c) => acc + getMatchCountForCorpus(c),
-    0,
-  );
+  let cancelRequested = false;
 
-  await sleep(500);
-  emitExportStatusEvent({ type: 'found', count: matchCount });
+  const unsubscribe = subscribeToExportCancelRequestedEvent(() => {
+    cancelRequested = true;
+  });
 
-  for (let i = 0; i <= matchCount; i++) {
-    await sleep(20);
-    emitExportStatusEvent({ type: 'exported', progress: i / matchCount });
+  try {
+    const matchCount = params.corpusNames.reduce(
+      (acc, c) => acc + getMatchCountForCorpus(c),
+      0,
+    );
 
-    if (
-      i >= matchCount / 2 &&
-      params.corpusNames.includes(CORPUS_FAILING_EXPORT)
-    ) {
-      throw new Error('Export failed');
+    if (cancelRequested) throw new CancelledError();
+
+    await sleep(500);
+    emitExportStatusEvent({ type: 'found', count: matchCount });
+
+    for (let i = 0; i <= matchCount; i++) {
+      if (cancelRequested) throw new CancelledError();
+
+      await sleep(20);
+      emitExportStatusEvent({ type: 'exported', progress: i / matchCount });
+
+      if (
+        i >= matchCount / 2 &&
+        params.corpusNames.includes(CORPUS_FAILING_EXPORT)
+      ) {
+        throw new Error('Export failed');
+      }
     }
+  } finally {
+    unsubscribe();
   }
+};
+
+export const emitExportCancelRequestedEvent = async () => {
+  logAction('Emit export cancel requested event', COLOR_CUSTOM_COMMAND);
+
+  exportCancelRequestedListeners.forEach((l) => l());
+};
+
+const subscribeToExportCancelRequestedEvent = (
+  callback: () => void,
+): UnlistenFn => {
+  exportCancelRequestedListeners.add(callback);
+
+  return () => {
+    exportCancelRequestedListeners.delete(callback);
+  };
 };
 
 let corporaFetched = false;
@@ -428,7 +460,7 @@ export const importCorpora = async (params: {
 
   let cancelRequested = false;
 
-  const unsubscribe = await subscribeToImportCancelRequestedEvent(() => {
+  const unsubscribe = subscribeToImportCancelRequestedEvent(() => {
     cancelRequested = true;
   });
 
@@ -436,6 +468,8 @@ export const importCorpora = async (params: {
     const delay = params.paths.includes('fast') ? 20 : 200;
 
     for (let j = 0; j < 9; j++) {
+      if (cancelRequested) throw new CancelledError();
+
       await sleep(delay);
 
       emitImportStatusEvent({
@@ -454,8 +488,6 @@ export const importCorpora = async (params: {
 
       throw new Error('Failed to find importable corpora!');
     }
-
-    if (cancelRequested) throw new CancelledError();
 
     if (params.paths.length === 0) {
       emitImportStatusEvent({
@@ -543,9 +575,9 @@ export const emitImportCancelRequestedEvent = async () => {
   importCancelRequestedListeners.forEach((l) => l());
 };
 
-const subscribeToImportCancelRequestedEvent = async (
+const subscribeToImportCancelRequestedEvent = (
   callback: () => void,
-): Promise<UnlistenFn> => {
+): UnlistenFn => {
   importCancelRequestedListeners.add(callback);
 
   return () => {
@@ -689,7 +721,7 @@ const sleep = (ms: number): Promise<void> =>
 
 class CancelledError extends Error {
   constructor() {
-    super('Import cancelled');
+    super('Cancelled');
   }
 
   cancelled = true;

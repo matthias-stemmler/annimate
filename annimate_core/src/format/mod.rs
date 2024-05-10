@@ -23,16 +23,18 @@ impl ExportFormat {
     }
 }
 
-pub(crate) fn export<F, I, W>(
+pub(crate) fn export<F, G, I, W>(
     export_format: ExportFormat,
     matches: I,
     query_nodes: &[Vec<QueryNode>],
     anno_key_format: &AnnoKeyFormat,
     out: W,
     on_progress: F,
+    cancel_requested: G,
 ) -> Result<(), AnnisExportError>
 where
     F: FnMut(f32),
+    G: Fn() -> bool,
     I: IntoIterator<Item = Result<Match, AnnisExportError>> + Clone,
     I::IntoIter: ExactSizeIterator,
     W: Write,
@@ -45,6 +47,7 @@ where
             anno_key_format,
             out,
             on_progress,
+            cancel_requested,
         ),
     }
 }
@@ -54,16 +57,18 @@ trait Exporter {
 
     fn get_export_data(config: &Self::Config) -> impl Iterator<Item = &ExportData>;
 
-    fn export<F, I, W>(
+    fn export<F, G, I, W>(
         config: &Self::Config,
         matches: I,
         query_nodes: &[Vec<QueryNode>],
         anno_key_format: &AnnoKeyFormat,
         out: W,
         on_progress: F,
+        cancel_requested: G,
     ) -> Result<(), AnnisExportError>
     where
         F: FnMut(f32),
+        G: Fn() -> bool,
         I: IntoIterator<Item = Result<Match, AnnisExportError>> + Clone,
         I::IntoIter: ExactSizeIterator,
         W: Write;

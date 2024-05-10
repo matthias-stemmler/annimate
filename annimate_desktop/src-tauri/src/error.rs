@@ -1,5 +1,3 @@
-use std::io;
-
 use annimate_core::AnnisExportError;
 use serde::Serialize;
 
@@ -14,15 +12,6 @@ impl From<AnnisExportError> for Error {
         Self {
             message: err.to_string(),
             cancelled: err.cancelled(),
-        }
-    }
-}
-
-impl From<io::Error> for Error {
-    fn from(err: io::Error) -> Self {
-        Self {
-            message: err.to_string(),
-            cancelled: false,
         }
     }
 }

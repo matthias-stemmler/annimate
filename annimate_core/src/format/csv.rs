@@ -7,7 +7,7 @@ use itertools::{put_back, Itertools, PutBack};
 
 use super::Exporter;
 use crate::anno::{is_doc_anno_key, AnnoKeyFormat};
-use crate::error::AnnisExportError;
+use crate::error::{cancel_if, AnnisExportError};
 use crate::query::{ExportData, ExportDataAnno, ExportDataText, Match, TextPart};
 use crate::QueryNode;
 
@@ -52,16 +52,18 @@ impl Exporter for CsvExporter {
             .filter_map(CsvExportColumn::unwrap_data)
     }
 
-    fn export<F, I, W>(
+    fn export<F, G, I, W>(
         config: &CsvExportConfig,
         matches: I,
         query_nodes: &[Vec<QueryNode>],
         anno_key_format: &AnnoKeyFormat,
         out: W,
         mut on_progress: F,
+        cancel_requested: G,
     ) -> Result<(), AnnisExportError>
     where
         F: FnMut(f32),
+        G: Fn() -> bool,
         I: IntoIterator<Item = Result<Match, AnnisExportError>> + Clone,
         I::IntoIter: ExactSizeIterator,
         W: Write,
@@ -74,6 +76,8 @@ impl Exporter for CsvExporter {
             let mut max_match_parts_by_text = HashMap::new();
 
             for (i, m) in matches_iter.enumerate() {
+                cancel_if(&cancel_requested)?;
+
                 let m = m?;
 
                 for (text, parts) in &m.texts {
@@ -92,6 +96,8 @@ impl Exporter for CsvExporter {
         };
 
         let mut csv_writer = csv::Writer::from_writer(out);
+
+        cancel_if(&cancel_requested)?;
 
         csv_writer.write_record(config.columns.iter().flat_map(|c| match c {
             CsvExportColumn::Number => vec!["Number".into()],
@@ -149,6 +155,8 @@ impl Exporter for CsvExporter {
         }))?;
 
         for (i, Match { annos, texts }) in matches.into_iter().enumerate() {
+            cancel_if(&cancel_requested)?;
+
             csv_writer.write_record(config.columns.iter().flat_map(|c| match c {
                 CsvExportColumn::Number => vec![(i + 1).to_string()],
                 CsvExportColumn::Data(ExportData::Anno(anno)) => {
@@ -392,6 +400,7 @@ mod tests {
                     &AnnoKeyFormat::new([]),
                     &mut result,
                     |_| (),
+                    || false,
                 ).unwrap();
 
                 assert_eq!(

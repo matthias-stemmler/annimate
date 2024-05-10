@@ -1,9 +1,16 @@
 import { Button } from '@/components/ui/button';
-import { ProgressPercent } from '@/components/ui/custom/progress-percent';
+import { Progress } from '@/components/ui/progress';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { useToast } from '@/components/ui/use-toast';
 import { dirname, save, shellOpen } from '@/lib/api';
+import { CancellableOperationError } from '@/lib/mutations';
 import { useCanExport, useExportMatches } from '@/lib/store';
-import { File, Folder } from 'lucide-react';
+import { formatPercentage } from '@/lib/utils';
+import { File, Folder, Hourglass, X } from 'lucide-react';
 
 export const ExportTrigger = () => {
   const canExport = useCanExport();
@@ -11,17 +18,49 @@ export const ExportTrigger = () => {
     mutation: { isPending: isExporting, mutate: exportMatches },
     matchCount,
     progress,
+    cancelRequested,
+    requestCancel,
   } = useExportMatches();
   const { toast } = useToast();
 
   return isExporting ? (
-    <div className="mt-2 mb-1">
-      <p className="mb-1">
-        {matchCount === undefined
-          ? 'Searching ...'
-          : `Exporting ${matchCount} match${matchCount === 1 ? '' : 'es'} ...`}
-      </p>
-      <ProgressPercent value={progress} />
+    <div className="flex items-end gap-8 mt-2 mb-1">
+      <div className="grow">
+        <div className="flex justify-between mb-1">
+          <p>
+            {matchCount === undefined
+              ? 'Searching ...'
+              : `Exporting ${matchCount} match${matchCount === 1 ? '' : 'es'} ...`}
+          </p>
+
+          {progress !== undefined && (
+            <p className="w-0 grow truncate text-right">
+              {formatPercentage(progress)}
+            </p>
+          )}
+        </div>
+
+        <Progress value={Math.round((progress ?? 0) * 100)} />
+      </div>
+
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            className="h-8 w-8 p-0"
+            disabled={cancelRequested}
+            onClick={requestCancel}
+            variant="destructive"
+          >
+            {cancelRequested ? (
+              <Hourglass className="h-4 w-4" />
+            ) : (
+              <X className="h-4 w-4" />
+            )}
+          </Button>
+        </TooltipTrigger>
+
+        <TooltipContent>Stop export</TooltipContent>
+      </Tooltip>
     </div>
   ) : (
     <Button
@@ -38,14 +77,16 @@ export const ExportTrigger = () => {
           exportMatches(
             { outputFile },
             {
-              onError: (error: Error) => {
-                toast({
-                  className: 'break-all',
-                  description: error.message,
-                  duration: 15000,
-                  title: 'Export failed',
-                  variant: 'destructive',
-                });
+              onError: (error: CancellableOperationError) => {
+                if (!error.cancelled) {
+                  toast({
+                    className: 'break-all',
+                    description: error.message,
+                    duration: 15000,
+                    title: 'Export failed',
+                    variant: 'destructive',
+                  });
+                }
               },
               onSuccess: (_, { outputFile }) => {
                 toast({

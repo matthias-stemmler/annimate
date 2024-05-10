@@ -21,6 +21,9 @@ export { dirname, exit, fileOpen, relaunch, save, shellOpen };
 export const deleteCorpus = (params: { corpusName: string }): Promise<void> =>
   invoke('delete_corpus', params);
 
+export const emitExportCancelRequestedEvent = (): Promise<void> =>
+  emit('export_cancel_requested');
+
 export const emitImportCancelRequestedEvent = (): Promise<void> =>
   emit('import_cancel_requested');
 

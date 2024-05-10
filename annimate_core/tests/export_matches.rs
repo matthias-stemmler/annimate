@@ -1,15 +1,16 @@
-use std::fs;
 use std::path::Path;
+use std::{cell::Cell, fs};
 
 use annimate_core::{
-    AnnoKey, CsvExportColumn, CsvExportConfig, ExportData, ExportDataAnno, ExportDataText,
-    ExportFormat, QueryLanguage, Storage,
+    AnnisExportError, AnnoKey, CsvExportColumn, CsvExportConfig, ExportConfig, ExportData,
+    ExportDataAnno, ExportDataText, ExportFormat, ExportStatusEvent, QueryLanguage, Storage,
 };
 use itertools::Itertools;
 use serde::Serialize;
 
 const DATA_DIR: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/tests/data");
-const DB_DIR: &str = concat!(env!("CARGO_TARGET_TMPDIR"), "/tests/export_matches");
+const DB_DIR: &str = concat!(env!("CARGO_TARGET_TMPDIR"), "/tests/export_matches/db");
+const OUTPUT_DIR: &str = concat!(env!("CARGO_TARGET_TMPDIR"), "/tests/export_matches/output");
 
 macro_rules! export_matches_test {
     ($(
@@ -44,6 +45,10 @@ macro_rules! export_matches_test {
                 let _ = fs::remove_dir_all(&db_dir);
                 let storage = Storage::from_db_dir(db_dir).unwrap();
 
+                fs::create_dir_all(Path::new(OUTPUT_DIR)).unwrap();
+                let output_file = Path::new(OUTPUT_DIR).join(concat!(stringify!($name), ".csv"));
+                let _ = fs::remove_file(&output_file);
+
                 storage
                     .import_corpora(
                         test_data
@@ -56,34 +61,35 @@ macro_rules! export_matches_test {
                     )
                     .unwrap();
 
-                let mut export_bytes = Vec::new();
-
                 storage
                     .export_matches(
-                        test_data.corpus_names,
-                        test_data.aql_query,
-                        test_data.query_language,
-                        ExportFormat::Csv(CsvExportConfig {
-                            columns: test_data
-                                .export_columns
-                                .clone()
-                                .into_iter()
-                                .map_into()
-                                .collect(),
-                        }),
-                        &mut export_bytes,
+                        ExportConfig {
+                            corpus_names: test_data.corpus_names,
+                            aql_query: test_data.aql_query,
+                            query_language: test_data.query_language,
+                            format: ExportFormat::Csv(CsvExportConfig {
+                                columns: test_data
+                                    .export_columns
+                                    .clone()
+                                    .into_iter()
+                                    .map_into()
+                                    .collect(),
+                            }),
+                        },
+                        &output_file,
                         |_| (),
+                        || false,
                     )
                     .unwrap();
 
-                let export = String::from_utf8(export_bytes).unwrap();
+                let output = fs::read_to_string(output_file).unwrap();
 
                 insta::with_settings!(
                     {
                          info => &test_data,
                          omit_expression => true,
                     },
-                    { insta::assert_snapshot!(export) }
+                    { insta::assert_snapshot!(output) }
                 );
             }
         )*
@@ -316,6 +322,86 @@ export_matches_test! {
             })),
         ],
     }
+}
+
+#[test]
+fn export_cancelled_before_matches_found() {
+    let db_dir = Path::new(DB_DIR).join("export_cancelled_before_matches_found");
+
+    let _ = fs::remove_dir_all(&db_dir);
+    let storage = Storage::from_db_dir(db_dir).unwrap();
+
+    fs::create_dir_all(Path::new(OUTPUT_DIR)).unwrap();
+    let output_file = Path::new(OUTPUT_DIR).join("export_cancelled_before_matches_found.csv");
+    let _ = fs::remove_file(&output_file);
+
+    storage
+        .import_corpora(
+            vec![Path::new(DATA_DIR).join("subtok.demo_relANNIS.zip")],
+            |_| (),
+            || false,
+        )
+        .unwrap();
+
+    let result = storage.export_matches(
+        ExportConfig {
+            corpus_names: &["subtok.demo"],
+            aql_query: "tok",
+            query_language: QueryLanguage::AQL,
+            format: ExportFormat::Csv(CsvExportConfig {
+                columns: vec![CsvExportColumn::Number],
+            }),
+        },
+        &output_file,
+        |_| (),
+        || true,
+    );
+
+    assert!(matches!(result, Err(AnnisExportError::Cancelled)));
+    assert!(!output_file.try_exists().unwrap());
+}
+
+#[test]
+fn export_cancelled_after_matches_found() {
+    let db_dir = Path::new(DB_DIR).join("export_cancelled_after_matches_found");
+
+    let _ = fs::remove_dir_all(&db_dir);
+    let storage = Storage::from_db_dir(db_dir).unwrap();
+
+    fs::create_dir_all(Path::new(OUTPUT_DIR)).unwrap();
+    let output_file = Path::new(OUTPUT_DIR).join("export_cancelled_after_matches_found.csv");
+    let _ = fs::remove_file(&output_file);
+
+    storage
+        .import_corpora(
+            vec![Path::new(DATA_DIR).join("subtok.demo_relANNIS.zip")],
+            |_| (),
+            || false,
+        )
+        .unwrap();
+
+    let cancel_requested = Cell::new(false);
+
+    let result = storage.export_matches(
+        ExportConfig {
+            corpus_names: &["subtok.demo"],
+            aql_query: "tok",
+            query_language: QueryLanguage::AQL,
+            format: ExportFormat::Csv(CsvExportConfig {
+                columns: vec![CsvExportColumn::Number],
+            }),
+        },
+        &output_file,
+        |event| {
+            if let ExportStatusEvent::Found { .. } = event {
+                cancel_requested.set(true);
+            }
+        },
+        || cancel_requested.get(),
+    );
+
+    assert!(matches!(result, Err(AnnisExportError::Cancelled)));
+    assert!(!output_file.try_exists().unwrap());
 }
 
 #[derive(Serialize)]

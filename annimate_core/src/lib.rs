@@ -1,4 +1,4 @@
-use std::io::Write;
+use std::io::{self, Write};
 use std::path::{Path, PathBuf};
 
 use anno::AnnoKeys;
@@ -254,38 +254,54 @@ impl Storage {
         Ok(anno::segmentations(self.corpus_ref(corpus_names))?)
     }
 
-    pub fn export_matches<F, S, W>(
+    pub fn export_matches<F, G, P, S>(
         &self,
-        corpus_names: &[S],
-        aql_query: &str,
-        query_language: QueryLanguage,
-        format: ExportFormat,
-        mut out: W,
+        config: ExportConfig<S>,
+        output_file: P,
         on_status: F,
+        cancel_requested: G,
     ) -> Result<(), AnnisExportError>
     where
         F: Fn(ExportStatusEvent),
+        G: Fn() -> bool,
+        P: AsRef<Path>,
         S: AsRef<str>,
-        W: Write,
     {
-        let anno_keys = AnnoKeys::new(self.corpus_ref(corpus_names))?;
-        let query = Query::new(self.corpus_ref(corpus_names), aql_query, query_language)?;
-        let matches = query.find(format.get_export_data().cloned())?;
+        cancel_if(&cancel_requested)?;
+
+        let anno_keys = AnnoKeys::new(self.corpus_ref(config.corpus_names))?;
+        let query = Query::new(
+            self.corpus_ref(config.corpus_names),
+            config.aql_query,
+            config.query_language,
+        )?;
+        let matches = query.find(config.format.get_export_data().cloned())?;
+
+        cancel_if(&cancel_requested)?;
 
         on_status(ExportStatusEvent::Found {
             count: matches.total_count(),
         });
 
+        let mut out = tempfile::Builder::new()
+            .prefix(".annimate_")
+            .suffix(".csv")
+            .tempfile()?;
+
         export(
-            format,
+            config.format,
             matches,
             query.nodes(),
             anno_keys.format(),
             &mut out,
             |progress| on_status(ExportStatusEvent::Exported { progress }),
+            &cancel_requested,
         )?;
 
+        cancel_if(cancel_requested)?;
+
         out.flush()?;
+        out.persist(output_file).map_err(io::Error::from)?;
 
         Ok(())
     }
@@ -313,6 +329,13 @@ impl Corpora {
 pub struct Corpus {
     name: String,
     included_in_sets: Vec<String>,
+}
+
+pub struct ExportConfig<'a, S> {
+    pub corpus_names: &'a [S],
+    pub aql_query: &'a str,
+    pub query_language: QueryLanguage,
+    pub format: ExportFormat,
 }
 
 #[derive(Debug, Serialize)]

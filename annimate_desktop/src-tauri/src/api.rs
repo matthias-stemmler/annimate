@@ -1,11 +1,11 @@
-use std::io::{self, Write};
 use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 
 use annimate_core::{
-    AnnoKey, Corpora, CsvExportColumn, CsvExportConfig, ExportData, ExportDataAnno, ExportDataText,
-    ExportFormat, ExportableAnnoKeys, QueryAnalysisResult, QueryLanguage, QueryNodes, Storage,
+    AnnoKey, Corpora, CsvExportColumn, CsvExportConfig, ExportConfig, ExportData, ExportDataAnno,
+    ExportDataText, ExportFormat, ExportableAnnoKeys, QueryAnalysisResult, QueryLanguage,
+    QueryNodes, Storage,
 };
 use itertools::Itertools;
 use serde::Deserialize;
@@ -51,28 +51,35 @@ pub(crate) fn export_matches(
     export_columns: Vec<ExportColumn>,
     output_file: &Path,
 ) -> Result<(), Error> {
-    let mut out = tempfile::Builder::new()
-        .prefix(".annimate_")
-        .suffix(".csv")
-        .tempfile()?;
+    let cancel_requested = Arc::new(AtomicBool::new(false));
+
+    let _guard = EventHandlerGuard::new(
+        &window,
+        window.once("export_cancel_requested", {
+            let cancel_requested = Arc::clone(&cancel_requested);
+            move |_| {
+                cancel_requested.store(true, Ordering::Relaxed);
+            }
+        }),
+    );
 
     state.storage.export_matches(
-        &corpus_names,
-        aql_query,
-        query_language,
-        ExportFormat::Csv(CsvExportConfig {
-            columns: export_columns.into_iter().map_into().collect(),
-        }),
-        &mut out,
+        ExportConfig {
+            corpus_names: &corpus_names,
+            aql_query,
+            query_language,
+            format: ExportFormat::Csv(CsvExportConfig {
+                columns: export_columns.into_iter().map_into().collect(),
+            }),
+        },
+        output_file,
         |status_event| {
             window
                 .emit("export_status", &status_event)
                 .expect("Failed to emit export_status event")
         },
+        || cancel_requested.load(Ordering::Relaxed),
     )?;
-
-    out.flush()?;
-    out.persist(output_file).map_err(io::Error::from)?;
 
     Ok(())
 }

@@ -1,6 +1,7 @@
 import {
   addCorporaToSet,
   deleteCorpus,
+  emitExportCancelRequestedEvent,
   emitImportCancelRequestedEvent,
   exportMatches,
   importCorpora,
@@ -25,7 +26,7 @@ import {
 } from '@tanstack/react-query';
 import { useCallback, useState } from 'react';
 
-type CancellableOperationError = Error & { cancelled: boolean };
+export type CancellableOperationError = Error & { cancelled: boolean };
 
 const MUTATION_KEY_EXPORT_MATCHES = 'export-matches';
 
@@ -67,13 +68,24 @@ export const useExportMatchesMutation = (
   const [matchCount, setMatchCount] = useState<number | undefined>();
   const [progress, setProgress] = useState<number | undefined>();
 
-  const mutation = useMutation({
-    mutationFn: async (args: { outputFile: string }) => {
+  const [cancelRequested, setCancelRequested] = useState(false);
+
+  const mutation = useMutation<
+    void,
+    CancellableOperationError,
+    { outputFile: string },
+    { unsubscribe: UnlistenFn }
+  >({
+    mutationFn: async (args) => {
       const params = await getParams();
       return exportMatches({ ...params, ...args });
     },
     mutationKey: [MUTATION_KEY_EXPORT_MATCHES],
     onMutate: async () => {
+      setCancelRequested(false);
+      setMatchCount(undefined);
+      setProgress(undefined);
+
       const unsubscribe = await subscribeToExportStatus(
         (statusEvent: ExportStatusEvent) => {
           if (statusEvent.type === 'found') {
@@ -88,12 +100,15 @@ export const useExportMatchesMutation = (
     },
     onSettled: (_data, _error, _variables, context) => {
       context?.unsubscribe();
-      setMatchCount(undefined);
-      setProgress(undefined);
     },
   });
 
-  return { mutation, matchCount, progress };
+  const requestCancel = useCallback(() => {
+    emitExportCancelRequestedEvent();
+    setCancelRequested(true);
+  }, []);
+
+  return { mutation, matchCount, progress, cancelRequested, requestCancel };
 };
 
 export const useIsExporting = (): boolean =>
