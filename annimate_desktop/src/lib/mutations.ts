@@ -2,6 +2,7 @@ import {
   addCorporaToSet,
   createCorpusSet,
   deleteCorpus,
+  deleteCorpusSet,
   emitExportCancelRequestedEvent,
   emitImportCancelRequestedEvent,
   exportMatches,
@@ -65,6 +66,21 @@ export const useDeleteCorpusMutation = () => {
   const mutation = useMutation({
     mutationFn: (args: { corpusName: string }) => deleteCorpus(args),
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEY_CORPORA] });
+    },
+  });
+
+  return { mutation };
+};
+
+export const useDeleteCorpusSetMutation = () => {
+  const queryClient = useQueryClient();
+
+  const mutation = useMutation({
+    mutationFn: (args: { corpusSet: string; deleteCorpora: boolean }) =>
+      deleteCorpusSet(args),
+    // Also invalide query on error because a subset of the corpora may have been deleted
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: [QUERY_KEY_CORPORA] });
     },
   });

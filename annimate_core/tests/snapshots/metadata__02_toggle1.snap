@@ -1,0 +1,25 @@
+---
+source: annimate_core/tests/metadata.rs
+---
+Corpora {
+    corpora: [
+        Corpus {
+            name: "subtok.demo",
+            included_in_sets: [],
+        },
+        Corpus {
+            name: "subtok.demo2",
+            included_in_sets: [],
+        },
+    ],
+    sets: [
+        "Test set",
+    ],
+}
+
+--
+
+metadata-version = 1
+
+[corpus-sets."Test set"]
+corpus-names = []

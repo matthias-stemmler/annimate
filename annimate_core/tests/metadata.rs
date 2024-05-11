@@ -14,28 +14,17 @@ metadata-version = 1
 corpus-names = ["subtok.demo"]
 "#;
 
-macro_rules! snapshot_corpora {
-    ($storage:expr) => {
+macro_rules! snapshot {
+    ($name:expr, $storage:expr) => {
         let corpora = $storage.corpora().unwrap();
-
-        insta::with_settings!(
-            {
-                 omit_expression => true,
-            },
-            { insta::assert_debug_snapshot!(corpora) }
-        );
-    };
-}
-
-macro_rules! snapshot_metadata {
-    ($name:expr) => {
         let metadata = fs::read_to_string(Path::new(DB_DIR).join(METADATA_FILE)).unwrap();
+        let snapshot = format!("{corpora:#?}\n\n--\n\n{metadata}");
 
         insta::with_settings!(
             {
                  omit_expression => true,
             },
-            { insta::assert_snapshot!($name, metadata) }
+            { insta::assert_snapshot!($name, snapshot) }
         );
     };
 }
@@ -55,62 +44,71 @@ fn metadata() {
         )
         .unwrap();
 
-    snapshot_metadata!("default");
+    snapshot!("00-default", storage);
 
     drop(storage);
     fs::write(Path::new(DB_DIR).join(METADATA_FILE), INITIAL_METADATA).unwrap();
     let storage = Storage::from_db_dir(DB_DIR).unwrap();
 
-    snapshot_metadata!("initial");
-    snapshot_corpora!(storage);
+    snapshot!("01_initial", storage);
 
     storage
         .toggle_corpus_in_set("Test set", "subtok.demo")
         .unwrap();
 
-    snapshot_metadata!("toggle1");
+    snapshot!("02_toggle1", storage);
 
     storage
         .toggle_corpus_in_set("Test set", "subtok.demo2")
         .unwrap();
 
-    snapshot_metadata!("toggle2");
-
-    storage.delete_corpus("subtok.demo2").unwrap();
-
-    snapshot_metadata!("delete");
+    snapshot!("03_toggle2", storage);
 
     storage
         .add_corpora_to_set("Test set".into(), &["subtok.demo", "subtok.demo2"])
         .unwrap();
 
-    snapshot_metadata!("add_corpora_to_set_existing1");
+    snapshot!("04_add_corpora_to_set_existing1", storage);
 
     storage
         .add_corpora_to_set("Test set".into(), &["subtok.demo"])
         .unwrap();
 
-    snapshot_metadata!("add_corpora_to_set_existing2");
+    snapshot!("05_add_corpora_to_set_existing2", storage);
 
     storage
         .add_corpora_to_set("Test set 2".into(), &[""; 0])
         .unwrap();
 
-    snapshot_metadata!("add_corpora_to_set_new1");
+    snapshot!("06_add_corpora_to_set_new1", storage);
 
     storage
         .add_corpora_to_set("Test set 2".into(), &["subtok.demo"])
         .unwrap();
 
-    snapshot_metadata!("add_corpora_to_set_new2");
+    snapshot!("07_add_corpora_to_set_new2", storage);
 
     storage.create_corpus_set("Test set 3".into()).unwrap();
 
-    snapshot_metadata!("create_corpus_set");
+    snapshot!("08_create_corpus_set", storage);
 
     storage
         .rename_corpus_set("Test set 2", "Test set 2 new".into())
         .unwrap();
 
-    snapshot_metadata!("rename_corpus_set");
+    snapshot!("09_rename_corpus_set", storage);
+
+    storage.delete_corpus("subtok.demo2").unwrap();
+
+    snapshot!("10_delete_corpus", storage);
+
+    storage
+        .delete_corpus_set("Test set 2 new".into(), false)
+        .unwrap();
+
+    snapshot!("11_delete_corpus_set_only", storage);
+
+    storage.delete_corpus_set("Test set".into(), true).unwrap();
+
+    snapshot!("11_delete_corpus_set_with_corpora", storage);
 }

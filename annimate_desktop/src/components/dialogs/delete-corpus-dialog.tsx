@@ -22,8 +22,8 @@ export const DeleteCorpusDialog: FC<DeleteCorpusDialogProps> = ({
       <DialogTitle>Delete corpus</DialogTitle>
     </DialogHeader>
 
-    <div>
-      <span className="mr-1">Are you sure you want to delete corpus</span>{' '}
+    <div className="overflow-hidden mb-4">
+      <span className="mr-1">Are you sure you want to delete the corpus</span>{' '}
       &ldquo;{corpusName}&rdquo;?
     </div>
 

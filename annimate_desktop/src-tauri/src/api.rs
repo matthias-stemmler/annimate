@@ -50,6 +50,17 @@ pub(crate) fn delete_corpus(state: tauri::State<State>, corpus_name: &str) -> Re
 }
 
 #[tauri::command(async)]
+pub(crate) fn delete_corpus_set(
+    state: tauri::State<State>,
+    corpus_set: String,
+    delete_corpora: bool,
+) -> Result<(), Error> {
+    Ok(state
+        .storage
+        .delete_corpus_set(corpus_set, delete_corpora)?)
+}
+
+#[tauri::command(async)]
 pub(crate) fn export_matches(
     state: tauri::State<State>,
     window: Window,

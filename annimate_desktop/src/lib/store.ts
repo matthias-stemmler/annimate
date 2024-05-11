@@ -852,6 +852,7 @@ export {
   useAddCorporaToSetMutation as useAddCorporaToSet,
   useCreateCorpusSetMutation as useCreateCorpusSet,
   useDeleteCorpusMutation as useDeleteCorpus,
+  useDeleteCorpusSetMutation as useDeleteCorpusSet,
   useImportCorporaMutation as useImportCorpora,
   useIsExporting,
   useRenameCorpusSetMutation as useRenameCorpusSet,

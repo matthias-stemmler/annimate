@@ -183,6 +183,54 @@ impl Storage {
         })
     }
 
+    pub fn delete_corpus_set(
+        &self,
+        corpus_set_name: String,
+        delete_corpora: bool,
+    ) -> Result<(), AnnisExportError> {
+        let mut failed_corpus_names = Vec::new();
+
+        self.metadata_storage.update_corpus_sets(|corpus_sets| {
+            let Entry::Occupied(mut entry) = corpus_sets.entry(corpus_set_name) else {
+                return;
+            };
+
+            let mut deleted_corpus_names = Vec::new();
+            let corpus_names = &mut entry.get_mut().corpus_names;
+
+            if delete_corpora {
+                while let Some(corpus_name) = corpus_names.pop_first() {
+                    match self.corpus_storage.delete(&corpus_name) {
+                        Ok(_) => deleted_corpus_names.push(corpus_name),
+                        Err(_) => {
+                            failed_corpus_names.push(corpus_name);
+                        }
+                    }
+                }
+            }
+
+            if failed_corpus_names.is_empty() {
+                entry.remove();
+            } else {
+                corpus_names.extend(failed_corpus_names.clone());
+            }
+
+            for corpus_name in deleted_corpus_names {
+                for CorpusSet { corpus_names } in corpus_sets.values_mut() {
+                    corpus_names.remove(&corpus_name);
+                }
+            }
+        })?;
+
+        if failed_corpus_names.is_empty() {
+            Ok(())
+        } else {
+            Err(AnnisExportError::FailedToDeleteCorpora(
+                failed_corpus_names.into(),
+            ))
+        }
+    }
+
     pub fn rename_corpus_set(
         &self,
         corpus_set_name: &str,

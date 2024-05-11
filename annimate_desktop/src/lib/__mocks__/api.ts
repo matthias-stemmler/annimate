@@ -314,6 +314,24 @@ export const deleteCorpus = async (params: {
   }
 };
 
+export const deleteCorpusSet = async (params: {
+  corpusSet: string;
+  deleteCorpora: boolean;
+}): Promise<void> => {
+  logAction('Delete corpus set', COLOR_CUSTOM_COMMAND, params);
+
+  const corpusSet = corpusSets[params.corpusSet];
+  if (corpusSet === undefined) {
+    return;
+  }
+
+  if (params.deleteCorpora) {
+    corpusNames = corpusNames.filter((c) => !corpusSet.corpusNames.includes(c));
+  }
+
+  delete corpusSets[params.corpusSet];
+};
+
 export const exportMatches = async (params: {
   corpusNames: string[];
   aqlQuery: string;

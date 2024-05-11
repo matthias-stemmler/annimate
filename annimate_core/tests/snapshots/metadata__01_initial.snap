@@ -18,3 +18,10 @@ Corpora {
         "Test set",
     ],
 }
+
+--
+
+metadata-version = 1
+
+[corpus-sets."Test set"]
+corpus-names = ["subtok.demo"]

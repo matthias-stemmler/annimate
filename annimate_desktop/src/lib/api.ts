@@ -21,6 +21,11 @@ export { dirname, exit, fileOpen, relaunch, save, shellOpen };
 export const deleteCorpus = (params: { corpusName: string }): Promise<void> =>
   invoke('delete_corpus', params);
 
+export const deleteCorpusSet = (params: {
+  corpusSet: string;
+  deleteCorpora: boolean;
+}): Promise<void> => invoke('delete_corpus_set', params);
+
 export const emitExportCancelRequestedEvent = (): Promise<void> =>
   emit('export_cancel_requested');
 

@@ -16,6 +16,7 @@ fn main() {
             api::add_corpora_to_set,
             api::create_corpus_set,
             api::delete_corpus,
+            api::delete_corpus_set,
             api::export_matches,
             api::get_corpora,
             api::get_exportable_anno_keys,

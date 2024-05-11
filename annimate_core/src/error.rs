@@ -1,3 +1,4 @@
+use std::fmt::{self, Display, Formatter};
 use std::io;
 use std::path::PathBuf;
 
@@ -16,6 +17,9 @@ pub enum AnnisExportError {
 
     #[error("Corpus set already exists")]
     CorpusSetAlreadyExists,
+
+    #[error("Failed to delete corpora: {0}")]
+    FailedToDeleteCorpora(AnnisExportCorpusNames),
 
     #[error("Failed to order chains")]
     FailedToOrderChains,
@@ -43,6 +47,21 @@ pub enum AnnisExportError {
 
     #[error(transparent)]
     Io(#[from] io::Error),
+}
+
+#[derive(Debug)]
+pub struct AnnisExportCorpusNames(Vec<String>);
+
+impl Display for AnnisExportCorpusNames {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.0.join(", "))
+    }
+}
+
+impl From<Vec<String>> for AnnisExportCorpusNames {
+    fn from(corpus_names: Vec<String>) -> Self {
+        Self(corpus_names)
+    }
 }
 
 #[derive(Debug, Error)]

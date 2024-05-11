@@ -1,4 +1,5 @@
 import { CorpusSetDialog } from '@/components/dialogs/corpus-set-dialog';
+import { DeleteCorpusSetDialog } from '@/components/dialogs/delete-corpus-set-dialog';
 import { useDialogState } from '@/components/dialogs/use-dialog-state';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -11,7 +12,11 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { useToast } from '@/components/ui/use-toast';
-import { useCreateCorpusSet, useRenameCorpusSet } from '@/lib/store';
+import {
+  useCreateCorpusSet,
+  useDeleteCorpusSet,
+  useRenameCorpusSet,
+} from '@/lib/store';
 import { cn } from '@/lib/utils';
 import { Pencil, Plus, Trash2 } from 'lucide-react';
 import { FC, PropsWithChildren } from 'react';
@@ -94,18 +99,10 @@ export const CorpusSetList: FC<CorpusSetListProps> = ({
 
                     <RenameCorpusSetTrigger corpusSet={corpusSet} />
 
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button
-                          className="text-destructive hover:text-destructive"
-                          variant="ghost"
-                        >
-                          <Trash2 />
-                        </Button>
-                      </TooltipTrigger>
-
-                      <TooltipContent>Delete set</TooltipContent>
-                    </Tooltip>
+                    <DeleteCorpusSetTrigger
+                      corpusCount={corpusCount}
+                      corpusSet={corpusSet}
+                    />
                   </div>
                 </SelectableRow>
               );
@@ -218,6 +215,63 @@ const RenameCorpusSetTrigger: FC<RenameCorpusSetTriggerProps> = ({
             &rdquo;
           </>
         }
+      />
+    </Dialog>
+  );
+};
+
+type DeleteCorpusSetTriggerProps = {
+  corpusCount: number;
+  corpusSet: string;
+};
+
+const DeleteCorpusSetTrigger: FC<DeleteCorpusSetTriggerProps> = ({
+  corpusCount,
+  corpusSet,
+}) => {
+  const [open, setOpen, key] = useDialogState();
+  const {
+    mutation: { mutate: deleteCorpusSet },
+  } = useDeleteCorpusSet();
+  const { toast } = useToast();
+
+  return (
+    <Dialog onOpenChange={setOpen} open={open}>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <DialogTrigger asChild>
+            <Button
+              className="text-destructive hover:text-destructive"
+              variant="ghost"
+            >
+              <Trash2 />
+            </Button>
+          </DialogTrigger>
+        </TooltipTrigger>
+
+        <TooltipContent>Delete set</TooltipContent>
+      </Tooltip>
+
+      <DeleteCorpusSetDialog
+        key={key}
+        corpusCount={corpusCount}
+        corpusSet={corpusSet}
+        onConfirm={({ deleteCorpora }) => {
+          deleteCorpusSet(
+            { corpusSet, deleteCorpora },
+            {
+              onError: (error: Error) => {
+                toast({
+                  className: 'break-all',
+                  description: error.message,
+                  duration: 15000,
+                  title: 'Failed to delete corpus set',
+                  variant: 'destructive',
+                });
+              },
+            },
+          );
+        }}
       />
     </Dialog>
   );
