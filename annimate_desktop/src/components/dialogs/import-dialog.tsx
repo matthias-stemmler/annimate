@@ -117,7 +117,7 @@ export const ImportDialog: FC<ImportDialogProps> = ({
 
   return (
     <DialogContent
-      className="max-w-[48rem]"
+      className="max-w-[calc(min(64rem,80vw))]"
       noClose
       onOpenAutoFocus={(event) => {
         event.preventDefault();
