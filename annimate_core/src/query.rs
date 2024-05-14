@@ -393,19 +393,19 @@ impl<S> MatchesPage<'_, S> {
             match d {
                 ExportData::Anno(anno) => match anno {
                     ExportDataAnno::Corpus { anno_key } => {
-                        if let Some(value) =
-                            get_anno(self.corpus_ref.storage, &corpus_name, None, anno_key)?
-                        {
+                        if let Some(value) = get_anno(
+                            self.corpus_ref.storage,
+                            &corpus_name,
+                            &corpus_name,
+                            anno_key,
+                        )? {
                             annos.insert(anno.clone(), value);
                         }
                     }
                     ExportDataAnno::Document { anno_key } => {
-                        if let Some(value) = get_anno(
-                            self.corpus_ref.storage,
-                            &corpus_name,
-                            Some(doc_name),
-                            anno_key,
-                        )? {
+                        if let Some(value) =
+                            get_anno(self.corpus_ref.storage, &corpus_name, doc_name, anno_key)?
+                        {
                             annos.insert(anno.clone(), value);
                         }
                     }
@@ -449,16 +449,23 @@ impl<S> MatchesPage<'_, S> {
 fn get_anno(
     storage: &graphannis::CorpusStorage,
     corpus_name: &str,
-    node_name: Option<&str>,
+    node_name: &str,
     anno_key: &AnnoKey,
 ) -> Result<Option<String>, GraphAnnisError> {
-    let graph = match node_name {
-        Some(node_name) => storage.subgraph(corpus_name, vec![node_name.into()], 0, 0, None)?,
-        None => storage.corpus_graph(corpus_name)?,
-    };
+    // Short-circuit when asked for `annis:node_name`
+    // This helps in case of broken corpora with missing document nodes,
+    // because one can at least export what their node names would have been
+    if anno::is_node_name_anno_key(anno_key) {
+        return Ok(Some(node_name.into()));
+    }
 
-    let node_id = node_name_to_node_id(&graph, node_name.unwrap_or(corpus_name))?;
+    let graph = if node_name == corpus_name {
+        storage.corpus_graph(corpus_name)
+    } else {
+        storage.subgraph(corpus_name, vec![node_name.into()], 0, 0, None)
+    }?;
 
+    let node_id = node_name_to_node_id(&graph, node_name)?;
     anno::get_anno(&graph, node_id, anno_key)
 }
 

@@ -31,7 +31,7 @@ pub(crate) fn node_name_to_node_id(
         .get_node_annos()
         .get_node_id_from_name(node_name)
         .map_err(GraphAnnisError::from)
-        .and_then(|node_id| node_id.ok_or(GraphAnnisError::NoSuchNodeID(node_name.into())))
+        .and_then(|node_id| node_id.ok_or_else(|| GraphAnnisError::NoSuchNodeID(node_name.into())))
 }
 
 #[cfg(test)]

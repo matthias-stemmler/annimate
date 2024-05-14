@@ -6,7 +6,7 @@ use graphannis::corpusstorage::{QueryLanguage, ResultOrder, SearchQuery};
 use graphannis::errors::GraphAnnisError;
 use graphannis::model::AnnotationComponentType;
 use graphannis::AnnotationGraph;
-use graphannis_core::graph::{ANNIS_NS, DEFAULT_NS};
+use graphannis_core::graph::{ANNIS_NS, DEFAULT_NS, NODE_NAME};
 use graphannis_core::types::{AnnoKey, Component, NodeID};
 use itertools::Itertools;
 use serde::Serialize;
@@ -15,12 +15,15 @@ use crate::corpus::CorpusRef;
 use crate::error::AnnisExportError;
 use crate::node_name::node_name_to_node_id;
 
+pub(crate) const DOC: &str = "doc";
+pub(crate) const TOK: &str = "tok";
+
 pub(crate) fn token_anno_key() -> &'static AnnoKey {
     static ANNO_KEY: OnceLock<AnnoKey> = OnceLock::new();
 
     ANNO_KEY.get_or_init(|| AnnoKey {
         ns: ANNIS_NS.into(),
-        name: "tok".into(),
+        name: TOK.into(),
     })
 }
 
@@ -202,9 +205,7 @@ impl AnnoKeys {
 
         let doc_anno_keys = filter_anno_keys_by_query(
             corpus_ref,
-            all_anno_keys
-                .iter()
-                .filter(|anno_key| anno_key.name != "tok"),
+            all_anno_keys.iter().filter(|anno_key| anno_key.name != TOK),
             |anno_key| {
                 format!(
                     "annis:node_type=\"corpus\" _ident_ annis:doc _ident_ {}",
@@ -215,9 +216,7 @@ impl AnnoKeys {
 
         let mut node_anno_keys = filter_anno_keys_by_query(
             corpus_ref,
-            all_anno_keys
-                .iter()
-                .filter(|anno_key| anno_key.name != "tok"),
+            all_anno_keys.iter().filter(|anno_key| anno_key.name != TOK),
             |anno_key| {
                 format!(
                     "annis:node_type!=\"corpus\" _ident_ {}",
@@ -229,7 +228,7 @@ impl AnnoKeys {
         node_anno_keys.extend(
             all_anno_keys
                 .iter()
-                .filter(|anno_key| anno_key.name == "tok")
+                .filter(|anno_key| anno_key.name == TOK)
                 .cloned(),
         );
 
@@ -382,7 +381,11 @@ pub struct ExportableAnnoKey {
 }
 
 pub(crate) fn is_doc_anno_key(anno_key: &AnnoKey) -> bool {
-    anno_key.ns == ANNIS_NS && anno_key.name == "doc"
+    anno_key.ns == ANNIS_NS && anno_key.name == DOC
+}
+
+pub(crate) fn is_node_name_anno_key(anno_key: &AnnoKey) -> bool {
+    anno_key.ns == ANNIS_NS && anno_key.name == NODE_NAME
 }
 
 #[cfg(test)]
