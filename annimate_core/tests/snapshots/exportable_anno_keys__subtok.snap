@@ -91,6 +91,13 @@ ExportableAnnoKeys {
     node: [
         ExportableAnnoKey {
             anno_key: AnnoKey {
+                name: "description",
+                ns: "",
+            },
+            display_name: "description",
+        },
+        ExportableAnnoKey {
+            anno_key: AnnoKey {
                 name: "diplomatic",
                 ns: "structure",
             },
@@ -98,10 +105,24 @@ ExportableAnnoKeys {
         },
         ExportableAnnoKey {
             anno_key: AnnoKey {
+                name: "doc",
+                ns: "annis",
+            },
+            display_name: "doc",
+        },
+        ExportableAnnoKey {
+            anno_key: AnnoKey {
                 name: "file",
                 ns: "annis",
             },
             display_name: "file",
+        },
+        ExportableAnnoKey {
+            anno_key: AnnoKey {
+                name: "language",
+                ns: "",
+            },
+            display_name: "language",
         },
         ExportableAnnoKey {
             anno_key: AnnoKey {
@@ -161,10 +182,31 @@ ExportableAnnoKeys {
         },
         ExportableAnnoKey {
             anno_key: AnnoKey {
+                name: "project",
+                ns: "",
+            },
+            display_name: "project",
+        },
+        ExportableAnnoKey {
+            anno_key: AnnoKey {
+                name: "relannis-version",
+                ns: "annis",
+            },
+            display_name: "relannis-version",
+        },
+        ExportableAnnoKey {
+            anno_key: AnnoKey {
                 name: "rend",
                 ns: "structure",
             },
             display_name: "rend",
+        },
+        ExportableAnnoKey {
+            anno_key: AnnoKey {
+                name: "respStmt",
+                ns: "",
+            },
+            display_name: "respStmt",
         },
         ExportableAnnoKey {
             anno_key: AnnoKey {
@@ -179,6 +221,13 @@ ExportableAnnoKeys {
                 ns: "annis",
             },
             display_name: "tok-whitespace-after",
+        },
+        ExportableAnnoKey {
+            anno_key: AnnoKey {
+                name: "version",
+                ns: "",
+            },
+            display_name: "version",
         },
     ],
 }

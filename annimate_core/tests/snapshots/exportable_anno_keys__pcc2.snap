@@ -126,10 +126,24 @@ ExportableAnnoKeys {
     node: [
         ExportableAnnoKey {
             anno_key: AnnoKey {
+                name: "Dokumentname",
+                ns: "",
+            },
+            display_name: "Dokumentname",
+        },
+        ExportableAnnoKey {
+            anno_key: AnnoKey {
                 name: "Focus_newInf",
                 ns: "exmaralda",
             },
             display_name: "Focus_newInf",
+        },
+        ExportableAnnoKey {
+            anno_key: AnnoKey {
+                name: "Genre",
+                ns: "",
+            },
+            display_name: "Genre",
         },
         ExportableAnnoKey {
             anno_key: AnnoKey {
@@ -161,10 +175,24 @@ ExportableAnnoKeys {
         },
         ExportableAnnoKey {
             anno_key: AnnoKey {
+                name: "Titel",
+                ns: "",
+            },
+            display_name: "Titel",
+        },
+        ExportableAnnoKey {
+            anno_key: AnnoKey {
                 name: "Topic",
                 ns: "exmaralda",
             },
             display_name: "Topic",
+        },
+        ExportableAnnoKey {
+            anno_key: AnnoKey {
+                name: "URL",
+                ns: "",
+            },
+            display_name: "URL",
         },
         ExportableAnnoKey {
             anno_key: AnnoKey {
@@ -179,6 +207,20 @@ ExportableAnnoKeys {
                 ns: "mmax",
             },
             display_name: "anaphor_type",
+        },
+        ExportableAnnoKey {
+            anno_key: AnnoKey {
+                name: "annotation_description",
+                ns: "",
+            },
+            display_name: "annotation_description",
+        },
+        ExportableAnnoKey {
+            anno_key: AnnoKey {
+                name: "annotation_levels",
+                ns: "",
+            },
+            display_name: "annotation_levels",
         },
         ExportableAnnoKey {
             anno_key: AnnoKey {
@@ -203,10 +245,24 @@ ExportableAnnoKeys {
         },
         ExportableAnnoKey {
             anno_key: AnnoKey {
+                name: "doc",
+                ns: "annis",
+            },
+            display_name: "doc",
+        },
+        ExportableAnnoKey {
+            anno_key: AnnoKey {
                 name: "file",
                 ns: "annis",
             },
             display_name: "file",
+        },
+        ExportableAnnoKey {
+            anno_key: AnnoKey {
+                name: "full_name",
+                ns: "",
+            },
+            display_name: "full_name",
         },
         ExportableAnnoKey {
             anno_key: AnnoKey {
@@ -228,6 +284,13 @@ ExportableAnnoKeys {
                 ns: "rst",
             },
             display_name: "kind",
+        },
+        ExportableAnnoKey {
+            anno_key: AnnoKey {
+                name: "language",
+                ns: "",
+            },
+            display_name: "language",
         },
         ExportableAnnoKey {
             anno_key: AnnoKey {
@@ -301,10 +364,24 @@ ExportableAnnoKeys {
         },
         ExportableAnnoKey {
             anno_key: AnnoKey {
+                name: "relannis-version",
+                ns: "annis",
+            },
+            display_name: "relannis-version",
+        },
+        ExportableAnnoKey {
+            anno_key: AnnoKey {
                 name: "type",
                 ns: "rst",
             },
             display_name: "rst:type",
+        },
+        ExportableAnnoKey {
+            anno_key: AnnoKey {
+                name: "source",
+                ns: "",
+            },
+            display_name: "source",
         },
         ExportableAnnoKey {
             anno_key: AnnoKey {
@@ -319,6 +396,13 @@ ExportableAnnoKeys {
                 ns: "annis",
             },
             display_name: "tok-whitespace-after",
+        },
+        ExportableAnnoKey {
+            anno_key: AnnoKey {
+                name: "version",
+                ns: "",
+            },
+            display_name: "version",
         },
     ],
 }
