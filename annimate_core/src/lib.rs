@@ -324,7 +324,7 @@ impl Storage {
     where
         S: AsRef<str>,
     {
-        Ok(AnnoKeys::new(self.corpus_ref(corpus_names)).map(AnnoKeys::into_exportable)?)
+        AnnoKeys::new(self.corpus_ref(corpus_names)).map(AnnoKeys::into_exportable)
     }
 
     pub fn segmentations<S>(&self, corpus_names: &[S]) -> Result<Vec<String>, AnnisExportError>

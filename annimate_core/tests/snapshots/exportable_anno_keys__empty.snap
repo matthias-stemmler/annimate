@@ -1,0 +1,43 @@
+---
+source: annimate_core/tests/exportable_anno_keys.rs
+info:
+  corpus_paths:
+    - empty_graphml.zip
+  corpus_names:
+    - empty
+---
+ExportableAnnoKeys {
+    corpus: [
+        ExportableAnnoKey {
+            anno_key: AnnoKey {
+                name: "node_name",
+                ns: "annis",
+            },
+            display_name: "node_name",
+        },
+        ExportableAnnoKey {
+            anno_key: AnnoKey {
+                name: "node_type",
+                ns: "annis",
+            },
+            display_name: "node_type",
+        },
+    ],
+    doc: [],
+    node: [
+        ExportableAnnoKey {
+            anno_key: AnnoKey {
+                name: "node_name",
+                ns: "annis",
+            },
+            display_name: "node_name",
+        },
+        ExportableAnnoKey {
+            anno_key: AnnoKey {
+                name: "node_type",
+                ns: "annis",
+            },
+            display_name: "node_type",
+        },
+    ],
+}

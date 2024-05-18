@@ -27,17 +27,17 @@ macro_rules! exportable_anno_keys_test {
                 let _ = fs::remove_dir_all(&db_dir);
                 let storage = Storage::from_db_dir(db_dir).unwrap();
 
-                storage
-                    .import_corpora(
-                        test_data
-                            .corpus_paths
-                            .into_iter()
-                            .map(|p| Path::new(DATA_DIR).join(p))
-                            .collect(),
-                        |_| (),
-                        || false,
-                    )
-                    .unwrap();
+                // Import corpora through separate calls to avoid deduplication,
+                // enabling us to test exporting from corpora with fallback names
+                for corpus_path in test_data.corpus_paths {
+                    storage
+                        .import_corpora(
+                            vec![Path::new(DATA_DIR).join(corpus_path)],
+                            |_| (),
+                            || false,
+                        )
+                        .unwrap();
+                }
 
                 let exportable_anno_keys = storage
                     .exportable_anno_keys(test_data.corpus_names)
@@ -56,9 +56,17 @@ macro_rules! exportable_anno_keys_test {
 }
 
 exportable_anno_keys_test! {
+    empty: {
+        corpus_paths: ["empty_graphml.zip"],
+        corpus_names: ["empty"],
+    }
     subtok: {
         corpus_paths: ["subtok.demo_relANNIS.zip"],
         corpus_names: ["subtok.demo"],
+    }
+    subtok_conflicting_name: {
+        corpus_paths: ["subtok.demo_relANNIS.zip", "subtok.demo_relANNIS.zip"],
+        corpus_names: ["subtok.demo", "subtok.demo (1)"],
     }
     pcc2: {
         corpus_paths: ["pcc2_v7_relANNIS.zip"],

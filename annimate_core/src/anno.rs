@@ -14,7 +14,7 @@ use serde::Serialize;
 
 use crate::corpus::CorpusRef;
 use crate::error::AnnisExportError;
-use crate::node_name::node_name_to_node_id;
+use crate::node_name;
 
 pub(crate) const DOC: &str = "doc";
 pub(crate) const TOK: &str = "tok";
@@ -167,7 +167,7 @@ pub(crate) struct AnnoKeys {
 }
 
 impl AnnoKeys {
-    pub(crate) fn new<S>(corpus_ref: CorpusRef<S>) -> Result<Self, GraphAnnisError>
+    pub(crate) fn new<S>(corpus_ref: CorpusRef<S>) -> Result<Self, AnnisExportError>
     where
         S: AsRef<str>,
     {
@@ -187,15 +187,10 @@ impl AnnoKeys {
             );
 
             let graph = corpus_ref.storage.corpus_graph(corpus_name)?;
-            let corpus_node_id = node_name_to_node_id(&graph, corpus_name)?;
 
-            corpus_anno_keys.extend(
-                graph
-                    .get_node_annos()
-                    .get_all_keys_for_item(&corpus_node_id, None, None)?
-                    .into_iter()
-                    .map(|anno_key| (*anno_key).clone()),
-            );
+            // The node name of the corpus node likely but not necessarily equals the corpus name,
+            // so instead we extract it from the node name of *some* node as soon as we find one
+            let mut corpus_node_name = None;
 
             let doc_match_ids = corpus_ref.storage.find(
                 SearchQuery {
@@ -215,7 +210,14 @@ impl AnnoKeys {
                     continue;
                 };
 
-                let doc_node_id = node_name_to_node_id(&graph, &doc_node_name)?;
+                // If we don't know the corpus node name yet, extract it from this document's node
+                // name
+                if corpus_node_name.is_none() {
+                    corpus_node_name =
+                        Some(node_name::get_corpus_name(&doc_node_name)?.into_owned());
+                }
+
+                let doc_node_id = node_name::node_name_to_node_id(&graph, &doc_node_name)?;
                 doc_anno_keys.extend(
                     graph
                         .get_node_annos()
@@ -223,6 +225,45 @@ impl AnnoKeys {
                         .into_iter()
                         .map(|anno_key| (*anno_key).clone()),
                 )
+            }
+
+            // If we still don't know the corpus node name (in case there are no documents), search
+            // for the corpus node directly
+            if corpus_node_name.is_none() {
+                let corpus_match_ids = corpus_ref.storage.find(
+                    SearchQuery {
+                        corpus_names: &[corpus_name],
+                        query: "annis:node_type=\"corpus\"",
+                        query_language: QueryLanguage::AQL,
+                        timeout: None,
+                    },
+                    0,
+                    Some(1),
+                    ResultOrder::NotSorted,
+                )?;
+
+                if let Some(node_name) =
+                    corpus_match_ids
+                        .into_iter()
+                        .next()
+                        .and_then(|corpus_match_id| {
+                            node_names_from_match(&corpus_match_id).into_iter().next()
+                        })
+                {
+                    corpus_node_name = Some(node_name::get_corpus_name(&node_name)?.into_owned())
+                }
+            }
+
+            if let Some(corpus_node_name) = corpus_node_name {
+                let corpus_node_id = node_name::node_name_to_node_id(&graph, &corpus_node_name)?;
+
+                corpus_anno_keys.extend(
+                    graph
+                        .get_node_annos()
+                        .get_all_keys_for_item(&corpus_node_id, None, None)?
+                        .into_iter()
+                        .map(|anno_key| (*anno_key).clone()),
+                );
             }
         }
 

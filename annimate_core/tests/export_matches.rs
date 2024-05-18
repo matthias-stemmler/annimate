@@ -36,6 +36,7 @@ macro_rules! export_matches_test {
                     },
                     export_columns: {
                         use TestCsvExportColumn::*;
+                        #[allow(unused_imports)]
                         use TestExportData::*;
                         vec![$($export_columns,)*]
                     },
@@ -50,17 +51,17 @@ macro_rules! export_matches_test {
                 let output_file = Path::new(OUTPUT_DIR).join(concat!(stringify!($name), ".csv"));
                 let _ = fs::remove_file(&output_file);
 
-                storage
-                    .import_corpora(
-                        test_data
-                            .corpus_paths
-                            .into_iter()
-                            .map(|p| Path::new(DATA_DIR).join(p))
-                            .collect(),
-                        |_| (),
-                        || false,
-                    )
-                    .unwrap();
+                // Import corpora through separate calls to avoid deduplication,
+                // enabling us to test exporting from corpora with fallback names
+                for corpus_path in test_data.corpus_paths {
+                    storage
+                        .import_corpora(
+                            vec![Path::new(DATA_DIR).join(corpus_path)],
+                            |_| (),
+                            || false,
+                        )
+                        .unwrap();
+                }
 
                 storage
                     .export_matches(
@@ -98,6 +99,15 @@ macro_rules! export_matches_test {
 }
 
 export_matches_test! {
+    empty: {
+        corpus_paths: ["empty_graphml.zip"],
+        corpus_names: ["empty"],
+        aql_query: "doc",
+        query_language: AQL,
+        export_columns: [
+            Number,
+        ],
+    }
     subtok_annos: {
         corpus_paths: ["subtok.demo_relANNIS.zip"],
         corpus_names: ["subtok.demo"],
@@ -270,6 +280,25 @@ export_matches_test! {
                 right_context: 1,
                 segmentation: Some("diplomatic"),
                 primary_node_indices: None,
+            })),
+        ],
+    }
+    subtok_conflicting_name: {
+        corpus_paths: ["subtok.demo_relANNIS.zip", "subtok.demo_relANNIS.zip"],
+        corpus_names: ["subtok.demo", "subtok.demo (1)"],
+        aql_query: "tok",
+        query_language: AQL,
+        export_columns: [
+            Number,
+            Data(Anno(TestExportDataAnno::Corpus {
+                anno_key: ("annis", "node_name"),
+            })),
+            Data(Anno(TestExportDataAnno::Document {
+                anno_key: ("annis", "node_name"),
+            })),
+            Data(Anno(TestExportDataAnno::MatchNode {
+                anno_key: ("annis", "node_name"),
+                index: 0,
             })),
         ],
     }

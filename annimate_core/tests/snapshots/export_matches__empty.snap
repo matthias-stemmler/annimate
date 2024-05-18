@@ -1,0 +1,13 @@
+---
+source: annimate_core/tests/export_matches.rs
+info:
+  corpus_paths:
+    - empty_graphml.zip
+  corpus_names:
+    - empty
+  aql_query: doc
+  query_language: AQL
+  export_columns:
+    - Number
+---
+Number
