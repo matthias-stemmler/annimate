@@ -23,107 +23,111 @@ export const ExportTrigger = () => {
   } = useExportMatches();
   const { toast } = useToast();
 
-  return isExporting ? (
-    <div className="flex items-end gap-8 mt-2 mb-1">
-      <div className="grow">
-        <div className="flex justify-between mb-1">
-          <p>
-            {matchCount === undefined
-              ? 'Searching ...'
-              : `Exporting ${matchCount} match${matchCount === 1 ? '' : 'es'} ...`}
-          </p>
+  return (
+    <div className="pr-1">
+      {isExporting ? (
+        <div className="flex items-end gap-8 mt-2 mb-1">
+          <div className="grow">
+            <div className="flex justify-between mb-1">
+              <p>
+                {matchCount === undefined
+                  ? 'Searching ...'
+                  : `Exporting ${matchCount} match${matchCount === 1 ? '' : 'es'} ...`}
+              </p>
 
-          {progress !== undefined && (
-            <p className="w-0 grow truncate text-right">
-              {formatPercentage(progress)}
-            </p>
-          )}
+              {progress !== undefined && (
+                <p className="w-0 grow truncate text-right">
+                  {formatPercentage(progress)}
+                </p>
+              )}
+            </div>
+
+            <Progress value={Math.round((progress ?? 0) * 100)} />
+          </div>
+
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                className="h-8 w-8 p-0"
+                disabled={cancelRequested}
+                onClick={requestCancel}
+                variant="destructive"
+              >
+                {cancelRequested ? (
+                  <Hourglass className="h-4 w-4" />
+                ) : (
+                  <X className="h-4 w-4" />
+                )}
+              </Button>
+            </TooltipTrigger>
+
+            <TooltipContent>Stop export</TooltipContent>
+          </Tooltip>
         </div>
+      ) : (
+        <Button
+          className="w-full mt-4"
+          disabled={!canExport}
+          onClick={async () => {
+            const outputFile = await save({
+              filters: [
+                { name: 'Comma-separated values (*.csv)', extensions: ['csv'] },
+              ],
+              title: 'Export to file',
+            });
+            if (outputFile !== null) {
+              exportMatches(
+                { outputFile },
+                {
+                  onError: (error: CancellableOperationError) => {
+                    if (!error.cancelled) {
+                      toast({
+                        className: 'break-all',
+                        description: error.message,
+                        duration: 15000,
+                        title: 'Export failed',
+                        variant: 'destructive',
+                      });
+                    }
+                  },
+                  onSuccess: (_, { outputFile }) => {
+                    toast({
+                      description: (
+                        <div className="flex gap-8">
+                          <Button
+                            className="px-0"
+                            onClick={async () =>
+                              shellOpen(await dirname(outputFile))
+                            }
+                            variant="link"
+                          >
+                            <Folder className="h-4 w-4 mr-2" />
+                            Open folder
+                          </Button>
 
-        <Progress value={Math.round((progress ?? 0) * 100)} />
-      </div>
-
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Button
-            className="h-8 w-8 p-0"
-            disabled={cancelRequested}
-            onClick={requestCancel}
-            variant="destructive"
-          >
-            {cancelRequested ? (
-              <Hourglass className="h-4 w-4" />
-            ) : (
-              <X className="h-4 w-4" />
-            )}
-          </Button>
-        </TooltipTrigger>
-
-        <TooltipContent>Stop export</TooltipContent>
-      </Tooltip>
+                          <Button
+                            className="px-0"
+                            onClick={() => shellOpen(outputFile)}
+                            variant="link"
+                          >
+                            <File className="h-4 w-4 mr-2" />
+                            Open file
+                          </Button>
+                        </div>
+                      ),
+                      duration: 60000,
+                      title: 'Export finished',
+                      variant: 'success',
+                    });
+                  },
+                },
+              );
+            }
+          }}
+        >
+          Export to &hellip;
+        </Button>
+      )}
     </div>
-  ) : (
-    <Button
-      className="w-full mt-4"
-      disabled={!canExport}
-      onClick={async () => {
-        const outputFile = await save({
-          filters: [
-            { name: 'Comma-separated values (*.csv)', extensions: ['csv'] },
-          ],
-          title: 'Export to file',
-        });
-        if (outputFile !== null) {
-          exportMatches(
-            { outputFile },
-            {
-              onError: (error: CancellableOperationError) => {
-                if (!error.cancelled) {
-                  toast({
-                    className: 'break-all',
-                    description: error.message,
-                    duration: 15000,
-                    title: 'Export failed',
-                    variant: 'destructive',
-                  });
-                }
-              },
-              onSuccess: (_, { outputFile }) => {
-                toast({
-                  description: (
-                    <div className="flex gap-8">
-                      <Button
-                        className="px-0"
-                        onClick={async () =>
-                          shellOpen(await dirname(outputFile))
-                        }
-                        variant="link"
-                      >
-                        <Folder className="h-4 w-4 mr-2" />
-                        Open folder
-                      </Button>
-
-                      <Button
-                        className="px-0"
-                        onClick={() => shellOpen(outputFile)}
-                        variant="link"
-                      >
-                        <File className="h-4 w-4 mr-2" />
-                        Open file
-                      </Button>
-                    </div>
-                  ),
-                  duration: 60000,
-                  title: 'Export finished',
-                  variant: 'success',
-                });
-              },
-            },
-          );
-        }
-      }}
-    >
-      Export to &hellip;
-    </Button>
   );
 };

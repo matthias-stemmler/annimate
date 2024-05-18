@@ -58,7 +58,7 @@ export const ExportColumnList: FC = () => {
   const { toast } = useToast();
 
   return (
-    <div className="flex-1 overflow-hidden pt-1 flex flex-col gap-2">
+    <div className="flex-1 overflow-hidden pt-1 pr-1 flex flex-col gap-2">
       <div className="flex justify-between items-end">
         <Label className="mr-2 mb-2">Columns</Label>
 
@@ -69,7 +69,7 @@ export const ExportColumnList: FC = () => {
             </Button>
           </DropdownMenuTrigger>
 
-          <DropdownMenuContent>
+          <DropdownMenuContent className="mr-1">
             {(
               [
                 'anno_corpus',

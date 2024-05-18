@@ -48,7 +48,7 @@ export const QueryInput: FC = () => {
   return (
     <div className="h-full flex flex-col gap-2">
       <div className="flex justify-between items-end">
-        <Label className="mr-2 mb-2" htmlFor={textAreaId}>
+        <Label className="mr-2 mb-2" htmlFor={textAreaId} spellCheck={false}>
           Query
         </Label>
 
@@ -74,7 +74,10 @@ export const QueryInput: FC = () => {
           )}
           disabled={disabled}
           id={textAreaId}
-          onChange={(event) => setAqlQuery(event.target.value)}
+          onChange={(event) => {
+            // Remove left-to-right mark that is included before quotation marks when copy-pasting from the ANNIS web UI
+            setAqlQuery(event.target.value.replace('\u200e', ''));
+          }}
           placeholder="Enter AQL query"
           ref={textAreaRef}
           value={aqlQuery}
