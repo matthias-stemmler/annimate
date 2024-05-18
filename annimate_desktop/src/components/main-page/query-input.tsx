@@ -48,7 +48,7 @@ export const QueryInput: FC = () => {
   return (
     <div className="h-full flex flex-col gap-2">
       <div className="flex justify-between items-end">
-        <Label className="mr-2 mb-2" htmlFor={textAreaId} spellCheck={false}>
+        <Label className="mr-2 mb-2" htmlFor={textAreaId}>
           Query
         </Label>
 
@@ -66,6 +66,9 @@ export const QueryInput: FC = () => {
 
       <div className="relative grow">
         <Textarea
+          autoCapitalize="off"
+          autoComplete="off"
+          autoCorrect="off"
           className={cn(
             'font-mono h-full pr-9 resize-none focus:bg-background dark:focus:bg-background',
             {
@@ -79,6 +82,7 @@ export const QueryInput: FC = () => {
             setAqlQuery(event.target.value.replace('\u200e', ''));
           }}
           placeholder="Enter AQL query"
+          spellCheck={false}
           ref={textAreaRef}
           value={aqlQuery}
         />
