@@ -57,16 +57,6 @@ pub struct ExportDataText {
     pub primary_node_indices: Option<Vec<usize>>,
 }
 
-impl ExportDataText {
-    pub(crate) fn has_left_context(&self) -> bool {
-        self.left_context > 0
-    }
-
-    pub(crate) fn has_right_context(&self) -> bool {
-        self.right_context > 0
-    }
-}
-
 #[derive(Debug, Clone)]
 pub(crate) struct Match {
     pub(crate) annos: HashMap<ExportDataAnno, String>,

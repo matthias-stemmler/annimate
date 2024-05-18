@@ -130,7 +130,7 @@ impl Exporter for CsvExporter {
             }
             CsvExportColumn::Data(ExportData::Text(text)) => {
                 let max_match_parts = *max_match_parts_by_text.get(text).unwrap_or(&0);
-                let column_types = ColumnTypes::new(max_match_parts, text);
+                let column_types = ColumnTypes::new(max_match_parts, query_nodes.len(), text);
 
                 column_types
                     .into_iter()
@@ -141,7 +141,9 @@ impl Exporter for CsvExporter {
                                 (Match, _) if max_match_parts <= 1 => "Match".into(),
                                 (Match, i) => format!("Match {}", i + 1),
                                 (Context, 0) if max_match_parts == 0 => "Context".into(),
-                                (Context, 0) if max_match_parts == 1 && text.has_left_context() => {
+                                (Context, 0)
+                                    if max_match_parts == 1 && column_types.has_left_context() =>
+                                {
                                     "Left context".into()
                                 }
                                 (Context, _) if max_match_parts == 1 => "Right context".into(),
@@ -168,7 +170,7 @@ impl Exporter for CsvExporter {
                 CsvExportColumn::Data(ExportData::Text(text)) => {
                     let max_match_parts = *max_match_parts_by_text.get(text).unwrap();
                     let parts = texts.get(text).unwrap().clone();
-                    let column_types = ColumnTypes::new(max_match_parts, text);
+                    let column_types = ColumnTypes::new(max_match_parts, query_nodes.len(), text);
                     TextColumnsAligned::new(parts, column_types).collect()
                 }
             }))?;
@@ -277,10 +279,14 @@ struct ColumnTypes {
 }
 
 impl ColumnTypes {
-    fn new(match_count: usize, data: &ExportDataText) -> Self {
+    fn new(match_count: usize, query_node_count: usize, data: &ExportDataText) -> Self {
         let has_match = match_count > 0;
-        let has_left_context = data.has_left_context();
-        let has_right_context = data.has_right_context();
+        let has_secondary_nodes = match &data.primary_node_indices {
+            Some(indices) => (0..query_node_count).any(|i| !indices.contains(&i)),
+            None => false,
+        };
+        let has_left_context = data.left_context > 0 || has_secondary_nodes;
+        let has_right_context = data.right_context > 0 || has_secondary_nodes;
 
         let column_count = match (match_count, has_left_context, has_right_context) {
             (0, false, false) => 0,
@@ -296,6 +302,10 @@ impl ColumnTypes {
             has_left_context,
             has_right_context,
         }
+    }
+
+    fn has_left_context(&self) -> bool {
+        self.has_left_context
     }
 }
 

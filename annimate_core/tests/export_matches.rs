@@ -323,6 +323,33 @@ export_matches_test! {
             })),
         ],
     }
+    pcc2_no_context: {
+        corpus_paths: ["pcc2_v7_relANNIS.zip"],
+        corpus_names: ["pcc2"],
+        aql_query: "Sent _i_ NP",
+        query_language: AQL,
+        export_columns: [
+            Number,
+            Data(Text(TestExportDataText {
+                left_context: 0,
+                right_context: 0,
+                segmentation: None,
+                primary_node_indices: Some(&[]),
+            })),
+            Data(Text(TestExportDataText {
+                left_context: 0,
+                right_context: 0,
+                segmentation: None,
+                primary_node_indices: Some(&[1]),
+            })),
+            Data(Text(TestExportDataText {
+                left_context: 0,
+                right_context: 0,
+                segmentation: None,
+                primary_node_indices: Some(&[0, 1]),
+            })),
+        ],
+    }
 }
 
 #[test]
