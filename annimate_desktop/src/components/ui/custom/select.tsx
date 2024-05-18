@@ -1,6 +1,8 @@
 import {
   SelectContent,
+  SelectGroup,
   SelectItem,
+  SelectLabel,
   SelectTrigger,
   Select as SelectUi,
   SelectValue,
@@ -16,13 +18,19 @@ export type SelectProps<T> = Omit<
   id?: string;
   loading?: boolean;
   onChange?: (value: T) => void;
-  options: SelectOption<T>[];
+  options: SelectOption<T>[] | SelectOptionGroup<T>[];
   value?: T;
 };
 
 export type SelectOption<T> = {
   caption: ReactNode;
   value: T;
+};
+
+export type SelectOptionGroup<T> = {
+  groupCaption?: ReactNode;
+  groupItems: SelectOption<T>[];
+  groupKey: string;
 };
 
 export const Select = <T extends string>({
@@ -35,13 +43,17 @@ export const Select = <T extends string>({
   value,
   ...triggerProps
 }: SelectProps<T>) => {
+  const allOptions = options.flatMap((optionOrGroup) =>
+    'groupKey' in optionOrGroup ? optionOrGroup.groupItems : [optionOrGroup],
+  );
+
   const placeholder =
     (loading && 'Loading ...') ||
-    (options.length === 0 && 'No options available');
+    (allOptions.length === 0 && 'No options available');
 
   return (
     <SelectUi
-      disabled={disabled || loading || options.length === 0}
+      disabled={disabled || loading || allOptions.length === 0}
       onValueChange={onChange}
       value={value ?? ''}
     >
@@ -56,19 +68,49 @@ export const Select = <T extends string>({
           children={
             value === undefined
               ? placeholder
-              : options.find((o) => o.value === value)?.caption
+              : allOptions.find((option) => option.value === value)?.caption
           }
           placeholder={placeholder}
         />
       </SelectTrigger>
 
       <SelectContent>
-        {options.map(({ caption, value }) => (
-          <SelectItem key={value} className={'max-w-[80vw]'} value={value}>
-            {caption}
-          </SelectItem>
-        ))}
+        {options.map((optionOrGroup) => {
+          if ('groupKey' in optionOrGroup) {
+            const { groupCaption, groupItems, groupKey } = optionOrGroup;
+
+            return (
+              <SelectGroup key={groupKey} className="mt-4 first:mt-0">
+                {groupCaption === undefined ? null : (
+                  <SelectLabel>{groupCaption}</SelectLabel>
+                )}
+                {groupItems.map((option) => (
+                  <SelectOptionDisplay key={option.value} option={option} />
+                ))}
+              </SelectGroup>
+            );
+          }
+
+          return (
+            <SelectOptionDisplay
+              key={optionOrGroup.value}
+              option={optionOrGroup}
+            />
+          );
+        })}
       </SelectContent>
     </SelectUi>
   );
 };
+
+type SelectOptionDisplayProps<T> = {
+  option: SelectOption<T>;
+};
+
+const SelectOptionDisplay = <T extends string>({
+  option,
+}: SelectOptionDisplayProps<T>) => (
+  <SelectItem className="max-w-[80vw]" value={option.value}>
+    {option.caption}
+  </SelectItem>
+);
