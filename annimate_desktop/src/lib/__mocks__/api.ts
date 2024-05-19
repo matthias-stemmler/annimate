@@ -101,10 +101,7 @@ const IMPORT_CORPORA: MockImportCorpus[] = [
     },
     result: {
       type: 'imported',
-      corpus: {
-        importedName: 'New RelANNIS corpus',
-        conflictingName: null,
-      },
+      name: 'New RelANNIS corpus',
     },
   },
   {
@@ -130,34 +127,6 @@ const IMPORT_CORPORA: MockImportCorpus[] = [
     },
   },
   {
-    corpusName: CORPUS_NORMAL,
-    importCorpus: {
-      fileName: '/path/to/normal_corpus',
-      format: 'RelANNIS',
-      trace: [
-        {
-          kind: { type: 'archive' },
-          path: '/path/to/corpora.zip',
-        },
-        {
-          kind: { type: 'archive' },
-          path: '/path/to/corpora_inner.zip',
-        },
-        {
-          kind: { type: 'corpus', format: 'RelANNIS' },
-          path: '/path/to/normal_corpus',
-        },
-      ],
-    },
-    result: {
-      type: 'imported',
-      corpus: {
-        importedName: 'Normal corpus (1)',
-        conflictingName: 'Normal corpus',
-      },
-    },
-  },
-  {
     corpusName: 'New GraphML corpus',
     importCorpus: {
       fileName: '/path/to/new_graphml_corpus.graphml',
@@ -175,10 +144,7 @@ const IMPORT_CORPORA: MockImportCorpus[] = [
     },
     result: {
       type: 'imported',
-      corpus: {
-        importedName: 'New GraphML corpus',
-        conflictingName: null,
-      },
+      name: 'New GraphML corpus',
     },
   },
 ];
@@ -584,8 +550,8 @@ export const importCorpora = async (params: {
       });
 
       if (result.type === 'imported') {
-        corpusNames.push(result.corpus.importedName);
-        importedCorpusNames.push(result.corpus.importedName);
+        corpusNames.push(result.name);
+        importedCorpusNames.push(result.name);
       }
     }
 

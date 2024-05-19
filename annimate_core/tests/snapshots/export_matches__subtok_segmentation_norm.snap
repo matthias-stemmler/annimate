@@ -39,4 +39,3 @@ Number,Corpus language,Document,#1 lemma,Left context (norm),Match (norm),Right 
 1,English,subtok.demo.doc01,This,,This,is an example of
 2,English,subtok.demo.doc01,a,This is,an,example of a subtokenized
 3,English,subtok.demo.doc01,a,is an example of,a,subtokenized corpus .
-

@@ -44,4 +44,3 @@ info:
 ---
 Number,Corpus language,Document,#1 lemma,#2 lemma,Context 1 (tokens),Match 1 (tokens),Context 2 (tokens),Match 2 (tokens),Context 3 (tokens)
 1,English,subtok.demo.doc01,This,a,,T his,is (...) of,a,sub-
-

@@ -373,6 +373,7 @@ impl<S> MatchesPage<'_, S> {
             .first()
             .ok_or(AnnisExportError::MatchWithoutNodes)?;
 
+        // This is the name of the corpus node, but we assume that the corpus name is the same
         let corpus_name = node_name::get_corpus_name(first_node_name)?;
         let doc_name = node_name::get_doc_name(first_node_name);
 

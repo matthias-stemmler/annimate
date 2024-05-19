@@ -31,7 +31,6 @@ pub use error::AnnisExportError;
 pub use format::{CsvExportColumn, CsvExportConfig, ExportFormat};
 pub use graphannis::corpusstorage::CorpusInfo;
 pub use graphannis::graph::AnnoKey;
-pub use import::ImportedCorpus;
 pub use query::{ExportData, ExportDataAnno, ExportDataText, QueryLanguage};
 pub use version::{VersionInfo, VERSION_INFO};
 
@@ -146,13 +145,13 @@ impl Storage {
             );
 
             match result {
-                Ok(imported_corpus) => {
-                    imported_corpus_names.push(imported_corpus.imported_name.clone());
+                Ok(imported_corpus_name) => {
+                    imported_corpus_names.push(imported_corpus_name.clone());
 
                     on_status(ImportStatusEvent::CorpusImportFinished {
                         index,
                         result: ImportCorpusResult::Imported {
-                            corpus: imported_corpus,
+                            name: imported_corpus_name,
                         },
                     });
                 }
@@ -475,6 +474,6 @@ impl From<&ImportableCorpus> for ImportCorpus {
 #[serde(rename_all = "snake_case")]
 #[serde(rename_all_fields = "camelCase")]
 pub enum ImportCorpusResult {
-    Imported { corpus: ImportedCorpus },
+    Imported { name: String },
     Failed { message: String, cancelled: bool },
 }

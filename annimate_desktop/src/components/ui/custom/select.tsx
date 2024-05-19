@@ -80,14 +80,16 @@ export const Select = <T extends string>({
             const { groupCaption, groupItems, groupKey } = optionOrGroup;
 
             return (
-              <SelectGroup key={groupKey} className="mt-4 first:mt-0">
-                {groupCaption === undefined ? null : (
-                  <SelectLabel>{groupCaption}</SelectLabel>
-                )}
-                {groupItems.map((option) => (
-                  <SelectOptionDisplay key={option.value} option={option} />
-                ))}
-              </SelectGroup>
+              groupItems.length > 0 && (
+                <SelectGroup key={groupKey} className="mt-4 first:mt-0">
+                  {groupCaption === undefined ? null : (
+                    <SelectLabel>{groupCaption}</SelectLabel>
+                  )}
+                  {groupItems.map((option) => (
+                    <SelectOptionDisplay key={option.value} option={option} />
+                  ))}
+                </SelectGroup>
+              )
             );
           }
 

@@ -17,6 +17,16 @@ source: annimate_core/tests/import.rs
             type: corpus
             format: RelANNIS
           path: "[path]"
+    - fileName: empty.graphml
+      format: GraphML
+      trace:
+        - kind:
+            type: archive
+          path: "[path]"
+        - kind:
+            type: corpus
+            format: GraphML
+          path: "[path]"
     - fileName: subtok.demo3_relANNIS
       format: RelANNIS
       trace:
@@ -30,49 +40,31 @@ source: annimate_core/tests/import.rs
             type: corpus
             format: RelANNIS
           path: "[path]"
-    - fileName: subtok.demo.graphml
-      format: GraphML
-      trace:
-        - kind:
-            type: archive
-          path: "[path]"
-        - kind:
-            type: corpus
-            format: GraphML
-          path: "[path]"
 - type: corpus_import_started
   index: 0
 - type: corpus_import_finished
   index: 0
   result:
     type: imported
-    corpus:
-      importedName: subtok.demo
-      conflictingName: ~
+    name: subtok.demo
 - type: corpus_import_started
   index: 1
 - type: corpus_import_finished
   index: 1
   result:
     type: imported
-    corpus:
-      importedName: subtok.demo2
-      conflictingName: ~
+    name: subtok.demo2
 - type: corpus_import_started
   index: 2
 - type: corpus_import_finished
   index: 2
   result:
     type: imported
-    corpus:
-      importedName: subtok.demo3
-      conflictingName: ~
+    name: empty
 - type: corpus_import_started
   index: 3
 - type: corpus_import_finished
   index: 3
   result:
     type: imported
-    corpus:
-      importedName: subtok.demo (1)
-      conflictingName: subtok.demo
+    name: subtok.demo3

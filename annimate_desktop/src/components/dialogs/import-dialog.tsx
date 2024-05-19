@@ -43,7 +43,6 @@ import {
   Folder,
   Hourglass,
   Package,
-  TriangleAlert,
   X,
   XCircle,
 } from 'lucide-react';
@@ -548,29 +547,9 @@ const CorpusStatusDisplay: FC<CorpusStatusDisplayProps> = ({
             <span className="truncate">
               {corpusStatus.type === 'finished' &&
               corpusStatus.result.type === 'imported'
-                ? corpusStatus.result.corpus.importedName
+                ? corpusStatus.result.name
                 : corpusStatus.importCorpus.fileName}
             </span>
-
-            {corpusStatus.type === 'finished' &&
-              corpusStatus.result.type === 'imported' &&
-              corpusStatus.result.corpus.conflictingName && (
-                <Tooltip delayDuration={0}>
-                  <TooltipTrigger
-                    asChild
-                    className="outline-none"
-                    tabIndex={-1}
-                  >
-                    <TriangleAlert className="h-4 w-4 ml-2 inline fill-yellow-200 dark:text-yellow-800" />
-                  </TooltipTrigger>
-
-                  <TooltipContent className="max-w-[80vw]">
-                    Corpus with name &ldquo;
-                    {corpusStatus.result.corpus.conflictingName}
-                    &rdquo; already existed
-                  </TooltipContent>
-                </Tooltip>
-              )}
           </div>
 
           <ChevronsUpDown className="h-4 w-4 ml-2" />

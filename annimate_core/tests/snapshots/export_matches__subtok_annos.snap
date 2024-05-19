@@ -34,4 +34,3 @@ info:
 Number,#1|#2 tok,#1|#2 norm,#1|#2 line
 1,subtokenized,subtokenized,1
 2,tokenized,subtokenized,2
-

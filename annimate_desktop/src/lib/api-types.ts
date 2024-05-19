@@ -140,12 +140,7 @@ export type FilesystemEntityKind =
   | { type: 'corpus'; format: ImportFormat };
 
 export type ImportCorpusResult =
-  | { type: 'imported'; corpus: ImportedCorpus }
+  | { type: 'imported'; name: string }
   | { type: 'failed'; message: string; cancelled: boolean };
-
-export type ImportedCorpus = {
-  importedName: string;
-  conflictingName: string | null;
-};
 
 export type UnlistenFn = () => void;

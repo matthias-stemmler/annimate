@@ -5,7 +5,6 @@ use std::io;
 use std::path::{Path, PathBuf};
 use std::rc::Rc;
 
-use graphannis::errors::GraphAnnisError;
 use itertools::Itertools;
 use serde::Serialize;
 use tempfile::TempDir;
@@ -326,7 +325,7 @@ pub(crate) fn import_corpus<F, G, H>(
     on_started: F,
     on_progress: G,
     cancel_requested: H,
-) -> Result<ImportedCorpus, AnnisExportError>
+) -> Result<String, AnnisExportError>
 where
     F: Fn(),
     G: Fn(&str),
@@ -336,84 +335,22 @@ where
 
     on_started();
 
-    let import = |name| {
-        storage.import_from_fs(
-            corpus.path.as_ref(),
-            corpus.format.into(),
-            name,
-            false,
-            false,
-            &on_progress,
-        )
-    };
-
     on_progress(&format!(
         "importing {} corpus from {}",
         corpus.format,
         corpus.path.as_ref().display(),
     ));
 
-    let conflicting_name = match import(None) {
-        Ok(imported_name) => {
-            on_progress(&format!("done importing corpus {imported_name}"));
+    let name = storage.import_from_fs(
+        corpus.path.as_ref(),
+        corpus.format.into(),
+        None,
+        false,
+        false,
+        &on_progress,
+    )?;
 
-            return Ok(ImportedCorpus {
-                imported_name,
-                conflicting_name: None,
-            });
-        }
+    on_progress(&format!("done importing corpus {name}"));
 
-        Err(GraphAnnisError::CorpusExists(conflicting_name)) => conflicting_name,
-
-        Err(err) => return Err(err.into()),
-    };
-
-    cancel_if(&cancel_requested)?;
-
-    let corpus_infos = storage.list()?;
-
-    let fallback_name = match (1..)
-        .map(|i| format!("{conflicting_name} ({i})"))
-        .find(|name| corpus_infos.iter().all(|c| &c.name != name))
-    {
-        Some(name) => {
-            on_progress(&format!(
-                "corpus {conflicting_name} already exists, using fallback name {name}",
-            ));
-
-            name
-        }
-        None => {
-            on_progress(&format!(
-                "corpus {conflicting_name} already exists, cannot find fallback name",
-            ));
-
-            return Err(GraphAnnisError::CorpusExists(conflicting_name).into());
-        }
-    };
-
-    match import(Some(fallback_name.clone())) {
-        Ok(imported_name) => {
-            on_progress(&format!("done importing corpus {imported_name}"));
-
-            Ok(ImportedCorpus {
-                imported_name,
-                conflicting_name: Some(conflicting_name),
-            })
-        }
-
-        Err(GraphAnnisError::CorpusExists(_)) => {
-            on_progress(&format!("corpus {fallback_name} already exists"));
-            Err(GraphAnnisError::CorpusExists(conflicting_name).into())
-        }
-
-        Err(err) => Err(err.into()),
-    }
-}
-
-#[derive(Clone, Debug, Serialize)]
-#[serde(rename_all = "camelCase")]
-pub struct ImportedCorpus {
-    pub(crate) imported_name: String,
-    pub(crate) conflicting_name: Option<String>,
+    Ok(name)
 }

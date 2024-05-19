@@ -55,7 +55,7 @@ fn import() {
 // └── test_dir/                             # Directory
 //    ├── subtok.demo2_relANNIS/             # Corpus 2 subtok.demo2 (RelANNIS)
 //    └── test_zip.zip                       # ZIP file
-//        ├── subtok.demo.graphml            # Corpus 3 subtok.demo (GraphML, name conflict with corpus 1)
+//        ├── empty.graphml                  # Corpus 3 empty (GraphML)
 //        └── test_dir_in_zip/               # Directory in ZIP file
 //            └── subtok.demo3_relANNIS.zip  # ZIP file in ZIP file
 //                └── subtok.demo3_relANNIS/ # Corpus 4 subtok.demo3 (RelANNIS)
@@ -91,7 +91,7 @@ where
 
     zip_writer
         .start_file(
-            "subtok.demo.graphml",
+            "empty.graphml",
             SimpleFileOptions::default().compression_method(CompressionMethod::Stored),
         )
         .unwrap();
@@ -99,12 +99,12 @@ where
     let tempdir_graphml = tempfile::tempdir().unwrap();
 
     extract_zip(
-        Path::new(DATA_DIR).join("subtok.demo_graphml.zip"),
+        Path::new(DATA_DIR).join("empty_graphml.zip"),
         &tempdir_graphml,
     );
 
     io::copy(
-        &mut File::open(tempdir_graphml.path().join("subtok.demo.graphml")).unwrap(),
+        &mut File::open(tempdir_graphml.path().join("empty.graphml")).unwrap(),
         &mut zip_writer,
     )
     .unwrap();

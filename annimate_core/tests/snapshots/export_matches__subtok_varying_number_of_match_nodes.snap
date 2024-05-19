@@ -46,4 +46,3 @@ Number,Corpus language,Document,#1|#3 pos,#2 pos,Context 1 (tokens),Match 1 (tok
 1,English,subtok.demo.doc01,DT,DT,,T his,is (...) of,a,sub-
 2,English,subtok.demo.doc01,NN,,an,example,of,,
 3,English,subtok.demo.doc01,NN,,tokenized,corpus,.,,
-

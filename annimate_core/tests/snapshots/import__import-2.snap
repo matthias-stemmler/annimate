@@ -4,11 +4,11 @@ source: annimate_core/tests/import.rs
 Corpora {
     corpora: [
         Corpus {
-            name: "subtok.demo",
+            name: "empty",
             included_in_sets: [],
         },
         Corpus {
-            name: "subtok.demo (1)",
+            name: "subtok.demo",
             included_in_sets: [],
         },
         Corpus {

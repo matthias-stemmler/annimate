@@ -39,4 +39,3 @@ Number,Corpus language,Document,#1 lemma,Left context (diplomatic),Match (diplom
 1,English,subtok.demo.doc01,This,,T his,is an example of
 2,English,subtok.demo.doc01,a,T his is,an,example of a ſub⸗
 3,English,subtok.demo.doc01,a,is an example of,a,ſub⸗ tokenized corpus .
-
