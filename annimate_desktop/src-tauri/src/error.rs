@@ -1,4 +1,4 @@
-use std::env;
+use std::io;
 
 use annimate_core::AnnisExportError;
 use serde::Serialize;
@@ -27,8 +27,8 @@ impl From<tauri::Error> for Error {
     }
 }
 
-impl From<env::VarError> for Error {
-    fn from(err: env::VarError) -> Self {
+impl From<io::Error> for Error {
+    fn from(err: io::Error) -> Self {
         Self {
             message: err.to_string(),
             cancelled: false,

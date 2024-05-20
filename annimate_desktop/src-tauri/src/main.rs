@@ -3,18 +3,16 @@
 mod api;
 mod error;
 mod slot;
+mod state;
 
 use std::env;
-use std::sync::Arc;
 
-use annimate_core::Storage;
-use api::State;
-use error::Error;
+use state::AppState;
 use tauri::Manager;
 
 fn main() {
     tauri::Builder::default()
-        .manage(State::default())
+        .manage(AppState::default())
         .invoke_handler(tauri::generate_handler![
             api::add_corpora_to_set,
             api::create_corpus_set,
@@ -22,6 +20,7 @@ fn main() {
             api::delete_corpus_set,
             api::export_matches,
             api::get_corpora,
+            api::get_db_dir,
             api::get_exportable_anno_keys,
             api::get_query_nodes,
             api::get_segmentations,
@@ -31,12 +30,7 @@ fn main() {
             api::validate_query
         ])
         .setup(|app| {
-            let storage_slot = Arc::clone(&app.state::<State>().storage_slot);
-
-            tauri::async_runtime::spawn_blocking(move || {
-                storage_slot.set(create_storage().map(Arc::new));
-            });
-
+            app.state::<AppState>().init(app.handle());
             Ok(())
         })
         .on_page_load(|window, _| {
@@ -51,10 +45,4 @@ fn main() {
         })
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
-}
-
-fn create_storage() -> Result<Storage, Error> {
-    let db_dir = env::var("ANNIS_DB_DIR")?;
-    let storage = Storage::from_db_dir(db_dir)?;
-    Ok(storage)
 }

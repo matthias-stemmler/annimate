@@ -787,6 +787,8 @@ export const useUnremoveExportColumn = (): ((id: number) => void) => {
 
 // QUERIES
 
+export { useDbDirQuery as useDbDir } from '@/lib/queries';
+
 export const useCorpora = (): UseQueryResult<Corpora> =>
   useCorporaQuery((corpora) => corpora);
 

@@ -6,7 +6,7 @@
     "distDir": "../dist"
   },
   "package": {
-    "productName": "AnniMate"
+    "productName": "annimate"
   },
   "tauri": {
     "allowlist": {
@@ -46,7 +46,7 @@
         "fileDropEnabled": false,
         "fullscreen": false,
         "resizable": true,
-        "title": "AnniMate",
+        "title": "Annimate",
         "width": 1280,
         "height": 800,
         "minWidth": 800,

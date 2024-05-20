@@ -8,7 +8,14 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { shellOpen } from '@/lib/api';
+import { useDbDir } from '@/lib/store';
+import { Folder } from 'lucide-react';
 import { RefObject, useCallback, useEffect, useRef } from 'react';
 
 const ANIMATION_DURATION = 2000;
@@ -20,6 +27,12 @@ export const AboutDialog = () => {
   const logoRef = useRef<HTMLDivElement>(null);
   const triggerLogoAnimation = useLogoAnimation(logoRef);
 
+  const { data: dbDir, error: dbDirError } = useDbDir();
+
+  if (dbDirError !== null) {
+    throw new Error(`Failed to load data folder: ${dbDirError.message}`);
+  }
+
   return (
     <DialogContent
       onOpenAutoFocus={(event) => {
@@ -28,51 +41,76 @@ export const AboutDialog = () => {
       }}
     >
       <DialogHeader>
-        <DialogTitle className="mb-4">About AnniMate</DialogTitle>
+        <DialogTitle className="mb-4">About Annimate</DialogTitle>
+      </DialogHeader>
 
-        <div className="flex flex-col gap-4">
-          <div
-            ref={logoRef}
-            className="w-36 mx-auto mb-8"
-            onClick={triggerLogoAnimation}
+      <div className="text-sm overflow-hidden">
+        <div
+          ref={logoRef}
+          className="w-36 mx-auto mb-8"
+          onClick={triggerLogoAnimation}
+        >
+          <AnnimateLogo />
+        </div>
+
+        <div className="mb-4">
+          <Button
+            className="min-w-32 h-4 p-0"
+            onClick={() => {
+              shellOpen('https://github.com/matthias-stemmler/annimate');
+            }}
+            variant="link"
           >
-            <AnnimateLogo />
-          </div>
+            <GithubLogo className="w-4 h-full mr-2" />
+            Annimate v{window.__ANNIMATE__.versionInfo.annimateVersion} by
+            Matthias Stemmler
+          </Button>
+        </div>
 
-          <div className="flex items-center">
-            <Button
-              className="min-w-32 h-4 p-0"
-              onClick={() => {
-                shellOpen('https://github.com/matthias-stemmler/annimate');
-              }}
-              variant="link"
-            >
-              <GithubLogo className="w-4 h-full mr-2" />
-              AnniMate v{window.__ANNIMATE__.versionInfo.annimateVersion} by
-              Matthias Stemmler
-            </Button>
-          </div>
+        <div className="mb-8">
+          <p className="mb-1">based on:</p>
 
-          <div>
-            <p className="text-sm mb-1">based on:</p>
-            <div className="flex items-center">
+          <Button
+            className="h-4 p-0"
+            onClick={() => {
+              shellOpen('https://github.com/korpling/graphANNIS');
+            }}
+            variant="link"
+          >
+            <GithubLogo className="w-4 h-full mr-2" />
+            graphANNIS v{window.__ANNIMATE__.versionInfo.graphannisVersion} by
+            Thomas Krause
+          </Button>
+        </div>
+
+        <div>
+          <p className="mb-1">Data folder:</p>
+
+          <Tooltip>
+            <TooltipTrigger asChild>
               <Button
-                className="h-4 p-0"
-                onClick={() => {
-                  shellOpen('https://github.com/korpling/graphANNIS');
+                className="flex gap-2 w-full h-5 p-0"
+                disabled={dbDir === undefined}
+                onClick={async () => {
+                  if (dbDir !== undefined) {
+                    await shellOpen(dbDir);
+                  }
                 }}
                 variant="link"
               >
-                <GithubLogo className="w-4 h-full mr-2" />
-                graphANNIS v{
-                  window.__ANNIMATE__.versionInfo.graphannisVersion
-                }{' '}
-                by Thomas Krause
+                <Folder className="w-4 h-full" />
+                <div className="w-0 grow text-left truncate">
+                  {dbDir ?? 'Loading ...'}
+                </div>
               </Button>
-            </div>
-          </div>
+            </TooltipTrigger>
+
+            <TooltipContent align="start" className="max-w-[calc(50vw+14rem)]">
+              {dbDir}
+            </TooltipContent>
+          </Tooltip>
         </div>
-      </DialogHeader>
+      </div>
 
       <DialogFooter>
         <DialogClose asChild>

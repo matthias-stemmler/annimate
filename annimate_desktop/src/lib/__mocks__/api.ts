@@ -378,6 +378,8 @@ export const getCorpora = async (): Promise<Corpora> => {
   };
 };
 
+export const getDbDir = async (): Promise<string> => 'mock/db/dir';
+
 export const getExportableAnnoKeys = async (params: {
   corpusNames: string[];
 }): Promise<ExportableAnnoKeys> => {

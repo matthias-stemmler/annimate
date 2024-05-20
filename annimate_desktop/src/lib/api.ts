@@ -50,6 +50,8 @@ export const createCorpusSet = (params: { corpusSet: string }): Promise<void> =>
 
 export const getCorpora = (): Promise<Corpora> => invoke('get_corpora');
 
+export const getDbDir = (): Promise<string> => invoke('get_db_dir');
+
 export const getExportableAnnoKeys = (params: {
   corpusNames: string[];
 }): Promise<ExportableAnnoKeys> => invoke('get_exportable_anno_keys', params);

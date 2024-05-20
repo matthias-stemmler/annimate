@@ -1,5 +1,6 @@
 import {
   getCorpora,
+  getDbDir,
   getExportableAnnoKeys,
   getQueryNodes,
   getSegmentations,
@@ -19,6 +20,7 @@ import {
 } from '@tanstack/react-query';
 
 export const QUERY_KEY_CORPORA = 'corpora';
+export const QUERY_KEY_DB_DIR = 'db-dir';
 export const QUERY_KEY_QUERY_NODES = 'query-nodes';
 export const QUERY_KEY_QUERY_VALIDATION_RESULT = 'query-validation-result';
 export const QUERY_KEY_SEGMENTATIONS = 'segmentations';
@@ -41,6 +43,12 @@ export const useGetCorporaQueryData = (): (() => Promise<Corpora>) => {
   const queryClient = useQueryClient();
   return () => queryClient.ensureQueryData(corporaQueryConfig());
 };
+
+export const useDbDirQuery = (): UseQueryResult<string> =>
+  useQuery({
+    queryKey: [QUERY_KEY_DB_DIR],
+    queryFn: getDbDir,
+  });
 
 const queryNodesQueryConfig = (params: {
   aqlQuery: string;

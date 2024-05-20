@@ -5,23 +5,18 @@ use std::sync::Arc;
 use annimate_core::{
     AnnoKey, Corpora, CsvExportColumn, CsvExportConfig, ExportConfig, ExportData, ExportDataAnno,
     ExportDataText, ExportFormat, ExportableAnnoKeys, QueryAnalysisResult, QueryLanguage,
-    QueryNodes, Storage,
+    QueryNodes,
 };
 use itertools::Itertools;
 use serde::Deserialize;
 use tauri::{EventHandler, Window};
 
 use crate::error::Error;
-use crate::slot::Slot;
-
-#[derive(Default)]
-pub(crate) struct State {
-    pub(crate) storage_slot: Arc<Slot<Result<Arc<Storage>, Error>>>,
-}
+use crate::state::AppState;
 
 #[tauri::command]
 pub(crate) async fn add_corpora_to_set(
-    state: tauri::State<'_, State>,
+    state: tauri::State<'_, AppState>,
     corpus_set: String,
     corpus_names: Vec<String>,
 ) -> Result<(), Error> {
@@ -36,7 +31,7 @@ pub(crate) async fn add_corpora_to_set(
 
 #[tauri::command]
 pub(crate) async fn create_corpus_set(
-    state: tauri::State<'_, State>,
+    state: tauri::State<'_, AppState>,
     corpus_set: String,
 ) -> Result<(), Error> {
     let mut subscription = state.storage_slot.subscribe();
@@ -47,7 +42,7 @@ pub(crate) async fn create_corpus_set(
 
 #[tauri::command]
 pub(crate) async fn delete_corpus(
-    state: tauri::State<'_, State>,
+    state: tauri::State<'_, AppState>,
     corpus_name: String,
 ) -> Result<(), Error> {
     let mut subscription = state.storage_slot.subscribe();
@@ -58,7 +53,7 @@ pub(crate) async fn delete_corpus(
 
 #[tauri::command]
 pub(crate) async fn delete_corpus_set(
-    state: tauri::State<'_, State>,
+    state: tauri::State<'_, AppState>,
     corpus_set: String,
     delete_corpora: bool,
 ) -> Result<(), Error> {
@@ -73,7 +68,7 @@ pub(crate) async fn delete_corpus_set(
 
 #[tauri::command]
 pub(crate) async fn export_matches(
-    state: tauri::State<'_, State>,
+    state: tauri::State<'_, AppState>,
     window: Window,
     corpus_names: Vec<String>,
     aql_query: String,
@@ -121,7 +116,7 @@ pub(crate) async fn export_matches(
 }
 
 #[tauri::command]
-pub(crate) async fn get_corpora(state: tauri::State<'_, State>) -> Result<Corpora, Error> {
+pub(crate) async fn get_corpora(state: tauri::State<'_, AppState>) -> Result<Corpora, Error> {
     let mut subscription = state.storage_slot.subscribe();
     let storage = subscription.wait().await.clone()?;
 
@@ -129,8 +124,15 @@ pub(crate) async fn get_corpora(state: tauri::State<'_, State>) -> Result<Corpor
 }
 
 #[tauri::command]
+pub(crate) async fn get_db_dir(state: tauri::State<'_, AppState>) -> Result<PathBuf, Error> {
+    let mut subscription = state.db_dir_slot.subscribe();
+    let db_dir = subscription.wait().await.clone()?;
+    Ok(db_dir)
+}
+
+#[tauri::command]
 pub(crate) async fn get_exportable_anno_keys(
-    state: tauri::State<'_, State>,
+    state: tauri::State<'_, AppState>,
     corpus_names: Vec<String>,
 ) -> Result<ExportableAnnoKeys, Error> {
     let mut subscription = state.storage_slot.subscribe();
@@ -142,7 +144,7 @@ pub(crate) async fn get_exportable_anno_keys(
 
 #[tauri::command]
 pub(crate) async fn get_query_nodes(
-    state: tauri::State<'_, State>,
+    state: tauri::State<'_, AppState>,
     aql_query: String,
     query_language: QueryLanguage,
 ) -> Result<QueryAnalysisResult<QueryNodes>, Error> {
@@ -157,7 +159,7 @@ pub(crate) async fn get_query_nodes(
 
 #[tauri::command]
 pub(crate) async fn get_segmentations(
-    state: tauri::State<'_, State>,
+    state: tauri::State<'_, AppState>,
     corpus_names: Vec<String>,
 ) -> Result<Vec<String>, Error> {
     let mut subscription = state.storage_slot.subscribe();
@@ -177,7 +179,7 @@ pub(crate) async fn get_segmentations(
 
 #[tauri::command]
 pub(crate) async fn import_corpora(
-    state: tauri::State<'_, State>,
+    state: tauri::State<'_, AppState>,
     window: Window,
     paths: Vec<PathBuf>,
 ) -> Result<Vec<String>, Error> {
@@ -214,7 +216,7 @@ pub(crate) async fn import_corpora(
 
 #[tauri::command]
 pub(crate) async fn rename_corpus_set(
-    state: tauri::State<'_, State>,
+    state: tauri::State<'_, AppState>,
     corpus_set: String,
     new_corpus_set: String,
 ) -> Result<(), Error> {
@@ -229,7 +231,7 @@ pub(crate) async fn rename_corpus_set(
 
 #[tauri::command]
 pub(crate) async fn toggle_corpus_in_set(
-    state: tauri::State<'_, State>,
+    state: tauri::State<'_, AppState>,
     corpus_set: String,
     corpus_name: String,
 ) -> Result<(), Error> {
@@ -244,7 +246,7 @@ pub(crate) async fn toggle_corpus_in_set(
 
 #[tauri::command]
 pub(crate) async fn validate_query(
-    state: tauri::State<'_, State>,
+    state: tauri::State<'_, AppState>,
     corpus_names: Vec<String>,
     aql_query: String,
     query_language: QueryLanguage,
