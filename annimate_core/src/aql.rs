@@ -10,7 +10,7 @@ use serde::Serialize;
 
 use crate::corpus::CorpusRef;
 
-pub fn validate_query<S>(
+pub(crate) fn validate_query<S>(
     corpus_ref: CorpusRef<S>,
     aql_query: &str,
     query_language: QueryLanguage,
@@ -39,7 +39,7 @@ where
     })
 }
 
-pub fn query_nodes(
+pub(crate) fn query_nodes(
     storage: &graphannis::CorpusStorage,
     aql_query: &str,
     query_language: QueryLanguage,
@@ -103,6 +103,7 @@ pub(crate) fn query_nodes_valid(
         .into())
 }
 
+/// Result of analyzing an AQL query.
 #[derive(Debug, Serialize)]
 #[serde(
     tag = "type",
@@ -110,8 +111,16 @@ pub(crate) fn query_nodes_valid(
     rename_all_fields = "camelCase"
 )]
 pub enum QueryAnalysisResult<T = ()> {
-    Valid(T),
-    Invalid(AQLError),
+    /// Query is valid.
+    Valid(
+        /// Data returned by the analysis.
+        T,
+    ),
+    /// Query is invalid.
+    Invalid(
+        /// The error encountered while analyzing the query.
+        AQLError,
+    ),
 }
 
 impl<T> QueryAnalysisResult<T> {
@@ -135,9 +144,18 @@ impl<T> QueryAnalysisResult<T> {
     }
 }
 
+/// Nodes of an AQL query.
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct QueryNodes {
+    /// Nodes grouped by index in alternative.
+    ///
+    /// The outer `Vec` groups the nodes by the index in their respective alternative.
+    /// If `nodes` has length `n`, then each match consists of up to `n` nodes, and the `i`-th
+    /// match node could refer to any of the nodes in `nodes[i]`.
+    ///
+    /// # Example
+    /// If the query is `(foo & bar) | baz`, this is `[[#1, #3], [#2]]`.
     nodes: Vec<Vec<QueryNode>>,
 }
 
@@ -162,10 +180,14 @@ impl IntoIterator for QueryNodes {
     }
 }
 
+/// A node of a query.
 #[derive(Debug, PartialEq, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct QueryNode {
+    /// Fragment of the query defining the node.
     pub query_fragment: String,
+
+    /// Variable referring to the node.
     pub variable: String,
 }
 

@@ -27,20 +27,22 @@ mod version;
 
 pub use anno::{ExportableAnnoKey, ExportableAnnoKeys};
 pub use aql::{QueryAnalysisResult, QueryNode, QueryNodes};
-pub use error::AnnisExportError;
+pub use error::AnnimateError;
 pub use format::{CsvExportColumn, CsvExportConfig, ExportFormat};
 pub use graphannis::corpusstorage::CorpusInfo;
 pub use graphannis::graph::AnnoKey;
 pub use query::{ExportData, ExportDataAnno, ExportDataText, QueryLanguage};
 pub use version::{VersionInfo, VERSION_INFO};
 
+/// Storage of corpora and metadata.
 pub struct Storage {
     corpus_storage: graphannis::CorpusStorage,
     metadata_storage: MetadataStorage,
 }
 
 impl Storage {
-    pub fn from_db_dir<P>(db_dir: P) -> Result<Self, AnnisExportError>
+    /// Creates a [Storage] from a database directory.
+    pub fn from_db_dir<P>(db_dir: P) -> Result<Self, AnnimateError>
     where
         P: AsRef<Path>,
     {
@@ -65,7 +67,8 @@ impl Storage {
         })
     }
 
-    pub fn corpora(&self) -> Result<Corpora, AnnisExportError> {
+    /// Returns information about stored corpora.
+    pub fn corpora(&self) -> Result<Corpora, AnnimateError> {
         let sets = self.metadata_storage.corpus_sets();
 
         let corpora = self
@@ -93,7 +96,8 @@ impl Storage {
         })
     }
 
-    pub fn delete_corpus(&self, corpus_name: &str) -> Result<(), AnnisExportError> {
+    /// Deletes a corpus.
+    pub fn delete_corpus(&self, corpus_name: &str) -> Result<(), AnnimateError> {
         self.corpus_storage.delete(corpus_name)?;
         self.metadata_storage.update_corpus_sets(|corpus_sets| {
             for CorpusSet { corpus_names } in corpus_sets.values_mut() {
@@ -103,12 +107,13 @@ impl Storage {
         Ok(())
     }
 
+    /// Imports corpora.
     pub fn import_corpora<F, G>(
         &self,
         paths: Vec<PathBuf>,
         on_status: F,
         cancel_requested: G,
-    ) -> Result<Vec<String>, AnnisExportError>
+    ) -> Result<Vec<String>, AnnimateError>
     where
         F: Fn(ImportStatusEvent),
         G: Fn() -> bool,
@@ -170,23 +175,25 @@ impl Storage {
         Ok(imported_corpus_names)
     }
 
-    pub fn create_corpus_set(&self, corpus_set_name: String) -> Result<(), AnnisExportError> {
+    /// Creates a new corpus set.
+    pub fn create_corpus_set(&self, corpus_set_name: String) -> Result<(), AnnimateError> {
         self.metadata_storage.try_update_corpus_sets(|corpus_sets| {
             match corpus_sets.entry(corpus_set_name) {
                 Entry::Vacant(entry) => {
                     entry.insert(Default::default());
                     Ok(())
                 }
-                Entry::Occupied(_) => Err(AnnisExportError::CorpusSetAlreadyExists),
+                Entry::Occupied(_) => Err(AnnimateError::CorpusSetAlreadyExists),
             }
         })
     }
 
+    /// Deletes a corpus set.
     pub fn delete_corpus_set(
         &self,
         corpus_set_name: String,
         delete_corpora: bool,
-    ) -> Result<(), AnnisExportError> {
+    ) -> Result<(), AnnimateError> {
         let mut failed_corpus_names = Vec::new();
 
         self.metadata_storage.update_corpus_sets(|corpus_sets| {
@@ -224,17 +231,18 @@ impl Storage {
         if failed_corpus_names.is_empty() {
             Ok(())
         } else {
-            Err(AnnisExportError::FailedToDeleteCorpora(
+            Err(AnnimateError::FailedToDeleteCorpora(
                 failed_corpus_names.into(),
             ))
         }
     }
 
+    /// Renames a corpus set.
     pub fn rename_corpus_set(
         &self,
         corpus_set_name: &str,
         new_corpus_set_name: String,
-    ) -> Result<(), AnnisExportError> {
+    ) -> Result<(), AnnimateError> {
         self.metadata_storage.try_update_corpus_sets(|corpus_sets| {
             match corpus_sets.remove(corpus_set_name) {
                 Some(corpus_set) => match corpus_sets.entry(new_corpus_set_name) {
@@ -242,18 +250,19 @@ impl Storage {
                         entry.insert(corpus_set);
                         Ok(())
                     }
-                    Entry::Occupied(_) => Err(AnnisExportError::CorpusSetAlreadyExists),
+                    Entry::Occupied(_) => Err(AnnimateError::CorpusSetAlreadyExists),
                 },
                 None => Ok(()),
             }
         })
     }
 
+    /// Adds corpora to a set.
     pub fn add_corpora_to_set<S>(
         &self,
         corpus_set_name: String,
         corpus_names: &[S],
-    ) -> Result<(), AnnisExportError>
+    ) -> Result<(), AnnimateError>
     where
         S: AsRef<str>,
     {
@@ -272,11 +281,12 @@ impl Storage {
         Ok(())
     }
 
+    /// Adds or removes a corpus to/from a set.
     pub fn toggle_corpus_in_set(
         &self,
         corpus_set_name: &str,
         corpus_name: &str,
-    ) -> Result<(), AnnisExportError> {
+    ) -> Result<(), AnnimateError> {
         self.metadata_storage.update_corpus_sets(|corpus_sets| {
             if let Some(CorpusSet { corpus_names }) = corpus_sets.get_mut(corpus_set_name) {
                 if !corpus_names.remove(corpus_name) {
@@ -288,12 +298,13 @@ impl Storage {
         Ok(())
     }
 
+    /// Validates an AQL query.
     pub fn validate_query<S>(
         &self,
         corpus_names: &[S],
         aql_query: &str,
         query_language: QueryLanguage,
-    ) -> Result<QueryAnalysisResult<()>, AnnisExportError>
+    ) -> Result<QueryAnalysisResult<()>, AnnimateError>
     where
         S: AsRef<str>,
     {
@@ -304,11 +315,12 @@ impl Storage {
         )?)
     }
 
+    /// Returns the nodes of an AQL query.
     pub fn query_nodes(
         &self,
         aql_query: &str,
         query_language: QueryLanguage,
-    ) -> Result<QueryAnalysisResult<QueryNodes>, AnnisExportError> {
+    ) -> Result<QueryAnalysisResult<QueryNodes>, AnnimateError> {
         Ok(aql::query_nodes(
             &self.corpus_storage,
             aql_query,
@@ -316,30 +328,40 @@ impl Storage {
         )?)
     }
 
+    /// Returns all exportable annotation keys for the given corpora.
+    ///
+    /// This collects all exportable annotation keys for corpora, documents and general nodes that
+    /// appear in *at least one* of the given corpora.
     pub fn exportable_anno_keys<S>(
         &self,
         corpus_names: &[S],
-    ) -> Result<ExportableAnnoKeys, AnnisExportError>
+    ) -> Result<ExportableAnnoKeys, AnnimateError>
     where
         S: AsRef<str>,
     {
         AnnoKeys::new(self.corpus_ref(corpus_names)).map(AnnoKeys::into_exportable)
     }
 
-    pub fn segmentations<S>(&self, corpus_names: &[S]) -> Result<Vec<String>, AnnisExportError>
+    /// Returns all segmentations for the given corpora.
+    ///
+    /// This collects the segmentations (i.e. names of
+    /// [`Ordering`](https://docs.rs/graphannis/latest/graphannis/model/enum.AnnotationComponentType.html#variant.Ordering)
+    /// components in the `default_ns` namespace) that appear in *all* of the given corpora.
+    pub fn segmentations<S>(&self, corpus_names: &[S]) -> Result<Vec<String>, AnnimateError>
     where
         S: AsRef<str>,
     {
         Ok(anno::segmentations(self.corpus_ref(corpus_names))?)
     }
 
+    /// Exports matches for a query.
     pub fn export_matches<F, G, P, S>(
         &self,
         config: ExportConfig<S>,
         output_file: P,
         on_status: F,
         cancel_requested: G,
-    ) -> Result<(), AnnisExportError>
+    ) -> Result<(), AnnimateError>
     where
         F: Fn(ExportStatusEvent),
         G: Fn() -> bool,
@@ -390,6 +412,7 @@ impl Storage {
     }
 }
 
+/// Information about the corpora stored in a [Storage].
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Corpora {
@@ -398,6 +421,7 @@ pub struct Corpora {
 }
 
 impl Corpora {
+    /// Returns the number of corpora.
     pub fn corpus_count(&self) -> usize {
         self.corpora.len()
     }
@@ -405,18 +429,27 @@ impl Corpora {
 
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
-pub struct Corpus {
+struct Corpus {
     name: String,
     included_in_sets: Vec<String>,
 }
 
+/// Configuration of a request to export matches.
 pub struct ExportConfig<'a, S> {
+    /// Names of the corpora to run a query on.
     pub corpus_names: &'a [S],
+
+    /// AQL query to run.
     pub aql_query: &'a str,
+
+    /// Language of the query to run.
     pub query_language: QueryLanguage,
+
+    /// Format in which to export matches.
     pub format: ExportFormat,
 }
 
+/// Event describing the status of an ongoing export.
 #[derive(Debug, Serialize)]
 #[serde(
     tag = "type",
@@ -424,10 +457,18 @@ pub struct ExportConfig<'a, S> {
     rename_all_fields = "camelCase"
 )]
 pub enum ExportStatusEvent {
-    Found { count: usize },
-    Exported { progress: f32 },
+    /// Corpora were found.
+    Found {
+        /// Number of corpora found.
+        count: usize,
+    },
+    /// Corpora were exported.
+    Exported {
+        /// Progress of the export, in `0..=1`.
+        progress: f32,
+    },
 }
-
+/// Event describing the status of an ongoing import.
 #[derive(Clone, Debug, Serialize)]
 #[serde(
     tag = "type",
@@ -435,27 +476,44 @@ pub enum ExportStatusEvent {
     rename_all_fields = "camelCase"
 )]
 pub enum ImportStatusEvent {
+    /// Corpora were found
     CorporaFound {
+        /// Found corpora.
         corpora: Vec<ImportCorpus>,
     },
+    /// Import of a corpus was started.
     CorpusImportStarted {
+        /// Index of the corpus within the list of corpora.
         index: usize,
     },
+    /// Import of a corpus was finished.
     CorpusImportFinished {
+        /// Index of the corpus within the list of corpora.
         index: usize,
+        /// Result of the import.
         result: ImportCorpusResult,
     },
+    /// Message was emitted.
     Message {
+        /// Index of the corpus the message refers to, or [None] if the message was emitted while
+        /// corpora were being
         index: Option<usize>,
+        /// The emitted message.
         message: String,
     },
 }
 
+/// A corpus being imported.
 #[derive(Clone, Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ImportCorpus {
+    /// File name of the corpus data being imported.
     file_name: String,
+
+    /// Format of the corpus data being imported.
     format: ImportFormat,
+
+    /// Trace of all filesystem entities traversed to reach the corpus data.
     trace: Vec<FilesystemEntity<String>>,
 }
 
@@ -469,11 +527,22 @@ impl From<&ImportableCorpus> for ImportCorpus {
     }
 }
 
+/// Result of importing a corpus.
 #[derive(Clone, Debug, Serialize)]
 #[serde(tag = "type")]
 #[serde(rename_all = "snake_case")]
 #[serde(rename_all_fields = "camelCase")]
 pub enum ImportCorpusResult {
-    Imported { name: String },
-    Failed { message: String, cancelled: bool },
+    /// The corpus was imported successfully.
+    Imported {
+        /// Name of the imported corpus.
+        name: String,
+    },
+    /// The corpus failed to import.
+    Failed {
+        /// Error message.
+        message: String,
+        /// Whether the import was cancelled.
+        cancelled: bool,
+    },
 }

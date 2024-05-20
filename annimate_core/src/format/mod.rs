@@ -2,7 +2,7 @@ use std::io::Write;
 
 use self::csv::CsvExporter;
 use crate::anno::AnnoKeyFormat;
-use crate::error::AnnisExportError;
+use crate::error::AnnimateError;
 use crate::query::Match;
 use crate::{ExportData, QueryNode};
 
@@ -10,9 +10,14 @@ mod csv;
 
 pub use csv::{CsvExportColumn, CsvExportConfig};
 
+/// A format in which matches can be exported.
 #[derive(Debug)]
 pub enum ExportFormat {
-    Csv(CsvExportConfig),
+    /// CSV (Comma-separated values)
+    Csv(
+        /// Configuration of the CSV export.
+        CsvExportConfig,
+    ),
 }
 
 impl ExportFormat {
@@ -31,11 +36,11 @@ pub(crate) fn export<F, G, I, W>(
     out: W,
     on_progress: F,
     cancel_requested: G,
-) -> Result<(), AnnisExportError>
+) -> Result<(), AnnimateError>
 where
     F: FnMut(f32),
     G: Fn() -> bool,
-    I: IntoIterator<Item = Result<Match, AnnisExportError>> + Clone,
+    I: IntoIterator<Item = Result<Match, AnnimateError>> + Clone,
     I::IntoIter: ExactSizeIterator,
     W: Write,
 {
@@ -65,11 +70,11 @@ trait Exporter {
         out: W,
         on_progress: F,
         cancel_requested: G,
-    ) -> Result<(), AnnisExportError>
+    ) -> Result<(), AnnimateError>
     where
         F: FnMut(f32),
         G: Fn() -> bool,
-        I: IntoIterator<Item = Result<Match, AnnisExportError>> + Clone,
+        I: IntoIterator<Item = Result<Match, AnnimateError>> + Clone,
         I::IntoIter: ExactSizeIterator,
         W: Write;
 }

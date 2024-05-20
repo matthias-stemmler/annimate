@@ -1,6 +1,6 @@
 use std::io;
 
-use annimate_core::AnnisExportError;
+use annimate_core::AnnimateError;
 use serde::Serialize;
 
 #[derive(Clone, Debug, Serialize)]
@@ -9,8 +9,8 @@ pub(crate) struct Error {
     cancelled: bool,
 }
 
-impl From<AnnisExportError> for Error {
-    fn from(err: AnnisExportError) -> Self {
+impl From<AnnimateError> for Error {
+    fn from(err: AnnimateError) -> Self {
         Self {
             message: err.to_string(),
             cancelled: err.cancelled(),

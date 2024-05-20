@@ -4,16 +4,16 @@ use graphannis::errors::GraphAnnisError;
 use graphannis::AnnotationGraph;
 use graphannis_core::types::NodeID;
 
-use crate::AnnisExportError;
+use crate::AnnimateError;
 
-pub(crate) fn get_corpus_name(node_name: &str) -> Result<Cow<str>, AnnisExportError> {
+pub(crate) fn get_corpus_name(node_name: &str) -> Result<Cow<str>, AnnimateError> {
     let corpus_name_encoded = match node_name.split_once('/') {
         Some((corpus_name, _)) => corpus_name,
         None => node_name,
     };
 
     urlencoding::decode(corpus_name_encoded)
-        .map_err(|_| AnnisExportError::CorpusNameDecodesToInvalidUtf8(corpus_name_encoded.into()))
+        .map_err(|_| AnnimateError::CorpusNameDecodesToInvalidUtf8(corpus_name_encoded.into()))
 }
 
 pub(crate) fn get_doc_name(node_name: &str) -> &str {

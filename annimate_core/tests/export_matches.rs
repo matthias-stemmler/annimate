@@ -3,7 +3,7 @@ use std::fs;
 use std::path::Path;
 
 use annimate_core::{
-    AnnisExportError, AnnoKey, CsvExportColumn, CsvExportConfig, ExportConfig, ExportData,
+    AnnimateError, AnnoKey, CsvExportColumn, CsvExportConfig, ExportConfig, ExportData,
     ExportDataAnno, ExportDataText, ExportFormat, ExportStatusEvent, QueryLanguage, Storage,
 };
 use itertools::Itertools;
@@ -395,7 +395,7 @@ fn export_cancelled_before_matches_found() {
         || true,
     );
 
-    assert!(matches!(result, Err(AnnisExportError::Cancelled)));
+    assert!(matches!(result, Err(AnnimateError::Cancelled)));
     assert!(!output_file.try_exists().unwrap());
 }
 
@@ -438,7 +438,7 @@ fn export_cancelled_after_matches_found() {
         || cancel_requested.get(),
     );
 
-    assert!(matches!(result, Err(AnnisExportError::Cancelled)));
+    assert!(matches!(result, Err(AnnimateError::Cancelled)));
     assert!(!output_file.try_exists().unwrap());
 }
 

@@ -13,7 +13,7 @@ use itertools::Itertools;
 use serde::Serialize;
 
 use crate::corpus::CorpusRef;
-use crate::error::AnnisExportError;
+use crate::error::AnnimateError;
 use crate::node_name;
 
 pub(crate) const DOC: &str = "doc";
@@ -91,14 +91,14 @@ where
 pub(crate) fn get_anno_key_for_segmentation<S>(
     corpus_ref: CorpusRef<S>,
     segmentation: Option<&str>,
-) -> Result<AnnoKey, AnnisExportError>
+) -> Result<AnnoKey, AnnimateError>
 where
     S: AsRef<str>,
 {
     match segmentation {
         Some(segmentation) => get_anno_key_for_segmentation_if_exists(corpus_ref, segmentation)?
             .ok_or_else(|| {
-                AnnisExportError::MissingAnnotationForSegmentation(segmentation.to_string())
+                AnnimateError::MissingAnnotationForSegmentation(segmentation.to_string())
             }),
 
         None => Ok(token_anno_key().clone()),
@@ -167,7 +167,7 @@ pub(crate) struct AnnoKeys {
 }
 
 impl AnnoKeys {
-    pub(crate) fn new<S>(corpus_ref: CorpusRef<S>) -> Result<Self, AnnisExportError>
+    pub(crate) fn new<S>(corpus_ref: CorpusRef<S>) -> Result<Self, AnnimateError>
     where
         S: AsRef<str>,
     {
@@ -323,18 +323,32 @@ impl Display for AnnoKeyDisplay<'_> {
     }
 }
 
+/// Information about which annotation keys are available for export.
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ExportableAnnoKeys {
+    /// Exportable annotation keys for corpus nodes.
     pub corpus: Vec<ExportableAnnoKey>,
+
+    /// Exportable annotation keys for document nodes.
     pub doc: Vec<ExportableAnnoKey>,
+
+    /// Exportable annotation keys for text (match) nodes.
     pub node: Vec<ExportableAnnoKey>,
 }
 
+/// An annotation key that can be exported.
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ExportableAnnoKey {
+    /// The annotation key.
     pub anno_key: AnnoKey,
+
+    /// Display name for the annotation key, taking uniqueness of the name into account.
+    ///
+    /// In case the annotation key name is unique among all exportable annotation keys, this is
+    /// just the name. In case it is not unique, it is the fully qualified name, e.g.
+    /// `<namespace>:<name>` (or just the name in case the namespace is empty).
     pub display_name: String,
 }
 

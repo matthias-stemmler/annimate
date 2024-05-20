@@ -7,7 +7,7 @@ use itertools::{put_back, Itertools, PutBack};
 
 use super::Exporter;
 use crate::anno::{is_doc_anno_key, AnnoKeyFormat};
-use crate::error::{cancel_if, AnnisExportError};
+use crate::error::{cancel_if, AnnimateError};
 use crate::query::{ExportData, ExportDataAnno, ExportDataText, Match, TextPart};
 use crate::QueryNode;
 
@@ -22,14 +22,20 @@ use ColumnType::*;
 #[derive(Debug)]
 pub(super) struct CsvExporter;
 
+/// Configuration of an export in the CSV format.
 #[derive(Debug)]
 pub struct CsvExportConfig {
+    /// Columns to export.
     pub columns: Vec<CsvExportColumn>,
 }
 
+/// Configuration of what to export in a single CSV column.
 #[derive(Clone, Debug)]
 pub enum CsvExportColumn {
+    /// Number of the match, numbered sequentially starting from 1.
     Number,
+
+    /// Data of the match.
     Data(ExportData),
 }
 
@@ -60,11 +66,11 @@ impl Exporter for CsvExporter {
         out: W,
         mut on_progress: F,
         cancel_requested: G,
-    ) -> Result<(), AnnisExportError>
+    ) -> Result<(), AnnimateError>
     where
         F: FnMut(f32),
         G: Fn() -> bool,
-        I: IntoIterator<Item = Result<Match, AnnisExportError>> + Clone,
+        I: IntoIterator<Item = Result<Match, AnnimateError>> + Clone,
         I::IntoIter: ExactSizeIterator,
         W: Write,
     {
@@ -353,9 +359,9 @@ impl Iterator for ColumnTypesIter {
     }
 }
 
-impl From<csv::Error> for AnnisExportError {
+impl From<csv::Error> for AnnimateError {
     fn from(err: csv::Error) -> Self {
-        AnnisExportError::Io(err.into())
+        AnnimateError::Io(err.into())
     }
 }
 
@@ -546,7 +552,7 @@ mod tests {
     struct TestMatches<const N: usize>([Match; N]);
 
     impl<const N: usize> IntoIterator for TestMatches<N> {
-        type Item = Result<Match, AnnisExportError>;
+        type Item = Result<Match, AnnimateError>;
         type IntoIter = array::IntoIter<Self::Item, N>;
 
         fn into_iter(self) -> Self::IntoIter {

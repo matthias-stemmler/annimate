@@ -7,7 +7,7 @@ use std::{fs, io};
 use serde::{Deserialize, Serialize};
 
 use crate::error::AnnisExportMetadataError;
-use crate::AnnisExportError;
+use crate::AnnimateError;
 
 const METADATA_VERSION: usize = 1;
 
@@ -17,7 +17,7 @@ pub(crate) struct MetadataStorage {
 }
 
 impl MetadataStorage {
-    pub(crate) fn from_db_dir<P, S>(db_dir: P, corpus_names: &[S]) -> Result<Self, AnnisExportError>
+    pub(crate) fn from_db_dir<P, S>(db_dir: P, corpus_names: &[S]) -> Result<Self, AnnimateError>
     where
         P: AsRef<Path>,
         S: AsRef<str>,
@@ -33,7 +33,7 @@ impl MetadataStorage {
                     write_metadata(&path, &metadata)?;
                     metadata
                 }
-                Err(err) => return Err(AnnisExportError::FailedToReadMetadata { path, err }),
+                Err(err) => return Err(AnnimateError::FailedToReadMetadata { path, err }),
             }
         } else {
             let metadata = Metadata::default();
@@ -63,9 +63,9 @@ impl MetadataStorage {
     pub(crate) fn try_update_corpus_sets<E>(
         &self,
         op: impl FnOnce(&mut BTreeMap<String, CorpusSet>) -> Result<(), E>,
-    ) -> Result<(), AnnisExportError>
+    ) -> Result<(), AnnimateError>
     where
-        AnnisExportError: From<E>,
+        AnnimateError: From<E>,
     {
         let mut metadata = self.metadata.write().unwrap();
         op(&mut metadata.corpus_sets)?;

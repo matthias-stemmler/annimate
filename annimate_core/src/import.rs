@@ -10,13 +10,13 @@ use serde::Serialize;
 use tempfile::TempDir;
 use zip::ZipArchive;
 
-use crate::{cancel_if, AnnisExportError};
+use crate::{cancel_if, AnnimateError};
 
 pub(crate) fn find_importable_corpora<F, G>(
     paths: Vec<PathBuf>,
     on_progress: F,
     cancel_requested: G,
-) -> Result<Vec<ImportableCorpus>, AnnisExportError>
+) -> Result<Vec<ImportableCorpus>, AnnimateError>
 where
     F: Fn(&str),
     G: Fn() -> bool,
@@ -290,7 +290,7 @@ fn extract_zip<F, P, Q>(
     zip_path: P,
     output_dir: Q,
     cancel_requested: F,
-) -> Result<(), AnnisExportError>
+) -> Result<(), AnnimateError>
 where
     F: Fn() -> bool,
     P: AsRef<Path>,
@@ -325,7 +325,7 @@ pub(crate) fn import_corpus<F, G, H>(
     on_started: F,
     on_progress: G,
     cancel_requested: H,
-) -> Result<String, AnnisExportError>
+) -> Result<String, AnnimateError>
 where
     F: Fn(),
     G: Fn(&str),

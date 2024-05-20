@@ -3,7 +3,7 @@ use std::fs::{self, File};
 use std::io;
 use std::path::{Path, PathBuf};
 
-use annimate_core::{AnnisExportError, ImportStatusEvent, Storage};
+use annimate_core::{AnnimateError, ImportStatusEvent, Storage};
 use zip::write::SimpleFileOptions;
 use zip::{CompressionMethod, ZipArchive, ZipWriter};
 
@@ -166,7 +166,7 @@ fn import_cancelled_before_corpora_collected() {
         || true,
     );
 
-    assert!(matches!(result, Err(AnnisExportError::Cancelled)));
+    assert!(matches!(result, Err(AnnimateError::Cancelled)));
     assert_eq!(storage.corpora().unwrap().corpus_count(), 0);
 }
 

@@ -19,16 +19,20 @@ use crate::anno::{
     token_anno_key,
 };
 use crate::corpus::CorpusRef;
-use crate::error::AnnisExportError;
+use crate::error::AnnimateError;
 use crate::node_name::{self, node_name_to_node_id};
 use crate::util::group_by;
 use crate::{aql, QueryNode};
 
 const PAGE_SIZE: usize = 1000;
 
+/// Configuration of data of a match to be exported.
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub enum ExportData {
+    /// An annotation of a node related to the match (single column).
     Anno(ExportDataAnno),
+
+    /// Text of the match ("Match in context", possibly multiple columns).
     Text(ExportDataText),
 }
 
@@ -42,18 +46,55 @@ impl ExportData {
     }
 }
 
+/// Configuration of an annotation of a node related to a match to be exported.
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub enum ExportDataAnno {
-    Corpus { anno_key: AnnoKey },
-    Document { anno_key: AnnoKey },
-    MatchNode { anno_key: AnnoKey, index: usize },
+    /// Annotation of the corpus the match belongs to.
+    Corpus {
+        /// Key of the annotation.
+        anno_key: AnnoKey,
+    },
+    /// Annotation of the document the match belongs to.
+    Document {
+        /// Key of the annotation.
+        anno_key: AnnoKey,
+    },
+    /// Annotation of one of the match nodes.
+    MatchNode {
+        /// Key of the annotation.
+        anno_key: AnnoKey,
+
+        /// Index of the matched node within the match.
+        ///
+        /// If the query matches multiple nodes, this specifies the index of the node for which to
+        /// export the annotation.
+        index: usize,
+    },
 }
 
+/// Configuration of the text of a match to be exported.
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct ExportDataText {
+    /// Size of the left context, in segmentation nodes.
     pub left_context: usize,
+
+    /// Size of the right context, in segmentation nodes.
     pub right_context: usize,
+
+    /// Segmentation to use, or [None] to use tokens.
     pub segmentation: Option<String>,
+
+    /// Indices of primary query nodes, or [None] to treat all query nodes as primary.
+    ///
+    /// This specifies which of the query nodes are *primary*. A node is primary if text parts
+    /// belonging to it count as a match and thus produce a match column in the export.
+    ///
+    /// This is useful in case the query contains nodes that are needed for the search but are not
+    /// supposed to count as a match in the export, e.g. when doing a tree search.
+    ///
+    /// The list also specifies a priority among the primary query nodes: If a text part belongs to
+    /// multiple primary query nodes, it is treated as belonging to the first one of them in the
+    /// list.
     pub primary_node_indices: Option<Vec<usize>>,
 }
 
@@ -106,10 +147,7 @@ impl<'a, S> Query<'a, S> {
         &self.nodes
     }
 
-    pub(crate) fn find<I>(
-        &self,
-        export_data: I,
-    ) -> Result<ExportableMatches<'a, S>, AnnisExportError>
+    pub(crate) fn find<I>(&self, export_data: I) -> Result<ExportableMatches<'a, S>, AnnimateError>
     where
         I: IntoIterator<Item = ExportData>,
         S: AsRef<str>,
@@ -122,7 +160,7 @@ impl<'a, S> Query<'a, S> {
             .map(|&index| {
                 let max_index = self.nodes.len() - 1;
                 if index > max_index {
-                    Err(AnnisExportError::MatchNodeIndexOutOfBounds { index, max_index })
+                    Err(AnnimateError::MatchNodeIndexOutOfBounds { index, max_index })
                 } else {
                     Ok(())
                 }
@@ -161,7 +199,7 @@ where
         aql_query: &'a str,
         query_language: QueryLanguage,
         export_data: HashSet<ExportData>,
-    ) -> Result<Self, AnnisExportError> {
+    ) -> Result<Self, AnnimateError> {
         let matches_paginated =
             MatchesPaginated::new(corpus_ref, aql_query, query_language, export_data)?;
 
@@ -169,7 +207,7 @@ where
             let total_count = matches_paginated.total_count()?;
             total_count
                 .try_into()
-                .map_err(|_| AnnisExportError::TooManyResults(total_count))?
+                .map_err(|_| AnnimateError::TooManyResults(total_count))?
         };
 
         Ok(Self {
@@ -187,7 +225,7 @@ impl<'a, S> IntoIterator for ExportableMatches<'a, S>
 where
     S: AsRef<str>,
 {
-    type Item = Result<Match, AnnisExportError>;
+    type Item = Result<Match, AnnimateError>;
     type IntoIter = ExportableMatchesIter<'a, S>;
 
     fn into_iter(self) -> Self::IntoIter {
@@ -209,7 +247,7 @@ impl<S> Iterator for ExportableMatchesIter<'_, S>
 where
     S: AsRef<str>,
 {
-    type Item = Result<Match, AnnisExportError>;
+    type Item = Result<Match, AnnimateError>;
 
     fn next(&mut self) -> Option<Self::Item> {
         loop {
@@ -265,7 +303,7 @@ where
         aql_query: &'a str,
         query_language: QueryLanguage,
         export_data: HashSet<ExportData>,
-    ) -> Result<Self, AnnisExportError> {
+    ) -> Result<Self, AnnimateError> {
         let mut fragment_anno_keys = HashMap::new();
 
         for data in &export_data {
@@ -358,7 +396,7 @@ pub(crate) struct MatchesPage<'a, S> {
 }
 
 impl<S> Iterator for MatchesPage<'_, S> {
-    type Item = Result<Match, AnnisExportError>;
+    type Item = Result<Match, AnnimateError>;
 
     fn next(&mut self) -> Option<Self::Item> {
         let match_id = self.match_ids_iter.next()?;
@@ -367,11 +405,11 @@ impl<S> Iterator for MatchesPage<'_, S> {
 }
 
 impl<S> MatchesPage<'_, S> {
-    fn match_id_to_match(&self, match_id: String) -> Result<Match, AnnisExportError> {
+    fn match_id_to_match(&self, match_id: String) -> Result<Match, AnnimateError> {
         let match_node_names = node_names_from_match(&match_id);
         let first_node_name = match_node_names
             .first()
-            .ok_or(AnnisExportError::MatchWithoutNodes)?;
+            .ok_or(AnnimateError::MatchWithoutNodes)?;
 
         // This is the name of the corpus node, but we assume that the corpus name is the same
         let corpus_name = node_name::get_corpus_name(first_node_name)?;
@@ -496,7 +534,7 @@ fn get_parts(
     match_node_names: Vec<String>,
     export_data: &ExportDataText,
     fragment_anno_key: &AnnoKey,
-) -> Result<Vec<TextPart>, AnnisExportError> {
+) -> Result<Vec<TextPart>, AnnimateError> {
     #[derive(Debug)]
     struct Chain {
         token_ids: Vec<NodeID>,
@@ -677,7 +715,7 @@ fn get_parts(
     }
 
     if !chains.is_empty() {
-        return Err(AnnisExportError::FailedToOrderChains);
+        return Err(AnnimateError::FailedToOrderChains);
     }
 
     Ok(parts)

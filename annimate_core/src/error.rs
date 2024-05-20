@@ -7,8 +7,9 @@ use graphannis_core::errors::GraphAnnisCoreError;
 use thiserror::Error;
 use zip::result::ZipError;
 
+/// Error during an operation provided by Annimate.
 #[derive(Debug, Error)]
-pub enum AnnisExportError {
+pub enum AnnimateError {
     #[error("Cancelled")]
     Cancelled,
 
@@ -73,30 +74,30 @@ pub enum AnnisExportMetadataError {
     UnsupportedVersion { version: usize },
 }
 
-impl AnnisExportError {
+impl AnnimateError {
     pub fn cancelled(&self) -> bool {
-        matches!(self, AnnisExportError::Cancelled)
+        matches!(self, AnnimateError::Cancelled)
     }
 }
 
-impl From<GraphAnnisCoreError> for AnnisExportError {
+impl From<GraphAnnisCoreError> for AnnimateError {
     fn from(err: GraphAnnisCoreError) -> Self {
         GraphAnnisError::Core(err).into()
     }
 }
 
-impl From<ZipError> for AnnisExportError {
+impl From<ZipError> for AnnimateError {
     fn from(err: ZipError) -> Self {
         Self::Io(err.into())
     }
 }
 
-pub(crate) fn cancel_if<F>(cancel_requested: F) -> Result<(), AnnisExportError>
+pub(crate) fn cancel_if<F>(cancel_requested: F) -> Result<(), AnnimateError>
 where
     F: Fn() -> bool,
 {
     if cancel_requested() {
-        Err(AnnisExportError::Cancelled)
+        Err(AnnimateError::Cancelled)
     } else {
         Ok(())
     }
