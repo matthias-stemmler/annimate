@@ -6,7 +6,13 @@ members = [
 resolver = "2"
 
 [workspace.package]
+version = "0.1.0"
+authors = ["Matthias Stemmler <matthias.stemmler@gmail.com>"]
 edition = "2021"
+readme = "README.md"
+repository = "https://github.com/matthias-stemmler/annimate"
+license = "MIT OR Apache-2.0"
+publish = false
 
 [workspace.dependencies]
 itertools = "0.12.1"

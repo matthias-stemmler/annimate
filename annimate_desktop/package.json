@@ -1,7 +1,11 @@
 {
-  "name": "annimate_desktop",
-  "private": true,
+  "name": "annimate-desktop",
   "version": "0.1.0",
+  "description": "Annimate desktop application (frontend)",
+  "license": "(MIT OR Apache-2.0)",
+  "author": "Matthias Stemmler <matthias.stemmler@gmail.com>",
+  "repository": "github:matthias-stemmler/annimate",
+  "private": true,
   "packageManager": "pnpm@9.0.4+sha256.caa915eaae9d9aefccf50ee8aeda25a2f8684d8f9d5c6e367eaf176d97c1f89e",
   "type": "module",
   "scripts": {

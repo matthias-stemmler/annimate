@@ -1,7 +1,13 @@
 [package]
 name = "annimate_desktop"
-version = "0.1.0"
+version.workspace = true
+authors.workspace = true
 edition.workspace = true
+description = "Annimate desktop application"
+readme.workspace = true
+repository.workspace = true
+license.workspace = true
+publish.workspace = true
 
 [build-dependencies]
 tauri-build = { version = "1.5.1", features = [] }

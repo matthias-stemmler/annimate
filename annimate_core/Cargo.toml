@@ -1,7 +1,13 @@
 [package]
 name = "annimate_core"
-version = "0.1.0"
+version.workspace = true
+authors.workspace = true
 edition.workspace = true
+description = "Annimate core library"
+readme.workspace = true
+repository.workspace = true
+license.workspace = true
+publish.workspace = true
 
 [build-dependencies]
 cargo_metadata = "0.18"
