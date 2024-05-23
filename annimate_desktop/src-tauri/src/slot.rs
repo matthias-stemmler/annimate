@@ -36,7 +36,7 @@ pub(crate) struct SlotSubscription<T> {
 }
 
 impl<T> SlotSubscription<T> {
-    pub(crate) async fn wait(&mut self) -> SlotRef<T> {
+    pub(crate) async fn wait(&mut self) -> SlotRef<'_, T> {
         SlotRef(
             self.receiver
                 .wait_for(|v| v.is_some())

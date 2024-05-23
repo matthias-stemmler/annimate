@@ -47,7 +47,7 @@ pub enum CsvExportColumn {
 }
 
 impl CsvExportColumn {
-    /// Returns the [ExportData] for this column, if any.
+    /// Returns the [`ExportData`] for this column, if any.
     fn unwrap_data(&self) -> Option<&ExportData> {
         match self {
             CsvExportColumn::Data(data) => Some(data),
@@ -103,7 +103,7 @@ impl Exporter for CsvExporter {
                 }
 
                 matches.push(m);
-                on_progress((i + 1) as f32 / count as f32)
+                on_progress((i + 1) as f32 / count as f32);
             }
 
             max_match_parts_by_text
@@ -194,7 +194,7 @@ impl Exporter for CsvExporter {
     }
 }
 
-/// Iterator over strings that aligns [TextPart]s to [ColumnTypes].
+/// Iterator over strings that aligns [`TextPart`]s to [`ColumnTypes`].
 #[derive(Debug)]
 struct TextColumnsAligned {
     text_columns: PutBack<TextColumns>,
@@ -202,7 +202,7 @@ struct TextColumnsAligned {
 }
 
 impl TextColumnsAligned {
-    /// Creates a new [TextColumnsAligned] for the given [TextPart]s and [ColumnTypes].
+    /// Creates a new [`TextColumnsAligned`] for the given [`TextPart`]s and [`ColumnTypes`].
     fn new(parts: Vec<TextPart>, column_types: ColumnTypes) -> Self {
         Self {
             text_columns: put_back(TextColumns::new(parts)),
@@ -231,9 +231,9 @@ impl Iterator for TextColumnsAligned {
     }
 }
 
-/// Iterator over columns for given [TextPart]s.
+/// Iterator over columns for given [`TextPart`]s.
 ///
-/// This is an iterator over pairs of [ColumnType] and [String].
+/// This is an iterator over pairs of [`ColumnType`] and [`String`].
 #[derive(Debug)]
 struct TextColumns {
     parts: vec::IntoIter<TextPart>,
@@ -241,7 +241,7 @@ struct TextColumns {
 }
 
 impl TextColumns {
-    /// Creates [TextColumns] for the given [TextPart]s.
+    /// Creates [`TextColumns`] for the given [`TextPart`]s.
     fn new(parts: Vec<TextPart>) -> Self {
         Self {
             parts: parts.into_iter(),
@@ -292,8 +292,8 @@ impl Iterator for TextColumns {
 
 /// Holds information about match/context column types.
 ///
-/// This can be turned into an iterator over pairs of [ColumnType] and [usize], telling whether the
-/// respective column is a match or context column and its index among all match resp. context
+/// This can be turned into an iterator over pairs of [`ColumnType`] and [`usize`], telling whether
+/// the respective column is a match or context column and its index among all match resp. context
 /// columns.
 #[derive(Clone, Copy, Debug)]
 struct ColumnTypes {
@@ -313,8 +313,8 @@ struct ColumnTypes {
 }
 
 impl ColumnTypes {
-    /// Creates new [ColumnTypes] for the given number of matches, number of query nodes and export
-    /// data.
+    /// Creates new [`ColumnTypes`] for the given number of matches, number of query nodes and
+    /// export data.
     fn new(match_count: usize, query_node_count: usize, data: &ExportDataText) -> Self {
         let has_match = match_count > 0;
         let has_secondary_nodes = match &data.primary_node_indices {
@@ -359,7 +359,7 @@ impl IntoIterator for ColumnTypes {
     }
 }
 
-/// Iterator that [ColumnTypes] can be turned into.
+/// Iterator that [`ColumnTypes`] can be turned into.
 #[derive(Debug)]
 struct ColumnTypesIter {
     column_indices: Range<usize>,

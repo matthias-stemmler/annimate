@@ -52,7 +52,7 @@ pub(crate) fn gap_ordering_component() -> &'static Component<AnnotationComponent
     })
 }
 
-pub(crate) fn segmentations<S>(corpus_ref: CorpusRef<S>) -> Result<Vec<String>, GraphAnnisError>
+pub(crate) fn segmentations<S>(corpus_ref: CorpusRef<'_, S>) -> Result<Vec<String>, GraphAnnisError>
 where
     S: AsRef<str>,
 {
@@ -89,7 +89,7 @@ where
 }
 
 pub(crate) fn get_anno_key_for_segmentation<S>(
-    corpus_ref: CorpusRef<S>,
+    corpus_ref: CorpusRef<'_, S>,
     segmentation: Option<&str>,
 ) -> Result<AnnoKey, AnnimateError>
 where
@@ -106,7 +106,7 @@ where
 }
 
 fn get_anno_key_for_segmentation_if_exists<S>(
-    corpus_ref: CorpusRef<S>,
+    corpus_ref: CorpusRef<'_, S>,
     segmentation: &str,
 ) -> Result<Option<AnnoKey>, GraphAnnisError>
 where
@@ -167,7 +167,7 @@ pub(crate) struct AnnoKeys {
 }
 
 impl AnnoKeys {
-    pub(crate) fn new<S>(corpus_ref: CorpusRef<S>) -> Result<Self, AnnimateError>
+    pub(crate) fn new<S>(corpus_ref: CorpusRef<'_, S>) -> Result<Self, AnnimateError>
     where
         S: AsRef<str>,
     {
@@ -224,7 +224,7 @@ impl AnnoKeys {
                         .get_all_keys_for_item(&doc_node_id, None, None)?
                         .into_iter()
                         .map(|anno_key| (*anno_key).clone()),
-                )
+                );
             }
         }
 

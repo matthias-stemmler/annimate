@@ -8,7 +8,7 @@
 ///
 /// # Errors
 /// Returns an error if `key_fn` fails.
-pub(crate) fn group_by<F, T>(items: &[T], key_fn: F) -> Groups<F, T> {
+pub(crate) fn group_by<F, T>(items: &[T], key_fn: F) -> Groups<'_, F, T> {
     Groups(Some(GroupsInner {
         items,
         key_fn,
@@ -16,7 +16,7 @@ pub(crate) fn group_by<F, T>(items: &[T], key_fn: F) -> Groups<F, T> {
     }))
 }
 
-/// Iterator over pairs of keys and subslices returned from [group_by].
+/// Iterator over pairs of keys and subslices returned from [`group_by`].
 #[derive(Debug)]
 pub(crate) struct Groups<'a, F, T>(Option<GroupsInner<'a, F, T>>);
 

@@ -9,17 +9,20 @@ repository.workspace = true
 license.workspace = true
 publish.workspace = true
 
+[lints]
+workspace = true
+
 [build-dependencies]
-tauri-build = { version = "1.5.1", features = [] }
+tauri-build = { workspace = true }
 
 [dependencies]
 annimate_core = { path = "../../annimate_core" }
 itertools = { workspace = true }
-tauri = { version = "1.6.2", features = [ "dialog-open", "process-exit", "dialog-save", "objc-exception", "path-all", "process-relaunch", "shell-open", "wry"], default-features = false }
-serde = { workspace = true }
-serde_json = "1.0.116"
+tauri = { workspace = true, features = ["dialog-open", "process-exit", "dialog-save", "objc-exception", "path-all", "process-relaunch", "shell-open", "wry"], default-features = false }
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
 tempfile = { workspace = true }
-tokio = "1.37.0"
+tokio = { workspace = true }
 
 [features]
 custom-protocol = ["tauri/custom-protocol"]

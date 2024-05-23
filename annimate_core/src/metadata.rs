@@ -105,7 +105,7 @@ impl Default for Metadata {
     fn default() -> Self {
         Self {
             metadata_version: METADATA_VERSION,
-            corpus_sets: Default::default(),
+            corpus_sets: BTreeMap::default(),
         }
     }
 }

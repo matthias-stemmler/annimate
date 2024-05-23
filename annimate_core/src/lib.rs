@@ -140,7 +140,7 @@ impl Storage {
         for (index, corpus) in importable_corpora.into_iter().enumerate() {
             let result = import::import_corpus(
                 &self.corpus_storage,
-                corpus,
+                &corpus,
                 || on_status(ImportStatusEvent::CorpusImportStarted { index }),
                 |message| {
                     on_status(ImportStatusEvent::Message {
@@ -182,7 +182,7 @@ impl Storage {
         self.metadata_storage.try_update_corpus_sets(|corpus_sets| {
             match corpus_sets.entry(corpus_set_name) {
                 Entry::Vacant(entry) => {
-                    entry.insert(Default::default());
+                    entry.insert(CorpusSet::default());
                     Ok(())
                 }
                 Entry::Occupied(_) => Err(AnnimateError::CorpusSetAlreadyExists),
@@ -360,7 +360,7 @@ impl Storage {
     /// Exports matches for a query.
     pub fn export_matches<F, G, P, S>(
         &self,
-        config: ExportConfig<S>,
+        config: ExportConfig<'_, S>,
         output_file: P,
         on_status: F,
         cancel_requested: G,

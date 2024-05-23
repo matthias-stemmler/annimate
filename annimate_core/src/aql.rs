@@ -11,7 +11,7 @@ use serde::Serialize;
 use crate::corpus::CorpusRef;
 
 pub(crate) fn validate_query<S>(
-    corpus_ref: CorpusRef<S>,
+    corpus_ref: CorpusRef<'_, S>,
     aql_query: &str,
     query_language: QueryLanguage,
 ) -> Result<QueryAnalysisResult<()>, GraphAnnisError>
@@ -124,6 +124,7 @@ pub enum QueryAnalysisResult<T = ()> {
 }
 
 impl<T> QueryAnalysisResult<T> {
+    /// Returns the payload if valid, otherwise panics
     pub fn unwrap_valid(self) -> T {
         match self {
             QueryAnalysisResult::Valid(x) => x,

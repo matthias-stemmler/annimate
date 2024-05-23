@@ -400,13 +400,13 @@ impl<S> Iterator for MatchesPage<'_, S> {
 
     fn next(&mut self) -> Option<Self::Item> {
         let match_id = self.match_ids_iter.next()?;
-        Some(self.match_id_to_match(match_id))
+        Some(self.match_id_to_match(&match_id))
     }
 }
 
 impl<S> MatchesPage<'_, S> {
-    fn match_id_to_match(&self, match_id: String) -> Result<Match, AnnimateError> {
-        let match_node_names = node_names_from_match(&match_id);
+    fn match_id_to_match(&self, match_id: &str) -> Result<Match, AnnimateError> {
+        let match_node_names = node_names_from_match(match_id);
         let first_node_name = match_node_names
             .first()
             .ok_or(AnnimateError::MatchWithoutNodes)?;
@@ -511,7 +511,7 @@ fn get_anno_with_overlapping_coverage(
         return Ok(Some(anno));
     }
 
-    let graph_helper = GraphHelper::new(&graph)?;
+    let graph_helper = GraphHelper::new(&graph);
 
     let Some(covered_token_id) = graph_helper.get_covered_token_id(node_id)? else {
         return Ok(None);
@@ -560,7 +560,7 @@ fn get_parts(
         segmentation.clone(),
     )?;
 
-    let graph_helper = GraphHelper::new(&subgraph)?;
+    let graph_helper = GraphHelper::new(&subgraph);
     let gap_storage = subgraph.get_graphstorage_as_ref(gap_ordering_component());
     let node_annos = subgraph.get_node_annos();
 
@@ -728,7 +728,7 @@ struct GraphHelper<'a> {
 }
 
 impl<'a> GraphHelper<'a> {
-    fn new(graph: &'a Graph<AnnotationComponentType>) -> Result<Self, GraphAnnisError> {
+    fn new(graph: &'a Graph<AnnotationComponentType>) -> Self {
         let coverage_storages = graph
             .get_all_components(Some(AnnotationComponentType::Coverage), None)
             .into_iter()
@@ -744,11 +744,11 @@ impl<'a> GraphHelper<'a> {
 
         let order_storage = graph.get_graphstorage_as_ref(default_ordering_component());
 
-        Ok(Self {
+        Self {
             graph,
             coverage_storages,
             order_storage,
-        })
+        }
     }
 
     fn get_covered_token_id(&self, node_id: NodeID) -> Result<Option<NodeID>, GraphAnnisError> {

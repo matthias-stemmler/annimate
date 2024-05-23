@@ -105,7 +105,7 @@ pub(crate) async fn export_matches(
             |status_event| {
                 window
                     .emit("export_status", &status_event)
-                    .expect("Failed to emit export_status event")
+                    .expect("Failed to emit export_status event");
             },
             || cancel_requested.load(Ordering::Relaxed),
         )?;

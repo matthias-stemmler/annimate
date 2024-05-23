@@ -1,3 +1,5 @@
+//! Build script for `annimate_core`.
+
 use cargo_metadata::MetadataCommand;
 
 fn main() {

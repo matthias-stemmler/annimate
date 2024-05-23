@@ -14,10 +14,51 @@ repository = "https://github.com/matthias-stemmler/annimate"
 license = "MIT OR Apache-2.0"
 publish = false
 
+[workspace.lints.rust]
+elided_lifetimes_in_paths = "deny"
+missing_docs = "deny"
+unreachable_pub = "deny"
+unsafe_code = "deny"
+unused_import_braces = "deny"
+unused_lifetimes = "deny"
+unused_qualifications = "deny"
+
+[workspace.lints.clippy]
+all = "deny"
+default_trait_access = "deny"
+doc_markdown = "deny"
+needless_pass_by_value = "deny"
+semicolon_if_nothing_returned = "deny"
+unnecessary_wraps = "deny"
+use_debug = "deny"
+
+[workspace.lints.rustdoc]
+bare_urls = "deny"
+broken_intra_doc_links = "deny"
+invalid_codeblock_attributes = "deny"
+invalid_rust_codeblocks = "deny"
+missing_crate_level_docs = "deny"
+private_intra_doc_links = "deny"
+
 [workspace.dependencies]
+cargo_metadata = "0.18"
+csv = "1.3.0"
+graphannis = "3.2.2"
+graphannis-core = "3.2.2"
+indoc = "2.0.5"
+insta = "1.38.0"
 itertools = "0.12.1"
-serde = { version = "1.0.200", features = ["derive"] }
+regex = "1.10.4"
+serde = "1.0.200"
+serde_json = "1.0.116"
+tauri = { version = "1.6.2", default-features = false }
+tauri-build = "1.5.1"
 tempfile = "3.10.1"
+thiserror = "1.0.59"
+tokio = "1.37.0"
+toml = "0.8.12"
+urlencoding = "2.1.3"
+zip = "1.2.0"
 
 [profile.release]
 codegen-units = 1

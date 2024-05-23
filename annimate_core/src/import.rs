@@ -79,7 +79,7 @@ where
                         path: location.scoped_path,
                         trace,
                     }
-                })
+                });
             }
 
             Some(ImportPathType::Directory) => {
@@ -321,7 +321,7 @@ where
 
 pub(crate) fn import_corpus<F, G, H>(
     storage: &graphannis::CorpusStorage,
-    corpus: ImportableCorpus,
+    corpus: &ImportableCorpus,
     on_started: F,
     on_progress: G,
     cancel_requested: H,

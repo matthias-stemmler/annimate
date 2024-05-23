@@ -20,14 +20,14 @@ impl AppState {
         let storage_slot = Arc::clone(&self.storage_slot);
 
         tauri::async_runtime::spawn_blocking(move || {
-            let db_dir = get_db_dir(app_handle);
+            let db_dir = get_db_dir(&app_handle);
             db_dir_slot.set(db_dir.clone());
             storage_slot.set(db_dir.and_then(create_storage).map(Arc::new));
         });
     }
 }
 
-fn get_db_dir(app_handle: AppHandle) -> Result<PathBuf, Error> {
+fn get_db_dir(app_handle: &AppHandle) -> Result<PathBuf, Error> {
     if let Some(db_dir) = env::var_os("ANNIMATE_DB_DIR") {
         return Ok(db_dir.into());
     }
