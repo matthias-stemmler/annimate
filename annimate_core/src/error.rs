@@ -1,3 +1,5 @@
+//! Dealing with errors.
+
 use std::fmt::{self, Display, Formatter};
 use std::io;
 use std::path::PathBuf;
@@ -20,7 +22,7 @@ pub enum AnnimateError {
     CorpusSetAlreadyExists,
 
     #[error("Failed to delete corpora: {0}")]
-    FailedToDeleteCorpora(AnnisExportCorpusNames),
+    FailedToDeleteCorpora(AnnimateErrorCorpusNames),
 
     #[error("Failed to order chains")]
     FailedToOrderChains,
@@ -50,21 +52,23 @@ pub enum AnnimateError {
     Io(#[from] io::Error),
 }
 
+/// Collection of corpus names, used for formatting in an error message
 #[derive(Debug)]
-pub struct AnnisExportCorpusNames(Vec<String>);
+pub struct AnnimateErrorCorpusNames(Vec<String>);
 
-impl Display for AnnisExportCorpusNames {
+impl Display for AnnimateErrorCorpusNames {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         write!(f, "{}", self.0.join(", "))
     }
 }
 
-impl From<Vec<String>> for AnnisExportCorpusNames {
+impl From<Vec<String>> for AnnimateErrorCorpusNames {
     fn from(corpus_names: Vec<String>) -> Self {
         Self(corpus_names)
     }
 }
 
+/// Error during a metadata operation.
 #[derive(Debug, Error)]
 pub enum AnnisExportMetadataError {
     #[error("Invalid format: {0}")]
@@ -75,6 +79,7 @@ pub enum AnnisExportMetadataError {
 }
 
 impl AnnimateError {
+    /// Returns whether the error was due to cancellation.
     pub fn cancelled(&self) -> bool {
         matches!(self, AnnimateError::Cancelled)
     }
@@ -92,6 +97,12 @@ impl From<ZipError> for AnnimateError {
     }
 }
 
+/// Cancels an operation if requested.
+///
+/// This enables cancellation of an operation in one line:
+/// ```no_compile
+/// cancel_if(&cancel_requested)?;
+/// ```
 pub(crate) fn cancel_if<F>(cancel_requested: F) -> Result<(), AnnimateError>
 where
     F: Fn() -> bool,

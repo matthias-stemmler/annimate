@@ -1,3 +1,13 @@
+//! Utility functions.
+
+/// Groups runs of items in a slice with the same optional key, calculated fallibly.
+///
+/// Groups runs of successive elements in `items` for which `key_fn` returns the same non-`None`
+/// value. Returns an iterator over pairs of a key and a subslice of `items`. If `key_fn` returns
+/// `None` for an item, it is not included in the result, but it may interrupt a run.
+///
+/// # Errors
+/// Returns an error if `key_fn` fails.
 pub(crate) fn group_by<F, T>(items: &[T], key_fn: F) -> Groups<F, T> {
     Groups(Some(GroupsInner {
         items,
@@ -6,9 +16,11 @@ pub(crate) fn group_by<F, T>(items: &[T], key_fn: F) -> Groups<F, T> {
     }))
 }
 
+/// Iterator over pairs of keys and subslices returned from [group_by].
 #[derive(Debug)]
 pub(crate) struct Groups<'a, F, T>(Option<GroupsInner<'a, F, T>>);
 
+/// Helper type for [Groups].
 #[derive(Debug)]
 struct GroupsInner<'a, F, T> {
     items: &'a [T],

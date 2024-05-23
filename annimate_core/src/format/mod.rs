@@ -1,3 +1,5 @@
+//! Providing export formats.
+
 use std::io::Write;
 
 use self::csv::CsvExporter;
@@ -21,6 +23,7 @@ pub enum ExportFormat {
 }
 
 impl ExportFormat {
+    /// Returns an iterator over the [ExportData] configured for this format.
     pub(crate) fn get_export_data(&self) -> impl Iterator<Item = &ExportData> {
         match self {
             ExportFormat::Csv(config) => CsvExporter::get_export_data(config),
@@ -28,6 +31,7 @@ impl ExportFormat {
     }
 }
 
+/// Exports matches in the specified format.
 pub(crate) fn export<F, G, I, W>(
     export_format: ExportFormat,
     matches: I,
@@ -57,11 +61,15 @@ where
     }
 }
 
+/// Abstraction over exporting matches in different formats.
 trait Exporter {
+    /// The type of configuration for the exporter.
     type Config;
 
+    /// Returns an iterator over the [ExportData] configured for this exporter.
     fn get_export_data(config: &Self::Config) -> impl Iterator<Item = &ExportData>;
 
+    /// Exports matches in this exporter's format.
     fn export<F, G, I, W>(
         config: &Self::Config,
         matches: I,

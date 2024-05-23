@@ -1,3 +1,5 @@
+//! Dealing with version information.
+
 use serde::Serialize;
 
 /// The current version of Annimate and the version of [graphANNIS](https://docs.rs/graphannis) used by it.

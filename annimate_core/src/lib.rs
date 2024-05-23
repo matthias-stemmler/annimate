@@ -1,3 +1,5 @@
+//! This library provides the Annimate core functionality.
+
 use std::collections::btree_map::Entry;
 use std::io::{self, Write};
 use std::path::{Path, PathBuf};
@@ -49,7 +51,7 @@ impl Storage {
         let corpus_storage = graphannis::CorpusStorage::with_cache_strategy(
             db_dir.as_ref(),
             CacheStrategy::PercentOfFreeMemory(25.0),
-            true,
+            true, /* use_parallel_joins */
         )?;
 
         let metadata_storage = MetadataStorage::from_db_dir(
@@ -308,11 +310,10 @@ impl Storage {
     where
         S: AsRef<str>,
     {
-        Ok(aql::validate_query(
-            self.corpus_ref(corpus_names),
-            aql_query,
-            query_language,
-        )?)
+        let analysis_result =
+            aql::validate_query(self.corpus_ref(corpus_names), aql_query, query_language)?;
+
+        Ok(analysis_result)
     }
 
     /// Returns the nodes of an AQL query.
@@ -321,11 +322,9 @@ impl Storage {
         aql_query: &str,
         query_language: QueryLanguage,
     ) -> Result<QueryAnalysisResult<QueryNodes>, AnnimateError> {
-        Ok(aql::query_nodes(
-            &self.corpus_storage,
-            aql_query,
-            query_language,
-        )?)
+        let query_nodes = aql::query_nodes(&self.corpus_storage, aql_query, query_language)?;
+
+        Ok(query_nodes)
     }
 
     /// Returns all exportable annotation keys for the given corpora.
@@ -339,7 +338,9 @@ impl Storage {
     where
         S: AsRef<str>,
     {
-        AnnoKeys::new(self.corpus_ref(corpus_names)).map(AnnoKeys::into_exportable)
+        let exportable_anno_keys = AnnoKeys::new(self.corpus_ref(corpus_names))?.into_exportable();
+
+        Ok(exportable_anno_keys)
     }
 
     /// Returns all segmentations for the given corpora.
@@ -351,7 +352,9 @@ impl Storage {
     where
         S: AsRef<str>,
     {
-        Ok(anno::segmentations(self.corpus_ref(corpus_names))?)
+        let segmentations = anno::segmentations(self.corpus_ref(corpus_names))?;
+
+        Ok(segmentations)
     }
 
     /// Exports matches for a query.
@@ -416,8 +419,11 @@ impl Storage {
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Corpora {
-    corpora: Vec<Corpus>,
-    sets: Vec<String>,
+    /// All corpora.
+    pub corpora: Vec<Corpus>,
+
+    /// Names of all corpus sets.
+    pub sets: Vec<String>,
 }
 
 impl Corpora {
@@ -427,11 +433,15 @@ impl Corpora {
     }
 }
 
+/// Information about a corpus.
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
-struct Corpus {
-    name: String,
-    included_in_sets: Vec<String>,
+pub struct Corpus {
+    /// Name of the corpus.
+    pub name: String,
+
+    /// Names of sets that include the corpus.
+    pub included_in_sets: Vec<String>,
 }
 
 /// Configuration of a request to export matches.

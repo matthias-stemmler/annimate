@@ -1,3 +1,5 @@
+//! Dealing with node names.
+
 use std::borrow::Cow;
 
 use graphannis::errors::GraphAnnisError;
@@ -6,6 +8,20 @@ use graphannis_core::types::NodeID;
 
 use crate::AnnimateError;
 
+/// Returns the name of the corpus/corpus node for a given node name.
+///
+/// This turns
+/// ```plain
+/// corpus/doc#node
+/// ```
+/// into
+/// ```plain
+/// corpus
+/// ```
+///
+/// We assume that the name of a corpus always equals the node name of its corpus root node.
+/// This URL-decodes the corpus name because the corpus name is usually URL-encoded in node names,
+/// but not URL-encoded as a corpus name or the name of the corpus root node.
 pub(crate) fn get_corpus_name(node_name: &str) -> Result<Cow<str>, AnnimateError> {
     let corpus_name_encoded = match node_name.split_once('/') {
         Some((corpus_name, _)) => corpus_name,
@@ -16,6 +32,19 @@ pub(crate) fn get_corpus_name(node_name: &str) -> Result<Cow<str>, AnnimateError
         .map_err(|_| AnnimateError::CorpusNameDecodesToInvalidUtf8(corpus_name_encoded.into()))
 }
 
+/// Returns the name of the document node for a given node name.
+///
+/// This turns
+/// ```plain
+/// corpus/doc#node
+/// ```
+/// into
+/// ```plain
+/// corpus/doc
+/// ```
+///
+/// This does *not* URL-decode the document name because the document name is usually URL-encoded
+/// both in node names and in the name of the document node.
 pub(crate) fn get_doc_name(node_name: &str) -> &str {
     match node_name.rsplit_once('#') {
         Some((doc_name, _)) => doc_name,
@@ -23,6 +52,11 @@ pub(crate) fn get_doc_name(node_name: &str) -> &str {
     }
 }
 
+/// Maps a node name to a node id
+///
+/// This is a wrapper around
+/// [get_node_id_from_name](graphannis_core::annostorage::NodeAnnotationStorage::get_node_id_from_name)
+/// that treats the case where the node doesn't exist as an error.
 pub(crate) fn node_name_to_node_id(
     graph: &AnnotationGraph,
     node_name: &str,
