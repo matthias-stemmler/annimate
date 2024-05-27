@@ -294,12 +294,15 @@ describe('store', () => {
         updateExportColumn: useUpdateExportColumn(),
         reorderExportColumn: useReorderExportColumns(),
         removeExportColumn: useRemoveExportColumn(),
+        toggleCorpus: useToggleCorpus(),
         unremoveExportColumn: useUnremoveExportColumn(),
       }),
       { wrapper: Wrapper },
     );
 
-    expect(result.current.exportColumns).toHaveLength(0);
+    result.current.toggleCorpus('a');
+
+    expect(result.current.exportColumns).toHaveLength(2);
 
     result.current.addExportColumn('anno_corpus');
     result.current.addExportColumn('anno_document');
@@ -308,16 +311,29 @@ describe('store', () => {
       expect(result.current.exportColumns).toEqual([
         {
           id: 1,
-          type: 'anno_corpus',
+          type: 'number',
         },
         {
           id: 2,
+          type: 'match_in_context',
+          context: 20,
+          contextRightOverride: undefined,
+          primaryNodeRefs: [],
+          secondaryNodeRefs: [],
+          segmentation: '',
+        },
+        {
+          id: 3,
+          type: 'anno_corpus',
+        },
+        {
+          id: 4,
           type: 'anno_document',
         },
       ]);
     });
 
-    result.current.updateExportColumn(2, {
+    result.current.updateExportColumn(4, {
       type: 'anno_document',
       payload: {
         type: 'update_anno_key',
@@ -329,10 +345,23 @@ describe('store', () => {
       expect(result.current.exportColumns).toEqual([
         {
           id: 1,
-          type: 'anno_corpus',
+          type: 'number',
         },
         {
           id: 2,
+          type: 'match_in_context',
+          context: 20,
+          contextRightOverride: undefined,
+          primaryNodeRefs: [],
+          secondaryNodeRefs: [],
+          segmentation: '',
+        },
+        {
+          id: 3,
+          type: 'anno_corpus',
+        },
+        {
+          id: 4,
           type: 'anno_document',
           annoKey: ANNO_KEY_DOCUMENT,
         },
@@ -345,7 +374,16 @@ describe('store', () => {
       expect(result.current.exportColumns).toEqual([
         {
           id: 1,
+          type: 'number',
+        },
+        {
+          id: 3,
           type: 'anno_corpus',
+        },
+        {
+          id: 4,
+          type: 'anno_document',
+          annoKey: ANNO_KEY_DOCUMENT,
         },
       ]);
     });
@@ -356,14 +394,25 @@ describe('store', () => {
       expect(result.current.exportColumns).toEqual([
         {
           id: 1,
-          type: 'anno_corpus',
+          type: 'number',
         },
         {
           id: 3,
+          type: 'anno_corpus',
+        },
+        {
+          id: 4,
+          type: 'anno_document',
+          annoKey: ANNO_KEY_DOCUMENT,
+        },
+        {
+          id: 5,
           type: 'match_in_context',
           context: 20,
+          contextRightOverride: undefined,
           primaryNodeRefs: [],
           secondaryNodeRefs: [],
+          segmentation: '',
         },
       ]);
     });
@@ -378,14 +427,25 @@ describe('store', () => {
       expect(result.current.exportColumns).toEqual([
         {
           id: 3,
-          type: 'match_in_context',
-          context: 20,
-          primaryNodeRefs: [],
-          secondaryNodeRefs: [],
+          type: 'anno_corpus',
         },
         {
           id: 1,
-          type: 'anno_corpus',
+          type: 'number',
+        },
+        {
+          id: 4,
+          type: 'anno_document',
+          annoKey: ANNO_KEY_DOCUMENT,
+        },
+        {
+          id: 5,
+          type: 'match_in_context',
+          context: 20,
+          contextRightOverride: undefined,
+          primaryNodeRefs: [],
+          secondaryNodeRefs: [],
+          segmentation: '',
         },
       ]);
     });
@@ -396,19 +456,34 @@ describe('store', () => {
       expect(result.current.exportColumns).toEqual([
         {
           id: 2,
+          type: 'match_in_context',
+          context: 20,
+          contextRightOverride: undefined,
+          primaryNodeRefs: [],
+          secondaryNodeRefs: [],
+          segmentation: '',
+        },
+        {
+          id: 3,
+          type: 'anno_corpus',
+        },
+        {
+          id: 1,
+          type: 'number',
+        },
+        {
+          id: 4,
           type: 'anno_document',
           annoKey: ANNO_KEY_DOCUMENT,
         },
         {
-          id: 3,
+          id: 5,
           type: 'match_in_context',
           context: 20,
+          contextRightOverride: undefined,
           primaryNodeRefs: [],
           secondaryNodeRefs: [],
-        },
-        {
-          id: 1,
-          type: 'anno_corpus',
+          segmentation: '',
         },
       ]);
     });
@@ -427,15 +502,13 @@ describe('store', () => {
     result.current.addExportColumn('anno_corpus');
 
     await waitFor(() => {
-      expect(result.current.exportColumns).toEqual([
-        {
-          id: 1,
-          type: 'anno_corpus',
-        },
-      ]);
+      expect(result.current.exportColumns).toContainEqual({
+        id: 3,
+        type: 'anno_corpus',
+      });
     });
 
-    result.current.updateExportColumn(1, {
+    result.current.updateExportColumn(3, {
       type: 'anno_corpus',
       payload: {
         type: 'update_anno_key',
@@ -444,16 +517,14 @@ describe('store', () => {
     });
 
     await waitFor(() => {
-      expect(result.current.exportColumns).toEqual([
-        {
-          id: 1,
-          type: 'anno_corpus',
-          annoKey: ANNO_KEY_CORPUS,
-        },
-      ]);
+      expect(result.current.exportColumns).toContainEqual({
+        id: 3,
+        type: 'anno_corpus',
+        annoKey: ANNO_KEY_CORPUS,
+      });
     });
 
-    result.current.updateExportColumn(1, {
+    result.current.updateExportColumn(3, {
       type: 'anno_corpus',
       payload: {
         type: 'update_anno_key',
@@ -462,13 +533,11 @@ describe('store', () => {
     });
 
     await waitFor(() => {
-      expect(result.current.exportColumns).toEqual([
-        {
-          id: 1,
-          type: 'anno_corpus',
-          annoKey: undefined,
-        },
-      ]);
+      expect(result.current.exportColumns).toContainEqual({
+        id: 3,
+        type: 'anno_corpus',
+        annoKey: undefined,
+      });
     });
   });
 
@@ -485,15 +554,13 @@ describe('store', () => {
     result.current.addExportColumn('anno_document');
 
     await waitFor(() => {
-      expect(result.current.exportColumns).toEqual([
-        {
-          id: 1,
-          type: 'anno_document',
-        },
-      ]);
+      expect(result.current.exportColumns).toContainEqual({
+        id: 3,
+        type: 'anno_document',
+      });
     });
 
-    result.current.updateExportColumn(1, {
+    result.current.updateExportColumn(3, {
       type: 'anno_document',
       payload: {
         type: 'update_anno_key',
@@ -502,16 +569,14 @@ describe('store', () => {
     });
 
     await waitFor(() => {
-      expect(result.current.exportColumns).toEqual([
-        {
-          id: 1,
-          type: 'anno_document',
-          annoKey: ANNO_KEY_DOCUMENT,
-        },
-      ]);
+      expect(result.current.exportColumns).toContainEqual({
+        id: 3,
+        type: 'anno_document',
+        annoKey: ANNO_KEY_DOCUMENT,
+      });
     });
 
-    result.current.updateExportColumn(1, {
+    result.current.updateExportColumn(3, {
       type: 'anno_document',
       payload: {
         type: 'update_anno_key',
@@ -520,13 +585,11 @@ describe('store', () => {
     });
 
     await waitFor(() => {
-      expect(result.current.exportColumns).toEqual([
-        {
-          id: 1,
-          type: 'anno_document',
-          annoKey: undefined,
-        },
-      ]);
+      expect(result.current.exportColumns).toContainEqual({
+        id: 3,
+        type: 'anno_document',
+        annoKey: undefined,
+      });
     });
   });
 
@@ -545,22 +608,20 @@ describe('store', () => {
     result.current.addExportColumn('anno_match');
 
     await waitFor(() => {
-      expect(result.current.exportColumns).toEqual([
-        {
-          id: 1,
-          type: 'anno_match',
-        },
-      ]);
+      expect(result.current.exportColumns).toContainEqual({
+        id: 3,
+        type: 'anno_match',
+      });
     });
 
-    result.current.updateExportColumn(1, {
+    result.current.updateExportColumn(3, {
       type: 'anno_match',
       payload: {
         type: 'update_anno_key',
         annoKey: ANNO_KEY_NODE,
       },
     });
-    result.current.updateExportColumn(1, {
+    result.current.updateExportColumn(3, {
       type: 'anno_match',
       payload: {
         type: 'update_node_ref',
@@ -569,24 +630,22 @@ describe('store', () => {
     });
 
     await waitFor(() => {
-      expect(result.current.exportColumns).toEqual([
-        {
-          id: 1,
-          type: 'anno_match',
-          annoKey: ANNO_KEY_NODE,
-          nodeRef: { index: 0, variables: ['1'] },
-        },
-      ]);
+      expect(result.current.exportColumns).toContainEqual({
+        id: 3,
+        type: 'anno_match',
+        annoKey: ANNO_KEY_NODE,
+        nodeRef: { index: 0, variables: ['1'] },
+      });
     });
 
-    result.current.updateExportColumn(1, {
+    result.current.updateExportColumn(3, {
       type: 'anno_match',
       payload: {
         type: 'update_anno_key',
         annoKey: ANNO_KEY_UNKNOWN,
       },
     });
-    result.current.updateExportColumn(1, {
+    result.current.updateExportColumn(3, {
       type: 'anno_match',
       payload: {
         type: 'update_node_ref',
@@ -595,24 +654,22 @@ describe('store', () => {
     });
 
     await waitFor(() => {
-      expect(result.current.exportColumns).toEqual([
-        {
-          id: 1,
-          type: 'anno_match',
-          annoKey: undefined,
-          nodeRef: { index: 0, variables: ['1'] },
-        },
-      ]);
+      expect(result.current.exportColumns).toContainEqual({
+        id: 3,
+        type: 'anno_match',
+        annoKey: undefined,
+        nodeRef: { index: 0, variables: ['1'] },
+      });
     });
 
-    result.current.updateExportColumn(1, {
+    result.current.updateExportColumn(3, {
       type: 'anno_match',
       payload: {
         type: 'update_anno_key',
         annoKey: ANNO_KEY_NODE,
       },
     });
-    result.current.updateExportColumn(1, {
+    result.current.updateExportColumn(3, {
       type: 'anno_match',
       payload: {
         type: 'update_node_ref',
@@ -621,14 +678,12 @@ describe('store', () => {
     });
 
     await waitFor(() => {
-      expect(result.current.exportColumns).toEqual([
-        {
-          id: 1,
-          type: 'anno_match',
-          annoKey: ANNO_KEY_NODE,
-          nodeRef: undefined,
-        },
-      ]);
+      expect(result.current.exportColumns).toContainEqual({
+        id: 3,
+        type: 'anno_match',
+        annoKey: ANNO_KEY_NODE,
+        nodeRef: undefined,
+      });
     });
   });
 
@@ -649,22 +704,20 @@ describe('store', () => {
     result.current.addExportColumn('match_in_context');
 
     await waitFor(() => {
-      expect(result.current.exportColumns).toEqual([
-        {
-          id: 1,
-          type: 'match_in_context',
-          context: 20,
-          primaryNodeRefs: [
-            { index: 0, variables: ['1'] },
-            { index: 1, variables: ['2'] },
-          ],
-          secondaryNodeRefs: [],
-          segmentation: '',
-        },
-      ]);
+      expect(result.current.exportColumns).toContainEqual({
+        id: 3,
+        type: 'match_in_context',
+        context: 20,
+        primaryNodeRefs: [
+          { index: 0, variables: ['1'] },
+          { index: 1, variables: ['2'] },
+        ],
+        secondaryNodeRefs: [],
+        segmentation: '',
+      });
     });
 
-    result.current.updateExportColumn(1, {
+    result.current.updateExportColumn(3, {
       type: 'match_in_context',
       payload: {
         type: 'update_segmentation',
@@ -673,58 +726,52 @@ describe('store', () => {
     });
 
     await waitFor(() => {
-      expect(result.current.exportColumns).toEqual([
-        {
-          id: 1,
-          type: 'match_in_context',
-          context: 20,
-          primaryNodeRefs: [
-            { index: 0, variables: ['1'] },
-            { index: 1, variables: ['2'] },
-          ],
-          secondaryNodeRefs: [],
-          segmentation: 'segmentation',
-        },
-      ]);
+      expect(result.current.exportColumns).toContainEqual({
+        id: 3,
+        type: 'match_in_context',
+        context: 20,
+        primaryNodeRefs: [
+          { index: 0, variables: ['1'] },
+          { index: 1, variables: ['2'] },
+        ],
+        secondaryNodeRefs: [],
+        segmentation: 'segmentation',
+      });
     });
 
     result.current.toggleCorpus('a');
 
     await waitFor(() => {
-      expect(result.current.exportColumns).toEqual([
-        {
-          id: 1,
-          type: 'match_in_context',
-          context: 20,
-          primaryNodeRefs: [
-            { index: 0, variables: ['1'] },
-            { index: 1, variables: ['2'] },
-          ],
-          secondaryNodeRefs: [],
-          segmentation: undefined,
-        },
-      ]);
+      expect(result.current.exportColumns).toContainEqual({
+        id: 3,
+        type: 'match_in_context',
+        context: 20,
+        primaryNodeRefs: [
+          { index: 0, variables: ['1'] },
+          { index: 1, variables: ['2'] },
+        ],
+        secondaryNodeRefs: [],
+        segmentation: undefined,
+      });
     });
 
     result.current.toggleCorpus('a');
 
     await waitFor(() => {
-      expect(result.current.exportColumns).toEqual([
-        {
-          id: 1,
-          type: 'match_in_context',
-          context: 20,
-          primaryNodeRefs: [
-            { index: 0, variables: ['1'] },
-            { index: 1, variables: ['2'] },
-          ],
-          secondaryNodeRefs: [],
-          segmentation: 'segmentation',
-        },
-      ]);
+      expect(result.current.exportColumns).toContainEqual({
+        id: 3,
+        type: 'match_in_context',
+        context: 20,
+        primaryNodeRefs: [
+          { index: 0, variables: ['1'] },
+          { index: 1, variables: ['2'] },
+        ],
+        secondaryNodeRefs: [],
+        segmentation: 'segmentation',
+      });
     });
 
-    result.current.updateExportColumn(1, {
+    result.current.updateExportColumn(3, {
       type: 'match_in_context',
       payload: {
         type: 'update_context',
@@ -732,7 +779,7 @@ describe('store', () => {
       },
     });
 
-    result.current.updateExportColumn(1, {
+    result.current.updateExportColumn(3, {
       type: 'match_in_context',
       payload: {
         type: 'update_context_right_override',
@@ -741,23 +788,21 @@ describe('store', () => {
     });
 
     await waitFor(() => {
-      expect(result.current.exportColumns).toEqual([
-        {
-          id: 1,
-          type: 'match_in_context',
-          context: 42,
-          contextRightOverride: 43,
-          primaryNodeRefs: [
-            { index: 0, variables: ['1'] },
-            { index: 1, variables: ['2'] },
-          ],
-          secondaryNodeRefs: [],
-          segmentation: 'segmentation',
-        },
-      ]);
+      expect(result.current.exportColumns).toContainEqual({
+        id: 3,
+        type: 'match_in_context',
+        context: 42,
+        contextRightOverride: 43,
+        primaryNodeRefs: [
+          { index: 0, variables: ['1'] },
+          { index: 1, variables: ['2'] },
+        ],
+        secondaryNodeRefs: [],
+        segmentation: 'segmentation',
+      });
     });
 
-    result.current.updateExportColumn(1, {
+    result.current.updateExportColumn(3, {
       type: 'match_in_context',
       payload: {
         type: 'toggle_primary_node_ref',
@@ -769,20 +814,18 @@ describe('store', () => {
     });
 
     await waitFor(() => {
-      expect(result.current.exportColumns).toEqual([
-        {
-          id: 1,
-          type: 'match_in_context',
-          context: 42,
-          contextRightOverride: 43,
-          primaryNodeRefs: [{ index: 1, variables: ['2'] }],
-          secondaryNodeRefs: [{ index: 0, variables: ['1'] }],
-          segmentation: 'segmentation',
-        },
-      ]);
+      expect(result.current.exportColumns).toContainEqual({
+        id: 3,
+        type: 'match_in_context',
+        context: 42,
+        contextRightOverride: 43,
+        primaryNodeRefs: [{ index: 1, variables: ['2'] }],
+        secondaryNodeRefs: [{ index: 0, variables: ['1'] }],
+        segmentation: 'segmentation',
+      });
     });
 
-    result.current.updateExportColumn(1, {
+    result.current.updateExportColumn(3, {
       type: 'match_in_context',
       payload: {
         type: 'toggle_primary_node_ref',
@@ -794,23 +837,21 @@ describe('store', () => {
     });
 
     await waitFor(() => {
-      expect(result.current.exportColumns).toEqual([
-        {
-          id: 1,
-          type: 'match_in_context',
-          context: 42,
-          contextRightOverride: 43,
-          primaryNodeRefs: [
-            { index: 1, variables: ['2'] },
-            { index: 0, variables: ['1'] },
-          ],
-          secondaryNodeRefs: [],
-          segmentation: 'segmentation',
-        },
-      ]);
+      expect(result.current.exportColumns).toContainEqual({
+        id: 3,
+        type: 'match_in_context',
+        context: 42,
+        contextRightOverride: 43,
+        primaryNodeRefs: [
+          { index: 1, variables: ['2'] },
+          { index: 0, variables: ['1'] },
+        ],
+        secondaryNodeRefs: [],
+        segmentation: 'segmentation',
+      });
     });
 
-    result.current.updateExportColumn(1, {
+    result.current.updateExportColumn(3, {
       type: 'match_in_context',
       payload: {
         type: 'reorder_primary_node_refs',
@@ -819,20 +860,18 @@ describe('store', () => {
     });
 
     await waitFor(() => {
-      expect(result.current.exportColumns).toEqual([
-        {
-          id: 1,
-          type: 'match_in_context',
-          context: 42,
-          contextRightOverride: 43,
-          primaryNodeRefs: [
-            { index: 0, variables: ['1'] },
-            { index: 1, variables: ['2'] },
-          ],
-          secondaryNodeRefs: [],
-          segmentation: 'segmentation',
-        },
-      ]);
+      expect(result.current.exportColumns).toContainEqual({
+        id: 3,
+        type: 'match_in_context',
+        context: 42,
+        contextRightOverride: 43,
+        primaryNodeRefs: [
+          { index: 0, variables: ['1'] },
+          { index: 1, variables: ['2'] },
+        ],
+        secondaryNodeRefs: [],
+        segmentation: 'segmentation',
+      });
     });
   });
 
@@ -850,7 +889,7 @@ describe('store', () => {
     (c) => c.setAqlQuery('valid'),
     (c) => c.addExportColumn('anno_corpus'),
     (c) =>
-      c.updateExportColumn(1, {
+      c.updateExportColumn(3, {
         type: 'anno_corpus',
         payload: {
           type: 'update_anno_key',
@@ -859,7 +898,7 @@ describe('store', () => {
       }),
     (c) => c.addExportColumn('anno_document'),
     (c) =>
-      c.updateExportColumn(2, {
+      c.updateExportColumn(4, {
         type: 'anno_document',
         payload: {
           type: 'update_anno_key',
@@ -868,7 +907,7 @@ describe('store', () => {
       }),
     (c) => c.addExportColumn('anno_match'),
     (c) =>
-      c.updateExportColumn(3, {
+      c.updateExportColumn(5, {
         type: 'anno_match',
         payload: {
           type: 'update_anno_key',
@@ -876,7 +915,7 @@ describe('store', () => {
         },
       }),
     (c) =>
-      c.updateExportColumn(3, {
+      c.updateExportColumn(5, {
         type: 'anno_match',
         payload: {
           type: 'update_node_ref',
@@ -885,7 +924,7 @@ describe('store', () => {
       }),
     (c) => c.addExportColumn('match_in_context'),
     (c) =>
-      c.updateExportColumn(4, {
+      c.updateExportColumn(6, {
         type: 'match_in_context',
         payload: {
           type: 'update_segmentation',
@@ -967,10 +1006,16 @@ describe('store', () => {
     result.current.setAqlQuery('valid');
     result.current.setQueryLanguage('AQLQuirksV3');
 
-    result.current.addExportColumn('number');
+    result.current.updateExportColumn(2, {
+      type: 'match_in_context',
+      payload: {
+        type: 'update_segmentation',
+        segmentation: 'segmentation',
+      },
+    });
 
     result.current.addExportColumn('anno_corpus');
-    result.current.updateExportColumn(2, {
+    result.current.updateExportColumn(3, {
       type: 'anno_corpus',
       payload: {
         type: 'update_anno_key',
@@ -979,7 +1024,7 @@ describe('store', () => {
     });
 
     result.current.addExportColumn('anno_document');
-    result.current.updateExportColumn(3, {
+    result.current.updateExportColumn(4, {
       type: 'anno_document',
       payload: {
         type: 'update_anno_key',
@@ -988,27 +1033,18 @@ describe('store', () => {
     });
 
     result.current.addExportColumn('anno_match');
-    result.current.updateExportColumn(4, {
+    result.current.updateExportColumn(5, {
       type: 'anno_match',
       payload: {
         type: 'update_anno_key',
         annoKey: ANNO_KEY_NODE,
       },
     });
-    result.current.updateExportColumn(4, {
+    result.current.updateExportColumn(5, {
       type: 'anno_match',
       payload: {
         type: 'update_node_ref',
         nodeRef: { index: 0, variables: ['1'] },
-      },
-    });
-
-    result.current.addExportColumn('match_in_context');
-    result.current.updateExportColumn(5, {
-      type: 'match_in_context',
-      payload: {
-        type: 'update_segmentation',
-        segmentation: 'segmentation',
       },
     });
 
@@ -1031,6 +1067,17 @@ describe('store', () => {
           type: 'number',
         }),
         expect.objectContaining({
+          type: 'match_in_context',
+          context: 20,
+          contextRightOverride: undefined,
+          primaryNodeRefs: [
+            { index: 0, variables: ['1'] },
+            { index: 1, variables: ['2'] },
+          ],
+          secondaryNodeRefs: [],
+          segmentation: 'segmentation',
+        }),
+        expect.objectContaining({
           type: 'anno_corpus',
           annoKey: ANNO_KEY_CORPUS,
         }),
@@ -1041,16 +1088,6 @@ describe('store', () => {
         expect.objectContaining({
           type: 'anno_match',
           annoKey: ANNO_KEY_NODE,
-        }),
-        expect.objectContaining({
-          type: 'match_in_context',
-          context: 20,
-          contextRightOverride: undefined,
-          primaryNodeRefs: [
-            { index: 0, variables: ['1'] },
-            { index: 1, variables: ['2'] },
-          ],
-          segmentation: 'segmentation',
         }),
       ],
       outputFile: 'out.csv',

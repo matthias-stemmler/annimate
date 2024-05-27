@@ -115,8 +115,22 @@ export const createStoreForContext = (): StoreApi<State> =>
     aqlQueryDebounced: '',
     queryLanguage: 'AQL',
 
-    exportColumns: [],
-    exportColumnsMaxId: 0,
+    exportColumns: [
+      {
+        id: 1,
+        type: 'number',
+      } as const,
+      {
+        id: 2,
+        type: 'match_in_context',
+        context: 20,
+        contextRightOverride: undefined,
+        primaryNodeRefs: [],
+        secondaryNodeRefs: [],
+        segmentation: '',
+      } as const,
+    ],
+    exportColumnsMaxId: 2,
   }));
 
 const createExportColumn = (type: ExportColumnType): ExportColumn => {
