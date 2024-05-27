@@ -4,7 +4,10 @@ import { AnnoMatchColumn } from '@/components/main-page/columns/anno-match-colum
 import { MatchInContextColumn } from '@/components/main-page/columns/match-in-context-column';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { ReorderList } from '@/components/ui/custom/reorder-list';
+import {
+  ReorderList,
+  ReorderListContext,
+} from '@/components/ui/custom/reorder-list';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -33,7 +36,7 @@ import {
 } from '@/lib/store';
 import { cn } from '@/lib/utils';
 import { GripVertical, Plus, Trash2 } from 'lucide-react';
-import { FC, PropsWithChildren } from 'react';
+import { FC, PropsWithChildren, useEffect, useRef } from 'react';
 
 const COLUMN_TYPE_TO_NAME: Record<ExportColumnType, string> = {
   number: 'Number',
@@ -46,16 +49,11 @@ const COLUMN_TYPE_TO_NAME: Record<ExportColumnType, string> = {
 export const ExportColumnList: FC = () => {
   const exportColumns = useExportColumnItems();
   const addExportColumn = useAddExportColumn();
-  const updateExportColumn = useUpdateExportColumn();
   const reorderExportColumns = useReorderExportColumns();
-  const removeExportColumn = useRemoveExportColumn();
-  const unremoveExportColumn = useUnremoveExportColumn();
 
   const isExporting = useIsExporting();
   const disabled = isExporting;
   const reorderDisabled = disabled || exportColumns.length <= 1;
-
-  const { toast } = useToast();
 
   return (
     <div className="flex-1 overflow-hidden pt-1 pr-1 flex flex-col gap-2">
@@ -111,166 +109,191 @@ export const ExportColumnList: FC = () => {
                   reorder(items, getExportColumnId),
                 )
               }
-              renderItem={(
-                item,
-                {
-                  dragHandleAttributes,
-                  dragHandleListeners,
-                  isOverlay,
-                  isPlaceholder,
-                  ref,
-                  style,
-                },
-              ) => (
-                <Card
-                  className={cn('min-w-[36rem] border-0 border-l-8 shadow-md', {
-                    'border-column-number-600 ring-column-number-600':
-                      item.type === 'number',
-                    'border-column-anno-corpus-600 ring-column-anno-corpus-600':
-                      item.type === 'anno_corpus',
-                    'border-column-anno-document-600 ring-column-anno-document-600':
-                      item.type === 'anno_document',
-                    'border-column-anno-match-600 ring-column-anno-match-600':
-                      item.type === 'anno_match',
-                    'border-column-match-in-context-600 ring-column-match-in-context-600':
-                      item.type === 'match_in_context',
-                    'opacity-30': isPlaceholder,
-                    'ring-2': isOverlay,
-                  })}
-                  ref={ref}
-                  style={style}
-                >
-                  <CardContent className="pl-4 pr-3 py-0 flex items-center gap-4">
-                    <div className="grow py-2 flex flex-col gap-4">
-                      <p
-                        className={cn(
-                          'font-semibold text-sm py-2 cursor-default',
-                          {
-                            'text-column-number-800 dark:text-column-number-600':
-                              item.type === 'number',
-                            'text-column-anno-corpus-800 dark:text-column-anno-corpus-600':
-                              item.type === 'anno_corpus',
-                            'text-column-anno-document-800 dark:text-column-anno-document-600':
-                              item.type === 'anno_document',
-                            'text-column-anno-match-800 dark:text-column-anno-match-600':
-                              item.type === 'anno_match',
-                            'text-column-match-in-context-800 dark:text-column-match-in-context-600':
-                              item.type === 'match_in_context',
-                            'cursor-grab': !reorderDisabled,
-                            'cursor-grabbing': isOverlay || isPlaceholder,
-                          },
-                        )}
-                        {...dragHandleAttributes}
-                        {...dragHandleListeners}
-                        tabIndex={-1}
-                      >
-                        {COLUMN_TYPE_TO_NAME[item.type]}
-                      </p>
-                      {item.type === 'anno_corpus' && (
-                        <AnnoCorpusColumn
-                          data={item}
-                          onChange={(payload) =>
-                            updateExportColumn(item.id, {
-                              type: item.type,
-                              payload,
-                            })
-                          }
-                        />
-                      )}
-                      {item.type === 'anno_document' && (
-                        <AnnoDocumentColumn
-                          data={item}
-                          onChange={(payload) =>
-                            updateExportColumn(item.id, {
-                              type: item.type,
-                              payload,
-                            })
-                          }
-                        />
-                      )}
-                      {item.type === 'anno_match' && (
-                        <AnnoMatchColumn
-                          data={item}
-                          onChange={(payload) =>
-                            updateExportColumn(item.id, {
-                              type: item.type,
-                              payload,
-                            })
-                          }
-                        />
-                      )}
-                      {item.type === 'match_in_context' && (
-                        <MatchInContextColumn
-                          data={item}
-                          onChange={(payload) =>
-                            updateExportColumn(item.id, {
-                              type: item.type,
-                              payload,
-                            })
-                          }
-                        />
-                      )}
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button
-                            className="text-destructive hover:text-destructive"
-                            disabled={disabled}
-                            onClick={() => {
-                              removeExportColumn(item.id);
-
-                              toast({
-                                action: (
-                                  <ToastAction
-                                    altText="Undo"
-                                    onClick={() =>
-                                      unremoveExportColumn(item.id)
-                                    }
-                                  >
-                                    Undo
-                                  </ToastAction>
-                                ),
-                                title: 'Column removed',
-                              });
-                            }}
-                            size="icon"
-                            variant="ghost"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </TooltipTrigger>
-
-                        <TooltipContent side="left">
-                          Remove column
-                        </TooltipContent>
-                      </Tooltip>
-
-                      <Button
-                        className={cn(
-                          'h-5 w-5 p-0 hover:bg-inherit cursor-grab',
-                          {
-                            'focus-visible:ring-transparent': isPlaceholder,
-                            'cursor-grabbing': isOverlay || isPlaceholder,
-                          },
-                        )}
-                        disabled={reorderDisabled}
-                        variant="ghost"
-                        {...dragHandleAttributes}
-                        {...dragHandleListeners}
-                      >
-                        <GripVertical className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
+              renderItem={(item, context) => (
+                <ExportColumnListItem
+                  context={context}
+                  disabled={disabled}
+                  item={item}
+                  reorderDisabled={reorderDisabled}
+                />
               )}
             />
           </div>
         </ScrollArea>
       )}
     </div>
+  );
+};
+
+type ExportColumnListItemProps = {
+  context: ReorderListContext;
+  disabled: boolean;
+  item: ExportColumnItem;
+  reorderDisabled: boolean;
+};
+
+const ExportColumnListItem: FC<ExportColumnListItemProps> = ({
+  context: {
+    dragHandleAttributes,
+    dragHandleListeners,
+    isOverlay,
+    isPlaceholder,
+    ref: contextRef,
+    style,
+  },
+  disabled,
+  item,
+  reorderDisabled,
+}) => {
+  const updateExportColumn = useUpdateExportColumn();
+  const removeExportColumn = useRemoveExportColumn();
+  const unremoveExportColumn = useUnremoveExportColumn();
+
+  const { toast } = useToast();
+
+  const localRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    localRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [localRef]);
+
+  return (
+    <Card
+      className={cn('min-w-[36rem] border-0 border-l-8 shadow-md', {
+        'border-column-number-600 ring-column-number-600':
+          item.type === 'number',
+        'border-column-anno-corpus-600 ring-column-anno-corpus-600':
+          item.type === 'anno_corpus',
+        'border-column-anno-document-600 ring-column-anno-document-600':
+          item.type === 'anno_document',
+        'border-column-anno-match-600 ring-column-anno-match-600':
+          item.type === 'anno_match',
+        'border-column-match-in-context-600 ring-column-match-in-context-600':
+          item.type === 'match_in_context',
+        'opacity-30': isPlaceholder,
+        'ring-2': isOverlay,
+      })}
+      ref={(ref) => {
+        contextRef(ref);
+        localRef.current = ref;
+      }}
+      style={style}
+    >
+      <CardContent className="pl-4 pr-3 py-0 flex items-center gap-4">
+        <div className="grow py-2 flex flex-col gap-4">
+          <p
+            className={cn('font-semibold text-sm py-2 cursor-default', {
+              'text-column-number-800 dark:text-column-number-600':
+                item.type === 'number',
+              'text-column-anno-corpus-800 dark:text-column-anno-corpus-600':
+                item.type === 'anno_corpus',
+              'text-column-anno-document-800 dark:text-column-anno-document-600':
+                item.type === 'anno_document',
+              'text-column-anno-match-800 dark:text-column-anno-match-600':
+                item.type === 'anno_match',
+              'text-column-match-in-context-800 dark:text-column-match-in-context-600':
+                item.type === 'match_in_context',
+              'cursor-grab': !reorderDisabled,
+              'cursor-grabbing': isOverlay || isPlaceholder,
+            })}
+            {...dragHandleAttributes}
+            {...dragHandleListeners}
+            tabIndex={-1}
+          >
+            {COLUMN_TYPE_TO_NAME[item.type]}
+          </p>
+          {item.type === 'anno_corpus' && (
+            <AnnoCorpusColumn
+              data={item}
+              onChange={(payload) =>
+                updateExportColumn(item.id, {
+                  type: item.type,
+                  payload,
+                })
+              }
+            />
+          )}
+          {item.type === 'anno_document' && (
+            <AnnoDocumentColumn
+              data={item}
+              onChange={(payload) =>
+                updateExportColumn(item.id, {
+                  type: item.type,
+                  payload,
+                })
+              }
+            />
+          )}
+          {item.type === 'anno_match' && (
+            <AnnoMatchColumn
+              data={item}
+              onChange={(payload) =>
+                updateExportColumn(item.id, {
+                  type: item.type,
+                  payload,
+                })
+              }
+            />
+          )}
+          {item.type === 'match_in_context' && (
+            <MatchInContextColumn
+              data={item}
+              onChange={(payload) =>
+                updateExportColumn(item.id, {
+                  type: item.type,
+                  payload,
+                })
+              }
+            />
+          )}
+        </div>
+
+        <div className="flex items-center gap-2">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                className="text-destructive hover:text-destructive"
+                disabled={disabled}
+                onClick={() => {
+                  removeExportColumn(item.id);
+
+                  toast({
+                    action: (
+                      <ToastAction
+                        altText="Undo"
+                        onClick={() => unremoveExportColumn(item.id)}
+                      >
+                        Undo
+                      </ToastAction>
+                    ),
+                    title: 'Column removed',
+                  });
+                }}
+                size="icon"
+                variant="ghost"
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </TooltipTrigger>
+
+            <TooltipContent side="left">Remove column</TooltipContent>
+          </Tooltip>
+
+          <Button
+            className={cn('h-5 w-5 p-0 hover:bg-inherit cursor-grab', {
+              'focus-visible:ring-transparent': isPlaceholder,
+              'cursor-grabbing': isOverlay || isPlaceholder,
+            })}
+            disabled={reorderDisabled}
+            variant="ghost"
+            {...dragHandleAttributes}
+            {...dragHandleListeners}
+          >
+            <GripVertical className="h-4 w-4" />
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
   );
 };
 
