@@ -1,5 +1,3 @@
-//! Dealing with annotations.
-
 use std::collections::{BTreeSet, HashSet};
 use std::fmt::{self, Display, Formatter};
 use std::sync::OnceLock;
@@ -18,13 +16,9 @@ use crate::corpus::CorpusRef;
 use crate::error::AnnimateError;
 use crate::node_name;
 
-/// Name of the `annis:doc` annotation.
 pub(crate) const DOC: &str = "doc";
-
-/// Name of the `annis:tok` annotation.
 pub(crate) const TOK: &str = "tok";
 
-/// The [`AnnoKey`] representing `annis:tok`.
 pub(crate) fn token_anno_key() -> &'static AnnoKey {
     static ANNO_KEY: OnceLock<AnnoKey> = OnceLock::new();
 
@@ -34,7 +28,6 @@ pub(crate) fn token_anno_key() -> &'static AnnoKey {
     })
 }
 
-/// The default [`Ordering`](AnnotationComponentType::Ordering) component.
 pub(crate) fn default_ordering_component() -> &'static Component<AnnotationComponentType> {
     static COMPONENT: OnceLock<Component<AnnotationComponentType>> = OnceLock::new();
 
@@ -47,7 +40,6 @@ pub(crate) fn default_ordering_component() -> &'static Component<AnnotationCompo
     })
 }
 
-/// The `annis:datasource-gap` [`Ordering`](AnnotationComponentType::Ordering) component.
 pub(crate) fn gap_ordering_component() -> &'static Component<AnnotationComponentType> {
     static COMPONENT: OnceLock<Component<AnnotationComponentType>> = OnceLock::new();
 
@@ -60,12 +52,6 @@ pub(crate) fn gap_ordering_component() -> &'static Component<AnnotationComponent
     })
 }
 
-/// Returns the list of segmentations for the given corpora.
-///
-/// A segmentation is an [`Ordering`](AnnotationComponentType::Ordering) component with namespace
-/// `default_ns` that is present in *all* of the given corpora and for which there exists an
-/// annotation of the same name (but not necessarily of the same namespace) that is also present in
-/// all corpora.
 pub(crate) fn segmentations<S>(corpus_ref: CorpusRef<'_, S>) -> Result<Vec<String>, GraphAnnisError>
 where
     S: AsRef<str>,
@@ -107,9 +93,6 @@ where
 /// This finds an [`AnnoKey`] of the same name as the given segmentation. An [`AnnoKey`] of
 /// namespace `default_ns` is preferred if it exists, otherwise the first one in the alphabetical
 /// order is returned. If the given segmentation is `None`, then `annis:tok` is returned.
-///
-/// Unlike [`get_anno_key_for_segmentation_if_exists`], this fails if it cannot find a suitable
-/// [`AnnoKey`].
 pub(crate) fn get_anno_key_for_segmentation<S>(
     corpus_ref: CorpusRef<'_, S>,
     segmentation: Option<&str>,
@@ -127,7 +110,6 @@ where
     }
 }
 
-/// Returns the [`AnnoKey`] corresponding to the given segmentation if it exists.
 fn get_anno_key_for_segmentation_if_exists<S>(
     corpus_ref: CorpusRef<'_, S>,
     segmentation: &str,
@@ -170,7 +152,6 @@ where
     Ok(fallback_anno_key)
 }
 
-/// Returns the requested annotation for the given node.
 pub(crate) fn get_anno(
     graph: &AnnotationGraph,
     node_id: NodeID,
@@ -188,21 +169,13 @@ pub(crate) fn get_anno(
 /// annotations". On a node level, *all* annotations are included.
 #[derive(Debug)]
 pub(crate) struct AnnoKeys {
-    /// [`AnnoKey`]s that are present for at least one corpus node.
     corpus_anno_keys: HashSet<AnnoKey>,
-
-    /// [`AnnoKey`]s that are present for at least one document node.
     doc_anno_keys: HashSet<AnnoKey>,
-
-    /// [`AnnoKey`]s that are present for any node.
     node_anno_keys: HashSet<AnnoKey>,
-
-    /// Information on formatting the [`AnnoKey`]s.
     format: AnnoKeyFormat,
 }
 
 impl AnnoKeys {
-    /// Determines the [`AnnoKeys`] for the given corpora.
     pub(crate) fn new<S>(corpus_ref: CorpusRef<'_, S>) -> Result<Self, AnnimateError>
     where
         S: AsRef<str>,
@@ -274,13 +247,10 @@ impl AnnoKeys {
         })
     }
 
-    /// Returns the [`AnnoKeyFormat`] for these [`AnnoKeys`].
     pub(crate) fn format(&self) -> &AnnoKeyFormat {
         &self.format
     }
 
-    /// Turns these [`AnnoKeys`] into [`ExportableAnnoKeys`], i.e. a display name is attached and
-    /// they are sorted.
     pub(crate) fn into_exportable(self) -> ExportableAnnoKeys {
         let map = |anno_keys: HashSet<AnnoKey>| {
             anno_keys
@@ -301,18 +271,12 @@ impl AnnoKeys {
     }
 }
 
-/// Information on formatting a set of [`AnnoKeys`].
-///
-/// This facilitates formatting an annotation key `ns:name` either fully qualified (`ns:name`) or
-/// name-only depending on whether the name is already unique within the given set of keys.
 #[derive(Debug)]
 pub(crate) struct AnnoKeyFormat {
-    /// All non-unique annotation key names.
     ambiguous_names: HashSet<String>,
 }
 
 impl AnnoKeyFormat {
-    /// Creates a new [`AnnoKeyFormat`] for the given annotation keys.
     pub(crate) fn new<'a, I>(anno_keys: I) -> Self
     where
         I: IntoIterator<Item = &'a AnnoKey>,
@@ -328,9 +292,6 @@ impl AnnoKeyFormat {
         }
     }
 
-    /// Formats the given [`AnnoKey`].
-    ///
-    /// This returns an [`AnnoKeyDisplay`], which implements [`Display`].
     pub(crate) fn display<'a>(&'a self, anno_key: &'a AnnoKey) -> AnnoKeyDisplay<'a> {
         if self.ambiguous_names.contains(&*anno_key.name) {
             AnnoKeyDisplay::fully_qualified(anno_key)
@@ -340,19 +301,13 @@ impl AnnoKeyFormat {
     }
 }
 
-/// A formattable anno key as returned from [`AnnoKeyFormat::display`].
 #[derive(Debug)]
 pub(crate) struct AnnoKeyDisplay<'a> {
-    /// The annotation name.
     name: &'a str,
-
-    /// The annotation namespace, if necessary for formatting.
     ns: Option<&'a str>,
 }
 
 impl<'a> AnnoKeyDisplay<'a> {
-    /// Returns the fully qualified annotation key (`<namespace>:<name>`, or just the name if the namespace is
-    /// empty).
     fn fully_qualified(anno_key: &'a AnnoKey) -> Self {
         Self {
             name: &anno_key.name,
@@ -360,7 +315,6 @@ impl<'a> AnnoKeyDisplay<'a> {
         }
     }
 
-    /// Returns the name-only annotation key.
     fn name_only(anno_key: &'a AnnoKey) -> Self {
         Self {
             name: &anno_key.name,
@@ -382,37 +336,23 @@ impl Display for AnnoKeyDisplay<'_> {
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ExportableAnnoKeys {
-    /// Exportable annotation keys for corpus nodes.
-    pub corpus: Vec<ExportableAnnoKey>,
-
-    /// Exportable annotation keys for document nodes.
-    pub doc: Vec<ExportableAnnoKey>,
-
-    /// Exportable annotation keys for text (match) nodes.
-    pub node: Vec<ExportableAnnoKey>,
+    corpus: Vec<ExportableAnnoKey>,
+    doc: Vec<ExportableAnnoKey>,
+    node: Vec<ExportableAnnoKey>,
 }
 
 /// An annotation key that can be exported.
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ExportableAnnoKey {
-    /// The annotation key.
-    pub anno_key: AnnoKey,
-
-    /// Display name for the annotation key, taking uniqueness of the name into account.
-    ///
-    /// In case the annotation key name is unique among all exportable annotation keys, this is
-    /// just the name. In case it is not unique, it is the fully qualified name, e.g.
-    /// `<namespace>:<name>` (or just the name in case the namespace is empty).
-    pub display_name: String,
+    anno_key: AnnoKey,
+    display_name: String,
 }
 
-/// Checks whether the given [`AnnoKey`] is `annis:doc`.
 pub(crate) fn is_doc_anno_key(anno_key: &AnnoKey) -> bool {
     anno_key.ns == ANNIS_NS && anno_key.name == DOC
 }
 
-/// Checks whether the given [`AnnoKey`] is `annis:node_name`.
 pub(crate) fn is_node_name_anno_key(anno_key: &AnnoKey) -> bool {
     anno_key.ns == ANNIS_NS && anno_key.name == NODE_NAME
 }

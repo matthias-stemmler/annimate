@@ -1,5 +1,3 @@
-//! Dealing with errors.
-
 use std::fmt::{self, Display, Formatter};
 use std::io;
 use std::path::PathBuf;
@@ -12,68 +10,67 @@ use zip::result::ZipError;
 /// Error during an operation provided by Annimate.
 #[derive(Debug, Error)]
 pub enum AnnimateError {
-    /// Operation was cancelled
+    /// Operation was cancelled.
     #[error("Cancelled")]
     Cancelled,
 
-    /// Corpus name decodes to invalid UTF-8
+    /// Corpus name decodes to invalid UTF-8.
     #[error("Corpus name decodes to invalid UTF-8: {0}")]
     CorpusNameDecodesToInvalidUtf8(String),
 
-    /// Corpus set already exists
+    /// Corpus set already exists.
     #[error("Corpus set already exists")]
     CorpusSetAlreadyExists,
 
-    /// Failed to delete corpora
+    /// Failed to delete corpora.
     #[error("Failed to delete corpora: {0}")]
     FailedToDeleteCorpora(AnnimateErrorCorpusNames),
 
-    /// Failed to order chains
+    /// Failed to order chains.
     #[error("Failed to order chains")]
     FailedToOrderChains,
 
-    /// Failed to read metadata
+    /// Failed to read metadata.
     #[error("Failed to read metadata from {path}: {err}")]
     FailedToReadMetadata {
-        /// Path of metadata file
+        /// Path of metadata file.
         path: PathBuf,
 
-        /// Inner error
+        /// Inner error.
         err: AnnisExportMetadataError,
     },
 
-    /// Match node index out of bounds
+    /// Match node index out of bounds.
     #[error("Match node index {index} out of bounds, may be at most {max_index}")]
     MatchNodeIndexOutOfBounds {
-        /// Match node index
+        /// Match node index.
         index: usize,
 
-        /// Maximal valid index
+        /// Maximal valid index.
         max_index: usize,
     },
 
-    /// Match has no nodes
+    /// Match has no nodes.
     #[error("Match has no nodes")]
     MatchWithoutNodes,
 
-    /// Missing annotation for segmentation
+    /// Missing annotation for segmentation.
     #[error("Annotation corresponding to segmentation {0} not found")]
     MissingAnnotationForSegmentation(String),
 
-    /// Too many results
+    /// Too many results.
     #[error("Query produced too many results: {0}")]
     TooManyResults(u64),
 
-    /// Wrapper for [`GraphAnnisError`]
+    /// Wrapper for [`GraphAnnisError`].
     #[error(transparent)]
     Annis(#[from] GraphAnnisError),
 
-    /// Wrapper for [`io::Error`]
+    /// Wrapper for [`io::Error`].
     #[error(transparent)]
     Io(#[from] io::Error),
 }
 
-/// Collection of corpus names, used for formatting in an error message
 #[derive(Debug)]
 pub struct AnnimateErrorCorpusNames(Vec<String>);
 
@@ -89,7 +86,6 @@ impl From<Vec<String>> for AnnimateErrorCorpusNames {
     }
 }
 
-/// Error during a metadata operation.
 #[derive(Debug, Error)]
 pub enum AnnisExportMetadataError {
     #[error("Invalid format: {0}")]
@@ -118,12 +114,6 @@ impl From<ZipError> for AnnimateError {
     }
 }
 
-/// Cancels an operation if requested.
-///
-/// This enables cancellation of an operation in one line:
-/// ```no_compile
-/// cancel_if(&cancel_requested)?;
-/// ```
 pub(crate) fn cancel_if<F>(cancel_requested: F) -> Result<(), AnnimateError>
 where
     F: Fn() -> bool,

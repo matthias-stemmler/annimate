@@ -127,6 +127,7 @@ pub(crate) async fn get_corpora(state: tauri::State<'_, AppState>) -> Result<Cor
 pub(crate) async fn get_db_dir(state: tauri::State<'_, AppState>) -> Result<PathBuf, Error> {
     let mut subscription = state.db_dir_slot.subscribe();
     let db_dir = subscription.wait().await.clone()?;
+
     Ok(db_dir)
 }
 

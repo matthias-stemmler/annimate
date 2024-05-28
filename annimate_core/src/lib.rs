@@ -106,6 +106,7 @@ impl Storage {
                 corpus_names.remove(corpus_name);
             }
         })?;
+
         Ok(())
     }
 
@@ -387,10 +388,7 @@ impl Storage {
             count: matches.total_count(),
         });
 
-        let mut out = tempfile::Builder::new()
-            .prefix(".annimate_")
-            .suffix(".csv")
-            .tempfile()?;
+        let mut out = tempfile::Builder::new().prefix(".annimate_").tempfile()?;
 
         export(
             config.format,
@@ -517,13 +515,8 @@ pub enum ImportStatusEvent {
 #[derive(Clone, Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ImportCorpus {
-    /// File name of the corpus data being imported.
     file_name: String,
-
-    /// Format of the corpus data being imported.
     format: ImportFormat,
-
-    /// Trace of all filesystem entities traversed to reach the corpus data.
     trace: Vec<FilesystemEntity<String>>,
 }
 

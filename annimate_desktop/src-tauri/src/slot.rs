@@ -2,7 +2,7 @@ use std::ops::Deref;
 
 use tokio::sync::watch;
 
-/// A slot where tasks can asynchronously wait until a value is inserted
+/// A slot where tasks can asynchronously wait until a value is inserted.
 ///
 /// This is basically a wrapper around tokio's watch channel where the inner value is an Option.
 #[derive(Debug)]

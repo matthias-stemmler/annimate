@@ -1,5 +1,3 @@
-//! Dealing with ANNIS Query Language (AQL) expressions.
-
 use std::collections::BTreeMap;
 use std::sync::OnceLock;
 use std::vec;
@@ -12,7 +10,6 @@ use serde::Serialize;
 
 use crate::corpus::CorpusRef;
 
-/// Validates the given query.
 pub(crate) fn validate_query<S>(
     corpus_ref: CorpusRef<'_, S>,
     aql_query: &str,
@@ -42,13 +39,6 @@ where
     })
 }
 
-/// Returns all nodes of the given query.
-///
-/// The nodes are wrapped in a [`QueryAnalysisResult`], so unlike [`query_nodes_valid`], this still
-/// succeeds even when the query is invalid.
-///
-/// In case the query language is [`QueryLanguage::AQLQuirksV3`], artifically added nodes to account
-/// for legacy meta queries are *not* included in the result.
 pub(crate) fn query_nodes(
     storage: &graphannis::CorpusStorage,
     aql_query: &str,
@@ -57,12 +47,6 @@ pub(crate) fn query_nodes(
     QueryAnalysisResult::from_result(query_nodes_valid(storage, aql_query, query_language))
 }
 
-/// Returns all nodes of the given query, requiring it to be valid.
-///
-/// Unlike [`query_nodes`], this fails in case of an invalid query.
-///
-/// In case the query language is [`QueryLanguage::AQLQuirksV3`], artifically added nodes to account
-/// for legacy meta queries are *not* included in the result.
 pub(crate) fn query_nodes_valid(
     storage: &graphannis::CorpusStorage,
     aql_query: &str,
@@ -75,6 +59,7 @@ pub(crate) fn query_nodes_valid(
 
     let mut node_descriptions = storage.node_descriptions(aql_query, query_language)?;
 
+    // In quirks mode, remove artifically added nodes for meta queries
     if let QueryLanguage::AQLQuirksV3 = query_language {
         for (position, capture) in meta_regex().captures_iter(aql_query).with_position() {
             if let Position::First | Position::Only = position {
@@ -128,15 +113,10 @@ pub(crate) fn query_nodes_valid(
 )]
 pub enum QueryAnalysisResult<T = ()> {
     /// Query is valid.
-    Valid(
-        /// Data returned by the analysis.
-        T,
-    ),
+    Valid(T),
+
     /// Query is invalid.
-    Invalid(
-        /// The error encountered while analyzing the query.
-        AQLError,
-    ),
+    Invalid(AQLError),
 }
 
 impl<T> QueryAnalysisResult<T> {
@@ -222,6 +202,7 @@ impl From<QueryAttributeDescription> for QueryNode {
 /// Taken from [ANNIS](https://github.com/korpling/ANNIS/blob/9d75e92ddf99bf8cf2633750fd3ba4c4edaf3b51/src/main/resources/org/corpus_tools/annis/gui/components/codemirror/mode/aql/aql.js#L18).
 fn meta_regex() -> &'static Regex {
     static REGEX: OnceLock<Regex> = OnceLock::new();
+
     REGEX.get_or_init(|| {
         Regex::new(
             r"meta::((?:[a-zA-Z_%](?:[a-zA-Z0-9_\-%])*:)?(?:[a-zA-Z_%](?:[a-zA-Z0-9_\-%])*))",

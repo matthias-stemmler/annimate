@@ -1,5 +1,3 @@
-//! The CSV export format.
-
 use std::collections::{BTreeSet, HashMap};
 use std::io::Write;
 use std::ops::Range;
@@ -13,19 +11,14 @@ use crate::error::{cancel_if, AnnimateError};
 use crate::query::{ExportData, ExportDataAnno, ExportDataText, Match, TextPart};
 use crate::QueryNode;
 
-/// A type of column (match/context).
 #[derive(Clone, Copy, Debug)]
 enum ColumnType {
-    /// Match column.
     Match,
-
-    /// Context column.
     Context,
 }
 
 use ColumnType::*;
 
-/// Implementation of [Exporter] for the CSV format.
 #[derive(Debug)]
 pub(super) struct CsvExporter;
 
@@ -47,7 +40,6 @@ pub enum CsvExportColumn {
 }
 
 impl CsvExportColumn {
-    /// Returns the [`ExportData`] for this column, if any.
     fn unwrap_data(&self) -> Option<&ExportData> {
         match self {
             CsvExportColumn::Data(data) => Some(data),
@@ -194,7 +186,6 @@ impl Exporter for CsvExporter {
     }
 }
 
-/// Iterator over strings that aligns [`TextPart`]s to [`ColumnTypes`].
 #[derive(Debug)]
 struct TextColumnsAligned {
     text_columns: PutBack<TextColumns>,
@@ -202,7 +193,6 @@ struct TextColumnsAligned {
 }
 
 impl TextColumnsAligned {
-    /// Creates a new [`TextColumnsAligned`] for the given [`TextPart`]s and [`ColumnTypes`].
     fn new(parts: Vec<TextPart>, column_types: ColumnTypes) -> Self {
         Self {
             text_columns: put_back(TextColumns::new(parts)),
@@ -231,9 +221,6 @@ impl Iterator for TextColumnsAligned {
     }
 }
 
-/// Iterator over columns for given [`TextPart`]s.
-///
-/// This is an iterator over pairs of [`ColumnType`] and [`String`].
 #[derive(Debug)]
 struct TextColumns {
     parts: vec::IntoIter<TextPart>,
@@ -241,7 +228,6 @@ struct TextColumns {
 }
 
 impl TextColumns {
-    /// Creates [`TextColumns`] for the given [`TextPart`]s.
     fn new(parts: Vec<TextPart>) -> Self {
         Self {
             parts: parts.into_iter(),
@@ -290,37 +276,26 @@ impl Iterator for TextColumns {
     }
 }
 
-/// Holds information about match/context column types.
-///
-/// This can be turned into an iterator over pairs of [`ColumnType`] and [`usize`], telling whether
-/// the respective column is a match or context column and its index among all match resp. context
-/// columns.
 #[derive(Clone, Copy, Debug)]
 struct ColumnTypes {
-    /// Number of columns
     column_count: usize,
-
-    /// Whether there is at least one match
     has_match: bool,
-
-    /// Whether there can be any left context (depending only on configuration, not on the actual
-    /// matches)
     has_left_context: bool,
-
-    /// Whether there can be any right context (depending only on configuration, not on the actual
-    /// matches)
     has_right_context: bool,
 }
 
 impl ColumnTypes {
-    /// Creates new [`ColumnTypes`] for the given number of matches, number of query nodes and
-    /// export data.
     fn new(match_count: usize, query_node_count: usize, data: &ExportDataText) -> Self {
         let has_match = match_count > 0;
         let has_secondary_nodes = match &data.primary_node_indices {
             Some(indices) => (0..query_node_count).any(|i| !indices.contains(&i)),
             None => false,
         };
+
+        // Reserve a column for left/right context if the left/right context size is non-zero *or*
+        // there are secondary nodes. In the latter case there may be context even if the context
+        // size is zero because context refers to all nodes but only primary nodes count as
+        // a match.
         let has_left_context = data.left_context > 0 || has_secondary_nodes;
         let has_right_context = data.right_context > 0 || has_secondary_nodes;
 
@@ -359,7 +334,6 @@ impl IntoIterator for ColumnTypes {
     }
 }
 
-/// Iterator that [`ColumnTypes`] can be turned into.
 #[derive(Debug)]
 struct ColumnTypesIter {
     column_indices: Range<usize>,

@@ -1,5 +1,3 @@
-//! Dealing with node names.
-
 use std::borrow::Cow;
 
 use graphannis::errors::GraphAnnisError;
@@ -52,11 +50,6 @@ pub(crate) fn get_doc_name(node_name: &str) -> &str {
     }
 }
 
-/// Maps a node name to a node id
-///
-/// This is a wrapper around
-/// [`get_node_id_from_name`](graphannis_core::annostorage::NodeAnnotationStorage::get_node_id_from_name)
-/// that treats the case where the node doesn't exist as an error.
 pub(crate) fn node_name_to_node_id(
     graph: &AnnotationGraph,
     node_name: &str,

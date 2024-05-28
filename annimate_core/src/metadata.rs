@@ -1,5 +1,3 @@
-//! Dealing with metadata (data not managed by graphANNIS).
-
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
 use std::str::FromStr;
@@ -11,22 +9,14 @@ use serde::{Deserialize, Serialize};
 use crate::error::AnnisExportMetadataError;
 use crate::AnnimateError;
 
-/// Current version of the metadata file format.
 const METADATA_VERSION: usize = 1;
 
-/// Storage for metadata.
 pub(crate) struct MetadataStorage {
-    /// Path to the metadata file.
     path: PathBuf,
-
-    /// In-memory copy of metadata.
     metadata: RwLock<Metadata>,
 }
 
 impl MetadataStorage {
-    /// Creates a new [`MetadataStorage`] for the given database directory.
-    ///
-    /// Assumes that the database directory contains corpora with the given names, and no more.
     pub(crate) fn from_db_dir<P, S>(db_dir: P, corpus_names: &[S]) -> Result<Self, AnnimateError>
     where
         P: AsRef<Path>,
@@ -57,14 +47,10 @@ impl MetadataStorage {
         })
     }
 
-    /// Returns all [`CorpusSet`]s.
     pub(crate) fn corpus_sets(&self) -> BTreeMap<String, CorpusSet> {
         self.metadata.read().unwrap().corpus_sets.clone()
     }
 
-    /// Applies the given closure to the map of [`CorpusSet`]s.
-    ///
-    /// This updates the metadata in memory and also writes them to disk.
     pub(crate) fn update_corpus_sets(
         &self,
         op: impl FnOnce(&mut BTreeMap<String, CorpusSet>),
@@ -74,9 +60,6 @@ impl MetadataStorage {
         write_metadata(&self.path, &metadata)
     }
 
-    /// Applies the given fallible closure to the map of [`CorpusSet`]s.
-    ///
-    /// This updates the metadata in memory and also writes them to disk.
     pub(crate) fn try_update_corpus_sets<E>(
         &self,
         op: impl FnOnce(&mut BTreeMap<String, CorpusSet>) -> Result<(), E>,
@@ -91,7 +74,6 @@ impl MetadataStorage {
     }
 }
 
-/// Removes corpora from metadata that don't belong to the given list.
 fn cleanup_metadata<S>(metadata: &mut Metadata, corpus_names: &[S])
 where
     S: AsRef<str>,
@@ -103,7 +85,6 @@ where
     }
 }
 
-/// Writes metadata to disk.
 fn write_metadata(path: &Path, metadata: &Metadata) -> io::Result<()> {
     fs::write(
         path,
@@ -113,14 +94,10 @@ fn write_metadata(path: &Path, metadata: &Metadata) -> io::Result<()> {
     )
 }
 
-/// The metadata for a given database directory.
 #[derive(Debug, Deserialize, Serialize)]
 #[serde(rename_all = "kebab-case")]
 struct Metadata {
-    /// Version of the metadata file format.
     metadata_version: usize,
-
-    /// Map of corpus sets.
     corpus_sets: BTreeMap<String, CorpusSet>,
 }
 
@@ -149,10 +126,8 @@ impl FromStr for Metadata {
     }
 }
 
-/// A set of corpora.
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
 #[serde(rename_all = "kebab-case")]
 pub(crate) struct CorpusSet {
-    /// Names of the corpora contained in this set.
     pub(crate) corpus_names: BTreeSet<String>,
 }

@@ -2,7 +2,7 @@
 
 - `empty_graphml.zip`
   - Name: empty
-  - Source: generated using graphannis, consists only of a corpus node
+  - Source: generated using graphANNIS, consists only of a corpus node
 - `pcc2_v7_relANNIS.zip`
   - Name: pcc2 (Potsdam Commentary Corpus 2)
   - Source: <https://corpus-tools.org/corpora/pcc2_v7_relANNIS.zip>
