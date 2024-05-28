@@ -6,11 +6,11 @@
   "author": "Matthias Stemmler <matthias.stemmler@gmail.com>",
   "repository": "github:matthias-stemmler/annimate",
   "private": true,
-  "packageManager": "pnpm@9.0.4+sha256.caa915eaae9d9aefccf50ee8aeda25a2f8684d8f9d5c6e367eaf176d97c1f89e",
   "type": "module",
   "scripts": {
     "add-component": "pnpm dlx shadcn-ui@latest add",
     "build": "tsc && vite build",
+    "check": "tsc --noEmit",
     "dev": "vite",
     "format": "prettier . --write",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",

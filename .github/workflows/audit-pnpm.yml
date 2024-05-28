@@ -1,0 +1,28 @@
+name: Audit (pnpm)
+
+on:
+  push:
+    paths:
+      - annimate_desktop/pnpm-lock.yaml
+  schedule:
+    - cron: "0 0 * * SAT"
+  workflow_call:
+  workflow_dispatch:
+
+jobs:
+  audit:
+    name: Audit
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: annimate_desktop
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Enable corepack
+        run: corepack enable
+
+      - name: Run audit
+        run: pnpm audit --audit-level high

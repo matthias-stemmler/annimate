@@ -1,0 +1,28 @@
+name: Audit (Cargo)
+
+on:
+  push:
+    paths:
+      - Cargo.lock
+  schedule:
+    - cron: "0 0 * * SAT"
+  workflow_call:
+  workflow_dispatch:
+
+env:
+  RUSTFLAGS: --deny warnings
+
+jobs:
+  audit:
+    name: Audit
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install stable toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Run audit
+        run: cargo audit
