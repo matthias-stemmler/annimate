@@ -1,0 +1,33 @@
+name: Format check (pnpm)
+
+on:
+  - workflow_call
+  - workflow_dispatch
+
+jobs:
+  fmt-check:
+    name: Format check
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: annimate_desktop
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Enable corepack
+        run: corepack enable
+
+      - name: Set up node
+        uses: actions/setup-node@v4
+        with:
+          cache: pnpm
+          cache-dependency-path: annimate_desktop/pnpm-lock.yaml
+          node-version-file: annimate_desktop/.nvmrc
+
+      - name: Install
+        run: pnpm install
+
+      - name: Run format check
+        run: pnpm format-check

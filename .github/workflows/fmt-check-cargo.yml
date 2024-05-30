@@ -1,0 +1,25 @@
+name: Format check (Cargo)
+
+on:
+  - workflow_call
+  - workflow_dispatch
+
+env:
+  RUSTFLAGS: --deny warnings
+
+jobs:
+  fmt-check:
+    name: Format check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install nightly toolchain with rustfmt
+        uses: dtolnay/rust-toolchain@nightly
+        with:
+          components: rustfmt
+
+      - name: Run format check
+        run: cargo fmt --check
