@@ -1,3 +1,4 @@
+use std::cmp::Reverse;
 use std::collections::HashSet;
 use std::fmt::{self, Debug, Display, Formatter};
 use std::fs::{self, File};
@@ -88,16 +89,21 @@ where
                     location.as_ref().display(),
                 ));
 
-                let entries: Vec<_> = location
-                    .as_ref()
-                    .read_dir()?
-                    .map_ok(|entry| Location {
-                        parents: location.parents.clone(),
-                        scoped_path: location.scoped_path.in_scope(entry.path()),
-                    })
-                    .try_collect()?;
+                let entries = {
+                    let mut entries: Vec<_> = location
+                        .as_ref()
+                        .read_dir()?
+                        .map_ok(|entry| Location {
+                            parents: location.parents.clone(),
+                            scoped_path: location.scoped_path.in_scope(entry.path()),
+                        })
+                        .try_collect()?;
 
-                stack.extend(entries.into_iter().rev());
+                    entries.sort_by_cached_key(|e| Reverse(e.as_ref().to_path_buf()));
+                    entries
+                };
+
+                stack.extend(entries);
             }
 
             Some(ImportPathType::Archive) => {

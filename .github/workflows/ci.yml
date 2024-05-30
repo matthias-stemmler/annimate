@@ -1,0 +1,35 @@
+name: CI
+
+on:
+  - pull_request
+  - workflow_call
+  - workflow_dispatch
+
+jobs:
+  check-cargo:
+    name: Check (Cargo)
+    uses: ./.github/workflows/check-cargo.yml
+
+  check-pnpm:
+    name: Check (pnpm)
+    uses: ./.github/workflows/check-pnpm.yml
+
+  fmt-check-cargo:
+    name: Format check (Cargo)
+    uses: ./.github/workflows/fmt-check-cargo.yml
+
+  fmt-check-pnpm:
+    name: Format check (pnpm)
+    uses: ./.github/workflows/fmt-check-pnpm.yml
+
+  test-cargo:
+    name: Test (Cargo)
+    uses: ./.github/workflows/test-cargo.yml
+
+  test-pnpm:
+    name: Test (pnpm)
+    uses: ./.github/workflows/test-pnpm.yml
+
+  udeps-cargo:
+    name: Unused dependencies (Cargo)
+    uses: ./.github/workflows/udeps-cargo.yml

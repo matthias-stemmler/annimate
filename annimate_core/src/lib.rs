@@ -1,6 +1,7 @@
 //! This library provides the Annimate core functionality.
 
 use std::collections::btree_map::Entry;
+use std::fs;
 use std::io::{self, Write};
 use std::path::{Path, PathBuf};
 
@@ -34,6 +35,7 @@ pub use format::{CsvExportColumn, CsvExportConfig, ExportFormat};
 pub use graphannis::corpusstorage::CorpusInfo;
 pub use graphannis::graph::AnnoKey;
 pub use query::{ExportData, ExportDataAnno, ExportDataText, QueryLanguage};
+use tempfile::PersistError;
 pub use version::{VersionInfo, VERSION_INFO};
 
 /// Storage of corpora and metadata.
@@ -403,7 +405,19 @@ impl Storage {
         cancel_if(cancel_requested)?;
 
         out.flush()?;
-        out.persist(output_file).map_err(io::Error::from)?;
+
+        match out.persist(&output_file) {
+            Err(PersistError { file, .. }) => {
+                // In case the file cannot be persisted, most likely because persisting would cross
+                // file systems, copy the file as a workaround
+                // Once io::ErrorKind::CrossesDevices is stable, we can match on it and only apply
+                // the workaround in that case
+                fs::copy(file.path(), output_file)?;
+            }
+            result => {
+                result.map_err(io::Error::from)?;
+            }
+        };
 
         Ok(())
     }
