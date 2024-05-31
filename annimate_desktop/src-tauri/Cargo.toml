@@ -3,7 +3,7 @@ name = "annimate_desktop"
 version.workspace = true
 authors.workspace = true
 edition.workspace = true
-description = "Annimate desktop application"
+description = "Annimate"
 readme.workspace = true
 repository.workspace = true
 license.workspace = true
@@ -18,7 +18,7 @@ tauri-build = { workspace = true }
 [dependencies]
 annimate_core = { path = "../../annimate_core" }
 itertools = { workspace = true }
-tauri = { workspace = true, features = ["dialog-open", "process-exit", "dialog-save", "objc-exception", "path-all", "process-relaunch", "shell-open", "wry"] }
+tauri = { workspace = true, features = ["dialog-open", "process-exit", "dialog-save", "objc-exception", "path-all", "process-relaunch", "shell-open", "updater", "wry"] }
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
 tempfile = { workspace = true }
