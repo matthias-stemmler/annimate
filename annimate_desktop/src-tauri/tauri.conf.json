@@ -6,7 +6,7 @@
     "distDir": "../dist"
   },
   "package": {
-    "productName": "annimate"
+    "productName": "Annimate"
   },
   "tauri": {
     "allowlist": {
@@ -27,7 +27,7 @@
     },
     "bundle": {
       "active": true,
-      "targets": ["app", "deb", "nsis", "updater"],
+      "targets": ["appimage", "deb", "nsis", "updater"],
       "identifier": "com.github.matthias-stemmler.annimate",
       "publisher": "Matthias Stemmler",
       "icon": [
@@ -36,10 +36,27 @@
         "icons/128x128@2x.png",
         "icons/icon.icns",
         "icons/icon.ico"
-      ]
+      ],
+      "deb": {
+        "section": "science"
+      },
+      "windows": {
+        "nsis": {
+          "headerImage": "nsis-media/header.bmp",
+          "installerIcon": "icons/icon.ico",
+          "languages": ["English"]
+        }
+      }
     },
     "security": {
       "csp": null
+    },
+    "updater": {
+      "active": true,
+      "endpoints": [
+        "https://github.com/matthias-stemmler/annimate/releases/latest/download/latest.json"
+      ],
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEFBMDgxMjJFNzBERDk4QzkKUldUSm1OMXdMaElJcWlpUC9tR2VueW5iN3pHYlFRWWR3MEJ6OHFWblBIZU5adVczRXlXTEkvcmsK"
     },
     "windows": [
       {
