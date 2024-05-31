@@ -73,6 +73,7 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
 
       - name: Rust cache
+        if: steps.determine-version-bump.outputs.bump != 'none'
         uses: swatinem/rust-cache@v2
 
       - name: Cache cargo-release
