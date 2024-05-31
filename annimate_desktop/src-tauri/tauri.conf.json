@@ -27,7 +27,7 @@
     },
     "bundle": {
       "active": true,
-      "targets": "all",
+      "targets": ["app", "deb", "nsis", "updater"],
       "identifier": "com.github.matthias-stemmler.annimate",
       "publisher": "Matthias Stemmler",
       "icon": [

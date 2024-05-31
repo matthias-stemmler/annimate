@@ -35,6 +35,9 @@ jobs:
       - name: Install nightly toolchain
         uses: dtolnay/rust-toolchain@nightly
 
+      - name: Rust cache
+        uses: swatinem/rust-cache@v2
+
       - name: Install cargo-udeps
         if: ${{ !steps.cache-cargo-udeps.outputs.cache-hit }}
         run: cargo install cargo-udeps@${{ env.VERSION_CARGO_UDEPS }}

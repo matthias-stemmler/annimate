@@ -1,0 +1,8 @@
+pre-release-replacements = [
+    { file = "../../CHANGELOG.md", search = "\\[Unreleased\\]", replace = "[{{version}}]", exactly = 2 },
+    { file = "../../CHANGELOG.md", search = "\\(release date\\)", replace = "{{date}}", exactly = 1 },
+    { file = "../../CHANGELOG.md", search = " \"Unreleased\"", replace = "/tree/v{{version}}", min = 0, max = 1 },
+    { file = "../../CHANGELOG.md", search = "\\.\\.\\.HEAD", replace = "...v{{version}}", min = 0, max = 1 },
+    { file = "../../CHANGELOG.md", search = "<!-- next-header -->", replace = "<!-- next-header -->\n\n## [Unreleased] - (release date)", exactly = 1 },
+    { file = "../../CHANGELOG.md", search = "<!-- next-url -->", replace = "<!-- next-url -->\n[Unreleased]: https://github.com/matthias-stemmler/annimate/compare/v{{version}}...HEAD", exactly = 1 },
+]

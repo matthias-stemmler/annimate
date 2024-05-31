@@ -1,6 +1,5 @@
 {
   "name": "annimate-desktop",
-  "version": "0.1.0",
   "description": "Annimate desktop application (frontend)",
   "license": "(MIT OR Apache-2.0)",
   "author": "Matthias Stemmler <matthias.stemmler@gmail.com>",
