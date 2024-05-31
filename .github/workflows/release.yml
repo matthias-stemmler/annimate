@@ -123,9 +123,12 @@ jobs:
           # Determine release notes from changelog
           echo 'Release notes:'
           echo '--'
-          echo 'RELEASE_NOTES<<EOF' >> "$GITHUB_OUTPUT"
-          parse-changelog CHANGELOG.md "$version" | tee --append "$GITHUB_OUTPUT"
-          echo 'EOF' >> "$GITHUB_OUTPUT"
+          echo 'RELEASE_NOTES<<EOF' >> "$GITHUB_ENV"
+          echo -n '## ' | tee --append "$GITHUB_ENV"
+          parse-changelog --title CHANGELOG.md "$version" | tee --append "$GITHUB_ENV"
+          echo '' | tee --append "$GITHUB_ENV"
+          parse-changelog CHANGELOG.md "$version" | tee --append "$GITHUB_ENV"
+          echo 'EOF' >> "$GITHUB_ENV"
           echo '--'
 
       - name: Create pull request
@@ -155,17 +158,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        settings:
-          - os: "macos-latest" # for ARM-based Macs (M1 and above)
-            args: "--target aarch64-apple-darwin"
-          - os: "macos-latest" # for Intel-based Macs
-            args: "--target x86_64-apple-darwin"
-          - os: "ubuntu-latest"
-            args: ""
-          - os: "windows-latest"
-            args: ""
+        os: [ubuntu-20.04, windows-latest]
 
-    runs-on: ${{ matrix.settings.os }}
+    runs-on: ${{ matrix.os }}
 
     steps:
       - name: Checkout
@@ -181,8 +176,6 @@ jobs:
 
       - name: Install stable toolchain
         uses: dtolnay/rust-toolchain@stable
-        with:
-          targets: ${{ runner.os == 'macOS' && 'aarch64-apple-darwin,x86_64-apple-darwin' || '' }}
 
       - name: Rust cache
         uses: swatinem/rust-cache@v2
@@ -203,7 +196,6 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          args: ${{ matrix.settings.args }}
           projectPath: annimate_desktop
           releaseBody: ${{ needs.find-release.outputs.release-notes }}
           releaseName: v__VERSION__
