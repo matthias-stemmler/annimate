@@ -2,9 +2,12 @@
 
 ## [Unreleased] - (release date)
 
+## [0.0.1] - 2024-05-31
+
 ### Added
 
 Initial version
 
 <!-- next-url -->
-[Unreleased]: https://github.com/matthias-stemmler/annimate "Unreleased"
+[Unreleased]: https://github.com/matthias-stemmler/annimate/compare/v0.0.1...HEAD
+[0.0.1]: https://github.com/matthias-stemmler/annimate/tree/v0.0.1
