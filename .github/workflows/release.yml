@@ -73,6 +73,7 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
 
       - name: Rust cache
+        if: steps.determine-version-bump.outputs.bump != 'none'
         uses: swatinem/rust-cache@v2
 
       - name: Cache cargo-release
@@ -122,9 +123,12 @@ jobs:
           # Determine release notes from changelog
           echo 'Release notes:'
           echo '--'
-          echo 'RELEASE_NOTES<<EOF' >> "$GITHUB_OUTPUT"
-          parse-changelog CHANGELOG.md "$version" | tee --append "$GITHUB_OUTPUT"
-          echo 'EOF' >> "$GITHUB_OUTPUT"
+          echo 'RELEASE_NOTES<<EOF' >> "$GITHUB_ENV"
+          echo -n '## ' | tee --append "$GITHUB_ENV"
+          parse-changelog --title CHANGELOG.md "$version" | tee --append "$GITHUB_ENV"
+          echo '' | tee --append "$GITHUB_ENV"
+          parse-changelog CHANGELOG.md "$version" | tee --append "$GITHUB_ENV"
+          echo 'EOF' >> "$GITHUB_ENV"
           echo '--'
 
       - name: Create pull request
@@ -141,30 +145,21 @@ jobs:
           title: Release v${{ steps.pre-release.outputs.version }}
           body: ${{ env.RELEASE_NOTES }}
 
-  publish-release:
-    name: Publish release
+  create-release:
+    name: Create release
     needs:
       - ci
       - find-release
     if: needs.find-release.outputs.is-release == 'true'
-    concurrency: production
 
     permissions:
       contents: write
     strategy:
       fail-fast: false
       matrix:
-        settings:
-          - os: "macos-latest" # for ARM-based Macs (M1 and above)
-            args: "--target aarch64-apple-darwin"
-          - os: "macos-latest" # for Intel-based Macs
-            args: "--target x86_64-apple-darwin"
-          - os: "ubuntu-latest"
-            args: ""
-          - os: "windows-latest"
-            args: ""
+        os: [ubuntu-20.04, windows-latest]
 
-    runs-on: ${{ matrix.settings.os }}
+    runs-on: ${{ matrix.os }}
 
     steps:
       - name: Checkout
@@ -180,11 +175,12 @@ jobs:
 
       - name: Install stable toolchain
         uses: dtolnay/rust-toolchain@stable
-        with:
-          targets: ${{ runner.os == 'macOS' && 'aarch64-apple-darwin,x86_64-apple-darwin' || '' }}
 
       - name: Rust cache
         uses: swatinem/rust-cache@v2
+
+      - name: Enable corepack
+        run: corepack enable
 
       - name: Set up node
         uses: actions/setup-node@v4
@@ -197,13 +193,33 @@ jobs:
         run: pnpm install
         working-directory: annimate_desktop
 
-      - name: Publish release
+      - name: Create release
+        id: create-release
         uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAURI_PRIVATE_KEY: ${{ secrets.TAURI_PRIVATE_KEY }}
         with:
-          args: ${{ matrix.settings.args }}
           projectPath: annimate_desktop
           releaseBody: ${{ needs.find-release.outputs.release-notes }}
+          releaseDraft: true
           releaseName: v__VERSION__
           tagName: v__VERSION__
+
+    outputs:
+      release-id: ${{ steps.create-release.outputs.releaseId }}
+
+  publish-release:
+    name: Publish release
+    needs:
+      - find-release
+      - create-release
+    if: needs.find-release.outputs.is-release == 'true'
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: eregon/publish-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          release_id: ${{ needs.create-release.outputs.release-id }}
