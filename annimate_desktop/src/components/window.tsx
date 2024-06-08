@@ -6,9 +6,11 @@ import {
   MenubarContent,
   MenubarItem,
   MenubarMenu,
+  MenubarSeparator,
   MenubarTrigger,
 } from '@/components/ui/menubar';
-import { exit } from '@/lib/api';
+import { exit, shellOpen } from '@/lib/api';
+import { ExternalLink } from 'lucide-react';
 import { FC } from 'react';
 import { Outlet } from 'react-router-dom';
 
@@ -38,6 +40,19 @@ export const Window: FC = () => {
             <MenubarTrigger>Help</MenubarTrigger>
 
             <MenubarContent>
+              <MenubarItem
+                onSelect={() => {
+                  shellOpen(
+                    'https://korpling.github.io/ANNIS/4.0/user-guide/aql/operators.html',
+                  );
+                }}
+              >
+                <ExternalLink className="h-4 w-4 mr-2" />
+                AQL operator reference
+              </MenubarItem>
+
+              <MenubarSeparator />
+
               <DialogTrigger asChild>
                 <MenubarItem>About</MenubarItem>
               </DialogTrigger>
