@@ -66,8 +66,8 @@ importers:
         specifier: ^1.0.7
         version: 1.0.7(@types/react-dom@18.3.0)(@types/react@18.3.3)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
       '@tanstack/react-query':
-        specifier: ^5.29.2
-        version: 5.29.2(react@18.2.0)
+        specifier: ^5.40.1
+        version: 5.40.1(react@18.2.0)
       '@tauri-apps/api':
         specifier: ^1.5.6
         version: 1.5.6
@@ -1257,11 +1257,11 @@ packages:
     peerDependencies:
       eslint: ^8.0.0
 
-  '@tanstack/query-core@5.29.0':
-    resolution: {integrity: sha512-WgPTRs58hm9CMzEr5jpISe8HXa3qKQ8CxewdYZeVnA54JrPY9B1CZiwsCoLpLkf0dGRZq+LcX5OiJb0bEsOFww==}
+  '@tanstack/query-core@5.40.0':
+    resolution: {integrity: sha512-eD8K8jsOIq0Z5u/QbvOmfvKKE/XC39jA7yv4hgpl/1SRiU+J8QCIwgM/mEHuunQsL87dcvnHqSVLmf9pD4CiaA==}
 
-  '@tanstack/react-query@5.29.2':
-    resolution: {integrity: sha512-nyuWILR4u7H5moLGSiifLh8kIqQDLNOHGuSz0rcp+J75fNc8aQLyr5+I2JCHU3n+nJrTTW1ssgAD8HiKD7IFBQ==}
+  '@tanstack/react-query@5.40.1':
+    resolution: {integrity: sha512-gOcmu+gpFd2taHrrgMM9RemLYYEDYfsCqszxCC0xtx+csDa4R8t7Hr7SfWXQP13S2sF+mOxySo/+FNXJFYBqcA==}
     peerDependencies:
       react: ^18.0.0
 
@@ -4044,11 +4044,11 @@ snapshots:
       - supports-color
       - typescript
 
-  '@tanstack/query-core@5.29.0': {}
+  '@tanstack/query-core@5.40.0': {}
 
-  '@tanstack/react-query@5.29.2(react@18.2.0)':
+  '@tanstack/react-query@5.40.1(react@18.2.0)':
     dependencies:
-      '@tanstack/query-core': 5.29.0
+      '@tanstack/query-core': 5.40.0
       react: 18.2.0
 
   '@tauri-apps/api@1.5.6': {}
