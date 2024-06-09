@@ -24,6 +24,11 @@
       "matchPackageNames": ["eslint"],
       "allowedVersions": "<=8",
       "description": "eslint-plugin-query does not work with eslint v9"
+    },
+    {
+      "matchPackageNames": ["graphannis", "graphannis-core"],
+      "groupName": "graphANNIS monorepo",
+      "groupSlug": "graphannis-monorepo"
     }
   ],
   "regexManagers": [
