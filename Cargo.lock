@@ -1386,9 +1386,9 @@ dependencies = [
 
 [[package]]
 name = "graphannis"
-version = "3.3.0"
+version = "3.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ad3aef3be724af3d325c66cd11f1d2dc2184259df65922efe21814ff42300e50"
+checksum = "7bed1803bf970145cf6c930cc746aeb8dfde09614a3c5ff3fca9029bdd114f4a"
 dependencies = [
  "boolean_expression",
  "csv",
