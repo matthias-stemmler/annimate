@@ -1427,9 +1427,9 @@ dependencies = [
 
 [[package]]
 name = "graphannis-core"
-version = "3.3.0"
+version = "3.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "db8a957365fac9c7cbba0b18f13ec8bfce28b3dd3b1ee310aa374d7f003323a5"
+checksum = "44a7e1071f7afba94f8faddb7534990b7130f2c9110fc41bf922c24823aa550e"
 dependencies = [
  "binary-layout 4.0.2",
  "bincode",
