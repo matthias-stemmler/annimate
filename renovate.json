@@ -5,6 +5,23 @@
   "packageRules": [
     {
       "matchManagers": ["npm"],
+      "matchDepTypes": ["dependencies"],
+      "matchUpdateTypes": [
+        "bump",
+        "digest",
+        "lockFileMaintenance",
+        "minor",
+        "patch",
+        "pin",
+        "pinDigest",
+        "rollback",
+        "replacement"
+      ],
+      "groupName": "NPM dependencies non-major",
+      "groupSlug": "npm-non-major"
+    },
+    {
+      "matchManagers": ["npm"],
       "matchDepTypes": ["devDependencies"],
       "matchUpdateTypes": [
         "bump",
