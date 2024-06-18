@@ -165,7 +165,7 @@ impl<'a, S> Query<'a, S> {
                     Ok(())
                 }
             })
-            .try_collect()?;
+            .try_collect::<_, (), _>()?;
 
         ExportableMatches::new(
             self.corpus_ref,
