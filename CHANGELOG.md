@@ -2,6 +2,10 @@
 
 ## [Unreleased] - (release date)
 
+### Fixed
+
+- Toast notifications are now shown behind modal dialogs.
+
 ## [1.0.0] - 2024-06-18
 
 ### Added
