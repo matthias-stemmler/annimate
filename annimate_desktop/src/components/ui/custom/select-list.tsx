@@ -2,7 +2,6 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
-import { CheckedState } from '@radix-ui/react-checkbox';
 import { FC, Key, useId } from 'react';
 
 export type SelectListProps<T> = {
@@ -53,7 +52,7 @@ export const SelectList = <T extends Key>({
 );
 
 type SelectListItemProps = {
-  checked: CheckedState;
+  checked: boolean | 'indeterminate';
   className?: string;
   label: string;
   disabled?: boolean;
