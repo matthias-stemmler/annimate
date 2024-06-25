@@ -52,7 +52,7 @@
     "zustand": "^4.5.2"
   },
   "devDependencies": {
-    "@tanstack/eslint-plugin-query": "^5.43.1",
+    "@tanstack/eslint-plugin-query": "^5.47.0",
     "@tauri-apps/cli": "^1.5.14",
     "@testing-library/dom": "^10.2.0",
     "@testing-library/react": "^16.0.0",
