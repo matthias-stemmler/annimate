@@ -3,8 +3,8 @@ use std::fs;
 use std::path::Path;
 
 use annimate_core::{
-    AnnimateError, AnnoKey, CsvExportColumn, CsvExportConfig, ExportConfig, ExportData,
-    ExportDataAnno, ExportDataText, ExportFormat, ExportStatusEvent, QueryLanguage, Storage,
+    AnnimateError, AnnoKey, CsvExportConfig, ExportConfig, ExportData, ExportDataAnno,
+    ExportDataText, ExportFormat, ExportStatusEvent, QueryLanguage, Storage, TableExportColumn,
 };
 use itertools::Itertools;
 use serde::Serialize;
@@ -387,7 +387,7 @@ fn export_cancelled_before_matches_found() {
             aql_query: "tok",
             query_language: QueryLanguage::AQL,
             format: ExportFormat::Csv(CsvExportConfig {
-                columns: vec![CsvExportColumn::Number],
+                columns: vec![TableExportColumn::Number],
             }),
         },
         &output_file,
@@ -426,7 +426,7 @@ fn export_cancelled_after_matches_found() {
             aql_query: "tok",
             query_language: QueryLanguage::AQL,
             format: ExportFormat::Csv(CsvExportConfig {
-                columns: vec![CsvExportColumn::Number],
+                columns: vec![TableExportColumn::Number],
             }),
         },
         &output_file,
@@ -485,11 +485,11 @@ struct TestExportDataText {
     primary_node_indices: Option<&'static [usize]>,
 }
 
-impl From<TestCsvExportColumn> for CsvExportColumn {
+impl From<TestCsvExportColumn> for TableExportColumn {
     fn from(column: TestCsvExportColumn) -> Self {
         match column {
-            TestCsvExportColumn::Number => CsvExportColumn::Number,
-            TestCsvExportColumn::Data(data) => CsvExportColumn::Data(match data {
+            TestCsvExportColumn::Number => TableExportColumn::Number,
+            TestCsvExportColumn::Data(data) => TableExportColumn::Data(match data {
                 TestExportData::Anno(TestExportDataAnno::Corpus {
                     anno_key: (ns, name),
                 }) => ExportData::Anno(ExportDataAnno::Corpus {

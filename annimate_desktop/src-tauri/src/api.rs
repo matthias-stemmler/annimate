@@ -3,9 +3,9 @@ use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 
 use annimate_core::{
-    AnnoKey, Corpora, CsvExportColumn, CsvExportConfig, ExportConfig, ExportData, ExportDataAnno,
-    ExportDataText, ExportFormat, ExportableAnnoKeys, QueryAnalysisResult, QueryLanguage,
-    QueryNodes,
+    AnnoKey, Corpora, CsvExportConfig, ExportConfig, ExportData, ExportDataAnno, ExportDataText,
+    ExportFormat, ExportableAnnoKeys, QueryAnalysisResult, QueryLanguage, QueryNodes,
+    TableExportColumn,
 };
 use itertools::Itertools;
 use serde::Deserialize;
@@ -293,18 +293,18 @@ pub(crate) struct QueryNodeRef {
     index: usize,
 }
 
-impl From<ExportColumn> for CsvExportColumn {
-    fn from(export_column: ExportColumn) -> CsvExportColumn {
+impl From<ExportColumn> for TableExportColumn {
+    fn from(export_column: ExportColumn) -> TableExportColumn {
         match export_column {
-            ExportColumn::Number => CsvExportColumn::Number,
+            ExportColumn::Number => TableExportColumn::Number,
             ExportColumn::AnnoCorpus { anno_key } => {
-                CsvExportColumn::Data(ExportData::Anno(ExportDataAnno::Corpus { anno_key }))
+                TableExportColumn::Data(ExportData::Anno(ExportDataAnno::Corpus { anno_key }))
             }
             ExportColumn::AnnoDocument { anno_key } => {
-                CsvExportColumn::Data(ExportData::Anno(ExportDataAnno::Document { anno_key }))
+                TableExportColumn::Data(ExportData::Anno(ExportDataAnno::Document { anno_key }))
             }
             ExportColumn::AnnoMatch { anno_key, node_ref } => {
-                CsvExportColumn::Data(ExportData::Anno(ExportDataAnno::MatchNode {
+                TableExportColumn::Data(ExportData::Anno(ExportDataAnno::MatchNode {
                     anno_key,
                     index: node_ref.index,
                 }))
@@ -314,7 +314,7 @@ impl From<ExportColumn> for CsvExportColumn {
                 context_right_override,
                 primary_node_refs,
                 segmentation,
-            } => CsvExportColumn::Data(ExportData::Text(ExportDataText {
+            } => TableExportColumn::Data(ExportData::Text(ExportDataText {
                 left_context: context,
                 right_context: context_right_override.unwrap_or(context),
                 segmentation: (!segmentation.is_empty()).then_some(segmentation),

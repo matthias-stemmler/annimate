@@ -7,8 +7,10 @@ use crate::query::Match;
 use crate::{ExportData, QueryNode};
 
 mod csv;
+mod table;
 
-pub use csv::{CsvExportColumn, CsvExportConfig};
+pub use csv::CsvExportConfig;
+pub use table::TableExportColumn;
 
 /// A format in which matches can be exported.
 #[derive(Debug)]
