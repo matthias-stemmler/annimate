@@ -52,7 +52,7 @@
     "zustand": "^4.5.4"
   },
   "devDependencies": {
-    "@tanstack/eslint-plugin-query": "^5.47.0",
+    "@tanstack/eslint-plugin-query": "^5.49.1",
     "@tauri-apps/cli": "^1.5.14",
     "@testing-library/dom": "^10.2.0",
     "@testing-library/react": "^16.0.0",
@@ -67,7 +67,7 @@
     "eslint-plugin-react-hooks": "^4.6.2",
     "eslint-plugin-react-refresh": "^0.4.7",
     "jsdom": "^24.1.0",
-    "postcss": "^8.4.38",
+    "postcss": "^8.4.39",
     "prettier": "^3.3.2",
     "tailwindcss": "^3.4.4",
     "typescript": "^5.5.2",
