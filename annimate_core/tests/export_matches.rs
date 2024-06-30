@@ -3,8 +3,8 @@ use std::fs;
 use std::path::Path;
 
 use annimate_core::{
-    AnnimateError, AnnoKey, CsvExportColumn, CsvExportConfig, ExportConfig, ExportData,
-    ExportDataAnno, ExportDataText, ExportFormat, ExportStatusEvent, QueryLanguage, Storage,
+    AnnimateError, AnnoKey, CsvExportConfig, ExportConfig, ExportData, ExportDataAnno,
+    ExportDataText, ExportFormat, ExportStatusEvent, QueryLanguage, Storage, TableExportColumn,
 };
 use itertools::Itertools;
 use serde::Serialize;
@@ -35,7 +35,7 @@ macro_rules! export_matches_test {
                         $query_language
                     },
                     export_columns: {
-                        use TestCsvExportColumn::*;
+                        use TestTableExportColumn::*;
                         #[allow(unused_imports)]
                         use TestExportData::*;
                         vec![$($export_columns,)*]
@@ -387,7 +387,7 @@ fn export_cancelled_before_matches_found() {
             aql_query: "tok",
             query_language: QueryLanguage::AQL,
             format: ExportFormat::Csv(CsvExportConfig {
-                columns: vec![CsvExportColumn::Number],
+                columns: vec![TableExportColumn::Number],
             }),
         },
         &output_file,
@@ -426,7 +426,7 @@ fn export_cancelled_after_matches_found() {
             aql_query: "tok",
             query_language: QueryLanguage::AQL,
             format: ExportFormat::Csv(CsvExportConfig {
-                columns: vec![CsvExportColumn::Number],
+                columns: vec![TableExportColumn::Number],
             }),
         },
         &output_file,
@@ -448,11 +448,11 @@ struct TestData {
     corpus_names: &'static [&'static str],
     aql_query: &'static str,
     query_language: QueryLanguage,
-    export_columns: Vec<TestCsvExportColumn>,
+    export_columns: Vec<TestTableExportColumn>,
 }
 
 #[derive(Clone, Serialize)]
-enum TestCsvExportColumn {
+enum TestTableExportColumn {
     Number,
     Data(TestExportData),
 }
@@ -485,11 +485,11 @@ struct TestExportDataText {
     primary_node_indices: Option<&'static [usize]>,
 }
 
-impl From<TestCsvExportColumn> for CsvExportColumn {
-    fn from(column: TestCsvExportColumn) -> Self {
+impl From<TestTableExportColumn> for TableExportColumn {
+    fn from(column: TestTableExportColumn) -> Self {
         match column {
-            TestCsvExportColumn::Number => CsvExportColumn::Number,
-            TestCsvExportColumn::Data(data) => CsvExportColumn::Data(match data {
+            TestTableExportColumn::Number => TableExportColumn::Number,
+            TestTableExportColumn::Data(data) => TableExportColumn::Data(match data {
                 TestExportData::Anno(TestExportDataAnno::Corpus {
                     anno_key: (ns, name),
                 }) => ExportData::Anno(ExportDataAnno::Corpus {

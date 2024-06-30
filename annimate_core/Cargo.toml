@@ -29,5 +29,4 @@ urlencoding = { workspace = true }
 zip = { workspace = true }
 
 [dev-dependencies]
-indoc = { workspace = true }
 insta = { workspace = true, features = ["redactions", "serde", "yaml"] }
