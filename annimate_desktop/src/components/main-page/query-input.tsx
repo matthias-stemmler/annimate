@@ -78,8 +78,8 @@ export const QueryInput: FC = () => {
           disabled={disabled}
           id={textAreaId}
           onChange={(event) => {
-            // Remove left-to-right mark that is included before quotation marks when copy-pasting from the ANNIS web UI
-            setAqlQuery(event.target.value.replace('\u200e', ''));
+            // Remove left-to-right mark that is included before delimiters when copy-pasting from the ANNIS web UI
+            setAqlQuery(event.target.value.replace(/\u200e/g, ''));
           }}
           placeholder="Enter AQL query"
           spellCheck={false}

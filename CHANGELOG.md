@@ -4,6 +4,7 @@
 
 ### Fixed
 
+- Queries are not corrupted anymore when copying and pasting from the ANNIS web UI.
 - Toast notifications are now shown behind modal dialogs.
 
 ## [1.0.0] - 2024-06-18
