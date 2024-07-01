@@ -2,6 +2,10 @@
 
 ## [Unreleased] - (release date)
 
+### Changed
+
+- Increased contrast of scrollbars on gray background.
+
 ### Fixed
 
 - Queries are not corrupted anymore when copying and pasting from the ANNIS web UI.
