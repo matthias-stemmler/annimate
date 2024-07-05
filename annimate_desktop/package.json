@@ -52,11 +52,11 @@
     "zustand": "^4.5.4"
   },
   "devDependencies": {
-    "@tanstack/eslint-plugin-query": "^5.49.1",
-    "@tauri-apps/cli": "^1.5.14",
-    "@testing-library/dom": "^10.2.0",
+    "@tanstack/eslint-plugin-query": "^5.50.1",
+    "@tauri-apps/cli": "^1.6.0",
+    "@testing-library/dom": "^10.3.1",
     "@testing-library/react": "^16.0.0",
-    "@types/node": "^20.14.9",
+    "@types/node": "^20.14.10",
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
     "@typescript-eslint/eslint-plugin": "^7.15.0",
@@ -71,7 +71,7 @@
     "prettier": "^3.3.2",
     "tailwindcss": "^3.4.4",
     "typescript": "^5.5.3",
-    "vite": "^5.3.2",
+    "vite": "^5.3.3",
     "vite-plugin-svgr": "^4.2.0",
     "vitest": "^1.6.0"
   }
