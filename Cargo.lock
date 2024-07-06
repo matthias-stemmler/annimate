@@ -74,6 +74,7 @@ dependencies = [
  "insta",
  "itertools 0.13.0",
  "regex",
+ "rust_xlsxwriter",
  "serde",
  "tempfile",
  "thiserror",
@@ -3142,6 +3143,16 @@ dependencies = [
  "wasm-bindgen-futures",
  "web-sys",
  "windows 0.37.0",
+]
+
+[[package]]
+name = "rust_xlsxwriter"
+version = "0.69.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e3106a1f233de88c107253d77adf25dbc848c9baf281daf77afb31f75f295163"
+dependencies = [
+ "regex",
+ "zip 2.1.3",
 ]
 
 [[package]]

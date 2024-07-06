@@ -4,6 +4,7 @@ use std::path::PathBuf;
 
 use graphannis::errors::GraphAnnisError;
 use graphannis_core::errors::GraphAnnisCoreError;
+use rust_xlsxwriter::XlsxError;
 use thiserror::Error;
 use zip::result::ZipError;
 
@@ -39,6 +40,10 @@ pub enum AnnimateError {
         /// Inner error.
         err: AnnisExportMetadataError,
     },
+
+    /// Failed to write XLSX workbook
+    #[error("Failed to write XLSX workbook: {0}")]
+    FailedToWriteXlsxWorkbook(#[from] XlsxError),
 
     /// Match node index out of bounds.
     #[error("Match node index {index} out of bounds, may be at most {max_index}")]

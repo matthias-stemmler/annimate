@@ -31,7 +31,7 @@ mod version;
 pub use anno::{ExportableAnnoKey, ExportableAnnoKeys};
 pub use aql::{QueryAnalysisResult, QueryNode, QueryNodes};
 pub use error::AnnimateError;
-pub use format::{CsvExportConfig, ExportFormat, TableExportColumn};
+pub use format::{CsvExportConfig, ExportFormat, TableExportColumn, XlsxExportConfig};
 pub use graphannis::corpusstorage::CorpusInfo;
 pub use graphannis::graph::AnnoKey;
 pub use query::{ExportData, ExportDataAnno, ExportDataText, QueryLanguage};
@@ -382,7 +382,7 @@ impl Storage {
             config.aql_query,
             config.query_language,
         )?;
-        let matches = query.find(config.format.get_export_data().cloned())?;
+        let matches = query.find(config.format.get_export_data())?;
 
         cancel_if(&cancel_requested)?;
 

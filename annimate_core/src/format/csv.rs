@@ -1,4 +1,4 @@
-use std::io::Write;
+use std::io::{Seek, Write};
 
 use super::table::{self, TableWriter};
 use super::Exporter;
@@ -21,11 +21,13 @@ pub struct CsvExportConfig {
 impl Exporter for CsvExporter {
     type Config = CsvExportConfig;
 
-    fn get_export_data(config: &CsvExportConfig) -> impl Iterator<Item = &ExportData> {
+    fn get_export_data(config: &CsvExportConfig) -> Vec<ExportData> {
         config
             .columns
             .iter()
             .filter_map(TableExportColumn::unwrap_data)
+            .cloned()
+            .collect()
     }
 
     fn export<F, G, I, W>(
@@ -42,7 +44,7 @@ impl Exporter for CsvExporter {
         G: Fn() -> bool,
         I: IntoIterator<Item = Result<Match, AnnimateError>> + Clone,
         I::IntoIter: ExactSizeIterator,
-        W: Write,
+        W: Write + Seek + Send,
     {
         table::export(
             &config.columns,

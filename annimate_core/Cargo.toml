@@ -21,6 +21,7 @@ graphannis = { workspace = true }
 graphannis-core = { workspace = true }
 itertools = { workspace = true }
 regex = { workspace = true }
+rust_xlsxwriter = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
 tempfile = { workspace = true }
 thiserror = { workspace = true }
