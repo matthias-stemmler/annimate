@@ -8,7 +8,7 @@ use std::path::{Path, PathBuf};
 use anno::AnnoKeys;
 use corpus::CorpusRef;
 use error::cancel_if;
-use format::export;
+use format::{export, QueryInfo};
 use graphannis::corpusstorage::CacheStrategy;
 use import::{FilesystemEntity, ImportFormat, ImportableCorpus};
 use itertools::Itertools;
@@ -392,10 +392,17 @@ impl Storage {
 
         let mut out = tempfile::Builder::new().prefix(".annimate_").tempfile()?;
 
+        let query_info = QueryInfo {
+            corpus_names: config.corpus_names,
+            aql_query: config.aql_query,
+            query_language: config.query_language,
+            nodes: query.nodes(),
+        };
+
         export(
             config.format,
             matches,
-            query.nodes(),
+            query_info,
             anno_keys.format(),
             &mut out,
             |progress| on_status(ExportStatusEvent::Exported { progress }),
