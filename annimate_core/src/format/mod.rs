@@ -1,6 +1,7 @@
 use std::io::{Seek, Write};
 
 use csv::CsvExporter;
+use graphannis::corpusstorage::QueryLanguage;
 use xlsx::XlsxExporter;
 
 use crate::anno::AnnoKeyFormat;
@@ -35,10 +36,18 @@ impl ExportFormat {
     }
 }
 
-pub(crate) fn export<F, G, I, W>(
+#[derive(Clone, Copy)]
+pub(crate) struct QueryInfo<'a, S> {
+    pub(crate) corpus_names: &'a [S],
+    pub(crate) aql_query: &'a str,
+    pub(crate) query_language: QueryLanguage,
+    pub(crate) nodes: &'a [Vec<QueryNode>],
+}
+
+pub(crate) fn export<F, G, I, S, W>(
     export_format: ExportFormat,
     matches: I,
-    query_nodes: &[Vec<QueryNode>],
+    query_info: QueryInfo<'_, S>,
     anno_key_format: &AnnoKeyFormat,
     out: W,
     on_progress: F,
@@ -49,13 +58,14 @@ where
     G: Fn() -> bool,
     I: IntoIterator<Item = Result<Match, AnnimateError>> + Clone,
     I::IntoIter: ExactSizeIterator,
+    S: AsRef<str>,
     W: Write + Seek + Send,
 {
     match export_format {
         ExportFormat::Csv(config) => CsvExporter::export(
             &config,
             matches,
-            query_nodes,
+            query_info,
             anno_key_format,
             out,
             on_progress,
@@ -64,7 +74,7 @@ where
         ExportFormat::Xlsx(config) => XlsxExporter::export(
             &config,
             matches,
-            query_nodes,
+            query_info,
             anno_key_format,
             out,
             on_progress,
@@ -78,10 +88,10 @@ trait Exporter {
 
     fn get_export_data(config: &Self::Config) -> Vec<ExportData>;
 
-    fn export<F, G, I, W>(
+    fn export<F, G, I, S, W>(
         config: &Self::Config,
         matches: I,
-        query_nodes: &[Vec<QueryNode>],
+        query_info: QueryInfo<'_, S>,
         anno_key_format: &AnnoKeyFormat,
         out: W,
         on_progress: F,
@@ -92,5 +102,6 @@ trait Exporter {
         G: Fn() -> bool,
         I: IntoIterator<Item = Result<Match, AnnimateError>> + Clone,
         I::IntoIter: ExactSizeIterator,
+        S: AsRef<str>,
         W: Write + Seek + Send;
 }

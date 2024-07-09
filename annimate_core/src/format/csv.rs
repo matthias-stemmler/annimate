@@ -1,9 +1,8 @@
 use std::io::{Seek, Write};
 
 use super::table::{self, TableWriter};
-use super::Exporter;
+use super::{Exporter, QueryInfo};
 use crate::anno::AnnoKeyFormat;
-use crate::aql::QueryNode;
 use crate::error::AnnimateError;
 use crate::query::{ExportData, Match};
 use crate::TableExportColumn;
@@ -30,10 +29,10 @@ impl Exporter for CsvExporter {
             .collect()
     }
 
-    fn export<F, G, I, W>(
+    fn export<F, G, I, S, W>(
         config: &CsvExportConfig,
         matches: I,
-        query_nodes: &[Vec<QueryNode>],
+        query_info: QueryInfo<'_, S>,
         anno_key_format: &AnnoKeyFormat,
         out: W,
         on_progress: F,
@@ -44,12 +43,13 @@ impl Exporter for CsvExporter {
         G: Fn() -> bool,
         I: IntoIterator<Item = Result<Match, AnnimateError>> + Clone,
         I::IntoIter: ExactSizeIterator,
+        S: AsRef<str>,
         W: Write + Seek + Send,
     {
         table::export(
             &config.columns,
             matches,
-            query_nodes,
+            query_info.nodes,
             anno_key_format,
             &mut CsvTableWriter::new(out),
             on_progress,

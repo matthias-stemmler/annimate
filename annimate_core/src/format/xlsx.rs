@@ -1,11 +1,12 @@
 use std::io::{Seek, Write};
 
+use graphannis::corpusstorage::QueryLanguage;
+use itertools::Itertools;
 use rust_xlsxwriter::{DocProperties, Table, Workbook, Worksheet};
 
 use super::table::{self, TableWriter};
-use super::Exporter;
+use super::{Exporter, QueryInfo};
 use crate::anno::AnnoKeyFormat;
-use crate::aql::QueryNode;
 use crate::error::AnnimateError;
 use crate::query::{ExportData, Match};
 use crate::{TableExportColumn, VERSION_INFO};
@@ -32,10 +33,10 @@ impl Exporter for XlsxExporter {
             .collect()
     }
 
-    fn export<F, G, I, W>(
+    fn export<F, G, I, S, W>(
         config: &XlsxExportConfig,
         matches: I,
-        query_nodes: &[Vec<QueryNode>],
+        query_info: QueryInfo<'_, S>,
         anno_key_format: &AnnoKeyFormat,
         out: W,
         on_progress: F,
@@ -46,6 +47,7 @@ impl Exporter for XlsxExporter {
         G: Fn() -> bool,
         I: IntoIterator<Item = Result<Match, AnnimateError>> + Clone,
         I::IntoIter: ExactSizeIterator,
+        S: AsRef<str>,
         W: Write + Seek + Send,
     {
         let mut workbook = Workbook::new();
@@ -59,9 +61,27 @@ impl Exporter for XlsxExporter {
             let mut worksheet = Worksheet::new();
             worksheet
                 .set_name("Information")?
-                .write_string(0, 0, "Annimate version")?
-                .write_string(0, 1, VERSION_INFO.annimate_version)?
-                .autofit();
+                .write_string(0, 0, "Query")?
+                .write_string(0, 1, query_info.aql_query)?
+                .write_string(1, 0, "Query Language")?
+                .write_string(
+                    1,
+                    1,
+                    match query_info.query_language {
+                        QueryLanguage::AQL => "AQL (latest)",
+                        QueryLanguage::AQLQuirksV3 => "AQL (compatibility mode)",
+                    },
+                )?
+                .write_string(2, 0, "Corpora")?
+                .write_string(
+                    2,
+                    1,
+                    query_info.corpus_names.iter().map(|s| s.as_ref()).join(","),
+                )?
+                .write_string(3, 0, "Annimate version")?
+                .write_string(3, 1, VERSION_INFO.annimate_version)?
+                .autofit()
+                .add_table(0, 0, 3, 1, &Table::new().set_header_row(false))?;
             worksheet
         };
 
@@ -71,7 +91,7 @@ impl Exporter for XlsxExporter {
             table::export(
                 &config.columns,
                 matches,
-                query_nodes,
+                query_info.nodes,
                 anno_key_format,
                 &mut xlsx_table_writer,
                 on_progress,
