@@ -2,6 +2,10 @@
 
 ## [Unreleased] - (release date)
 
+### Added
+
+- Matches can now be exported either to comma-separated values (.csv) or Excel (.xlsx) files.
+
 ### Changed
 
 - Increased contrast of scrollbars on gray background.

@@ -4,7 +4,7 @@ This is a tool for the comfortable export of query results (matches) from the AN
 
 It is meant as a supplement to the ANNIS web interface and focuses on file export (as opposed to visualization) of the results of an ANNIS query.
 
-It can currently produce CSV files with one row per match, showing the matched nodes in their context in a KWIC (Keyword in Context) format as well as additional annotations of the matched nodes and metadata on the corpus and document levels. It is similar in functionality to a combination of the ANNIS `TextColumnExporter` and `CSVExporter`, but tries to provide a friendlier user interface.
+It can currently produce a CSV or an Excel file with one row per match, showing the matched nodes in their context in a KWIC (Keyword in Context) format as well as additional annotations of the matched nodes and metadata on the corpus and document levels. It is similar in functionality to a combination of the ANNIS `TextColumnExporter` and `CSVExporter`, but tries to provide a friendlier user interface.
 
 Annimate makes heavy use of the [graphANNIS](https://github.com/korpling/graphANNIS) library by Thomas Krause.
 
@@ -80,13 +80,14 @@ This needs to be done only once per corpus.
 
 1. On the lower left of the Annimate main screen, select the corpora to query (optionally selecting a corpus set first).
 2. On the upper left, enter a query formulated in the [ANNIS Query Language](https://korpling.github.io/ANNIS/4.0/user-guide/aql/index.html) (AQL). Here you can also choose between the current version of AQL and the [compatibility mode](https://korpling.github.io/ANNIS/4.0/user-guide/aql/compatibility-mode.html) with older versions of ANNIS. Once a query is entered, the input field will show whether it is valid.
-3. On the right-hand side, configure the desired columns of the CSV file to produce (for details see below). You can add a new column by clicking on the "Add column" button. The columns can be reordered using drag and drop and removed by clicking on the corresponding button.
-4. Click on the "Export to ..." button and select a location for the CSV file. If the button is disabled, this means that the information you entered so far is incomplete.
-5. Wait until the export is finished, then click on the "Open folder" or "Open file" links to access the CSV file.
+3. On the right-hand side, configure the desired columns of the CSV/Excel file to produce (for details see below). You can add a new column by clicking on the "Add column" button. The columns can be reordered using drag and drop and removed by clicking on the corresponding button.
+4. Select whether you want to produce a CSV file (default) or an Excel file.
+5. Click on the "Export to ..." button and select a location for the file. If the button is disabled, this means that the information you entered so far is incomplete.
+6. Wait until the export is finished, then click on the "Open folder" or "Open file" links to access the file.
 
-### Types of CSV columns
+### Types of columns
 
-The following types of columns for the CSV file are available:
+The following types of columns are available:
 
 1. **Number**
 
