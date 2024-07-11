@@ -14,6 +14,7 @@ import {
 } from '@/lib/api';
 import {
   ExportColumn,
+  ExportFormat,
   ExportStatusEvent,
   ImportCorpus,
   ImportCorpusResult,
@@ -94,6 +95,7 @@ export const useExportMatchesMutation = (
     aqlQuery: string;
     queryLanguage: QueryLanguage;
     exportColumns: ExportColumn[];
+    exportFormat: ExportFormat;
   }>,
 ) => {
   const [matchCount, setMatchCount] = useState<number | undefined>();

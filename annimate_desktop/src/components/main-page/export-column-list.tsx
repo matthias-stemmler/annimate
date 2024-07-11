@@ -56,7 +56,7 @@ export const ExportColumnList: FC = () => {
   const reorderDisabled = disabled || exportColumns.length <= 1;
 
   return (
-    <div className="flex-1 overflow-hidden pt-1 pr-1 flex flex-col gap-2">
+    <div className="flex-1 overflow-hidden pt-1 flex flex-col gap-2">
       <div className="flex justify-between items-end">
         <Label className="mr-2 mb-2">Columns</Label>
 
