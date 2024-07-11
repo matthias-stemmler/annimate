@@ -66,8 +66,8 @@ importers:
         specifier: ^1.1.2
         version: 1.1.2(@types/react-dom@18.3.0)(@types/react@18.3.3)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       '@tanstack/react-query':
-        specifier: ^5.50.1
-        version: 5.50.1(react@18.3.1)
+        specifier: ^5.51.1
+        version: 5.51.1(react@18.3.1)
       '@tauri-apps/api':
         specifier: ^1.6.0
         version: 1.6.0
@@ -78,8 +78,8 @@ importers:
         specifier: ^2.1.1
         version: 2.1.1
       lucide-react:
-        specifier: ^0.400.0
-        version: 0.400.0(react@18.3.1)
+        specifier: ^0.407.0
+        version: 0.407.0(react@18.3.1)
       react:
         specifier: ^18.3.1
         version: 18.3.1
@@ -1175,11 +1175,11 @@ packages:
     peerDependencies:
       eslint: ^8 || ^9
 
-  '@tanstack/query-core@5.50.1':
-    resolution: {integrity: sha512-lpfhKPrJlyV2DSVcQb/HuozH3Av3kws4ge22agx+lNGpFkS4vLZ7St0l3GLwlAD+bqB+qXGex3JdRKUNtMviEQ==}
+  '@tanstack/query-core@5.51.1':
+    resolution: {integrity: sha512-fJBMQMpo8/KSsWW5ratJR5+IFr7YNJ3K2kfP9l5XObYHsgfVy1w3FJUWU4FT2fj7+JMaEg33zOcNDBo0LMwHnw==}
 
-  '@tanstack/react-query@5.50.1':
-    resolution: {integrity: sha512-s0DW3rVBDPReDDovUjVqItVa3R2nPfUANK9nqGvarO2DwTiY9U4EBTsqizMxItRCoGgK5apeM7D3mxlHrSKpdQ==}
+  '@tanstack/react-query@5.51.1':
+    resolution: {integrity: sha512-s47HKFnQ4HOJAHoIiXcpna/roMMPZJPy6fJ6p4ZNVn8+/onlLBEDd1+xc8OnDuwgvecqkZD7Z2mnSRbcWefrKw==}
     peerDependencies:
       react: ^18.0.0
 
@@ -2063,8 +2063,8 @@ packages:
     resolution: {integrity: sha512-Jo6dJ04CmSjuznwJSS3pUeWmd/H0ffTlkXXgwZi+eq1UCmqQwCh+eLsYOYCwY991i2Fah4h1BEMCx4qThGbsiA==}
     engines: {node: '>=10'}
 
-  lucide-react@0.400.0:
-    resolution: {integrity: sha512-rpp7pFHh3Xd93KHixNgB0SqThMHpYNzsGUu69UaQbSZ75Q/J3m5t6EhKyMT3m4w2WOxmJ2mY0tD3vebnXqQryQ==}
+  lucide-react@0.407.0:
+    resolution: {integrity: sha512-+dRIu9Sry+E8wPF9+sY5eKld2omrU4X5IKXxrgqBt+o11IIHVU0QOfNoVWFuj0ZRDrxr4Wci26o2mKZqLGE0lA==}
     peerDependencies:
       react: ^16.5.1 || ^17.0.0 || ^18.0.0 || ^19.0.0
 
@@ -3791,11 +3791,11 @@ snapshots:
       - supports-color
       - typescript
 
-  '@tanstack/query-core@5.50.1': {}
+  '@tanstack/query-core@5.51.1': {}
 
-  '@tanstack/react-query@5.50.1(react@18.3.1)':
+  '@tanstack/react-query@5.51.1(react@18.3.1)':
     dependencies:
-      '@tanstack/query-core': 5.50.1
+      '@tanstack/query-core': 5.51.1
       react: 18.3.1
 
   '@tauri-apps/api@1.6.0': {}
@@ -4740,7 +4740,7 @@ snapshots:
     dependencies:
       yallist: 4.0.0
 
-  lucide-react@0.400.0(react@18.3.1):
+  lucide-react@0.407.0(react@18.3.1):
     dependencies:
       react: 18.3.1
 
