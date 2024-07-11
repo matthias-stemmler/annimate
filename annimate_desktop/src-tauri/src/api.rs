@@ -1,11 +1,13 @@
+#![allow(clippy::too_many_arguments)]
+
 use std::path::PathBuf;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 
 use annimate_core::{
     AnnoKey, Corpora, CsvExportConfig, ExportConfig, ExportData, ExportDataAnno, ExportDataText,
-    ExportFormat, ExportableAnnoKeys, QueryAnalysisResult, QueryLanguage, QueryNodes,
-    TableExportColumn,
+    ExportableAnnoKeys, QueryAnalysisResult, QueryLanguage, QueryNodes, TableExportColumn,
+    XlsxExportConfig,
 };
 use itertools::Itertools;
 use serde::Deserialize;
@@ -74,6 +76,7 @@ pub(crate) async fn export_matches(
     aql_query: String,
     query_language: QueryLanguage,
     export_columns: Vec<ExportColumn>,
+    export_format: ExportFormat,
     output_file: PathBuf,
 ) -> Result<(), Error> {
     let mut subscription = state.storage_slot.subscribe();
@@ -97,9 +100,17 @@ pub(crate) async fn export_matches(
                 corpus_names: &corpus_names,
                 aql_query: &aql_query,
                 query_language,
-                format: ExportFormat::Csv(CsvExportConfig {
-                    columns: export_columns.into_iter().map_into().collect(),
-                }),
+                format: {
+                    let columns = export_columns.into_iter().map_into().collect();
+                    match export_format {
+                        ExportFormat::Csv => {
+                            annimate_core::ExportFormat::Csv(CsvExportConfig { columns })
+                        }
+                        ExportFormat::Xlsx => {
+                            annimate_core::ExportFormat::Xlsx(XlsxExportConfig { columns })
+                        }
+                    }
+                },
             },
             output_file,
             |status_event| {
@@ -324,6 +335,13 @@ impl From<ExportColumn> for TableExportColumn {
             })),
         }
     }
+}
+
+#[derive(Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub(crate) enum ExportFormat {
+    Csv,
+    Xlsx,
 }
 
 #[derive(Debug)]

@@ -7,13 +7,27 @@ import {
 } from '@/components/ui/tooltip';
 import { useToast } from '@/components/ui/use-toast';
 import { dirname, save, shellOpen } from '@/lib/api';
+import { ExportFormat } from '@/lib/api-types';
 import { CancellableOperationError } from '@/lib/mutations';
-import { useCanExport, useExportMatches } from '@/lib/store';
+import {
+  useCanExport,
+  useExportMatches,
+  useGetExportFormat,
+} from '@/lib/store';
 import { formatPercentage } from '@/lib/utils';
 import { File, Folder, Hourglass, X } from 'lucide-react';
 
+const EXPORT_FORMAT_FILTERS: Record<
+  ExportFormat,
+  { name: string; extensions: string[] }[]
+> = {
+  csv: [{ name: 'Comma-separated values (*.csv)', extensions: ['csv'] }],
+  xlsx: [{ name: 'Excel (*.xlsx)', extensions: ['xlsx'] }],
+};
+
 export const ExportTrigger = () => {
   const canExport = useCanExport();
+  const getExportFormat = useGetExportFormat();
   const {
     mutation: { isPending: isExporting, mutate: exportMatches },
     matchCount,
@@ -24,9 +38,9 @@ export const ExportTrigger = () => {
   const { toast } = useToast();
 
   return (
-    <div className="pr-1">
+    <div className="flex-1">
       {isExporting ? (
-        <div className="flex items-end gap-8 mt-2 mb-1">
+        <div className="flex items-end gap-8 mb-1">
           <div className="grow">
             <div className="flex justify-between mb-1">
               <p>
@@ -66,13 +80,12 @@ export const ExportTrigger = () => {
         </div>
       ) : (
         <Button
-          className="w-full mt-4"
+          className="w-full mt-2"
           disabled={!canExport}
           onClick={async () => {
+            const exportFormat = getExportFormat();
             const outputFile = await save({
-              filters: [
-                { name: 'Comma-separated values (*.csv)', extensions: ['csv'] },
-              ],
+              filters: EXPORT_FORMAT_FILTERS[exportFormat],
               title: 'Export to file',
             });
             if (outputFile !== null) {

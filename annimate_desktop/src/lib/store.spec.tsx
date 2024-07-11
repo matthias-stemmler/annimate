@@ -14,6 +14,7 @@ import {
   useCanExport,
   useCorpusNamesInSelectedSet,
   useExportColumnItems,
+  useExportFormat,
   useExportMatches,
   useIsExporting,
   useQueryLanguage,
@@ -23,6 +24,7 @@ import {
   useSelectedCorpusNamesInSelectedSet,
   useSelectedCorpusSet,
   useSetAqlQuery,
+  useSetExportFormat,
   useSetQueryLanguage,
   useSetSelectedCorpusSet,
   useToggleAllCorporaInSelectedSet,
@@ -875,6 +877,24 @@ describe('store', () => {
     });
   });
 
+  test('selecting export format', async () => {
+    const { result } = renderHook(
+      () => ({
+        exportFormat: useExportFormat(),
+        setExportFormat: useSetExportFormat(),
+      }),
+      { wrapper: Wrapper },
+    );
+
+    expect(result.current.exportFormat).toEqual('csv');
+
+    result.current.setExportFormat('xlsx');
+
+    await waitFor(() => {
+      expect(result.current.exportFormat).toEqual('xlsx');
+    });
+  });
+
   type ChangeContext = {
     setSelectedCorpusSet: (corpusSet: string) => void;
     toggleCorpus: (corpusName: string) => void;
@@ -989,6 +1009,8 @@ describe('store', () => {
         addExportColumn: useAddExportColumn(),
         updateExportColumn: useUpdateExportColumn(),
 
+        setExportFormat: useSetExportFormat(),
+
         canExport: useCanExport(),
         exportMatches: useExportMatches(),
         isExporting: useIsExporting(),
@@ -1052,7 +1074,9 @@ describe('store', () => {
       expect(result.current.canExport).toBe(true);
     });
 
-    result.current.exportMatches.mutation.mutate({ outputFile: 'out.csv' });
+    result.current.setExportFormat('xlsx');
+
+    result.current.exportMatches.mutation.mutate({ outputFile: 'out.xlsx' });
 
     await waitFor(() => {
       expect(result.current.isExporting).toBe(true);
@@ -1090,7 +1114,8 @@ describe('store', () => {
           annoKey: ANNO_KEY_NODE,
         }),
       ],
-      outputFile: 'out.csv',
+      exportFormat: 'xlsx',
+      outputFile: 'out.xlsx',
     });
   });
 });

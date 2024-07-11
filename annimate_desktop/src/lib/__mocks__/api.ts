@@ -6,6 +6,7 @@ import {
   AQLError,
   Corpora,
   ExportColumn,
+  ExportFormat,
   ExportStatusEvent,
   ExportableAnnoKey,
   ExportableAnnoKeys,
@@ -227,7 +228,7 @@ export const save = async (
   options?: SaveDialogOptions,
 ): Promise<string | null> => {
   logAction('Save', COLOR_BUILTIN_COMMAND, options);
-  return prompt('Save\nEnter file path:');
+  return prompt(`Save - ${options?.filters?.[0].name}\nEnter file path:`);
 };
 
 export const shellOpen = async (
@@ -303,6 +304,7 @@ export const exportMatches = async (params: {
   aqlQuery: string;
   queryLanguage: QueryLanguage;
   exportColumns: ExportColumn[];
+  exportFormat: ExportFormat;
   outputFile: string;
 }): Promise<void> => {
   logAction('Export', COLOR_CUSTOM_COMMAND, params);

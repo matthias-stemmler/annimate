@@ -1,6 +1,7 @@
 import {
   Corpora,
   ExportColumn,
+  ExportFormat,
   ExportStatusEvent,
   ExportableAnnoKeys,
   ImportStatusEvent,
@@ -37,6 +38,7 @@ export const exportMatches = (params: {
   aqlQuery: string;
   queryLanguage: QueryLanguage;
   exportColumns: ExportColumn[];
+  exportFormat: ExportFormat;
   outputFile: string;
 }): Promise<void> => invoke('export_matches', params);
 

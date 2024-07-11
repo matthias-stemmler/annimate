@@ -5,6 +5,7 @@ import {
   ExportColumn,
   ExportColumnData,
   ExportColumnType,
+  ExportFormat,
   ExportableAnnoKey,
   ExportableAnnoKeys,
   QueryLanguage,
@@ -100,6 +101,7 @@ export type State = {
 
   exportColumns: ExportColumnItem[];
   exportColumnsMaxId: number;
+  exportFormat: ExportFormat;
 };
 
 export const StoreContext = createContext<StoreApi<State> | undefined>(
@@ -131,6 +133,7 @@ export const createStoreForContext = (): StoreApi<State> =>
       } as const,
     ],
     exportColumnsMaxId: 2,
+    exportFormat: 'csv',
   }));
 
 const createExportColumn = (type: ExportColumnType): ExportColumn => {
@@ -466,6 +469,14 @@ const toNodeRefs = (
   }));
 };
 
+export const useExportFormat = (): ExportFormat =>
+  useSelector((state) => state.exportFormat);
+
+export const useGetExportFormat = (): (() => ExportFormat) => {
+  const getState = useGetState();
+  return () => getState().exportFormat;
+};
+
 export const useCanExport = (): boolean => {
   const selectedCorpusNames = useSelectedCorpusNamesInSelectedSet();
   const aqlQuery = useAqlQuery();
@@ -799,6 +810,13 @@ export const useUnremoveExportColumn = (): ((id: number) => void) => {
   };
 };
 
+export const useSetExportFormat = (): ((
+  exportFormat: ExportFormat,
+) => void) => {
+  const setState = useSetState();
+  return (exportFormat: ExportFormat) => setState({ exportFormat });
+};
+
 // QUERIES
 
 export { useDbDirQuery as useDbDir } from '@/lib/queries';
@@ -881,11 +899,13 @@ export const useExportMatches = () => {
   const getAqlQuery = useGetAqlQuery();
   const getQueryLanguage = useGetQueryLanguage();
   const getExportColumns = useGetExportColumns();
+  const getExportFormat = useGetExportFormat();
 
   return useExportMatchesMutation(async () => ({
     corpusNames: await getSelectedCorpusNamesInSelectedSet(),
     aqlQuery: getAqlQuery(),
     queryLanguage: getQueryLanguage(),
     exportColumns: await getExportColumns(),
+    exportFormat: getExportFormat(),
   }));
 };

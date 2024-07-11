@@ -63,6 +63,8 @@ export type ExportColumnData<T extends ExportColumnType> = Omit<
   'type'
 >;
 
+export type ExportFormat = 'csv' | 'xlsx';
+
 export type QueryLanguage = 'AQL' | 'AQLQuirksV3';
 
 export type QueryNodesResult =
