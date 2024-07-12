@@ -1386,9 +1386,9 @@ dependencies = [
 
 [[package]]
 name = "graphannis"
-version = "3.3.2"
+version = "3.3.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2a538a8a59b3b50a03e149583336e671c81274e73bd6772a39c956e05afef654"
+checksum = "e402e4b02b884fb16c5259d7e04d0749d1f8e1c9bc36b24b18a132359adf68b1"
 dependencies = [
  "boolean_expression",
  "csv",
@@ -1427,9 +1427,9 @@ dependencies = [
 
 [[package]]
 name = "graphannis-core"
-version = "3.3.2"
+version = "3.3.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8d7bdd73b9c2fefcdb27237126ff7cf899bb07938cf8b3ebdfda81c590cde29a"
+checksum = "5116722905f99c3ba2203f93ca48d43432e475c66dd099466a3a41d931964daa"
 dependencies = [
  "binary-layout 4.0.2",
  "bincode",
