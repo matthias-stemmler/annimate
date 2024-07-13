@@ -40,7 +40,7 @@
     {
       "matchPackageNames": ["eslint"],
       "allowedVersions": "<=8",
-      "description": "eslint-plugin-query does not work with eslint v9"
+      "description": "eslint-plugin-react-hooks does not support flag config yet"
     },
     {
       "matchPackageNames": ["graphannis", "graphannis-core"],
