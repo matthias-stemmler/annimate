@@ -2,6 +2,8 @@
 
 ## [Unreleased] - (release date)
 
+## [1.1.0] - 2024-07-13
+
 ### Added
 
 - Matches can now be exported either to comma-separated values (.csv) or Excel (.xlsx) files.
@@ -22,5 +24,6 @@
 Initial version
 
 <!-- next-url -->
-[Unreleased]: https://github.com/matthias-stemmler/annimate/compare/v1.0.0...HEAD
+[Unreleased]: https://github.com/matthias-stemmler/annimate/compare/v1.1.0...HEAD
+[1.1.0]: https://github.com/matthias-stemmler/annimate/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/matthias-stemmler/annimate/tree/v1.0.0
