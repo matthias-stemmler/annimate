@@ -360,6 +360,21 @@ export_matches_test! {
             })),
         ],
     }
+    nocoverage: {
+        corpus_paths: ["nocoverage.demo_graphml.zip"],
+        corpus_names: ["nocoverage.demo"],
+        aql_query: "tok=\"no\"",
+        query_language: AQL,
+        export_columns: [
+            Number,
+            Data(Text(TestExportDataText {
+                left_context: 2,
+                right_context: 2,
+                segmentation: None,
+                primary_node_indices: None,
+            })),
+        ],
+    }
 }
 
 #[test]

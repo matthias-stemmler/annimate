@@ -2,6 +2,10 @@
 
 ## [Unreleased] - (release date)
 
+### Fixed
+
+- "Match in context" columns are now produced correctly even for corpora without any coverage components.
+
 ## [1.1.0] - 2024-07-13
 
 ### Added

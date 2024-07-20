@@ -3,6 +3,9 @@
 - `empty_graphml.zip`
   - Name: empty
   - Source: generated using graphANNIS, consists only of a corpus node
+- `nocoverage.demo_graphml.zip`
+  - Name: nocoverage.demo
+  - Source: generated using graphANNIS, consists of text "There is no coverage." and has no coverage components
 - `pcc2_v7_relANNIS.zip`
   - Name: pcc2 (Potsdam Commentary Corpus 2)
   - Source: <https://corpus-tools.org/corpora/pcc2_v7_relANNIS.zip>
