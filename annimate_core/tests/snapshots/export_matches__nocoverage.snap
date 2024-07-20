@@ -1,0 +1,20 @@
+---
+source: annimate_core/tests/export_matches.rs
+info:
+  corpus_paths:
+    - nocoverage.demo_graphml.zip
+  corpus_names:
+    - nocoverage.demo
+  aql_query: "tok=\"no\""
+  query_language: AQL
+  export_columns:
+    - Number
+    - Data:
+        Text:
+          left_context: 2
+          right_context: 2
+          segmentation: ~
+          primary_node_indices: ~
+---
+Number,Left context (tokens),Match (tokens),Right context (tokens)
+1,There is,no,coverage .

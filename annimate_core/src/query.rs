@@ -806,9 +806,13 @@ impl<'a> GraphHelper<'a> {
         source: NodeID,
         target: NodeID,
     ) -> Result<bool, GraphAnnisCoreError> {
+        if source == target {
+            return Ok(true);
+        }
+
         self.coverage_storages
             .iter()
-            .map(|gs| gs.is_connected(source, target, 0, Bound::Included(1)))
+            .map(|gs| gs.is_connected(source, target, 1, Bound::Included(1)))
             .fold_ok(false, |a, b| a || b)
     }
 

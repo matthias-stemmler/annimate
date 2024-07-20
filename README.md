@@ -97,13 +97,13 @@ The following types of columns are available:
 
    Metadata of the corpus or document containing the match.
 
-   "Corpus" here refers to one of the items selected on the lower left. You can select the desired meta annotation from a dropdown. Special Annis-internal annotations are grouped under a separate "Annis" section at the bottom of the list, the others are specific to the selected corpora.
+   "Corpus" here refers to one of the items selected on the lower left. You can select the desired meta annotation from a dropdown. Annis standard annotations are grouped under a separate "Annis" section at the bottom of the list, the others are specific to the selected corpora.
 
 3. **Match annotation**
 
    An annotation of one of the nodes matched by the query.
 
-   You can select the annotation from a dropdown. Special Annis-internal annotations are grouped under a separate "Annis" section at the bottom of the list, the others are specific to the selected corpora. Note that this contains all available annotations of the selected corpora, even the ones that are also listed as meta annotations for "Corpus metadata" or "Document metadata" columns.
+   You can select the annotation from a dropdown. Annis standard annotations are grouped under a separate "Annis" section at the bottom of the list, the others are specific to the selected corpora. Note that this contains all available annotations of the selected corpora, even the ones that are also listed as meta annotations for "Corpus metadata" or "Document metadata" columns.
 
    You also have to select for which node of the query the annotation should be exported, in case the query refers to multiple nodes.
 
