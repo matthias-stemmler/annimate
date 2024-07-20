@@ -129,7 +129,7 @@ jobs:
           echo '' | tee --append "$GITHUB_ENV"
           parse-changelog CHANGELOG.md "$version" | tee --append "$GITHUB_ENV"
           echo '' | tee --append "$GITHUB_ENV"
-          sed -e '1,/<!-- next-url -->/d' CHANGELOG.md | tee --append "$GITHUB_ENV"
+          grep "^\[$version\]" CHANGELOG.md | tee --append "$GITHUB_ENV"
           echo 'EOF' >> "$GITHUB_ENV"
           echo '--'
 
