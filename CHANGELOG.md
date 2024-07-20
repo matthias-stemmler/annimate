@@ -2,6 +2,8 @@
 
 ## [Unreleased] - (release date)
 
+## [1.1.1] - 2024-07-20
+
 ### Fixed
 
 - "Match in context" columns are now produced correctly even for corpora without any coverage components.
@@ -28,6 +30,7 @@
 Initial version
 
 <!-- next-url -->
-[Unreleased]: https://github.com/matthias-stemmler/annimate/compare/v1.1.0...HEAD
+[Unreleased]: https://github.com/matthias-stemmler/annimate/compare/v1.1.1...HEAD
+[1.1.1]: https://github.com/matthias-stemmler/annimate/compare/v1.1.0...v1.1.1
 [1.1.0]: https://github.com/matthias-stemmler/annimate/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/matthias-stemmler/annimate/tree/v1.0.0
