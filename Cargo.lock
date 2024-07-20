@@ -80,7 +80,7 @@ dependencies = [
  "thiserror",
  "toml 0.8.15",
  "urlencoding",
- "zip 2.1.4",
+ "zip 2.1.5",
 ]
 
 [[package]]
@@ -3152,7 +3152,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "16505ad28ecaf73f4c169614333c0519d4549675f158c9e886eb045c4dfde6c5"
 dependencies = [
  "regex",
- "zip 2.1.4",
+ "zip 2.1.5",
 ]
 
 [[package]]
@@ -5168,9 +5168,9 @@ dependencies = [
 
 [[package]]
 name = "zip"
-version = "2.1.4"
+version = "2.1.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e29ab4097989787b2029a5981c41b7bfb427b5a601e23f455daacb4d0360a9e9"
+checksum = "b895748a3ebcb69b9d38dcfdf21760859a4b0d0b0015277640c2ef4c69640e6f"
 dependencies = [
  "aes",
  "arbitrary",
