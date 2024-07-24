@@ -1,5 +1,5 @@
 use std::collections::BTreeMap;
-use std::sync::OnceLock;
+use std::sync::LazyLock;
 use std::vec;
 
 use graphannis::corpusstorage::{QueryAttributeDescription, QueryLanguage};
@@ -61,7 +61,7 @@ pub(crate) fn query_nodes_valid(
 
     // In quirks mode, remove artifically added nodes for meta queries
     if let QueryLanguage::AQLQuirksV3 = query_language {
-        for (position, capture) in meta_regex().captures_iter(aql_query).with_position() {
+        for (position, capture) in META_REGEX.captures_iter(aql_query).with_position() {
             if let Position::First | Position::Only = position {
                 if let Some(i) = node_descriptions
                     .iter()
@@ -200,13 +200,7 @@ impl From<QueryAttributeDescription> for QueryNode {
 /// Regex to recognize legacy meta queries.
 ///
 /// Taken from [ANNIS](https://github.com/korpling/ANNIS/blob/9d75e92ddf99bf8cf2633750fd3ba4c4edaf3b51/src/main/resources/org/corpus_tools/annis/gui/components/codemirror/mode/aql/aql.js#L18).
-fn meta_regex() -> &'static Regex {
-    static REGEX: OnceLock<Regex> = OnceLock::new();
-
-    REGEX.get_or_init(|| {
-        Regex::new(
-            r"meta::((?:[a-zA-Z_%](?:[a-zA-Z0-9_\-%])*:)?(?:[a-zA-Z_%](?:[a-zA-Z0-9_\-%])*))",
-        )
+static META_REGEX: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(r"meta::((?:[a-zA-Z_%](?:[a-zA-Z0-9_\-%])*:)?(?:[a-zA-Z_%](?:[a-zA-Z0-9_\-%])*))")
         .unwrap()
-    })
-}
+});

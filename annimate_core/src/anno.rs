@@ -1,6 +1,6 @@
 use std::collections::{BTreeSet, HashSet};
 use std::fmt::{self, Display, Formatter};
-use std::sync::OnceLock;
+use std::sync::LazyLock;
 
 use graphannis::corpusstorage::{QueryLanguage, ResultOrder, SearchQuery};
 use graphannis::errors::GraphAnnisError;
@@ -19,38 +19,28 @@ use crate::node_name;
 pub(crate) const DOC: &str = "doc";
 pub(crate) const TOK: &str = "tok";
 
-pub(crate) fn token_anno_key() -> &'static AnnoKey {
-    static ANNO_KEY: OnceLock<AnnoKey> = OnceLock::new();
+pub(crate) static TOKEN_ANNO_KEY: LazyLock<AnnoKey> = LazyLock::new(|| AnnoKey {
+    ns: ANNIS_NS.into(),
+    name: TOK.into(),
+});
 
-    ANNO_KEY.get_or_init(|| AnnoKey {
-        ns: ANNIS_NS.into(),
-        name: TOK.into(),
-    })
-}
-
-pub(crate) fn default_ordering_component() -> &'static Component<AnnotationComponentType> {
-    static COMPONENT: OnceLock<Component<AnnotationComponentType>> = OnceLock::new();
-
-    COMPONENT.get_or_init(|| {
+pub(crate) static DEFAULT_ORDERING_COMPONENT: LazyLock<Component<AnnotationComponentType>> =
+    LazyLock::new(|| {
         Component::new(
             AnnotationComponentType::Ordering,
             ANNIS_NS.into(),
             "".into(),
         )
-    })
-}
+    });
 
-pub(crate) fn gap_ordering_component() -> &'static Component<AnnotationComponentType> {
-    static COMPONENT: OnceLock<Component<AnnotationComponentType>> = OnceLock::new();
-
-    COMPONENT.get_or_init(|| {
+pub(crate) static GAP_ORDERING_COMPONENT: LazyLock<Component<AnnotationComponentType>> =
+    LazyLock::new(|| {
         Component::new(
             AnnotationComponentType::Ordering,
             ANNIS_NS.into(),
             "datasource-gap".into(),
         )
-    })
-}
+    });
 
 pub(crate) fn segmentations<S>(corpus_ref: CorpusRef<'_, S>) -> Result<Vec<String>, GraphAnnisError>
 where
@@ -106,7 +96,7 @@ where
                 AnnimateError::MissingAnnotationForSegmentation(segmentation.to_string())
             }),
 
-        None => Ok(token_anno_key().clone()),
+        None => Ok(TOKEN_ANNO_KEY.clone()),
     }
 }
 
