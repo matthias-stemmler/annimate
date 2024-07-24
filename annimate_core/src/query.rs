@@ -15,8 +15,8 @@ use graphannis_core::types::{AnnoKey, NodeID};
 use itertools::Itertools;
 
 use crate::anno::{
-    self, default_ordering_component, gap_ordering_component, get_anno_key_for_segmentation,
-    token_anno_key,
+    self, get_anno_key_for_segmentation, DEFAULT_ORDERING_COMPONENT, GAP_ORDERING_COMPONENT,
+    TOKEN_ANNO_KEY,
 };
 use crate::corpus::CorpusRef;
 use crate::error::AnnimateError;
@@ -561,7 +561,7 @@ fn get_parts(
     )?;
 
     let graph_helper = GraphHelper::new(&subgraph);
-    let gap_storage = subgraph.get_graphstorage_as_ref(gap_ordering_component());
+    let gap_storage = subgraph.get_graphstorage_as_ref(&GAP_ORDERING_COMPONENT);
     let node_annos = subgraph.get_node_annos();
 
     let match_node_ids: Vec<_> = match_node_names
@@ -742,7 +742,7 @@ impl<'a> GraphHelper<'a> {
             })
             .collect();
 
-        let order_storage = graph.get_graphstorage_as_ref(default_ordering_component());
+        let order_storage = graph.get_graphstorage_as_ref(&DEFAULT_ORDERING_COMPONENT);
 
         Self {
             graph,
@@ -824,7 +824,7 @@ impl<'a> GraphHelper<'a> {
         Ok(self
             .graph
             .get_node_annos()
-            .has_value_for_item(&node_id, token_anno_key())?)
+            .has_value_for_item(&node_id, &TOKEN_ANNO_KEY)?)
     }
 
     fn has_outgoing_coverage_edges(&self, node_id: NodeID) -> Result<bool, GraphAnnisError> {
