@@ -55,7 +55,7 @@ tauri = { version = "1.7.1", default-features = false }
 tauri-build = "1.5.3"
 tempfile = "3.10.1"
 thiserror = "1.0.63"
-tokio = "1.38.1"
+tokio = "1.39.1"
 toml = "0.8.15"
 urlencoding = "2.1.3"
 zip = "2.1.5"
