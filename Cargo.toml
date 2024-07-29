@@ -51,7 +51,7 @@ itertools = "0.13.0"
 regex = "1.10.5"
 rust_xlsxwriter = "0.72.0"
 serde = "1.0.204"
-serde_json = "1.0.120"
+serde_json = "1.0.121"
 tauri = { version = "1.7.1", default-features = false }
 tauri-build = "1.5.3"
 tempfile = "3.10.1"
