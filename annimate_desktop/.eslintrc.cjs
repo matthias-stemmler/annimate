@@ -62,5 +62,14 @@ module.exports = {
         ],
       },
     },
+
+    // Disable certain rules for shadcn-ui components
+    {
+      files: ['src/components/ui/*.{ts,tsx}'],
+      rules: {
+        '@typescript-eslint/no-empty-object-type': 'off',
+        '@typescript-eslint/no-unused-vars': 'off',
+      },
+    },
   ],
 };
