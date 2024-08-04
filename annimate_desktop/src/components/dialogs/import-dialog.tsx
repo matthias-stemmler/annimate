@@ -254,7 +254,9 @@ export const ImportDialog: FC<ImportDialogProps> = ({
                 },
               )}
               onClick={() => {
-                !noSetsAvailable && setOption('existing');
+                if (!noSetsAvailable) {
+                  setOption('existing');
+                }
               }}
             >
               <div className="flex items-center gap-3 mb-1">
