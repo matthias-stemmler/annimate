@@ -390,7 +390,15 @@ impl Storage {
             count: matches.total_count(),
         });
 
-        let mut out = tempfile::Builder::new().prefix(".annimate_").tempfile()?;
+        let mut out = {
+            let mut builder = tempfile::Builder::new();
+            builder.prefix(".annimate_");
+
+            match output_file.as_ref().parent() {
+                Some(parent) => builder.tempfile_in(parent)?,
+                None => builder.tempfile()?,
+            }
+        };
 
         let query_info = QueryInfo {
             corpus_names: config.corpus_names,
