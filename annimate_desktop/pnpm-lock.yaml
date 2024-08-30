@@ -106,8 +106,8 @@ importers:
         specifier: ^9.9.1
         version: 9.9.1
       '@tanstack/eslint-plugin-query':
-        specifier: ^5.52.0
-        version: 5.52.0(eslint@9.9.1(jiti@1.21.0))(typescript@5.5.4)
+        specifier: ^5.52.3
+        version: 5.52.3(eslint@9.9.1(jiti@1.21.0))(typescript@5.5.4)
       '@tauri-apps/cli':
         specifier: ^1.6.1
         version: 1.6.1
@@ -1162,8 +1162,8 @@ packages:
     peerDependencies:
       '@svgr/core': '*'
 
-  '@tanstack/eslint-plugin-query@5.52.0':
-    resolution: {integrity: sha512-i02fOM3TRURI46AswPNlKb4Gwu+/mAPssI+pVu0AifA7/qzOJRgco17vdqjq/VgChKLLIltd9/KI4MCJFFfWEw==}
+  '@tanstack/eslint-plugin-query@5.52.3':
+    resolution: {integrity: sha512-FAApj04uO4OkWsx+ZS9TpEgv8YyacLN/hWlAfqSZGHGcPSnUVxuE+tKyuHhfwN0ebBazxL8+lJ19OtLbm+dE8w==}
     peerDependencies:
       eslint: ^8 || ^9
 
@@ -3733,7 +3733,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@tanstack/eslint-plugin-query@5.52.0(eslint@9.9.1(jiti@1.21.0))(typescript@5.5.4)':
+  '@tanstack/eslint-plugin-query@5.52.3(eslint@9.9.1(jiti@1.21.0))(typescript@5.5.4)':
     dependencies:
       '@typescript-eslint/utils': 8.0.0-alpha.30(eslint@9.9.1(jiti@1.21.0))(typescript@5.5.4)
       eslint: 9.9.1(jiti@1.21.0)
