@@ -130,9 +130,15 @@ impl XlsxTableWriter {
     }
 
     fn into_worksheet(mut self) -> Result<Worksheet, AnnimateError> {
-        self.worksheet
-            .autofit()
-            .add_table(0, 0, self.rows - 1, self.cols - 1, &Table::new())?;
+        self.worksheet.autofit().add_table(
+            0,
+            0,
+            self.rows - 1,
+            self.cols - 1,
+            // Treat the first row as a header row iff there are more rows than just the header
+            // because Excel disallows tables consisting only of a header row
+            &Table::new().set_header_row(self.rows > 1),
+        )?;
         Ok(self.worksheet)
     }
 }
