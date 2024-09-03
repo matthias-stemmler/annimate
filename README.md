@@ -19,9 +19,9 @@ Annimate is available as a desktop application for Windows and Linux. MacOS is c
 
 | Operating system    | Format         | Installation required? | Automatic updates | Download link                      |
 | ------------------- | -------------- | ---------------------- | ----------------- | ---------------------------------- |
-| Windows             | Installer      | yes                    | yes               | [Annimate_1.1.1_x64-setup.exe][1]  |
-| Linux               | AppImage       | no                     | yes               | [annimate_1.1.1_amd64.AppImage][2] |
-| Linux (Debian only) | Debian package | yes                    | no                | [annimate_1.1.1_amd64.deb][3]      |
+| Windows             | Installer      | yes                    | yes               | [Annimate_1.1.2_x64-setup.exe][1]  |
+| Linux               | AppImage       | no                     | yes               | [annimate_1.1.2_amd64.AppImage][2] |
+| Linux (Debian only) | Debian package | yes                    | no                | [annimate_1.1.2_amd64.deb][3]      |
 
 For a list of previous releases, see the [releases page](https://github.com/matthias-stemmler/annimate/releases).
 
@@ -46,7 +46,7 @@ This comes without prebundled dependencies, so it is a lot smaller. It can only 
 Download the .deb file (see the table above) and run the following commands in a shell:
 
 ```sh
-sudo dpkg -i annimate_1.1.1_amd64.deb
+sudo dpkg -i annimate_1.1.2_amd64.deb
 annimate
 ```
 
@@ -129,9 +129,9 @@ See [CHANGELOG.md](CHANGELOG.md)
 
 Licensed under the Apache License, Version 2.0 (see [LICENSE](LICENSE) or https://www.apache.org/licenses/LICENSE-2.0)
 
-[1]: https://github.com/matthias-stemmler/annimate/releases/download/v1.1.1/Annimate_1.1.1_x64-setup.exe
-[2]: https://github.com/matthias-stemmler/annimate/releases/download/v1.1.1/annimate_1.1.1_amd64.AppImage
-[3]: https://github.com/matthias-stemmler/annimate/releases/download/v1.1.1/annimate_1.1.1_amd64.deb
+[1]: https://github.com/matthias-stemmler/annimate/releases/download/v1.1.2/Annimate_1.1.2_x64-setup.exe
+[2]: https://github.com/matthias-stemmler/annimate/releases/download/v1.1.2/annimate_1.1.2_amd64.AppImage
+[3]: https://github.com/matthias-stemmler/annimate/releases/download/v1.1.2/annimate_1.1.2_amd64.deb
 
 [^1]:
     **Krause, Thomas & Zeldes, Amir** (2016):
