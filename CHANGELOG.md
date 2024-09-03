@@ -2,6 +2,8 @@
 
 ## [Unreleased] - (release date)
 
+## [1.1.2] - 2024-09-03
+
 ### Fixed
 
 - Excel exports of queries with zero matches are no longer broken.
@@ -34,7 +36,8 @@
 Initial version
 
 <!-- next-url -->
-[Unreleased]: https://github.com/matthias-stemmler/annimate/compare/v1.1.1...HEAD
+[Unreleased]: https://github.com/matthias-stemmler/annimate/compare/v1.1.2...HEAD
+[1.1.2]: https://github.com/matthias-stemmler/annimate/compare/v1.1.1...v1.1.2
 [1.1.1]: https://github.com/matthias-stemmler/annimate/compare/v1.1.0...v1.1.1
 [1.1.0]: https://github.com/matthias-stemmler/annimate/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/matthias-stemmler/annimate/tree/v1.0.0
