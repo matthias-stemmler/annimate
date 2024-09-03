@@ -2,6 +2,10 @@
 
 ## [Unreleased] - (release date)
 
+### Fixed
+
+- Excel exports of queries with zero matches are no longer broken.
+
 ## [1.1.1] - 2024-07-20
 
 ### Fixed
