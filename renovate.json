@@ -43,11 +43,12 @@
       "groupSlug": "graphannis-monorepo"
     }
   ],
-  "regexManagers": [
+  "customManagers": [
     {
+      "customType": "regex",
       "fileMatch": ["^\\.github\\/workflows\\/.*\\.yml$"],
       "matchStrings": [
-        "\\s*renovate:\\s*datasource=(?<datasource>.*?)\\s*depName=(?<depName>.*?)\\s*\\n.*?:\\s*(?<currentValue>.*)\\s*"
+        "\\s*renovate:\\s*datasource=(?<datasource>.*?)\\s*versioning=(?<versioning>.*?)\\s*depName=(?<depName>.*?)\\s*\\n.*?:\\s*(?<currentValue>.*)\\s*"
       ]
     }
   ]
