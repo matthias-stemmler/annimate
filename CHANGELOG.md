@@ -2,6 +2,8 @@
 
 ## [Unreleased] - (release date)
 
+## [1.1.3] - 2024-09-22
+
 ### Fixed
 
 - Queries with varying number of nodes per match no longer cause Annimate to crash.
@@ -40,7 +42,8 @@
 Initial version
 
 <!-- next-url -->
-[Unreleased]: https://github.com/matthias-stemmler/annimate/compare/v1.1.2...HEAD
+[Unreleased]: https://github.com/matthias-stemmler/annimate/compare/v1.1.3...HEAD
+[1.1.3]: https://github.com/matthias-stemmler/annimate/compare/v1.1.2...v1.1.3
 [1.1.2]: https://github.com/matthias-stemmler/annimate/compare/v1.1.1...v1.1.2
 [1.1.1]: https://github.com/matthias-stemmler/annimate/compare/v1.1.0...v1.1.1
 [1.1.0]: https://github.com/matthias-stemmler/annimate/compare/v1.0.0...v1.1.0
