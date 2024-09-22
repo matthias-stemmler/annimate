@@ -262,6 +262,20 @@ export_matches_test! {
             })),
         ],
     }
+    subtok_varying_number_of_match_nodes_with_explicit_primary_node_indices: {
+        corpus_paths: ["subtok.demo_relANNIS.zip"],
+        corpus_names: ["subtok.demo"],
+        aql_query: "(pos=\"DT\" .5,5 pos=\"DT\") | pos=\"NN\"",
+        query_language: AQL,
+        export_columns: [
+            Data(Text(TestExportDataText {
+                left_context: 1,
+                right_context: 1,
+                segmentation: None,
+                primary_node_indices: Some(&[0, 1]),
+            })),
+        ],
+    }
     subtok_multiple_corpora: {
         corpus_paths: ["subtok.demo_relANNIS.zip", "subtok.demo2_relANNIS.zip"],
         corpus_names: ["subtok.demo", "subtok.demo2"],
