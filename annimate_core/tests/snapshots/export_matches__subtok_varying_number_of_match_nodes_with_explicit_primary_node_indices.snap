@@ -1,0 +1,23 @@
+---
+source: annimate_core/tests/export_matches.rs
+info:
+  corpus_paths:
+    - subtok.demo_relANNIS.zip
+  corpus_names:
+    - subtok.demo
+  aql_query: "(pos=\"DT\" .5,5 pos=\"DT\") | pos=\"NN\""
+  query_language: AQL
+  export_columns:
+    - Data:
+        Text:
+          left_context: 1
+          right_context: 1
+          segmentation: ~
+          primary_node_indices:
+            - 0
+            - 1
+---
+Context 1 (tokens),Match 1 (tokens),Context 2 (tokens),Match 2 (tokens),Context 3 (tokens)
+,T his,is (...) of,a,sub-
+an,example,of,,
+tokenized,corpus,.,,

@@ -2,6 +2,10 @@
 
 ## [Unreleased] - (release date)
 
+### Fixed
+
+- Queries with varying number of nodes per match no longer cause Annimate to crash.
+
 ## [1.1.2] - 2024-09-03
 
 ### Fixed

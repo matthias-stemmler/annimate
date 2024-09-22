@@ -548,9 +548,17 @@ fn get_parts(
         primary_node_indices,
     } = export_data;
 
-    let primary_node_indices = primary_node_indices
-        .clone()
-        .unwrap_or_else(|| (0..match_node_names.len()).collect());
+    let primary_node_indices: Vec<_> = {
+        let valid_node_indices = 0..match_node_names.len();
+        match primary_node_indices {
+            Some(node_indices) => node_indices
+                .iter()
+                .filter(|i| valid_node_indices.contains(i))
+                .copied()
+                .collect(),
+            None => valid_node_indices.collect(),
+        }
+    };
 
     let subgraph = storage.subgraph(
         corpus_name,
