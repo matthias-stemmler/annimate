@@ -2,7 +2,7 @@ use std::collections::BTreeMap;
 use std::sync::LazyLock;
 use std::vec;
 
-use graphannis::corpusstorage::{QueryAttributeDescription, QueryLanguage};
+use graphannis::corpusstorage::QueryLanguage;
 use graphannis::errors::{AQLError, GraphAnnisError};
 use itertools::{Itertools, Position};
 use regex::Regex;
@@ -82,7 +82,9 @@ pub(crate) fn query_nodes_valid(
     }
 
     let mut count_by_alternative = BTreeMap::new();
-    let mut nodes_by_index_in_alternative = BTreeMap::new();
+    let mut nodes_by_potential_index_in_match = BTreeMap::new();
+
+    let mut num_optional_before = 0;
 
     for node in node_descriptions {
         let index_in_alternative = {
@@ -92,13 +94,22 @@ pub(crate) fn query_nodes_valid(
             index
         };
 
-        nodes_by_index_in_alternative
-            .entry(index_in_alternative)
-            .or_insert_with(Vec::new)
-            .push(node.into());
+        for i in (index_in_alternative - num_optional_before)..=index_in_alternative {
+            nodes_by_potential_index_in_match
+                .entry(i)
+                .or_insert_with(Vec::new)
+                .push(QueryNode {
+                    query_fragment: node.query_fragment.clone(),
+                    variable: node.variable.clone(),
+                });
+        }
+
+        if node.optional {
+            num_optional_before += 1;
+        }
     }
 
-    Ok(nodes_by_index_in_alternative
+    Ok(nodes_by_potential_index_in_match
         .into_values()
         .collect_vec()
         .into())
@@ -124,7 +135,7 @@ impl<T> QueryAnalysisResult<T> {
     pub fn unwrap_valid(self) -> T {
         match self {
             QueryAnalysisResult::Valid(x) => x,
-            QueryAnalysisResult::Invalid(_) => panic!("query is invalid"),
+            QueryAnalysisResult::Invalid(err) => panic!("query is invalid: {err}"),
         }
     }
 
@@ -145,14 +156,16 @@ impl<T> QueryAnalysisResult<T> {
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct QueryNodes {
-    /// Nodes grouped by index in alternative.
+    /// Nodes grouped by their potential indices within a match.
     ///
-    /// The outer `Vec` groups the nodes by the index in their respective alternative.
-    /// If `nodes` has length `n`, then each match consists of up to `n` nodes, and the `i`-th
-    /// match node could refer to any of the nodes in `nodes[i]`.
+    /// The outer `Vec` groups the nodes by their potential indices in a match.
+    /// If `nodes` has length `n`, then each match consists of up to `n` nodes,
+    /// and the `i`-th match node could refer to any of the nodes in the group `nodes[i]`.
+    /// In the presence of optional nodes, the same node can appear in multiple groups.
     ///
-    /// # Example
-    /// If the query is `(foo & bar) | baz`, this is `[[#1, #3], [#2]]`.
+    /// # Examples
+    /// - If the query is `(foo & bar) | baz`, this is `[[#1, #3], [#2]]`.
+    /// - If the query is `foo & bar? & baz`, this is `[[#1], [#2, #3], [#3]]`.
     nodes: Vec<Vec<QueryNode>>,
 }
 
@@ -186,15 +199,6 @@ pub struct QueryNode {
 
     /// Variable referring to the node.
     pub variable: String,
-}
-
-impl From<QueryAttributeDescription> for QueryNode {
-    fn from(node: QueryAttributeDescription) -> Self {
-        QueryNode {
-            query_fragment: node.query_fragment,
-            variable: node.variable,
-        }
-    }
 }
 
 /// Regex to recognize legacy meta queries.

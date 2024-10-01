@@ -60,6 +60,22 @@ query_nodes_test! {
         ["1" => "foo1=\"foo2\"", "3" => "baz1=\"baz2\""],
         ["2" => "bar1=\"bar2\"", "4" => "qux1=\"qux2\""],
     ]
+    optional_node_at_end: "foo1=\"foo2\" & bar1=\"bar2\" & baz?", AQL => [
+        ["1" => "foo1=\"foo2\""],
+        ["2" => "bar1=\"bar2\""],
+        ["3" => "baz"],
+    ]
+    optional_node_in_between: "foo1=\"foo2\" & bar? & baz1=\"baz2\"", AQL => [
+        ["1" => "foo1=\"foo2\""],
+        ["2" => "bar", "3" => "baz1=\"baz2\""],
+        ["3" => "baz1=\"baz2\""],
+    ]
+    optional_node_multiple: "foo? & bar & baz? & quux?", AQL => [
+        ["1" => "foo", "2" => "bar"],
+        ["2" => "bar", "3" => "baz", "4" => "quux"],
+        ["3" => "baz", "4" => "quux"],
+        ["4" => "quux"],
+    ]
     meta_only_single: "meta::doc=\"foo\"", AQLQuirksV3 => []
     meta_only_multiple: "meta::doc=\"foo\" & meta::foo1=\"foo2\"", AQLQuirksV3 => []
     meta_single: "meta::doc=\"foo\" & bar1=\"bar2\"", AQLQuirksV3 => [
