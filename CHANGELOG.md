@@ -2,6 +2,11 @@
 
 ## [Unreleased] - (release date)
 
+### Fixed
+
+- Legacy meta queries with multiple alternatives no longer cause Annimate to crash.
+- Nodes for queries with optional nodes in between are now listed correctly.
+
 ## [1.1.3] - 2024-09-22
 
 ### Fixed
