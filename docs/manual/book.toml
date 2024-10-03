@@ -1,0 +1,14 @@
+[book]
+authors = ["Matthias Stemmler"]
+description = "Manual for the Annimate corpus export tool"
+language = "en"
+multilingual = false
+src = "src"
+title = "Annimate Manual"
+
+[build]
+create-missing = false
+
+[output.html]
+git-repository-url = "https://github.com/matthias-stemmler/annimate"
+smart-punctuation = true

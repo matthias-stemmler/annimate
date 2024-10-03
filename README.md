@@ -10,7 +10,7 @@ Annimate is being developed by Matthias Stemmler in cooperation with the [Lehrst
 
 It makes heavy use of the [graphANNIS](https://github.com/korpling/graphANNIS) library by Thomas Krause.
 
-![Screenshot of Annimate](docs/images/screenshot.png)
+![Screenshot of Annimate](docs/readme/images/screenshot.png)
 
 ## Download
 
@@ -68,7 +68,7 @@ There are several ways to obtain the corpus data:
 
 This needs to be done only once per corpus.
 
-1. In Annimate, click on the ![Settings](docs/images/settings.svg) icon to reach the "Manage corpora" screen.
+1. In Annimate, click on the ![Settings](docs/readme/images/settings.svg) icon to reach the "Manage corpora" screen.
 2. Click on "Import corpora", then select whether you want to import a file (for a graphANNIS or ZIP file) or a folder (for a relANNIS corpus or to import multiple corpora from a folder).
 3. Select one or more files/folders to import.
 4. Wait until the import is finished.
