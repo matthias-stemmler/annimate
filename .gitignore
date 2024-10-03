@@ -4,3 +4,6 @@
 
 # Cargo
 /target/
+
+# mdbook
+/pages/user-guide

@@ -61,9 +61,9 @@ fn main() {
             // 1) We could instead make the plugin restore the state automatically and only show the
             //    window here in `setup`, but explicitly restoring the state here guarantees that
             //    this happens before the window is shown.
-            // 2) Restoring the state includes restoring the visibility, so it is not strictly
-            //    necessary to explicitly show the window here. We do it nonetheless to make sure
-            //    the window is shown even if restoring its state fails for whatever reason.
+            // 2) Restoring the state includes restoring the visibility, but we show the window
+            //    explicitly to cover for the first start (when there is no saved window state yet)
+            //    and for the case that the restoration fails.
             let window = app
                 .get_webview_window("main")
                 .expect("main window should exist");
