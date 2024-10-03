@@ -1,0 +1,67 @@
+name: Documentation
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+env:
+  RUSTFLAGS: --deny warnings
+  # renovate: datasource=crate versioning=semver-coerced depName=mdbook
+  VERSION_MDBOOK: 0.4.40
+
+jobs:
+  build-user-guide:
+    name: Build User Guide
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install stable toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Rust cache
+        uses: swatinem/rust-cache@v2
+
+      - name: Cache mdbook
+        id: cache-mdbook
+        uses: actions/cache@v4
+        with:
+          path: ~/.cargo/
+          key: mdbook-${{ env.VERSION_MDBOOK }}
+
+      - name: Install mdbook
+        if: ${{ !steps.cache-mdbook.outputs.cache-hit }}
+        run: cargo install mdbook@${{ env.VERSION_MDBOOK }}
+
+      - name: Setup GitHub Pages
+        uses: actions/configure-pages@v5
+
+      - name: Build User Guide
+        run: mdbook build docs/user-guide
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./pages
+
+  deploy-pages:
+    name: Deploy to GitHub Pages
+    runs-on: ubuntu-latest
+    needs:
+      - build-user-guide
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy-pages.outputs.page_url }}
+    concurrency: github-pages
+    permissions:
+      pages: write
+      id-token: write
+
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deploy-pages
+        uses: actions/deploy-pages@v4
