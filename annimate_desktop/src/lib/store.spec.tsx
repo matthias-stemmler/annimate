@@ -3,6 +3,7 @@ import {
   AnnoKey,
   ExportColumnType,
   ExportableAnnoKeys,
+  InvokeArgs,
   QueryLanguage,
   QueryNodesResult,
   QueryValidationResult,
@@ -34,7 +35,7 @@ import {
 } from '@/lib/store';
 import { arrayMove } from '@dnd-kit/sortable';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { clearMocks, mockIPC } from '@tauri-apps/api/mocks';
+import { clearMocks, mockIPC, mockWindows } from '@tauri-apps/api/mocks';
 import { cleanup, renderHook, waitFor } from '@testing-library/react';
 import { FC, PropsWithChildren } from 'react';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
@@ -71,108 +72,117 @@ describe('store', () => {
 
   const exportMatchesSpy = vi.fn();
 
-  beforeEach(() => {
-    mockIPC((cmd, args) => {
-      switch (cmd) {
-        case 'export_matches': {
-          exportMatchesSpy(args);
+  const commandHandler = async (
+    cmd: string,
+    payload?: InvokeArgs,
+  ): Promise<unknown> => {
+    switch (cmd) {
+      case 'export_matches': {
+        exportMatchesSpy(payload);
 
-          return new Promise(() => {
-            // never resolve as the `unsubscribe` call cannot be properly mocked and would fail
-          });
-        }
-
-        case 'get_corpora': {
-          return {
-            corpora: [
-              { name: 'a', includedInSets: ['set1', 'set2'] },
-              { name: 'b', includedInSets: ['set1'] },
-              { name: 'c', includedInSets: [] },
-            ],
-            sets: ['set1', 'set2'],
-          };
-        }
-
-        case 'get_exportable_anno_keys': {
-          return {
-            corpus: [
-              {
-                annoKey: ANNO_KEY_CORPUS,
-                displayName: 'corpus_name',
-              },
-            ],
-            doc: [
-              {
-                annoKey: ANNO_KEY_DOCUMENT,
-                displayName: 'document_name',
-              },
-            ],
-            node: [
-              {
-                annoKey: ANNO_KEY_NODE,
-                displayName: 'node_name',
-              },
-            ],
-          } satisfies ExportableAnnoKeys;
-        }
-
-        case 'get_query_nodes': {
-          const { aqlQuery } = args as { aqlQuery: string };
-
-          return {
-            type: 'valid',
-            nodes:
-              aqlQuery === ''
-                ? []
-                : [
-                    [{ queryFragment: 'foo', variable: '1' }],
-                    [{ queryFragment: 'bar', variable: '2' }],
-                  ],
-          } satisfies QueryNodesResult;
-        }
-
-        case 'get_segmentations': {
-          const { corpusNames } = args as { corpusNames: string[] };
-          return corpusNames.length === 0 ? [] : ['segmentation', ''];
-        }
-
-        case 'validate_query': {
-          const { corpusNames, aqlQuery, queryLanguage } = args as {
-            corpusNames: string;
-            aqlQuery: string;
-            queryLanguage: QueryLanguage;
-          };
-
-          if (corpusNames.includes('b') || corpusNames.includes('c')) {
-            return {
-              type: 'invalid',
-              desc: '',
-              location: null,
-            } satisfies QueryValidationResult;
-          } else {
-            return (
-              aqlQuery === 'valid' ||
-              (aqlQuery === 'valid legacy' && queryLanguage === 'AQLQuirksV3')
-                ? {
-                    type: 'valid',
-                  }
-                : {
-                    type: 'invalid',
-                    desc: '',
-                    location: null,
-                  }
-            ) satisfies QueryValidationResult;
-          }
-        }
-
-        case 'tauri':
-          // ignore Tauri-internal commands
-          return;
-
-        default:
-          throw new Error(`Unmocked IPC command: ${cmd}`);
+        return new Promise(() => {
+          // never resolve as the `unsubscribe` call cannot be properly mocked and would fail
+        });
       }
-    });
+
+      case 'get_corpora': {
+        return {
+          corpora: [
+            { name: 'a', includedInSets: ['set1', 'set2'] },
+            { name: 'b', includedInSets: ['set1'] },
+            { name: 'c', includedInSets: [] },
+          ],
+          sets: ['set1', 'set2'],
+        };
+      }
+
+      case 'get_exportable_anno_keys': {
+        return {
+          corpus: [
+            {
+              annoKey: ANNO_KEY_CORPUS,
+              displayName: 'corpus_name',
+            },
+          ],
+          doc: [
+            {
+              annoKey: ANNO_KEY_DOCUMENT,
+              displayName: 'document_name',
+            },
+          ],
+          node: [
+            {
+              annoKey: ANNO_KEY_NODE,
+              displayName: 'node_name',
+            },
+          ],
+        } satisfies ExportableAnnoKeys;
+      }
+
+      case 'get_query_nodes': {
+        const { aqlQuery } = payload as { aqlQuery: string };
+
+        return {
+          type: 'valid',
+          nodes:
+            aqlQuery === ''
+              ? []
+              : [
+                  [{ queryFragment: 'foo', variable: '1' }],
+                  [{ queryFragment: 'bar', variable: '2' }],
+                ],
+        } satisfies QueryNodesResult;
+      }
+
+      case 'get_segmentations': {
+        const { corpusNames } = payload as { corpusNames: string[] };
+        return corpusNames.length === 0 ? [] : ['segmentation', ''];
+      }
+
+      case 'validate_query': {
+        const { corpusNames, aqlQuery, queryLanguage } = payload as {
+          corpusNames: string;
+          aqlQuery: string;
+          queryLanguage: QueryLanguage;
+        };
+
+        if (corpusNames.includes('b') || corpusNames.includes('c')) {
+          return {
+            type: 'invalid',
+            desc: '',
+            location: null,
+          } satisfies QueryValidationResult;
+        } else {
+          return (
+            aqlQuery === 'valid' ||
+            (aqlQuery === 'valid legacy' && queryLanguage === 'AQLQuirksV3')
+              ? {
+                  type: 'valid',
+                }
+              : {
+                  type: 'invalid',
+                  desc: '',
+                  location: null,
+                }
+          ) satisfies QueryValidationResult;
+        }
+      }
+
+      // ignore Tauri-internal commands
+      case 'plugin:event|listen':
+        return;
+
+      default:
+        throw new Error(`Unmocked IPC command: ${cmd}`);
+    }
+  };
+
+  beforeEach(() => {
+    mockWindows('main');
+    mockIPC(
+      async <T,>(cmd: string, payload?: InvokeArgs) =>
+        commandHandler(cmd, payload) as T,
+    );
   });
 
   afterEach(() => {
