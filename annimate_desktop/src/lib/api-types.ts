@@ -1,7 +1,9 @@
+export type { InvokeArgs } from '@tauri-apps/api/core';
 export type {
   OpenDialogOptions,
+  OpenDialogReturn,
   SaveDialogOptions,
-} from '@tauri-apps/api/dialog';
+} from '@tauri-apps/plugin-dialog';
 
 export type Corpora = {
   corpora: Corpus[];

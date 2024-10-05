@@ -14,6 +14,7 @@ import {
   ImportCorpusResult,
   ImportStatusEvent,
   OpenDialogOptions,
+  OpenDialogReturn,
   QueryLanguage,
   QueryNode,
   QueryNodesResult,
@@ -209,10 +210,20 @@ export const exit = async (exitCode?: number): Promise<void> => {
   alert(`Exit\nexitCode: ${exitCode}`);
 };
 
-export const fileOpen = async (
-  options?: OpenDialogOptions,
-): Promise<null | string | string[]> => {
+export const fileOpen = async <T extends OpenDialogOptions>(
+  options?: T,
+): Promise<OpenDialogReturn<T>> => {
   logAction('File Open', COLOR_BUILTIN_COMMAND, options);
+
+  return options?.multiple
+    ? ((await fileOpenMultiple()) as OpenDialogReturn<T>)
+    : ((await fileOpenSingle()) as OpenDialogReturn<T>);
+};
+
+export const fileOpenSingle = async (): Promise<string | null> =>
+  prompt('File Open\nEnter file path:');
+
+export const fileOpenMultiple = async (): Promise<string[] | null> => {
   const answer = prompt('File Open\nEnter file paths (comma-separated):');
   if (answer === null) {
     return null;
