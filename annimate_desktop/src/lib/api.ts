@@ -9,13 +9,13 @@ import {
   QueryNodesResult,
   QueryValidationResult,
 } from '@/lib/api-types';
-import { open as fileOpen, save } from '@tauri-apps/api/dialog';
+import { invoke } from '@tauri-apps/api/core';
 import { UnlistenFn, emit } from '@tauri-apps/api/event';
 import { dirname } from '@tauri-apps/api/path';
-import { exit, relaunch } from '@tauri-apps/api/process';
-import { open as shellOpen } from '@tauri-apps/api/shell';
-import { invoke } from '@tauri-apps/api/tauri';
-import { appWindow } from '@tauri-apps/api/window';
+import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow';
+import { open as fileOpen, save } from '@tauri-apps/plugin-dialog';
+import { exit, relaunch } from '@tauri-apps/plugin-process';
+import { open as shellOpen } from '@tauri-apps/plugin-shell';
 
 export { dirname, exit, fileOpen, relaunch, save, shellOpen };
 
@@ -89,13 +89,15 @@ export const validateQuery = (params: {
 export const subscribeToExportStatus = (
   callback: (statusEvent: ExportStatusEvent) => void,
 ): Promise<UnlistenFn> =>
-  appWindow.listen<ExportStatusEvent>('export_status', ({ payload }) =>
-    callback(payload),
+  getCurrentWebviewWindow().listen<ExportStatusEvent>(
+    'export_status',
+    ({ payload }) => callback(payload),
   );
 
 export const subscribeToImportStatus = (
   callback: (statusEvent: ImportStatusEvent) => void,
 ): Promise<UnlistenFn> =>
-  appWindow.listen<ImportStatusEvent>('import_status', ({ payload }) =>
-    callback(payload),
+  getCurrentWebviewWindow().listen<ImportStatusEvent>(
+    'import_status',
+    ({ payload }) => callback(payload),
   );
