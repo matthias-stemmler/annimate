@@ -54,7 +54,10 @@
       "endpoints": [
         "https://github.com/matthias-stemmler/annimate/releases/latest/download/latest.json"
       ],
-      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEFBMDgxMjJFNzBERDk4QzkKUldUSm1OMXdMaElJcWlpUC9tR2VueW5iN3pHYlFRWWR3MEJ6OHFWblBIZU5adVczRXlXTEkvcmsK"
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEFBMDgxMjJFNzBERDk4QzkKUldUSm1OMXdMaElJcWlpUC9tR2VueW5iN3pHYlFRWWR3MEJ6OHFWblBIZU5adVczRXlXTEkvcmsK",
+      "windows": {
+        "installMode": "quiet"
+      }
     }
   },
   "productName": "Annimate"

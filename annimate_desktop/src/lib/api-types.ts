@@ -4,6 +4,12 @@ export type {
   OpenDialogReturn,
   SaveDialogOptions,
 } from '@tauri-apps/plugin-dialog';
+export type {
+  CheckOptions,
+  DownloadEvent,
+  DownloadOptions,
+  Update,
+} from '@tauri-apps/plugin-updater';
 
 export type Corpora = {
   corpora: Corpus[];

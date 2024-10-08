@@ -2,6 +2,10 @@
 
 ## [Unreleased] - (release date)
 
+### Changed
+
+- Implemented new dialog for automatic updates.
+
 ## [1.1.4] - 2024-10-01
 
 ### Fixed

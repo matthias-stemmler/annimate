@@ -34,7 +34,7 @@ export const CorpusSetDialog: FC<CorpusSetDialogProps> = ({
     newName !== currentName && corpusSets?.includes(newName);
 
   return (
-    <DialogContent>
+    <DialogContent aria-describedby={undefined}>
       <DialogHeader>
         <DialogTitle>{title}</DialogTitle>
       </DialogHeader>

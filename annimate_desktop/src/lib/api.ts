@@ -16,8 +16,9 @@ import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow';
 import { open as fileOpen, save } from '@tauri-apps/plugin-dialog';
 import { exit, relaunch } from '@tauri-apps/plugin-process';
 import { open as shellOpen } from '@tauri-apps/plugin-shell';
+import { check as checkForUpdate } from '@tauri-apps/plugin-updater';
 
-export { dirname, exit, fileOpen, relaunch, save, shellOpen };
+export { checkForUpdate, dirname, exit, fileOpen, relaunch, save, shellOpen };
 
 export const deleteCorpus = (params: { corpusName: string }): Promise<void> =>
   invoke('delete_corpus', params);

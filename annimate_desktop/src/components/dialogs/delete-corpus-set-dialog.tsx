@@ -29,7 +29,7 @@ export const DeleteCorpusSetDialog: FC<DeleteCorpusSetDialogProps> = ({
   const corpusOrCorpora = corpusCount === 1 ? 'corpus' : 'corpora';
 
   return (
-    <DialogContent>
+    <DialogContent aria-describedby={undefined}>
       <DialogHeader>
         <DialogTitle>Delete corpus set</DialogTitle>
       </DialogHeader>

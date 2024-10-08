@@ -4,7 +4,10 @@
 
 import {
   AQLError,
+  CheckOptions,
   Corpora,
+  DownloadEvent,
+  DownloadOptions,
   ExportColumn,
   ExportFormat,
   ExportStatusEvent,
@@ -21,7 +24,9 @@ import {
   QueryValidationResult,
   SaveDialogOptions,
   UnlistenFn,
+  Update,
 } from '@/lib/api-types';
+import mockReleaseNotes from './mock-release-notes.md?raw';
 
 const COLOR_BUILTIN_COMMAND = '#93c5fd';
 const COLOR_CUSTOM_COMMAND = '#86efac';
@@ -201,6 +206,123 @@ const importCancelRequestedListeners: Set<() => void> = new Set();
 
 const importStatusListeners: Set<(statusEvent: ImportStatusEvent) => void> =
   new Set();
+
+export const checkForUpdate = async (
+  options?: CheckOptions,
+): Promise<Update | null> => {
+  logAction('Check for update', COLOR_BUILTIN_COMMAND, options);
+
+  if (
+    /^update-?/.test(
+      import.meta.env.VITE_MOCK ?? 'className="max-w-[calc(min(64rem,80vw))]"',
+    )
+  ) {
+    await sleep(1000);
+
+    if (import.meta.env.VITE_MOCK === 'update-fail-fetch') {
+      throw new Error('Failed to fetch update');
+    }
+
+    return new MockUpdate({
+      body: mockReleaseNotes,
+      currentVersion: '1.1.3',
+      date: '2024-10-01 17:01:10.876 +00:00:00',
+      version: '1.1.4',
+    }) as unknown as Update;
+  }
+
+  return null;
+};
+
+export class MockUpdate {
+  private _body?: string;
+  private _currentVersion: string;
+  private _date?: string;
+  private _version: string;
+
+  private closed: boolean = false;
+
+  public get body(): string | undefined {
+    this.assertAlive();
+    return this._body;
+  }
+
+  public get currentVersion(): string {
+    this.assertAlive();
+    return this._currentVersion;
+  }
+
+  public get date(): string | undefined {
+    this.assertAlive();
+    return this._date;
+  }
+
+  public get version(): string {
+    this.assertAlive();
+    return this._version;
+  }
+
+  constructor(data: {
+    body?: string;
+    currentVersion: string;
+    date?: string;
+    version: string;
+  }) {
+    this._body = data.body;
+    this._currentVersion = data.currentVersion;
+    this._date = data.date;
+    this._version = data.version;
+  }
+
+  async downloadAndInstall(
+    onEvent?: (event: DownloadEvent) => void,
+    options?: DownloadOptions,
+  ): Promise<void> {
+    logAction('Download and install update', COLOR_BUILTIN_COMMAND, options);
+    this.assertAlive();
+
+    const contentLength = 1000;
+
+    await sleep(100);
+    onEvent?.({
+      event: 'Started',
+      data: { contentLength },
+    });
+
+    for (let i = 0; i < contentLength; i++) {
+      await sleep(5);
+      onEvent?.({
+        event: 'Progress',
+        data: { chunkLength: 1 },
+      });
+
+      if (
+        import.meta.env.VITE_MOCK === 'update-fail-apply' &&
+        i >= contentLength / 2
+      ) {
+        throw new Error('Failed to download update');
+      }
+    }
+
+    await sleep(5);
+    onEvent?.({
+      event: 'Finished',
+    });
+
+    await sleep(2000);
+  }
+
+  async close(): Promise<void> {
+    logAction('Close update', COLOR_BUILTIN_COMMAND);
+    this.closed = true;
+  }
+
+  private assertAlive() {
+    if (this.closed) {
+      throw new Error('Update is already closed');
+    }
+  }
+}
 
 export const dirname = async (path: string): Promise<string> =>
   `<Dirname of ${path}>`;
