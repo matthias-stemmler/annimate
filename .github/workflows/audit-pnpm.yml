@@ -6,7 +6,6 @@ on:
       - annimate_desktop/pnpm-lock.yaml
   schedule:
     - cron: "0 0 * * SAT"
-  workflow_call:
   workflow_dispatch:
 
 jobs:
