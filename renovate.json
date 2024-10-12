@@ -41,6 +41,11 @@
       "matchPackageNames": ["graphannis", "graphannis-core"],
       "groupName": "graphANNIS monorepo",
       "groupSlug": "graphannis-monorepo"
+    },
+    {
+      "matchDatasources": ["github-runner"],
+      "enabled": false,
+      "description": "GitHub runners need to be pinned to make sure the required packages are available"
     }
   ],
   "customManagers": [
