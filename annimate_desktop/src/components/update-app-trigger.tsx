@@ -40,10 +40,10 @@ export const UpdateAppTrigger = () => {
           setDialogOpen(true);
         }
       })
-      .catch((error: Error) => {
+      .catch((error) => {
         toast({
-          className: 'break-all',
-          description: error.message,
+          // Errors returned from `checkForUpdate` are usually strings, we call .toString() just to make sure
+          description: error.toString(),
           duration: 15000,
           title: 'Failed to check for update',
           variant: 'destructive',

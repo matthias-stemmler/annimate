@@ -62,25 +62,35 @@ export const useApplyAppUpdateMutation = () => {
       let downloadedLength: number = 0;
       let totalLength: number | undefined = undefined;
 
-      await args.update.downloadAndInstall((event: DownloadEvent) => {
-        switch (event.event) {
-          case 'Started':
-            totalLength = event.data.contentLength;
-            break;
+      try {
+        await args.update.download((event: DownloadEvent) => {
+          switch (event.event) {
+            case 'Started':
+              totalLength = event.data.contentLength;
+              break;
 
-          case 'Progress':
-            downloadedLength += event.data.chunkLength;
-            if (totalLength !== undefined && totalLength > 0) {
-              setProgress(downloadedLength / totalLength);
-            }
-            break;
+            case 'Progress':
+              downloadedLength += event.data.chunkLength;
+              if (totalLength !== undefined && totalLength > 0) {
+                setProgress(downloadedLength / totalLength);
+              }
+              break;
+          }
+        });
+      } catch (err) {
+        // Errors returned from `download` are usually strings
+        throw new Error(`Failed to download update: ${err}`);
+      }
 
-          case 'Finished':
-            setProgress(1);
-            setStage('install');
-            break;
-        }
-      });
+      setProgress(1);
+      setStage('install');
+
+      try {
+        await args.update.install();
+      } catch (err) {
+        // Errors returned from `install` are usually strings
+        throw new Error(`Failed to install update: ${err}`);
+      }
 
       await relaunch();
     },

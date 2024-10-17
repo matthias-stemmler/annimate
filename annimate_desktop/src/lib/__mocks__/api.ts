@@ -5,7 +5,8 @@
 // Use these values for testing special cases:
 // - `VITE_MOCK=update`: Update available
 // - `VITE_MOCK=update-fail-fetch`: Cannot fetch update
-// - `VITE_MOCK=update-fail-apply`: Cannot apply update
+// - `VITE_MOCK=update-fail-download`: Cannot download update
+// - `VITE_MOCK=update-fail-install`: Cannot install update
 
 import {
   AQLError,
@@ -221,7 +222,8 @@ export const checkForUpdate = async (
     await sleep(1000);
 
     if (import.meta.env.VITE_MOCK === 'update-fail-fetch') {
-      throw new Error('Failed to fetch update');
+      // The real `checkForUpdate` function throws strings, so we do the same here
+      throw 'Could not connect to update server';
     }
 
     return new MockUpdate({
@@ -275,11 +277,11 @@ class MockUpdate {
     this._version = data.version;
   }
 
-  async downloadAndInstall(
+  async download(
     onEvent?: (event: DownloadEvent) => void,
     options?: DownloadOptions,
   ): Promise<void> {
-    logAction('Download and install update', COLOR_BUILTIN_COMMAND, options);
+    logAction('Download update', COLOR_BUILTIN_COMMAND, options);
     this.assertAlive();
 
     const contentLength = 1000;
@@ -298,10 +300,11 @@ class MockUpdate {
       });
 
       if (
-        import.meta.env.VITE_MOCK === 'update-fail-apply' &&
+        import.meta.env.VITE_MOCK === 'update-fail-download' &&
         i >= contentLength / 2
       ) {
-        throw new Error('Failed to download update');
+        // The real `download` method throws strings, so we do the same here
+        throw 'Connection lost';
       }
     }
 
@@ -309,8 +312,20 @@ class MockUpdate {
     onEvent?.({
       event: 'Finished',
     });
+  }
 
-    await sleep(2000);
+  async install(): Promise<void> {
+    logAction('Install update', COLOR_BUILTIN_COMMAND);
+    this.assertAlive();
+
+    await sleep(1000);
+
+    if (import.meta.env.VITE_MOCK === 'update-fail-install') {
+      // The real `install` method throws strings, so we do the same here
+      throw 'Installer could not be launched';
+    }
+
+    await sleep(1000);
   }
 
   async close(): Promise<void> {
