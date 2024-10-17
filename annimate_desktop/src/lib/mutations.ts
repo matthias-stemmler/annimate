@@ -7,12 +7,14 @@ import {
   emitImportCancelRequestedEvent,
   exportMatches,
   importCorpora,
+  relaunch,
   renameCorpusSet,
   subscribeToExportStatus,
   subscribeToImportStatus,
   toggleCorpusInSet,
 } from '@/lib/api';
 import {
+  DownloadEvent,
   ExportColumn,
   ExportFormat,
   ExportStatusEvent,
@@ -21,6 +23,7 @@ import {
   ImportStatusEvent,
   QueryLanguage,
   UnlistenFn,
+  Update,
 } from '@/lib/api-types';
 import { QUERY_KEY_CORPORA } from '@/lib/queries';
 import {
@@ -46,6 +49,64 @@ export const useAddCorporaToSetMutation = () => {
   });
 
   return { mutation };
+};
+
+export const useApplyAppUpdateMutation = () => {
+  const [progress, setProgress] = useState<number | undefined>();
+  const [stage, setStage] = useState<'download' | 'install' | undefined>(
+    undefined,
+  );
+
+  const mutation = useMutation({
+    mutationFn: async (args: { update: Update }) => {
+      let downloadedLength: number = 0;
+      let totalLength: number | undefined = undefined;
+
+      try {
+        await args.update.download((event: DownloadEvent) => {
+          switch (event.event) {
+            case 'Started':
+              totalLength = event.data.contentLength;
+              break;
+
+            case 'Progress':
+              downloadedLength += event.data.chunkLength;
+              if (totalLength !== undefined && totalLength > 0) {
+                setProgress(downloadedLength / totalLength);
+              }
+              break;
+          }
+        });
+      } catch (err) {
+        // Errors returned from `download` are usually strings
+        throw new Error(`Failed to download update: ${err}`);
+      }
+
+      setProgress(1);
+      setStage('install');
+
+      try {
+        await args.update.install();
+      } catch (err) {
+        // Errors returned from `install` are usually strings
+        throw new Error(`Failed to install update: ${err}`);
+      }
+
+      await relaunch();
+    },
+    onMutate: () => {
+      setProgress(0);
+      setStage('download');
+    },
+  });
+
+  const reset = () => {
+    mutation.reset();
+    setProgress(undefined);
+    setStage(undefined);
+  };
+
+  return { mutation, progress, reset, stage };
 };
 
 export const useCreateCorpusSetMutation = () => {

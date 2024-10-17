@@ -86,7 +86,17 @@ module.exports = {
         4: '2px',
         8: '4px',
       },
+      typography: {
+        DEFAULT: {
+          css: {
+            // <a> is hardcoded to be non-bold by default, which doesn't make sense within headings, which are bold by default
+            a: {
+              'font-weight': 'inherit',
+            },
+          },
+        },
+      },
     },
   },
-  plugins: [require('tailwindcss-animate')],
+  plugins: [require('tailwindcss-animate'), require('@tailwindcss/typography')],
 };

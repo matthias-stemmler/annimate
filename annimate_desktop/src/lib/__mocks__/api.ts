@@ -1,10 +1,19 @@
 // Mock version of api.ts
 // This enables testing of the app in a real browser without Tauri
-// Enable by setting the environment variable `MOCK=1`
+//
+// Enable by setting the `VITE_MOCK` environment variable
+// Use these values for testing special cases:
+// - `VITE_MOCK=update`: Update available
+// - `VITE_MOCK=update-fail-fetch`: Cannot fetch update
+// - `VITE_MOCK=update-fail-download`: Cannot download update
+// - `VITE_MOCK=update-fail-install`: Cannot install update
 
 import {
   AQLError,
+  CheckOptions,
   Corpora,
+  DownloadEvent,
+  DownloadOptions,
   ExportColumn,
   ExportFormat,
   ExportStatusEvent,
@@ -14,13 +23,16 @@ import {
   ImportCorpusResult,
   ImportStatusEvent,
   OpenDialogOptions,
+  OpenDialogReturn,
   QueryLanguage,
   QueryNode,
   QueryNodesResult,
   QueryValidationResult,
   SaveDialogOptions,
   UnlistenFn,
+  Update,
 } from '@/lib/api-types';
+import mockReleaseNotes from './mock-release-notes.md?raw';
 
 const COLOR_BUILTIN_COMMAND = '#93c5fd';
 const COLOR_CUSTOM_COMMAND = '#86efac';
@@ -201,6 +213,133 @@ const importCancelRequestedListeners: Set<() => void> = new Set();
 const importStatusListeners: Set<(statusEvent: ImportStatusEvent) => void> =
   new Set();
 
+export const checkForUpdate = async (
+  options?: CheckOptions,
+): Promise<Update | null> => {
+  logAction('Check for update', COLOR_BUILTIN_COMMAND, options);
+
+  if (/^update-?/.test(import.meta.env.VITE_MOCK ?? '')) {
+    await sleep(1000);
+
+    if (import.meta.env.VITE_MOCK === 'update-fail-fetch') {
+      // The real `checkForUpdate` function throws strings, so we do the same here
+      throw 'Could not connect to update server';
+    }
+
+    return new MockUpdate({
+      body: mockReleaseNotes,
+      currentVersion: '1.1.3',
+      date: '2024-10-01 17:01:10.876 +00:00:00',
+      version: '1.1.4',
+    }) as unknown as Update;
+  }
+
+  return null;
+};
+
+class MockUpdate {
+  private _body?: string;
+  private _currentVersion: string;
+  private _date?: string;
+  private _version: string;
+
+  private closed: boolean = false;
+
+  public get body(): string | undefined {
+    this.assertAlive();
+    return this._body;
+  }
+
+  public get currentVersion(): string {
+    this.assertAlive();
+    return this._currentVersion;
+  }
+
+  public get date(): string | undefined {
+    this.assertAlive();
+    return this._date;
+  }
+
+  public get version(): string {
+    this.assertAlive();
+    return this._version;
+  }
+
+  constructor(data: {
+    body?: string;
+    currentVersion: string;
+    date?: string;
+    version: string;
+  }) {
+    this._body = data.body;
+    this._currentVersion = data.currentVersion;
+    this._date = data.date;
+    this._version = data.version;
+  }
+
+  async download(
+    onEvent?: (event: DownloadEvent) => void,
+    options?: DownloadOptions,
+  ): Promise<void> {
+    logAction('Download update', COLOR_BUILTIN_COMMAND, options);
+    this.assertAlive();
+
+    const contentLength = 1000;
+
+    await sleep(100);
+    onEvent?.({
+      event: 'Started',
+      data: { contentLength },
+    });
+
+    for (let i = 0; i < contentLength; i++) {
+      await sleep(5);
+      onEvent?.({
+        event: 'Progress',
+        data: { chunkLength: 1 },
+      });
+
+      if (
+        import.meta.env.VITE_MOCK === 'update-fail-download' &&
+        i >= contentLength / 2
+      ) {
+        // The real `download` method throws strings, so we do the same here
+        throw 'Connection lost';
+      }
+    }
+
+    await sleep(5);
+    onEvent?.({
+      event: 'Finished',
+    });
+  }
+
+  async install(): Promise<void> {
+    logAction('Install update', COLOR_BUILTIN_COMMAND);
+    this.assertAlive();
+
+    await sleep(1000);
+
+    if (import.meta.env.VITE_MOCK === 'update-fail-install') {
+      // The real `install` method throws strings, so we do the same here
+      throw 'Installer could not be launched';
+    }
+
+    await sleep(1000);
+  }
+
+  async close(): Promise<void> {
+    logAction('Close update', COLOR_BUILTIN_COMMAND);
+    this.closed = true;
+  }
+
+  private assertAlive() {
+    if (this.closed) {
+      throw new Error('Update is already closed');
+    }
+  }
+}
+
 export const dirname = async (path: string): Promise<string> =>
   `<Dirname of ${path}>`;
 
@@ -209,10 +348,20 @@ export const exit = async (exitCode?: number): Promise<void> => {
   alert(`Exit\nexitCode: ${exitCode}`);
 };
 
-export const fileOpen = async (
-  options?: OpenDialogOptions,
-): Promise<null | string | string[]> => {
+export const fileOpen = async <T extends OpenDialogOptions>(
+  options?: T,
+): Promise<OpenDialogReturn<T>> => {
   logAction('File Open', COLOR_BUILTIN_COMMAND, options);
+
+  return options?.multiple
+    ? ((await fileOpenMultiple()) as OpenDialogReturn<T>)
+    : ((await fileOpenSingle()) as OpenDialogReturn<T>);
+};
+
+const fileOpenSingle = async (): Promise<string | null> =>
+  prompt('File Open\nEnter file path:');
+
+const fileOpenMultiple = async (): Promise<string[] | null> => {
   const answer = prompt('File Open\nEnter file paths (comma-separated):');
   if (answer === null) {
     return null;

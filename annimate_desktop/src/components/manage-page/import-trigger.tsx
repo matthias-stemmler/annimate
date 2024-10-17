@@ -36,7 +36,6 @@ export const ImportTrigger: FC<ImportTriggerProps> = ({
   } = useAddCorporaToSet();
 
   const { toast } = useToast();
-
   const [dialogOpen, setDialogOpen, dialogKey] = useDialogState();
 
   const importCorporaFromDialog = async (options: OpenDialogOptions) => {

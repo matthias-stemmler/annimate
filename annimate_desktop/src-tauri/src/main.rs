@@ -15,6 +15,10 @@ use tauri::Manager;
 
 fn main() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_dialog::init())
+        .plugin(tauri_plugin_process::init())
+        .plugin(tauri_plugin_shell::init())
+        .plugin(tauri_plugin_updater::Builder::new().build())
         .manage(AppState::default())
         .invoke_handler(tauri::generate_handler![
             api::add_corpora_to_set,
@@ -33,7 +37,7 @@ fn main() {
             api::validate_query
         ])
         .setup(|app| {
-            app.state::<AppState>().init(app.handle());
+            app.state::<AppState>().init(app.handle().clone());
             Ok(())
         })
         .on_page_load(|window, _| {

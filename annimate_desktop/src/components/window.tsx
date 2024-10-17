@@ -9,6 +9,7 @@ import {
   MenubarSeparator,
   MenubarTrigger,
 } from '@/components/ui/menubar';
+import { UpdateAppTrigger } from '@/components/update-app-trigger';
 import { exit, shellOpen } from '@/lib/api';
 import { ExternalLink } from 'lucide-react';
 import { FC } from 'react';
@@ -20,6 +21,8 @@ export const Window: FC = () => {
 
   return (
     <div className="flex flex-col h-full">
+      <UpdateAppTrigger />
+
       <Dialog onOpenChange={setAboutDialogOpen} open={aboutDialogOpen}>
         <Menubar>
           <MenubarMenu>
