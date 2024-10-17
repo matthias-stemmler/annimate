@@ -1,6 +1,11 @@
 // Mock version of api.ts
 // This enables testing of the app in a real browser without Tauri
-// Enable by setting the environment variable `MOCK=1`
+//
+// Enable by setting the `VITE_MOCK` environment variable
+// Use these values for testing special cases:
+// - `VITE_MOCK=update`: Update available
+// - `VITE_MOCK=update-fail-fetch`: Cannot fetch update
+// - `VITE_MOCK=update-fail-apply`: Cannot apply update
 
 import {
   AQLError,
@@ -212,11 +217,7 @@ export const checkForUpdate = async (
 ): Promise<Update | null> => {
   logAction('Check for update', COLOR_BUILTIN_COMMAND, options);
 
-  if (
-    /^update-?/.test(
-      import.meta.env.VITE_MOCK ?? 'className="max-w-[calc(min(64rem,80vw))]"',
-    )
-  ) {
+  if (/^update-?/.test(import.meta.env.VITE_MOCK ?? '')) {
     await sleep(1000);
 
     if (import.meta.env.VITE_MOCK === 'update-fail-fetch') {
@@ -234,7 +235,7 @@ export const checkForUpdate = async (
   return null;
 };
 
-export class MockUpdate {
+class MockUpdate {
   private _body?: string;
   private _currentVersion: string;
   private _date?: string;
@@ -342,10 +343,10 @@ export const fileOpen = async <T extends OpenDialogOptions>(
     : ((await fileOpenSingle()) as OpenDialogReturn<T>);
 };
 
-export const fileOpenSingle = async (): Promise<string | null> =>
+const fileOpenSingle = async (): Promise<string | null> =>
   prompt('File Open\nEnter file path:');
 
-export const fileOpenMultiple = async (): Promise<string[] | null> => {
+const fileOpenMultiple = async (): Promise<string[] | null> => {
   const answer = prompt('File Open\nEnter file paths (comma-separated):');
   if (answer === null) {
     return null;
