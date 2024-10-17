@@ -780,7 +780,7 @@ impl<'a> GraphHelper<'a> {
     fn get_connected_node_ids_in_order(
         &self,
         node_id: NodeID,
-    ) -> impl Iterator<Item = Result<NodeID, GraphAnnisCoreError>> + '_ {
+    ) -> impl Iterator<Item = Result<NodeID, GraphAnnisCoreError>> + use<'_> {
         let left_connected_node_ids = self.order_storage.into_iter().flat_map(move |s| {
             s.find_connected_inverse(node_id, 1, Bound::Unbounded)
                 .collect::<Vec<_>>()
@@ -801,7 +801,7 @@ impl<'a> GraphHelper<'a> {
     fn get_covering_node_ids(
         &self,
         node_id: NodeID,
-    ) -> impl Iterator<Item = Result<NodeID, GraphAnnisCoreError>> + '_ {
+    ) -> impl Iterator<Item = Result<NodeID, GraphAnnisCoreError>> + use<'_> {
         iter::once(Ok(node_id)).chain(
             self.coverage_storages
                 .iter()
