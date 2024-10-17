@@ -1,5 +1,7 @@
 //! This library provides the Annimate core functionality.
 
+#![deny(missing_docs)]
+
 use std::collections::btree_map::Entry;
 use std::fs;
 use std::io::{self, Write};
