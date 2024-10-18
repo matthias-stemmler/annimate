@@ -11,7 +11,7 @@ mod state;
 use std::env;
 
 use state::AppState;
-use tauri::Manager;
+use tauri::{AppHandle, Env, Manager};
 
 fn main() {
     tauri::Builder::default()
@@ -45,11 +45,18 @@ fn main() {
                 .eval(&format!(
                     "window.__ANNIMATE__=JSON.parse('{}')",
                     serde_json::json!({
-                        "versionInfo": annimate_core::VERSION_INFO
+                        "updateEnabled": is_update_enabled(window.app_handle()),
+                        "versionInfo": annimate_core::VERSION_INFO,
                     })
                 ))
                 .expect("error while injecting global __ANNIMATE__");
         })
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
+}
+
+// This is exactly the same logic as used by the auto-update mechanism before Tauri v2
+// See https://github.com/tauri-apps/tauri/blob/tauri-v1.8.1/core/tauri/src/app.rs#L976
+fn is_update_enabled(app_handle: &AppHandle) -> bool {
+    cfg!(dev) || cfg!(not(target_os = "linux")) || app_handle.state::<Env>().appimage.is_some()
 }

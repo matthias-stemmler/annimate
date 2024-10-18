@@ -163,6 +163,7 @@ const IMPORT_CORPORA: MockImportCorpus[] = [
 ];
 
 window.__ANNIMATE__ = {
+  updateEnabled: true,
   versionInfo: {
     annimateVersion: '<mock>',
     graphannisVersion: '<mock>',

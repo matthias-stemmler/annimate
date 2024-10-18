@@ -21,7 +21,7 @@ export const Window: FC = () => {
 
   return (
     <div className="flex flex-col h-full">
-      <UpdateAppTrigger />
+      {window.__ANNIMATE__.updateEnabled && <UpdateAppTrigger />}
 
       <Dialog onOpenChange={setAboutDialogOpen} open={aboutDialogOpen}>
         <Menubar>
