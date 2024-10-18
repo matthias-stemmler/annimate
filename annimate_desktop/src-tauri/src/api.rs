@@ -119,7 +119,7 @@ pub(crate) async fn export_matches(
             |status_event| {
                 event_channel
                     .send(status_event)
-                    .expect("Failed to send export status");
+                    .expect("sending export status should succeed");
             },
             || cancel_requested.load(Ordering::Relaxed),
         )?;
@@ -220,7 +220,7 @@ pub(crate) async fn import_corpora(
             |status_event| {
                 event_channel
                     .send(status_event)
-                    .expect("Failed to send import status");
+                    .expect("sending import status should succeed");
             },
             || cancel_requested.load(Ordering::Relaxed),
         )?;

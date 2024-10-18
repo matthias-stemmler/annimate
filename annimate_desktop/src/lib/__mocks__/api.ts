@@ -453,7 +453,7 @@ export const exportMatches = async (
   },
   handlers: {
     onEvent?: (event: ExportStatusEvent) => void;
-  },
+  } = {},
 ): Promise<void> => {
   logAction('Export', COLOR_CUSTOM_COMMAND, params);
 

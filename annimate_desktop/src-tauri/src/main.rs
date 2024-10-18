@@ -18,6 +18,11 @@ fn main() {
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_process::init())
         .plugin(tauri_plugin_shell::init())
+        .plugin(tauri_plugin_single_instance::init(|app, _, _| {
+            if let Some(window) = app.get_webview_window("main") {
+                let _ = window.set_focus();
+            }
+        }))
         .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_window_state::Builder::new().build())
         .manage(AppState::default())
@@ -50,10 +55,10 @@ fn main() {
                         "versionInfo": annimate_core::VERSION_INFO,
                     })
                 ))
-                .expect("error while injecting global __ANNIMATE__");
+                .expect("global __ANNIMATE__ should be injected successfully");
         })
         .run(tauri::generate_context!())
-        .expect("error while running tauri application");
+        .expect("Tauri application should run successfully");
 }
 
 // This is exactly the same logic as used by the auto-update mechanism before Tauri v2

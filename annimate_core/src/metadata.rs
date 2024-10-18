@@ -1,4 +1,5 @@
 use std::collections::{BTreeMap, BTreeSet};
+use std::io::ErrorKind;
 use std::path::{Path, PathBuf};
 use std::str::FromStr;
 use std::sync::RwLock;
@@ -89,7 +90,7 @@ fn write_metadata(path: &Path, metadata: &Metadata) -> io::Result<()> {
     fs::write(
         path,
         toml::to_string_pretty(metadata)
-            .expect("Failed to serialize metadata")
+            .map_err(|err| io::Error::new(ErrorKind::Other, err))?
             .as_bytes(),
     )
 }
