@@ -36,7 +36,6 @@ import mockReleaseNotes from './mock-release-notes.md?raw';
 
 const COLOR_BUILTIN_COMMAND = '#93c5fd';
 const COLOR_CUSTOM_COMMAND = '#86efac';
-const COLOR_SUBSCRIPTION = '#d8b4fe';
 
 const CORPUS_NORMAL = 'Normal corpus';
 const CORPUS_INVALID_QUERY = 'Corpus with any query invalid';
@@ -206,13 +205,7 @@ const makeExportableAnnoKeys = (count: number): ExportableAnnoKeys => {
 
 const exportCancelRequestedListeners: Set<() => void> = new Set();
 
-const exportStatusListeners: Set<(statusEvent: ExportStatusEvent) => void> =
-  new Set();
-
 const importCancelRequestedListeners: Set<() => void> = new Set();
-
-const importStatusListeners: Set<(statusEvent: ImportStatusEvent) => void> =
-  new Set();
 
 export const checkForUpdate = async (
   options?: CheckOptions,
@@ -449,14 +442,19 @@ export const deleteCorpusSet = async (params: {
   delete corpusSets[params.corpusSet];
 };
 
-export const exportMatches = async (params: {
-  corpusNames: string[];
-  aqlQuery: string;
-  queryLanguage: QueryLanguage;
-  exportColumns: ExportColumn[];
-  exportFormat: ExportFormat;
-  outputFile: string;
-}): Promise<void> => {
+export const exportMatches = async (
+  params: {
+    corpusNames: string[];
+    aqlQuery: string;
+    queryLanguage: QueryLanguage;
+    exportColumns: ExportColumn[];
+    exportFormat: ExportFormat;
+    outputFile: string;
+  },
+  handlers: {
+    onEvent?: (event: ExportStatusEvent) => void;
+  },
+): Promise<void> => {
   logAction('Export', COLOR_CUSTOM_COMMAND, params);
 
   let cancelRequested = false;
@@ -474,13 +472,13 @@ export const exportMatches = async (params: {
     if (cancelRequested) throw new CancelledError();
 
     await sleep(500);
-    emitExportStatusEvent({ type: 'found', count: matchCount });
+    handlers.onEvent?.({ type: 'found', count: matchCount });
 
     for (let i = 0; i <= matchCount; i++) {
       if (cancelRequested) throw new CancelledError();
 
       await sleep(20);
-      emitExportStatusEvent({ type: 'exported', progress: i / matchCount });
+      handlers.onEvent?.({ type: 'exported', progress: i / matchCount });
 
       if (
         i >= matchCount / 2 &&
@@ -599,9 +597,14 @@ export const getSegmentations = async (params: {
     : [''];
 };
 
-export const importCorpora = async (params: {
-  paths: string[];
-}): Promise<string[]> => {
+export const importCorpora = async (
+  params: {
+    paths: string[];
+  },
+  handlers: {
+    onEvent?: (event: ImportStatusEvent) => void;
+  } = {},
+): Promise<string[]> => {
   logAction('Import', COLOR_CUSTOM_COMMAND, params);
 
   let cancelRequested = false;
@@ -618,7 +621,7 @@ export const importCorpora = async (params: {
 
       await sleep(delay);
 
-      emitImportStatusEvent({
+      handlers.onEvent?.({
         type: 'message',
         index: null,
         message: `Collecting corpora ...`,
@@ -626,7 +629,7 @@ export const importCorpora = async (params: {
     }
 
     if (params.paths.includes('fail')) {
-      emitImportStatusEvent({
+      handlers.onEvent?.({
         type: 'message',
         index: null,
         message: 'Failed to find importable corpora!',
@@ -636,7 +639,7 @@ export const importCorpora = async (params: {
     }
 
     if (params.paths.length === 0) {
-      emitImportStatusEvent({
+      handlers.onEvent?.({
         type: 'corpora_found',
         corpora: [],
       });
@@ -644,7 +647,7 @@ export const importCorpora = async (params: {
       return [];
     }
 
-    emitImportStatusEvent({
+    handlers.onEvent?.({
       type: 'corpora_found',
       corpora: IMPORT_CORPORA.map(({ importCorpus }) => importCorpus),
     });
@@ -653,7 +656,7 @@ export const importCorpora = async (params: {
 
     for (let i = 0; i < IMPORT_CORPORA.length; i++) {
       if (cancelRequested) {
-        emitImportStatusEvent({
+        handlers.onEvent?.({
           type: 'corpus_import_finished',
           index: i,
           result: {
@@ -668,12 +671,12 @@ export const importCorpora = async (params: {
 
       const { importCorpus, result } = IMPORT_CORPORA[i];
 
-      emitImportStatusEvent({
+      handlers.onEvent?.({
         type: 'corpus_import_started',
         index: i,
       });
 
-      emitImportStatusEvent({
+      handlers.onEvent?.({
         type: 'message',
         index: i,
         message: `Importing ${importCorpus.fileName}`,
@@ -682,7 +685,7 @@ export const importCorpora = async (params: {
       for (let j = 0; j < 9; j++) {
         await sleep(delay);
 
-        emitImportStatusEvent({
+        handlers.onEvent?.({
           type: 'message',
           index: i,
           message: `Still working at ${importCorpus.fileName} ...`,
@@ -691,13 +694,13 @@ export const importCorpora = async (params: {
 
       await sleep(delay);
 
-      emitImportStatusEvent({
+      handlers.onEvent?.({
         type: 'message',
         index: i,
         message: `Finished importing ${importCorpus.fileName}`,
       });
 
-      emitImportStatusEvent({
+      handlers.onEvent?.({
         type: 'corpus_import_finished',
         index: i,
         result,
@@ -813,54 +816,6 @@ const getQuerySyntaxError = (
       },
     },
   };
-};
-
-export const subscribeToExportStatus = async (
-  callback: (statusEvent: ExportStatusEvent) => void,
-): Promise<UnlistenFn> => {
-  exportStatusListeners.add(callback);
-
-  logAction(
-    `Subscribed to export status, number of listeners = ${exportStatusListeners.size}`,
-    COLOR_SUBSCRIPTION,
-  );
-
-  return () => {
-    exportStatusListeners.delete(callback);
-
-    logAction(
-      `Unsubscribed from export status, number of listeners = ${exportStatusListeners.size}`,
-      COLOR_SUBSCRIPTION,
-    );
-  };
-};
-
-const emitExportStatusEvent = (statusEvent: ExportStatusEvent) => {
-  exportStatusListeners.forEach((l) => l(statusEvent));
-};
-
-export const subscribeToImportStatus = async (
-  callback: (statusEvent: ImportStatusEvent) => void,
-): Promise<UnlistenFn> => {
-  importStatusListeners.add(callback);
-
-  logAction(
-    `Subscribed to import status, number of listeners = ${importStatusListeners.size}`,
-    COLOR_SUBSCRIPTION,
-  );
-
-  return () => {
-    importStatusListeners.delete(callback);
-
-    logAction(
-      `Unsubscribed from import status, number of listeners = ${importStatusListeners.size}`,
-      COLOR_SUBSCRIPTION,
-    );
-  };
-};
-
-const emitImportStatusEvent = (statusEvent: ImportStatusEvent) => {
-  importStatusListeners.forEach((l) => l(statusEvent));
 };
 
 const logAction = (name: string, color: string, payload?: unknown) => {

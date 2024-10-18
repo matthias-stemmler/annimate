@@ -7,12 +7,13 @@ use std::sync::Arc;
 
 use annimate_core::{
     AnnoKey, Corpora, CsvExportConfig, ExportConfig, ExportData, ExportDataAnno, ExportDataText,
-    ExportableAnnoKeys, QueryAnalysisResult, QueryLanguage, QueryNodes, TableExportColumn,
-    XlsxExportConfig,
+    ExportStatusEvent, ExportableAnnoKeys, ImportStatusEvent, QueryAnalysisResult, QueryLanguage,
+    QueryNodes, TableExportColumn, XlsxExportConfig,
 };
 use itertools::Itertools;
 use serde::Deserialize;
-use tauri::{Emitter, EventId, Listener, Runtime, WebviewWindow, Window};
+use tauri::ipc::Channel;
+use tauri::{EventId, Listener, Runtime, WebviewWindow, Window};
 
 use crate::error::Error;
 use crate::state::AppState;
@@ -72,6 +73,7 @@ pub(crate) async fn delete_corpus_set(
 #[tauri::command]
 pub(crate) async fn export_matches(
     state: tauri::State<'_, AppState>,
+    event_channel: Channel<ExportStatusEvent>,
     window: WebviewWindow,
     corpus_names: Vec<String>,
     aql_query: String,
@@ -115,9 +117,9 @@ pub(crate) async fn export_matches(
             },
             output_file,
             |status_event| {
-                window
-                    .emit("export_status", &status_event)
-                    .expect("Failed to emit export_status event");
+                event_channel
+                    .send(status_event)
+                    .expect("Failed to send export status");
             },
             || cancel_requested.load(Ordering::Relaxed),
         )?;
@@ -193,6 +195,7 @@ pub(crate) async fn get_segmentations(
 #[tauri::command]
 pub(crate) async fn import_corpora(
     state: tauri::State<'_, AppState>,
+    event_channel: Channel<ImportStatusEvent>,
     window: Window,
     paths: Vec<PathBuf>,
 ) -> Result<Vec<String>, Error> {
@@ -215,9 +218,9 @@ pub(crate) async fn import_corpora(
         let corpus_names = storage.import_corpora(
             paths,
             |status_event| {
-                window
-                    .emit("import_status", &status_event)
-                    .expect("Failed to emit import_status event");
+                event_channel
+                    .send(status_event)
+                    .expect("Failed to send import status");
             },
             || cancel_requested.load(Ordering::Relaxed),
         )?;

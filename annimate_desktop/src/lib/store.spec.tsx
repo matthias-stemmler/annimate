@@ -1093,6 +1093,7 @@ describe('store', () => {
     });
 
     expect(exportMatchesSpy).toHaveBeenCalledWith({
+      eventChannel: expect.anything(),
       corpusNames: ['a'],
       aqlQuery: 'valid',
       queryLanguage: 'AQLQuirksV3',
