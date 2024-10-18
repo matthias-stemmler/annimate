@@ -12,6 +12,7 @@
     "process:allow-restart",
     "shell:allow-open",
     "shell:default",
-    "updater:default"
+    "updater:default",
+    "window-state:default"
   ]
 }

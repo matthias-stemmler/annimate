@@ -2,6 +2,10 @@
 
 ## [Unreleased] - (release date)
 
+### Added
+
+- The state of the window (e.g. position and size) is now persisted across restarts.
+
 ### Changed
 
 - Implemented new dialog for automatic updates.
