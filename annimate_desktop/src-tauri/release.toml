@@ -6,6 +6,5 @@ pre-release-replacements = [
     { file = "../../CHANGELOG.md", search = "<!-- next-header -->", replace = "<!-- next-header -->\n\n## [Unreleased] - (release date)", exactly = 1 },
     { file = "../../CHANGELOG.md", search = "<!-- next-url -->", replace = "<!-- next-url -->\n[Unreleased]: https://github.com/matthias-stemmler/annimate/compare/v{{version}}...HEAD", exactly = 1 },
     { file = "../../README.md", search = "\\/v\\d+\\.\\d+\\.\\d+\\/", replace = "/v{{version}}/", exactly = 3 },
-    { file = "../../README.md", search = "annimate_\\d+\\.\\d+\\.\\d+", replace = "annimate_{{version}}", exactly = 5 },
-    { file = "../../README.md", search = "Annimate_\\d+\\.\\d+\\.\\d+", replace = "Annimate_{{version}}", exactly = 2 },
+    { file = "../../README.md", search = "Annimate_\\d+\\.\\d+\\.\\d+", replace = "Annimate_{{version}}", exactly = 7 },
 ]
