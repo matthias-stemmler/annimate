@@ -7,12 +7,12 @@ import {
   emitImportCancelRequestedEvent,
   exportMatches,
   importCorpora,
+  relaunch,
   renameCorpusSet,
-  subscribeToExportStatus,
-  subscribeToImportStatus,
   toggleCorpusInSet,
 } from '@/lib/api';
 import {
+  DownloadEvent,
   ExportColumn,
   ExportFormat,
   ExportStatusEvent,
@@ -20,7 +20,7 @@ import {
   ImportCorpusResult,
   ImportStatusEvent,
   QueryLanguage,
-  UnlistenFn,
+  Update,
 } from '@/lib/api-types';
 import { QUERY_KEY_CORPORA } from '@/lib/queries';
 import {
@@ -46,6 +46,68 @@ export const useAddCorporaToSetMutation = () => {
   });
 
   return { mutation };
+};
+
+export const useApplyAppUpdateMutation = () => {
+  const [progress, setProgress] = useState<number | undefined>();
+  const [stage, setStage] = useState<'download' | 'install' | undefined>(
+    undefined,
+  );
+
+  const mutation = useMutation({
+    mutationFn: async (args: { update: Update }) => {
+      let downloadedLength: number = 0;
+      let totalLength: number | undefined = undefined;
+
+      try {
+        await args.update.download((event: DownloadEvent) => {
+          switch (event.event) {
+            case 'Started':
+              totalLength = event.data.contentLength;
+              break;
+
+            case 'Progress':
+              downloadedLength += event.data.chunkLength;
+              if (totalLength !== undefined && totalLength > 0) {
+                setProgress(downloadedLength / totalLength);
+              }
+              break;
+
+            case 'Finished':
+              setProgress(1);
+              break;
+          }
+        });
+      } catch (err) {
+        // Errors returned from `download` are usually strings
+        throw new Error(`Failed to download update: ${err}`);
+      }
+
+      setProgress(1);
+      setStage('install');
+
+      try {
+        await args.update.install();
+      } catch (err) {
+        // Errors returned from `install` are usually strings
+        throw new Error(`Failed to install update: ${err}`);
+      }
+
+      await relaunch();
+    },
+    onMutate: () => {
+      setProgress(0);
+      setStage('download');
+    },
+  });
+
+  const reset = () => {
+    mutation.reset();
+    setProgress(undefined);
+    setStage(undefined);
+  };
+
+  return { mutation, progress, reset, stage };
 };
 
 export const useCreateCorpusSetMutation = () => {
@@ -106,33 +168,28 @@ export const useExportMatchesMutation = (
   const mutation = useMutation<
     void,
     CancellableOperationError,
-    { outputFile: string },
-    { unsubscribe: UnlistenFn }
+    { outputFile: string }
   >({
     mutationFn: async (args) => {
       const params = await getParams();
-      return exportMatches({ ...params, ...args });
+      return exportMatches(
+        { ...params, ...args },
+        {
+          onEvent: (event: ExportStatusEvent) => {
+            if (event.type === 'found') {
+              setMatchCount(event.count);
+            } else if (event.type === 'exported') {
+              setProgress(event.progress);
+            }
+          },
+        },
+      );
     },
     mutationKey: [MUTATION_KEY_EXPORT_MATCHES],
-    onMutate: async () => {
+    onMutate: () => {
       setCancelRequested(false);
       setMatchCount(undefined);
       setProgress(undefined);
-
-      const unsubscribe = await subscribeToExportStatus(
-        (statusEvent: ExportStatusEvent) => {
-          if (statusEvent.type === 'found') {
-            setMatchCount(statusEvent.count);
-          } else if (statusEvent.type === 'exported') {
-            setProgress(statusEvent.progress);
-          }
-        },
-      );
-
-      return { unsubscribe };
-    },
-    onSettled: (_data, _error, _variables, context) => {
-      context?.unsubscribe();
     },
   });
 
@@ -188,29 +245,22 @@ export const useImportCorporaMutation = () => {
   const mutation = useMutation<
     string[],
     CancellableOperationError,
-    { paths: string[] },
-    { unsubscribe: UnlistenFn }
+    { paths: string[] }
   >({
-    mutationFn: importCorpora,
-    onMutate: async () => {
-      setCancelRequested(false);
-      setCorporaStatus(undefined);
-      setMessages([]);
-      setResult(undefined);
-
-      const unsubscribe = await subscribeToImportStatus(
-        (statusEvent: ImportStatusEvent) => {
-          if (statusEvent.type === 'corpora_found') {
+    mutationFn: async (args) =>
+      importCorpora(args, {
+        onEvent: (event: ImportStatusEvent) => {
+          if (event.type === 'corpora_found') {
             setCorporaStatus(
-              statusEvent.corpora.map((importCorpus) => ({
+              event.corpora.map((importCorpus) => ({
                 importCorpus,
                 type: 'idle',
               })),
             );
-          } else if (statusEvent.type === 'corpus_import_started') {
+          } else if (event.type === 'corpus_import_started') {
             setCorporaStatus((importCorpora) =>
               (importCorpora ?? []).map((importCorpus, index) =>
-                index === statusEvent.index
+                index === event.index
                   ? {
                       ...importCorpus,
                       type: 'pending',
@@ -218,19 +268,19 @@ export const useImportCorporaMutation = () => {
                   : importCorpus,
               ),
             );
-          } else if (statusEvent.type === 'corpus_import_finished') {
+          } else if (event.type === 'corpus_import_finished') {
             setCorporaStatus((importCorpora) =>
               (importCorpora ?? []).map((importCorpus, index) =>
-                index === statusEvent.index
+                index === event.index
                   ? {
                       ...importCorpus,
                       type: 'finished',
-                      result: statusEvent.result,
+                      result: event.result,
                     }
                   : importCorpus,
               ),
             );
-          } else if (statusEvent.type === 'message') {
+          } else if (event.type === 'message') {
             setMessages((messages) => {
               const lastMessage =
                 messages.length === 0
@@ -246,19 +296,19 @@ export const useImportCorporaMutation = () => {
                 ...messages,
                 {
                   id,
-                  index: statusEvent.index,
-                  message: statusEvent.message,
+                  index: event.index,
+                  message: event.message,
                 },
               ].slice(excessiveMessageCount);
             });
           }
         },
-      );
-
-      return { unsubscribe };
-    },
-    onSettled: (_data, _error, _variables, context) => {
-      context?.unsubscribe();
+      }),
+    onMutate: () => {
+      setCancelRequested(false);
+      setCorporaStatus(undefined);
+      setMessages([]);
+      setResult(undefined);
     },
     onSuccess: (corpusNames: string[]) => {
       setResult({ type: 'imported', corpusNames });

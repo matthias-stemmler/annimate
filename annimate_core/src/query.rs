@@ -652,7 +652,7 @@ fn get_parts(
             let (fragment_node_id, token_ids) = group?;
             let fragment = node_annos
                 .get_value_for_item(&fragment_node_id, fragment_anno_key)?
-                .expect("Value is present by choice of fragment_node_id")
+                .expect("value should be present by choice of fragment_node_id")
                 .to_string();
 
             let match_node_index = primary_node_indices

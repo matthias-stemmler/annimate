@@ -7,7 +7,7 @@ import svgr from 'vite-plugin-svgr';
 
 // https://vitejs.dev/config/
 export default defineConfig(async () => {
-  const isMock = !!process.env.MOCK;
+  const isMock = !!process.env.VITE_MOCK;
 
   if (isMock) {
     console.log('--- Running in mock mode ---');

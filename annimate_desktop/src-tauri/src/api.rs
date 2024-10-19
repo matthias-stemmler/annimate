@@ -1,17 +1,19 @@
 #![allow(clippy::too_many_arguments)]
 
+use std::marker::PhantomData;
 use std::path::PathBuf;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 
 use annimate_core::{
     AnnoKey, Corpora, CsvExportConfig, ExportConfig, ExportData, ExportDataAnno, ExportDataText,
-    ExportableAnnoKeys, QueryAnalysisResult, QueryLanguage, QueryNodes, TableExportColumn,
-    XlsxExportConfig,
+    ExportStatusEvent, ExportableAnnoKeys, ImportStatusEvent, QueryAnalysisResult, QueryLanguage,
+    QueryNodes, TableExportColumn, XlsxExportConfig,
 };
 use itertools::Itertools;
 use serde::Deserialize;
-use tauri::{EventHandler, Window};
+use tauri::ipc::Channel;
+use tauri::{EventId, Listener, Runtime, WebviewWindow, Window};
 
 use crate::error::Error;
 use crate::state::AppState;
@@ -71,7 +73,8 @@ pub(crate) async fn delete_corpus_set(
 #[tauri::command]
 pub(crate) async fn export_matches(
     state: tauri::State<'_, AppState>,
-    window: Window,
+    event_channel: Channel<ExportStatusEvent>,
+    window: WebviewWindow,
     corpus_names: Vec<String>,
     aql_query: String,
     query_language: QueryLanguage,
@@ -114,9 +117,9 @@ pub(crate) async fn export_matches(
             },
             output_file,
             |status_event| {
-                window
-                    .emit("export_status", &status_event)
-                    .expect("Failed to emit export_status event");
+                event_channel
+                    .send(status_event)
+                    .expect("sending export status should succeed");
             },
             || cancel_requested.load(Ordering::Relaxed),
         )?;
@@ -192,6 +195,7 @@ pub(crate) async fn get_segmentations(
 #[tauri::command]
 pub(crate) async fn import_corpora(
     state: tauri::State<'_, AppState>,
+    event_channel: Channel<ImportStatusEvent>,
     window: Window,
     paths: Vec<PathBuf>,
 ) -> Result<Vec<String>, Error> {
@@ -214,9 +218,9 @@ pub(crate) async fn import_corpora(
         let corpus_names = storage.import_corpora(
             paths,
             |status_event| {
-                window
-                    .emit("import_status", &status_event)
-                    .expect("Failed to emit import_status event");
+                event_channel
+                    .send(status_event)
+                    .expect("sending import status should succeed");
             },
             || cancel_requested.load(Ordering::Relaxed),
         )?;
@@ -345,22 +349,36 @@ pub(crate) enum ExportFormat {
 }
 
 #[derive(Debug)]
-struct EventHandlerGuard<'a> {
-    window: &'a Window,
-    event_handler: EventHandler,
+struct EventHandlerGuard<'a, R, T>
+where
+    R: Runtime,
+    T: Listener<R>,
+{
+    listener: &'a T,
+    event_id: EventId,
+    _runtime: PhantomData<R>,
 }
 
-impl<'a> EventHandlerGuard<'a> {
-    fn new(window: &'a Window, event_handler: EventHandler) -> Self {
+impl<'a, R, T> EventHandlerGuard<'a, R, T>
+where
+    R: Runtime,
+    T: Listener<R>,
+{
+    fn new(listener: &'a T, event_id: EventId) -> Self {
         Self {
-            window,
-            event_handler,
+            listener,
+            event_id,
+            _runtime: PhantomData,
         }
     }
 }
 
-impl Drop for EventHandlerGuard<'_> {
+impl<R, T> Drop for EventHandlerGuard<'_, R, T>
+where
+    R: Runtime,
+    T: Listener<R>,
+{
     fn drop(&mut self) {
-        self.window.unlisten(self.event_handler);
+        self.listener.unlisten(self.event_id);
     }
 }

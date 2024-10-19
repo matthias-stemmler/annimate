@@ -2,6 +2,15 @@
 
 ## [Unreleased] - (release date)
 
+### Added
+
+- The window state (e.g. position and size) is now persisted across restarts.
+
+### Changed
+
+- Starting Annimate again when it is already running now focuses the previous instance instead of showing an error.
+- Implemented new dialog for automatic updates.
+
 ## [1.1.4] - 2024-10-01
 
 ### Fixed

@@ -9,13 +9,13 @@ fn main() {
 fn inject_graphannis_version() {
     let metadata = MetadataCommand::new()
         .exec()
-        .expect("Failed to run `cargo metadata`");
+        .expect("`cargo metadata` should run successfully");
 
     let graphannis_version = metadata
         .packages
         .into_iter()
         .find(|p| p.name == "graphannis")
-        .expect("`graphannis` package not found in Cargo metadata`")
+        .expect("Cargo metadata should contain `graphannis` package")
         .version
         .to_string();
 

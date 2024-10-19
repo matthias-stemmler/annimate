@@ -41,7 +41,7 @@ impl<T> SlotSubscription<T> {
             self.receiver
                 .wait_for(|v| v.is_some())
                 .await
-                .expect("Channel is open because there is a receiver"),
+                .expect("channel should be open because there is a receiver"),
         )
     }
 }
@@ -55,6 +55,6 @@ impl<T> Deref for SlotRef<'_, T> {
     fn deref(&self) -> &Self::Target {
         self.0
             .as_ref()
-            .expect("Content is Some because of wait condition")
+            .expect("content should be Some(_) because of wait condition")
     }
 }

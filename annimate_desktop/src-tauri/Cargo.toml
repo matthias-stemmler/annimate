@@ -19,9 +19,15 @@ tauri-build = { workspace = true }
 [dependencies]
 annimate_core = { path = "../../annimate_core" }
 itertools = { workspace = true }
-tauri = { workspace = true, features = ["dialog-open", "process-exit", "dialog-save", "objc-exception", "path-all", "process-relaunch", "shell-open", "updater", "wry"] }
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
+tauri = { workspace = true }
+tauri-plugin-dialog = { workspace = true }
+tauri-plugin-process = { workspace = true }
+tauri-plugin-shell = { workspace = true }
+tauri-plugin-single-instance =  { workspace = true }
+tauri-plugin-updater = { workspace = true }
+tauri-plugin-window-state = { workspace = true }
 tempfile = { workspace = true }
 tokio = { workspace = true }
 

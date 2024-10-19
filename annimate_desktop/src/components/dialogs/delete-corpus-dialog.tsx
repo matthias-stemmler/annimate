@@ -17,7 +17,7 @@ export const DeleteCorpusDialog: FC<DeleteCorpusDialogProps> = ({
   corpusName,
   onConfirm,
 }) => (
-  <DialogContent>
+  <DialogContent aria-describedby={undefined}>
     <DialogHeader>
       <DialogTitle>Delete corpus</DialogTitle>
     </DialogHeader>

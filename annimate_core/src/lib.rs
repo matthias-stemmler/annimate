@@ -489,7 +489,7 @@ pub struct ExportConfig<'a, S> {
 }
 
 /// Event describing the status of an ongoing export.
-#[derive(Debug, Serialize)]
+#[derive(Clone, Debug, Serialize)]
 #[serde(
     tag = "type",
     rename_all = "snake_case",

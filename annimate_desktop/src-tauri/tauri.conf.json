@@ -1,74 +1,65 @@
 {
-  "build": {
-    "beforeDevCommand": "pnpm dev",
-    "beforeBuildCommand": "pnpm build",
-    "devPath": "http://localhost:1420",
-    "distDir": "../dist"
-  },
-  "package": {
-    "productName": "Annimate"
-  },
-  "tauri": {
-    "allowlist": {
-      "dialog": {
-        "open": true,
-        "save": true
-      },
-      "path": {
-        "all": true
-      },
-      "process": {
-        "exit": true,
-        "relaunch": true
-      },
-      "shell": {
-        "open": ".*"
-      }
-    },
-    "bundle": {
-      "active": true,
-      "targets": ["appimage", "deb", "nsis", "updater"],
-      "identifier": "com.github.matthias-stemmler.annimate",
-      "publisher": "Matthias Stemmler",
-      "icon": [
-        "icons/32x32.png",
-        "icons/128x128.png",
-        "icons/128x128@2x.png",
-        "icons/icon.icns",
-        "icons/icon.ico"
-      ],
-      "deb": {
-        "section": "science"
-      },
-      "windows": {
-        "nsis": {
-          "headerImage": "nsis-media/header.bmp",
-          "installerIcon": "icons/icon.ico",
-          "languages": ["English"]
-        }
-      }
-    },
+  "app": {
     "security": {
-      "csp": "default-src 'self'; style-src 'self' 'unsafe-inline'"
-    },
-    "updater": {
-      "active": true,
-      "endpoints": [
-        "https://github.com/matthias-stemmler/annimate/releases/latest/download/latest.json"
-      ],
-      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEFBMDgxMjJFNzBERDk4QzkKUldUSm1OMXdMaElJcWlpUC9tR2VueW5iN3pHYlFRWWR3MEJ6OHFWblBIZU5adVczRXlXTEkvcmsK"
+      "csp": "default-src 'self'; style-src 'self' 'unsafe-inline'; connect-src ipc: http://ipc.localhost"
     },
     "windows": [
       {
-        "fileDropEnabled": false,
+        "dragDropEnabled": false,
         "fullscreen": false,
         "resizable": true,
         "title": "Annimate",
         "width": 1280,
         "height": 800,
         "minWidth": 800,
-        "minHeight": 640
+        "minHeight": 640,
+        "visible": false
       }
     ]
-  }
+  },
+  "build": {
+    "beforeBuildCommand": "pnpm build",
+    "beforeDevCommand": "pnpm dev",
+    "devUrl": "http://localhost:1420",
+    "frontendDist": "../dist"
+  },
+  "bundle": {
+    "active": true,
+    "createUpdaterArtifacts": "v1Compatible",
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ],
+    "linux": {
+      "deb": {
+        "section": "science"
+      }
+    },
+    "publisher": "Matthias Stemmler",
+    "targets": ["appimage", "deb", "nsis"],
+    "windows": {
+      "nsis": {
+        "headerImage": "nsis-media/header.bmp",
+        "installerIcon": "icons/icon.ico",
+        "languages": ["English"]
+      }
+    }
+  },
+  "identifier": "com.github.matthias-stemmler.annimate",
+  "mainBinaryName": "Annimate",
+  "plugins": {
+    "updater": {
+      "endpoints": [
+        "https://github.com/matthias-stemmler/annimate/releases/latest/download/latest.json"
+      ],
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEFBMDgxMjJFNzBERDk4QzkKUldUSm1OMXdMaElJcWlpUC9tR2VueW5iN3pHYlFRWWR3MEJ6OHFWblBIZU5adVczRXlXTEkvcmsK",
+      "windows": {
+        "installMode": "quiet"
+      }
+    }
+  },
+  "productName": "Annimate"
 }

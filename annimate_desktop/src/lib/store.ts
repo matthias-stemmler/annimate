@@ -884,6 +884,7 @@ export const useExportableAnnoKeys = (): UseQueryResult<ExportableAnnoKeys> => {
 
 export {
   useAddCorporaToSetMutation as useAddCorporaToSet,
+  useApplyAppUpdateMutation as useApplyAppUpdate,
   useCreateCorpusSetMutation as useCreateCorpusSet,
   useDeleteCorpusMutation as useDeleteCorpus,
   useDeleteCorpusSetMutation as useDeleteCorpusSet,

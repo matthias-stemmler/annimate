@@ -108,7 +108,7 @@ where
                 "{} {}",
                 query_nodes
                     .get(*index)
-                    .expect("Query node index is assumed to be valid")
+                    .expect("query node index should be valid")
                     .iter()
                     .map(|n| &n.variable)
                     .collect::<BTreeSet<_>>()

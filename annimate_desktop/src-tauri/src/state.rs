@@ -1,9 +1,10 @@
+use std::env;
 use std::path::PathBuf;
 use std::sync::Arc;
-use std::{env, io};
 
 use annimate_core::Storage;
-use tauri::AppHandle;
+use tauri::path::BaseDirectory;
+use tauri::{AppHandle, Manager};
 
 use crate::error::Error;
 use crate::slot::Slot;
@@ -28,17 +29,12 @@ impl AppState {
 }
 
 fn get_db_dir(app_handle: &AppHandle) -> Result<PathBuf, Error> {
-    if let Some(db_dir) = env::var_os("ANNIMATE_DB_DIR") {
-        return Ok(db_dir.into());
-    }
+    let db_dir = match env::var_os("ANNIMATE_DB_DIR") {
+        Some(db_dir) => db_dir.into(),
+        None => app_handle.path().resolve("data", BaseDirectory::AppData)?,
+    };
 
-    match app_handle.path_resolver().app_data_dir() {
-        Some(data_dir) => Ok(data_dir.join("data")),
-        None => Ok(env::current_exe()?
-            .parent()
-            .ok_or(io::Error::other("failed to determine data folder"))?
-            .join("annimate_data")),
-    }
+    Ok(db_dir)
 }
 
 fn create_storage(db_dir: PathBuf) -> Result<Storage, Error> {
