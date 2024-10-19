@@ -3,10 +3,9 @@ name: Audit (Cargo)
 on:
   push:
     paths:
-      - '**/Cargo.toml'
       - '**/Cargo.lock'
   schedule:
-    - cron: "0 0 * * SAT"
+    - cron: "0 0 * * *"
   workflow_dispatch:
 
 env:
@@ -20,9 +19,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
-      - name: Install stable toolchain
-        uses: dtolnay/rust-toolchain@stable
 
       - name: Run audit
         uses: rustsec/audit-check@v2.0.0
