@@ -72,6 +72,10 @@ export const useApplyAppUpdateMutation = () => {
                 setProgress(downloadedLength / totalLength);
               }
               break;
+
+            case 'Finished':
+              setProgress(1);
+              break;
           }
         });
       } catch (err) {

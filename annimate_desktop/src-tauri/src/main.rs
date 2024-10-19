@@ -11,7 +11,7 @@ mod state;
 use std::env;
 
 use state::AppState;
-use tauri::{AppHandle, Env, Manager};
+use tauri::{AppHandle, Manager};
 
 fn main() {
     tauri::Builder::default()
@@ -63,6 +63,13 @@ fn main() {
 
 // This is exactly the same logic as used by the auto-update mechanism before Tauri v2
 // See https://github.com/tauri-apps/tauri/blob/tauri-v1.8.1/core/tauri/src/app.rs#L976
+
+#[cfg(target_os = "linux")]
 fn is_update_enabled(app_handle: &AppHandle) -> bool {
-    cfg!(dev) || cfg!(not(target_os = "linux")) || app_handle.state::<Env>().appimage.is_some()
+    cfg!(dev) || app_handle.state::<tauri::Env>().appimage.is_some()
+}
+
+#[cfg(not(target_os = "linux"))]
+fn is_update_enabled(_: &AppHandle) -> bool {
+    true
 }
