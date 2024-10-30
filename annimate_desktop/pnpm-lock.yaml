@@ -66,8 +66,8 @@ importers:
         specifier: ^1.1.3
         version: 1.1.3(@types/react-dom@18.3.1)(@types/react@18.3.12)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       '@tanstack/react-query':
-        specifier: ^5.59.15
-        version: 5.59.15(react@18.3.1)
+        specifier: ^5.59.16
+        version: 5.59.16(react@18.3.1)
       '@tauri-apps/api':
         specifier: ^2.0.3
         version: 2.0.3
@@ -93,8 +93,8 @@ importers:
         specifier: ^2.1.1
         version: 2.1.1
       lucide-react:
-        specifier: ^0.453.0
-        version: 0.453.0(react@18.3.1)
+        specifier: ^0.454.0
+        version: 0.454.0(react@18.3.1)
       react:
         specifier: ^18.3.1
         version: 18.3.1
@@ -105,8 +105,8 @@ importers:
         specifier: ^9.0.1
         version: 9.0.1(@types/react@18.3.12)(react@18.3.1)
       react-resizable-panels:
-        specifier: ^2.1.4
-        version: 2.1.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+        specifier: ^2.1.6
+        version: 2.1.6(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       react-router-dom:
         specifier: ^6.27.0
         version: 6.27.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -117,8 +117,8 @@ importers:
         specifier: ^1.0.7
         version: 1.0.7(tailwindcss@3.4.14)
       zustand:
-        specifier: ^5.0.0
-        version: 5.0.0(@types/react@18.3.12)(react@18.3.1)
+        specifier: ^5.0.1
+        version: 5.0.1(@types/react@18.3.12)(react@18.3.1)
     devDependencies:
       '@eslint/js':
         specifier: ^9.13.0
@@ -1194,11 +1194,11 @@ packages:
     peerDependencies:
       eslint: ^8.57.0 || ^9.0.0
 
-  '@tanstack/query-core@5.59.13':
-    resolution: {integrity: sha512-Oou0bBu/P8+oYjXsJQ11j+gcpLAMpqW42UlokQYEz4dE7+hOtVO9rVuolJKgEccqzvyFzqX4/zZWY+R/v1wVsQ==}
+  '@tanstack/query-core@5.59.16':
+    resolution: {integrity: sha512-crHn+G3ltqb5JG0oUv6q+PMz1m1YkjpASrXTU+sYWW9pLk0t2GybUHNRqYPZWhxgjPaVGC4yp92gSFEJgYEsPw==}
 
-  '@tanstack/react-query@5.59.15':
-    resolution: {integrity: sha512-QbVlAkTI78wB4Mqgf2RDmgC0AOiJqer2c5k9STOOSXGv1S6ZkY37r/6UpE8DbQ2Du0ohsdoXgFNEyv+4eDoPEw==}
+  '@tanstack/react-query@5.59.16':
+    resolution: {integrity: sha512-MuyWheG47h6ERd4PKQ6V8gDyBu3ThNG22e1fRVwvq6ap3EqsFhyuxCAwhNP/03m/mLg+DAb0upgbPaX6VB+CkQ==}
     peerDependencies:
       react: ^18 || ^19
 
@@ -2147,8 +2147,8 @@ packages:
   lru-cache@5.1.1:
     resolution: {integrity: sha512-KpNARQA3Iwv+jTA0utUVVbrh+Jlrr1Fv0e56GGzAFOXN7dk/FviaDW8LHmK52DlcH4WP2n6gI8vN1aesBFgo9w==}
 
-  lucide-react@0.453.0:
-    resolution: {integrity: sha512-kL+RGZCcJi9BvJtzg2kshO192Ddy9hv3ij+cPrVPWSRzgCWCVazoQJxOjAwgK53NomL07HB7GPHW120FimjNhQ==}
+  lucide-react@0.454.0:
+    resolution: {integrity: sha512-hw7zMDwykCLnEzgncEEjHeA6+45aeEzRYuKHuyRSOPkhko+J3ySGjGIzu+mmMfDFG1vazHepMaYFYHbTFAZAAQ==}
     peerDependencies:
       react: ^16.5.1 || ^17.0.0 || ^18.0.0 || ^19.0.0-rc
 
@@ -2488,11 +2488,11 @@ packages:
       '@types/react':
         optional: true
 
-  react-resizable-panels@2.1.4:
-    resolution: {integrity: sha512-kzue8lsoSBdyyd2IfXLQMMhNujOxRoGVus+63K95fQqleGxTfvgYLTzbwYMOODeAHqnkjb3WV/Ks7f5+gDYZuQ==}
+  react-resizable-panels@2.1.6:
+    resolution: {integrity: sha512-oIqo/7pp2TsR+Dp1qZMr1l4RBDV4Zz/0HEG5zxliBJoHqqFnG0MbmFbk+5Q1VMGfPQ4uhXxefunLC1o7v38PDQ==}
     peerDependencies:
-      react: ^16.14.0 || ^17.0.0 || ^18.0.0
-      react-dom: ^16.14.0 || ^17.0.0 || ^18.0.0
+      react: ^16.14.0 || ^17.0.0 || ^18.0.0 || ^19.0.0 || ^19.0.0-rc
+      react-dom: ^16.14.0 || ^17.0.0 || ^18.0.0 || ^19.0.0 || ^19.0.0-rc
 
   react-router-dom@6.27.0:
     resolution: {integrity: sha512-+bvtFWMC0DgAFrfKXKG9Fc+BcXWRUO1aJIihbB79xaeq0v5UzfvnM5houGUm1Y461WVRcgAQ+Clh5rdb1eCx4g==}
@@ -2957,8 +2957,8 @@ packages:
     resolution: {integrity: sha512-rVksvsnNCdJ/ohGc6xgPwyN8eheCxsiLM8mxuE/t/mOVqJewPuO1miLpTHQiRgTKCLexL4MeAFVagts7HmNZ2Q==}
     engines: {node: '>=10'}
 
-  zustand@5.0.0:
-    resolution: {integrity: sha512-LE+VcmbartOPM+auOjCCLQOsQ05zUTp8RkgwRzefUk+2jISdMMFnxvyTjA4YNWr5ZGXYbVsEMZosttuxUBkojQ==}
+  zustand@5.0.1:
+    resolution: {integrity: sha512-pRET7Lao2z+n5R/HduXMio35TncTlSW68WsYBq2Lg1ASspsNGjpwLAsij3RpouyV6+kHMwwwzP0bZPD70/Jx/w==}
     engines: {node: '>=12.20.0'}
     peerDependencies:
       '@types/react': '>=18.0.0'
@@ -3943,11 +3943,11 @@ snapshots:
       - supports-color
       - typescript
 
-  '@tanstack/query-core@5.59.13': {}
+  '@tanstack/query-core@5.59.16': {}
 
-  '@tanstack/react-query@5.59.15(react@18.3.1)':
+  '@tanstack/react-query@5.59.16(react@18.3.1)':
     dependencies:
-      '@tanstack/query-core': 5.59.13
+      '@tanstack/query-core': 5.59.16
       react: 18.3.1
 
   '@tauri-apps/api@2.0.3': {}
@@ -4946,7 +4946,7 @@ snapshots:
     dependencies:
       yallist: 3.1.1
 
-  lucide-react@0.453.0(react@18.3.1):
+  lucide-react@0.454.0(react@18.3.1):
     dependencies:
       react: 18.3.1
 
@@ -5403,7 +5403,7 @@ snapshots:
     optionalDependencies:
       '@types/react': 18.3.12
 
-  react-resizable-panels@2.1.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1):
+  react-resizable-panels@2.1.6(react-dom@18.3.1(react@18.3.1))(react@18.3.1):
     dependencies:
       react: 18.3.1
       react-dom: 18.3.1(react@18.3.1)
@@ -5889,7 +5889,7 @@ snapshots:
 
   yocto-queue@0.1.0: {}
 
-  zustand@5.0.0(@types/react@18.3.12)(react@18.3.1):
+  zustand@5.0.1(@types/react@18.3.12)(react@18.3.1):
     optionalDependencies:
       '@types/react': 18.3.12
       react: 18.3.1
