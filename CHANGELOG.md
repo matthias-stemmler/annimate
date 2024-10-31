@@ -2,6 +2,10 @@
 
 ## [Unreleased] - (release date)
 
+### Changed
+
+- Decreased auto-scrolling acceleration when reordering columns.
+
 ## [1.2.0] - 2024-10-19
 
 ### Added

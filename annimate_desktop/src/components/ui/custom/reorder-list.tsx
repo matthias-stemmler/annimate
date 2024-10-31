@@ -1,3 +1,4 @@
+import { AutoScroller } from '@/components/ui/custom/auto-scroller';
 import {
   DndContext,
   DragEndEvent,
@@ -24,6 +25,7 @@ import { CSSProperties, ReactNode, useState } from 'react';
 import { createPortal } from 'react-dom';
 
 export type ReorderListProps<T> = {
+  autoScroller?: AutoScroller;
   disabled?: boolean;
   getId: (item: T) => string;
   idPrefix: string;
@@ -44,6 +46,7 @@ export type ReorderListContext = {
 };
 
 export const ReorderList = <T,>({
+  autoScroller,
   disabled,
   getId,
   idPrefix,
@@ -85,11 +88,13 @@ export const ReorderList = <T,>({
 
   return (
     <DndContext
-      autoScroll={{
-        // High acceleration works around a bug in WebKit
-        // where auto scroll causes item rendering and scroll position to get out of sync
-        acceleration: 2000,
-      }}
+      autoScroll={
+        autoScroller === undefined
+          ? false
+          : {
+              canScroll: autoScroller.canScroll,
+            }
+      }
       collisionDetection={closestCenter}
       modifiers={[restrictToVerticalAxis]}
       onDragEnd={handleDragEnd}

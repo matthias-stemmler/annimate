@@ -6,6 +6,7 @@ import { ColumnProps } from '@/components/main-page/columns/props';
 import { QueryNodesDisplay } from '@/components/main-page/columns/query-nodes-display';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
+import { AutoScroller } from '@/components/ui/custom/auto-scroller';
 import { ReorderList } from '@/components/ui/custom/reorder-list';
 import { Select } from '@/components/ui/custom/select';
 import { Input } from '@/components/ui/input';
@@ -20,6 +21,7 @@ const CONTEXT_MIN = 0;
 const CONTEXT_MAX = 999;
 
 export const MatchInContextColumn: FC<ColumnProps<'match_in_context'>> = ({
+  autoScroller,
   data,
   onChange,
 }) => {
@@ -55,6 +57,7 @@ export const MatchInContextColumn: FC<ColumnProps<'match_in_context'>> = ({
         <Label>Query node filter</Label>
 
         <PrimaryNodesSelect
+          autoScroller={autoScroller}
           onReorder={(reorder: (nodeRefs: QueryNodeRef[]) => QueryNodeRef[]) =>
             onChange({ type: 'reorder_primary_node_refs', reorder })
           }
@@ -199,6 +202,7 @@ const ContextInput: FC<ContextInputProps> = ({
 };
 
 type PrimaryNodesSelectProps = {
+  autoScroller?: AutoScroller;
   onReorder?: (reorder: (nodeRefs: QueryNodeRef[]) => QueryNodeRef[]) => void;
   onToggle?: (nodeRef: QueryNodeRef) => void;
   primaryNodeRefs: QueryNodeRef[];
@@ -206,6 +210,7 @@ type PrimaryNodesSelectProps = {
 };
 
 const PrimaryNodesSelect: FC<PrimaryNodesSelectProps> = ({
+  autoScroller,
   onReorder,
   onToggle,
   primaryNodeRefs,
@@ -231,6 +236,7 @@ const PrimaryNodesSelect: FC<PrimaryNodesSelectProps> = ({
   return (
     <div>
       <ReorderList
+        autoScroller={autoScroller}
         disabled={disabled}
         getId={getNodeRefId}
         idPrefix="primary-nodes"
@@ -258,7 +264,6 @@ const PrimaryNodesSelect: FC<PrimaryNodesSelectProps> = ({
           >
             <Button
               className={cn('h-5 min-w-5 p-0 hover:bg-inherit cursor-grab', {
-                'focus-visible:ring-transparent': isPlaceholder,
                 'cursor-grabbing': isOverlay || isPlaceholder,
               })}
               disabled={reorderDisabled}
