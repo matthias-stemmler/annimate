@@ -12,7 +12,7 @@ const ScrollArea = React.forwardRef<
           typeof ScrollAreaPrimitive.ScrollAreaScrollbar
         >['orientation']
       | 'both';
-    viewportRef?: React.RefObject<HTMLDivElement>;
+    viewportRef?: React.Ref<HTMLDivElement>;
   }
 >(
   (

@@ -5,6 +5,10 @@ import { MatchInContextColumn } from '@/components/main-page/columns/match-in-co
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import {
+  AutoScroller,
+  useAutoScroller,
+} from '@/components/ui/custom/auto-scroller';
+import {
   ReorderList,
   ReorderListContext,
 } from '@/components/ui/custom/reorder-list';
@@ -55,6 +59,8 @@ export const ExportColumnList: FC = () => {
   const disabled = isExporting;
   const reorderDisabled = disabled || exportColumns.length <= 1;
 
+  const autoScroller = useAutoScroller();
+
   return (
     <div className="flex-1 overflow-hidden pt-1 pr-1 flex flex-col gap-2">
       <div className="flex justify-between items-end">
@@ -97,9 +103,11 @@ export const ExportColumnList: FC = () => {
         <ScrollArea
           className="flex-1 p-3 border rounded-md bg-gray-100 dark:bg-gray-800"
           orientation="both"
+          viewportRef={autoScroller.ref}
         >
           <div className="flex flex-col gap-4 mb-1">
             <ReorderList
+              autoScroller={autoScroller}
               disabled={reorderDisabled}
               getId={getExportColumnId}
               idPrefix="export-columns"
@@ -111,6 +119,7 @@ export const ExportColumnList: FC = () => {
               }
               renderItem={(item, context) => (
                 <ExportColumnListItem
+                  autoScroller={autoScroller}
                   context={context}
                   disabled={disabled}
                   item={item}
@@ -126,6 +135,7 @@ export const ExportColumnList: FC = () => {
 };
 
 type ExportColumnListItemProps = {
+  autoScroller?: AutoScroller;
   context: ReorderListContext;
   disabled: boolean;
   item: ExportColumnItem;
@@ -133,6 +143,7 @@ type ExportColumnListItemProps = {
 };
 
 const ExportColumnListItem: FC<ExportColumnListItemProps> = ({
+  autoScroller,
   context: {
     dragHandleAttributes,
     dragHandleListeners,
@@ -237,6 +248,7 @@ const ExportColumnListItem: FC<ExportColumnListItemProps> = ({
           )}
           {item.type === 'match_in_context' && (
             <MatchInContextColumn
+              autoScroller={autoScroller}
               data={item}
               onChange={(payload) =>
                 updateExportColumn(item.id, {
