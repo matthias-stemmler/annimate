@@ -80,4 +80,13 @@
   #root {
     @apply h-full;
   }
+
+  /*
+    Workaround for a bug in @radix-ui/react-presence@1.1.1 (via @radix-ui/react-dialog@1.1.2)
+    that causes an occasional flashing of dialogs during their fade-out animation.
+    This seems to have come in through https://github.com/radix-ui/primitives/pull/1849.
+  */
+  [role='dialog'] {
+    @apply fill-mode-forwards;
+  }
 }

@@ -6,6 +6,10 @@
 
 - Decreased auto-scrolling acceleration when reordering columns.
 
+### Fixed
+
+- Fixed occasional flashing of dialogs during fade-out. 
+
 ## [1.2.0] - 2024-10-19
 
 ### Added
