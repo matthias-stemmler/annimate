@@ -17,8 +17,8 @@ export const ManagePage: FC = () => {
   >();
 
   return (
-    <div className="h-full overflow-hidden flex flex-col">
-      <header className="h-10 my-3 relative flex items-center justify-center">
+    <div className="flex h-full flex-col overflow-hidden">
+      <header className="relative my-3 flex h-10 items-center justify-center">
         <Tooltip>
           <TooltipTrigger asChild>
             <Button

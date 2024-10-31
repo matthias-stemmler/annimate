@@ -20,7 +20,7 @@ export const Window: FC = () => {
     useDialogState();
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex h-full flex-col">
       {window.__ANNIMATE__.updateEnabled && <UpdateAppTrigger />}
 
       <Dialog onOpenChange={setAboutDialogOpen} open={aboutDialogOpen}>
@@ -50,7 +50,7 @@ export const Window: FC = () => {
                   );
                 }}
               >
-                <ExternalLink className="h-4 w-4 mr-2" />
+                <ExternalLink className="mr-2 h-4 w-4" />
                 AQL operator reference
               </MenubarItem>
 

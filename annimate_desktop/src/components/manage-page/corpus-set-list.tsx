@@ -34,8 +34,8 @@ export const CorpusSetList: FC<CorpusSetListProps> = ({
   onSelectCorpusSet,
   selectedCorpusSet,
 }) => (
-  <div className="h-full flex flex-col gap-6">
-    <div className="border rounded-md overflow-hidden">
+  <div className="flex h-full flex-col gap-6">
+    <div className="overflow-hidden rounded-md border">
       <SelectableRow
         caption="All corpora"
         isSelected={selectedCorpusSet === undefined}
@@ -43,7 +43,7 @@ export const CorpusSetList: FC<CorpusSetListProps> = ({
           onSelectCorpusSet?.(undefined);
         }}
       >
-        <div className="flex items-center mr-28">
+        <div className="mr-28 flex items-center">
           <Tooltip>
             <TooltipTrigger tabIndex={-1}>
               <Badge className="mx-4" variant="secondary">
@@ -59,16 +59,16 @@ export const CorpusSetList: FC<CorpusSetListProps> = ({
       </SelectableRow>
     </div>
 
-    <div className="flex-1 h-0 flex flex-col gap-2">
-      <div className="flex justify-between items-end">
-        <Label className="truncate leading-5 mb-2">Corpus sets</Label>
+    <div className="flex h-0 flex-1 flex-col gap-2">
+      <div className="flex items-end justify-between">
+        <Label className="mb-2 truncate leading-5">Corpus sets</Label>
 
         <AddCorpusSetTrigger onCorpusSetAdded={onSelectCorpusSet} />
       </div>
 
-      <div className="flex-1 border rounded-md overflow-hidden">
+      <div className="flex-1 overflow-hidden rounded-md border">
         {corpusSetsWithCount.length === 0 ? (
-          <p className="text-center text-muted-foreground mt-4">
+          <p className="mt-4 text-center text-muted-foreground">
             No corpus sets available
           </p>
         ) : (
@@ -131,7 +131,7 @@ const AddCorpusSetTrigger: FC<AddCorpusSetTriggerProps> = ({
     <Dialog onOpenChange={setOpen} open={open}>
       <DialogTrigger asChild>
         <Button className="ml-1" variant="secondary">
-          <Plus className="h-4 w-4 mr-2" />
+          <Plus className="mr-2 h-4 w-4" />
           Add corpus set
         </Button>
       </DialogTrigger>
@@ -291,14 +291,14 @@ const SelectableRow: FC<SelectableRowProps> = ({
 }) => (
   <div
     className={cn(
-      'flex gap-2 items-stretch justify-between shadow-[0_1px] shadow-gray-200 dark:shadow-gray-800 pl-4 pr-3 py-1',
+      'flex items-stretch justify-between gap-2 py-1 pl-4 pr-3 shadow-[0_1px] shadow-gray-200 dark:shadow-gray-800',
       {
-        'border-l-gray-400 border-l-8 pl-2': isSelected,
+        'border-l-8 border-l-gray-400 pl-2': isSelected,
       },
     )}
   >
     <Button
-      className={cn('block w-0 truncate leading-5 text-left flex-1 py-2', {
+      className={cn('block w-0 flex-1 truncate py-2 text-left leading-5', {
         'font-bold': isSelected,
       })}
       onClick={onClick}

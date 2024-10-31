@@ -135,7 +135,7 @@ const ContextInput: FC<ContextInputProps> = ({
   const rightValue = valueRightOverride ?? value;
 
   return (
-    <div className="flex gap-2 items-end">
+    <div className="flex items-end gap-2">
       <ColumnConfigItem>
         <Label htmlFor={leftInputId}>Left context</Label>
 
@@ -154,7 +154,7 @@ const ContextInput: FC<ContextInputProps> = ({
         />
       </ColumnConfigItem>
 
-      <div className="flex items-center h-8">
+      <div className="flex h-8 items-center">
         <Button
           className="w-8"
           disabled={disabled}
@@ -163,13 +163,13 @@ const ContextInput: FC<ContextInputProps> = ({
           variant="link"
         >
           <div
-            className={cn('border border-black w-2', {
+            className={cn('w-2 border border-black', {
               invisible: !isLinked,
             })}
           />
           {isLinked ? <Link2 /> : <Unlink2 />}
           <div
-            className={cn('border border-black w-2', {
+            className={cn('w-2 border border-black', {
               invisible: !isLinked,
             })}
           />
@@ -263,7 +263,7 @@ const PrimaryNodesSelect: FC<PrimaryNodesSelectProps> = ({
             style={style}
           >
             <Button
-              className={cn('h-5 min-w-5 p-0 hover:bg-inherit cursor-grab', {
+              className={cn('h-5 min-w-5 cursor-grab p-0 hover:bg-inherit', {
                 'cursor-grabbing': isOverlay || isPlaceholder,
               })}
               disabled={reorderDisabled}
@@ -323,7 +323,7 @@ const QueryNodesSelectItem: FC<QueryNodesSelectItemProps> = ({
     <Label
       htmlFor={id}
       className={cn(
-        'overflow-hidden cursor-pointer flex items-center gap-2 p-1 has-[:disabled]:cursor-not-allowed has-[:disabled]:opacity-70',
+        'flex cursor-pointer items-center gap-2 overflow-hidden p-1 has-[:disabled]:cursor-not-allowed has-[:disabled]:opacity-70',
         className,
       )}
     >

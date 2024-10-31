@@ -72,7 +72,7 @@ const SelectListItem: FC<SelectListItemProps> = ({
     <li aria-label={label} className={className}>
       <Label
         htmlFor={id}
-        className="cursor-pointer flex items-center gap-2 p-1 hover:bg-accent has-[:disabled]:cursor-not-allowed has-[:disabled]:opacity-70"
+        className="flex cursor-pointer items-center gap-2 p-1 hover:bg-accent has-[:disabled]:cursor-not-allowed has-[:disabled]:opacity-70"
       >
         <Checkbox
           id={id}

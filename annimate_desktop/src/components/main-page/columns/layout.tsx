@@ -2,7 +2,7 @@ import { cn } from '@/lib/utils';
 import { FC, PropsWithChildren } from 'react';
 
 export const ColumnConfigGrid: FC<PropsWithChildren> = ({ children }) => (
-  <div className="grid grid-cols-2 gap-x-4 gap-y-6 mb-2">{children}</div>
+  <div className="mb-2 grid grid-cols-2 gap-x-4 gap-y-6">{children}</div>
 );
 
 export type ColumnConfigItemProps = PropsWithChildren<{

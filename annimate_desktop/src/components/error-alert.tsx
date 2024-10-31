@@ -9,7 +9,7 @@ export type ErrorMessageProps = {
 };
 
 export const ErrorAlert: FC<ErrorMessageProps> = ({ message }) => (
-  <div className="flex items-center h-full">
+  <div className="flex h-full items-center">
     <Alert variant="destructive" className="mx-10">
       <AlertCircle className="h-4 w-4" />
       <AlertTitle>Error</AlertTitle>

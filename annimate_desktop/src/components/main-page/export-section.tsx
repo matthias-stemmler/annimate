@@ -3,10 +3,10 @@ import { ExportFormatSelect } from '@/components/main-page/export-format-select'
 import { ExportTrigger } from '@/components/main-page/export-trigger';
 
 export const ExportSection = () => (
-  <div className="h-full flex flex-col justify-between gap-2">
+  <div className="flex h-full flex-col justify-between gap-2">
     <ExportColumnList />
 
-    <div className="flex justify-between items-end gap-8 mt-4 pr-1">
+    <div className="mt-4 flex items-end justify-between gap-8 pr-1">
       <ExportFormatSelect />
       <ExportTrigger />
     </div>

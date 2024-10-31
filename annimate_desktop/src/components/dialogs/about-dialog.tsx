@@ -45,10 +45,10 @@ export const AboutDialog = () => {
         <DialogTitle className="mb-4">About Annimate</DialogTitle>
       </DialogHeader>
 
-      <div className="text-sm overflow-hidden">
+      <div className="overflow-hidden text-sm">
         <div
           ref={logoRef}
-          className="w-36 mx-auto mb-8"
+          className="mx-auto mb-8 w-36"
           onClick={triggerLogoAnimation}
         >
           <AnnimateLogo />
@@ -56,13 +56,13 @@ export const AboutDialog = () => {
 
         <div className="mb-4">
           <Button
-            className="min-w-32 h-4 p-0"
+            className="h-4 min-w-32 p-0"
             onClick={() => {
               shellOpen('https://github.com/matthias-stemmler/annimate');
             }}
             variant="link"
           >
-            <GithubLogo className="w-4 h-full mr-2" />
+            <GithubLogo className="mr-2 h-full w-4" />
             Annimate v{window.__ANNIMATE__.versionInfo.annimateVersion} by
             Matthias Stemmler
           </Button>
@@ -78,7 +78,7 @@ export const AboutDialog = () => {
             }}
             variant="link"
           >
-            <GithubLogo className="w-4 h-full mr-2" />
+            <GithubLogo className="mr-2 h-full w-4" />
             graphANNIS v{window.__ANNIMATE__.versionInfo.graphannisVersion} by
             Thomas Krause
           </Button>
@@ -90,7 +90,7 @@ export const AboutDialog = () => {
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
-                className="flex gap-2 w-full h-5 p-0"
+                className="flex h-5 w-full gap-2 p-0"
                 disabled={dbDir === undefined}
                 onClick={async () => {
                   if (dbDir !== undefined) {
@@ -99,8 +99,8 @@ export const AboutDialog = () => {
                 }}
                 variant="link"
               >
-                <Folder className="w-4 h-full" />
-                <div className="w-0 grow text-left truncate">
+                <Folder className="h-full w-4" />
+                <div className="w-0 grow truncate text-left">
                   {dbDir ?? 'Loading ...'}
                 </div>
               </Button>

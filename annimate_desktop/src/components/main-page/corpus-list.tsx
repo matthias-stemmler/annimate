@@ -26,7 +26,7 @@ export const CorpusList: FC = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="flex flex-col gap-2 h-full">
+    <div className="flex h-full flex-col gap-2">
       <div className="flex items-center gap-2">
         <CorpusSetSelect />
 
@@ -100,11 +100,11 @@ const CorpusNamesSelect: FC = () => {
   }
 
   return corpusNames.length === 0 ? (
-    <div className="text-center text-muted-foreground mt-4">
+    <div className="mt-4 text-center text-muted-foreground">
       <p>No corpora available</p>
       <p>
         Import corpora by clicking on the{' '}
-        <Settings className="w-5 h-4 inline align-baseline translate-y-0.5" />{' '}
+        <Settings className="inline h-4 w-5 translate-y-0.5 align-baseline" />{' '}
         button
       </p>
     </div>
