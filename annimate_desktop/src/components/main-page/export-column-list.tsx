@@ -62,14 +62,14 @@ export const ExportColumnList: FC = () => {
   const autoScroller = useAutoScroller();
 
   return (
-    <div className="flex-1 overflow-hidden pt-1 pr-1 flex flex-col gap-2">
-      <div className="flex justify-between items-end">
-        <Label className="mr-2 mb-2">Columns</Label>
+    <div className="flex flex-1 flex-col gap-2 overflow-hidden pr-1 pt-1">
+      <div className="flex items-end justify-between">
+        <Label className="mb-2 mr-2">Columns</Label>
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button disabled={disabled} variant="outline">
-              <Plus className="h-4 w-4 mr-2" /> Add column
+              <Plus className="mr-2 h-4 w-4" /> Add column
             </Button>
           </DropdownMenuTrigger>
 
@@ -96,16 +96,16 @@ export const ExportColumnList: FC = () => {
       </div>
 
       {exportColumns.length === 0 ? (
-        <div className="border rounded-md bg-gray-100 dark:bg-gray-800 text-gray-500 flex-1 flex justify-center items-center px-4">
+        <div className="flex flex-1 items-center justify-center rounded-md border bg-gray-100 px-4 text-gray-500 dark:bg-gray-800">
           Please add a column to be exported.
         </div>
       ) : (
         <ScrollArea
-          className="flex-1 p-3 border rounded-md bg-gray-100 dark:bg-gray-800"
+          className="flex-1 rounded-md border bg-gray-100 p-3 dark:bg-gray-800"
           orientation="both"
           viewportRef={autoScroller.ref}
         >
-          <div className="flex flex-col gap-4 mb-1">
+          <div className="mb-1 flex flex-col gap-4">
             <ReorderList
               autoScroller={autoScroller}
               disabled={reorderDisabled}
@@ -190,10 +190,10 @@ const ExportColumnListItem: FC<ExportColumnListItemProps> = ({
       }}
       style={style}
     >
-      <CardContent className="pl-4 pr-3 py-0 flex items-center gap-4">
-        <div className="grow py-2 flex flex-col gap-4">
+      <CardContent className="flex items-center gap-4 py-0 pl-4 pr-3">
+        <div className="flex grow flex-col gap-4 py-2">
           <p
-            className={cn('font-semibold text-sm py-2 cursor-default', {
+            className={cn('cursor-default py-2 text-sm font-semibold', {
               'text-column-number-800 dark:text-column-number-600':
                 item.type === 'number',
               'text-column-anno-corpus-800 dark:text-column-anno-corpus-600':
@@ -292,7 +292,7 @@ const ExportColumnListItem: FC<ExportColumnListItemProps> = ({
           </Tooltip>
 
           <Button
-            className={cn('h-5 w-5 p-0 hover:bg-inherit cursor-grab', {
+            className={cn('h-5 w-5 cursor-grab p-0 hover:bg-inherit', {
               'focus-visible:ring-transparent': isPlaceholder,
               'cursor-grabbing': isOverlay || isPlaceholder,
             })}

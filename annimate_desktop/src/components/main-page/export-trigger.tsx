@@ -40,9 +40,9 @@ export const ExportTrigger = () => {
   return (
     <div className="flex-1">
       {isExporting ? (
-        <div className="flex items-end gap-8 mb-1">
+        <div className="mb-1 flex items-end gap-8">
           <div className="grow">
-            <div className="flex justify-between mb-1">
+            <div className="mb-1 flex justify-between">
               <p>
                 {matchCount === undefined
                   ? 'Searching ...'
@@ -80,7 +80,7 @@ export const ExportTrigger = () => {
         </div>
       ) : (
         <Button
-          className="w-full mt-2"
+          className="mt-2 w-full"
           disabled={!canExport}
           onClick={async () => {
             const exportFormat = getExportFormat();
@@ -114,7 +114,7 @@ export const ExportTrigger = () => {
                             }
                             variant="link"
                           >
-                            <Folder className="h-4 w-4 mr-2" />
+                            <Folder className="mr-2 h-4 w-4" />
                             Open folder
                           </Button>
 
@@ -123,7 +123,7 @@ export const ExportTrigger = () => {
                             onClick={() => shellOpen(outputFile)}
                             variant="link"
                           >
-                            <File className="h-4 w-4 mr-2" />
+                            <File className="mr-2 h-4 w-4" />
                             Open file
                           </Button>
                         </div>

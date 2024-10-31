@@ -35,7 +35,7 @@ export const DeleteCorpusSetDialog: FC<DeleteCorpusSetDialogProps> = ({
       </DialogHeader>
 
       {corpusCount === 0 ? (
-        <div className="overflow-hidden mb-4">
+        <div className="mb-4 overflow-hidden">
           <span className="mr-1">
             Are you sure you want to delete the corpus set
           </span>{' '}
@@ -52,12 +52,12 @@ export const DeleteCorpusSetDialog: FC<DeleteCorpusSetDialogProps> = ({
           </div>
 
           <RadioGroup
-            className="gap-0 mb-4"
+            className="mb-4 gap-0"
             onValueChange={setOption}
             value={option}
           >
             <div
-              className="flex items-center gap-2 py-1 cursor-pointer"
+              className="flex cursor-pointer items-center gap-2 py-1"
               onClick={() => {
                 setOption('only-set');
               }}
@@ -66,14 +66,14 @@ export const DeleteCorpusSetDialog: FC<DeleteCorpusSetDialogProps> = ({
 
               <Label
                 htmlFor={onlySetOptionId}
-                className="cursor-pointer text-md"
+                className="text-md cursor-pointer"
               >
                 Only delete set, keep {corpusOrCorpora}
               </Label>
             </div>
 
             <div
-              className="flex items-center gap-2 py-1 cursor-pointer"
+              className="flex cursor-pointer items-center gap-2 py-1"
               onClick={() => {
                 setOption('also-corpora');
               }}
@@ -82,7 +82,7 @@ export const DeleteCorpusSetDialog: FC<DeleteCorpusSetDialogProps> = ({
 
               <Label
                 htmlFor={alsoCorporaOptionId}
-                className="cursor-pointer text-md"
+                className="text-md cursor-pointer"
               >
                 Delete set and {corpusOrCorpora}
               </Label>

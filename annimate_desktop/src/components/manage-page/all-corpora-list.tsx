@@ -24,21 +24,21 @@ export const AllCorporaList: FC<AllCorporaListProps> = ({ corpusNames }) => {
   const { toast } = useToast();
 
   return (
-    <div className="h-full flex flex-col gap-2">
-      <Label className="truncate leading-5 mb-2">All corpora</Label>
+    <div className="flex h-full flex-col gap-2">
+      <Label className="mb-2 truncate leading-5">All corpora</Label>
 
-      <div className="flex-1 border rounded-md overflow-hidden">
+      <div className="flex-1 overflow-hidden rounded-md border">
         {corpusNames.length === 0 ? (
-          <p className="text-center text-muted-foreground mt-4">
+          <p className="mt-4 text-center text-muted-foreground">
             No corpora available
           </p>
         ) : (
-          <ScrollArea className="h-full ">
+          <ScrollArea className="h-full">
             {corpusNames.map((corpusName) => (
               <div
                 key={corpusName}
                 className={
-                  'flex gap-2 items-center justify-between shadow-[0_1px] shadow-gray-200 dark:shadow-gray-800 pl-4 pr-3 py-1'
+                  'flex items-center justify-between gap-2 py-1 pl-4 pr-3 shadow-[0_1px] shadow-gray-200 dark:shadow-gray-800'
                 }
               >
                 <Label className="w-0 flex-1 truncate leading-5">

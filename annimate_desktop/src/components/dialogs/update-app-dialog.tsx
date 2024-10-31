@@ -66,10 +66,10 @@ export const UpdateAppDialog: FC<UpdateAppDialogProps> = ({
       </div>
     </div>
 
-    <div className="h-96 flex flex-col gap-6">
-      <ScrollArea className="h-full border rounded-md">
+    <div className="flex h-96 flex-col gap-6">
+      <ScrollArea className="h-full rounded-md border">
         <Markdown
-          className="prose prose-sm dark:prose-invert prose-a:text-blue-800 cursor-text select-text m-3"
+          className="prose prose-sm m-3 cursor-text select-text dark:prose-invert prose-a:text-blue-800"
           components={{ a: ExternalAnchor }}
         >
           {update.notes}
@@ -78,7 +78,7 @@ export const UpdateAppDialog: FC<UpdateAppDialogProps> = ({
 
       {status.type !== 'idle' && (
         <div className="mb-4">
-          <div className="flex justify-between mb-2">
+          <div className="mb-2 flex justify-between">
             {status.type === 'downloading' && <p>Downloading &hellip;</p>}
             {status.type === 'installing' && <p>Installing &hellip;</p>}
             {status.type === 'failed' && (

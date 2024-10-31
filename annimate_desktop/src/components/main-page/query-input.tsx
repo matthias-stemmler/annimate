@@ -46,9 +46,9 @@ export const QueryInput: FC = () => {
   const isInvalid = validationResult?.type === 'invalid';
 
   return (
-    <div className="h-full flex flex-col gap-2">
-      <div className="flex justify-between items-end">
-        <Label className="mr-2 mb-2" htmlFor={textAreaId}>
+    <div className="flex h-full flex-col gap-2">
+      <div className="flex items-end justify-between">
+        <Label className="mb-2 mr-2" htmlFor={textAreaId}>
           Query
         </Label>
 
@@ -70,7 +70,7 @@ export const QueryInput: FC = () => {
           autoComplete="off"
           autoCorrect="off"
           className={cn(
-            'font-mono h-full pr-9 resize-none focus:bg-background dark:focus:bg-background',
+            'h-full resize-none pr-9 font-mono focus:bg-background dark:focus:bg-background',
             {
               'bg-red-50 dark:bg-red-950': isInvalid,
             },
@@ -93,7 +93,7 @@ export const QueryInput: FC = () => {
             open={disabled ? false : undefined}
           >
             <TooltipTrigger
-              className="absolute top-2 right-2 disabled:cursor-not-allowed disabled:opacity-70"
+              className="absolute right-2 top-2 disabled:cursor-not-allowed disabled:opacity-70"
               disabled={disabled}
               onMouseDown={(event) => {
                 event?.preventDefault();
@@ -185,7 +185,7 @@ type LocationDisplayProps = {
 const LocationDisplay: FC<LocationDisplayProps> = ({
   location: { start, end },
 }) => (
-  <p className="font-mono italic mr-4">
+  <p className="mr-4 font-mono italic">
     {start.line}:{start.column}
     {end !== null && (
       <>

@@ -143,7 +143,7 @@ export const ImportDialog: FC<ImportDialogProps> = ({
 
       {canAddToSet && addToSetActive && (
         <div>
-          <p className="mt-1 mb-4">
+          <p className="mb-4 mt-1">
             Add the{' '}
             {result.corpusNames.length === 1 ? (
               <>
@@ -161,7 +161,7 @@ export const ImportDialog: FC<ImportDialogProps> = ({
           <RadioGroup onValueChange={setOption} value={option}>
             <div
               className={cn(
-                'cursor-pointer shadow-[0_0_0_1px] shadow-border rounded-md px-4 py-7 mb-4',
+                'mb-4 cursor-pointer rounded-md px-4 py-7 shadow-[0_0_0_1px] shadow-border',
                 {
                   'shadow-[0_0_0_2px] shadow-gray-400': option === 'none',
                 },
@@ -170,18 +170,18 @@ export const ImportDialog: FC<ImportDialogProps> = ({
                 setOption('none');
               }}
             >
-              <div className="flex items-center gap-3 mb-2">
+              <div className="mb-2 flex items-center gap-3">
                 <RadioGroupItem id={noneOptionId} value="none" />
 
                 <Label
                   htmlFor={noneOptionId}
-                  className="cursor-pointer text-md"
+                  className="text-md cursor-pointer"
                 >
                   Do not add to a set
                 </Label>
               </div>
 
-              <div className="flex flex-col ml-7 text-sm italic">
+              <div className="ml-7 flex flex-col text-sm italic">
                 The {result.corpusNames.length === 1 ? 'corpus' : 'corpora'}{' '}
                 will be available under &ldquo;All corpora&rdquo; and can be
                 added to a set later.
@@ -190,7 +190,7 @@ export const ImportDialog: FC<ImportDialogProps> = ({
 
             <div
               className={cn(
-                'cursor-pointer shadow-[0_0_0_1px] shadow-border rounded-md p-4 pb-6 mb-3',
+                'mb-3 cursor-pointer rounded-md p-4 pb-6 shadow-[0_0_0_1px] shadow-border',
                 {
                   'shadow-[0_0_0_2px] shadow-gray-400': option === 'new',
                 },
@@ -199,12 +199,12 @@ export const ImportDialog: FC<ImportDialogProps> = ({
                 setOption('new');
               }}
             >
-              <div className="flex items-center gap-3 mb-1">
+              <div className="mb-1 flex items-center gap-3">
                 <RadioGroupItem id={newOptionId} className="peer" value="new" />
 
                 <Label
                   htmlFor={newOptionId}
-                  className="cursor-pointer grow text-md peer-disabled:opacity-50"
+                  className="text-md grow cursor-pointer peer-disabled:opacity-50"
                 >
                   Add to a new set:
                 </Label>
@@ -231,7 +231,7 @@ export const ImportDialog: FC<ImportDialogProps> = ({
                   )}
               </div>
 
-              <div className="flex flex-col gap-2 ml-7">
+              <div className="ml-7 flex flex-col gap-2">
                 <Input
                   className="disabled:pointer-events-none"
                   disabled={option !== 'new'}
@@ -248,7 +248,7 @@ export const ImportDialog: FC<ImportDialogProps> = ({
 
             <div
               className={cn(
-                'cursor-pointer shadow-[0_0_0_1px] shadow-border rounded-md p-4 pb-6 mb-4 text-md',
+                'text-md mb-4 cursor-pointer rounded-md p-4 pb-6 shadow-[0_0_0_1px] shadow-border',
                 {
                   'cursor-not-allowed': noSetsAvailable,
                   'shadow-[0_0_0_2px] shadow-gray-400': option === 'existing',
@@ -260,7 +260,7 @@ export const ImportDialog: FC<ImportDialogProps> = ({
                 }
               }}
             >
-              <div className="flex items-center gap-3 mb-1">
+              <div className="mb-1 flex items-center gap-3">
                 <RadioGroupItem
                   id={existingOptionId}
                   className="peer"
@@ -270,13 +270,13 @@ export const ImportDialog: FC<ImportDialogProps> = ({
 
                 <Label
                   htmlFor={existingOptionId}
-                  className="cursor-pointer text-md peer-disabled:opacity-50"
+                  className="text-md cursor-pointer peer-disabled:opacity-50"
                 >
                   Add to an existing set:
                 </Label>
               </div>
 
-              <div className="flex flex-col ml-7">
+              <div className="ml-7 flex flex-col">
                 <Select
                   className="disabled:pointer-events-none"
                   disabled={option !== 'existing'}
@@ -397,9 +397,9 @@ const ImportStatusDisplay = forwardRef<
 
     return (
       <div hidden={!active}>
-        <div className="flex items-end gap-8 mb-4">
+        <div className="mb-4 flex items-end gap-8">
           <div className="grow">
-            <div className="flex justify-between mb-1">
+            <div className="mb-1 flex justify-between">
               <p className="w-0 grow-[2] truncate">
                 {(() => {
                   if (result?.type === 'failed') {
@@ -447,7 +447,7 @@ const ImportStatusDisplay = forwardRef<
         </div>
 
         <Tabs defaultValue="status">
-          <TabsList className="w-full grid grid-cols-2 mb-2">
+          <TabsList className="mb-2 grid w-full grid-cols-2">
             <TabsTrigger ref={statusTabRef} value="status">
               Status
             </TabsTrigger>
@@ -487,7 +487,7 @@ const ImportStatusDisplay = forwardRef<
           <TabsContent
             // Use `visibility: hidden` instead of `display: none`
             // because WebKit would otherwise reset the scroll position
-            className="data-[state=inactive]:invisible -mt-80"
+            className="-mt-80 data-[state=inactive]:invisible"
             forceMount
             tabIndex={-1}
             value="messages"
@@ -509,7 +509,7 @@ const CorporaStatusDisplay: FC<CorporaStatusDisplayProps> = ({
 }) => {
   if (corporaStatus?.length === 0) {
     return (
-      <div className="w-full h-80 border rounded-md text-gray-500 flex justify-center items-center px-4">
+      <div className="flex h-80 w-full items-center justify-center rounded-md border px-4 text-gray-500">
         No importable corpora found
       </div>
     );
@@ -518,8 +518,8 @@ const CorporaStatusDisplay: FC<CorporaStatusDisplayProps> = ({
   return (
     <div className="flex">
       <div className="w-0 flex-1">
-        <ScrollArea className="h-80 border rounded-md p-3">
-          <div className="mt-1 mr-1">
+        <ScrollArea className="h-80 rounded-md border p-3">
+          <div className="mr-1 mt-1">
             {(corporaStatus ?? []).map((corpusStatus, index) => (
               <CorpusStatusDisplay key={index} corpusStatus={corpusStatus} />
             ))}
@@ -543,10 +543,10 @@ const CorpusStatusDisplay: FC<CorpusStatusDisplayProps> = ({
 
       <CollapsibleTrigger asChild>
         <Button
-          className="flex-1 w-0 flex justify-between items-center pl-2 h-8"
+          className="flex h-8 w-0 flex-1 items-center justify-between pl-2"
           variant="ghost"
         >
-          <div className="flex-1 w-0 flex text-left">
+          <div className="flex w-0 flex-1 text-left">
             <span className="truncate">
               {corpusStatus.type === 'finished' &&
               corpusStatus.result.type === 'imported'
@@ -555,17 +555,17 @@ const CorpusStatusDisplay: FC<CorpusStatusDisplayProps> = ({
             </span>
           </div>
 
-          <ChevronsUpDown className="h-4 w-4 ml-2" />
+          <ChevronsUpDown className="ml-2 h-4 w-4" />
         </Button>
       </CollapsibleTrigger>
     </div>
 
-    <CollapsibleContent className="text-sm px-8 my-1">
+    <CollapsibleContent className="my-1 px-8 text-sm">
       {corpusStatus.type === 'finished' &&
         corpusStatus.result.type === 'failed' &&
         !corpusStatus.result.cancelled && (
-          <div className="w-full flex my-1">
-            <p className="w-0 overflow-hidden flex-1 text-destructive">
+          <div className="my-1 flex w-full">
+            <p className="w-0 flex-1 overflow-hidden text-destructive">
               {corpusStatus.result.message}
             </p>
           </div>
@@ -596,8 +596,8 @@ const CorpusStatusIcon: FC<CorpusStatusIconProps> = ({ corpusStatus }) =>
     </Tooltip>
   ) : (
     {
-      idle: <div className="h-4 w-4 mx-1" />,
-      pending: <Spinner className="h-4 w-4 mx-1" />,
+      idle: <div className="mx-1 h-4 w-4" />,
+      pending: <Spinner className="mx-1 h-4 w-4" />,
       finished: <CheckCircle2 className="h-6 w-6 fill-green-700 text-white" />,
     }[corpusStatus.type]
   );
@@ -608,7 +608,7 @@ type CorpusTraceDisplayProps = {
 
 const CorpusTraceDisplay: FC<CorpusTraceDisplayProps> = ({ trace }) => (
   <ScrollArea
-    className="w-full border rounded-md p-1 pb-2"
+    className="w-full rounded-md border p-1 pb-2"
     orientation="horizontal"
   >
     <div className="flex flex-col gap-1">
@@ -655,9 +655,9 @@ const MessagesDisplay: FC<MessagesDisplayProps> = ({ messages }) => {
 
   return (
     <div className="flex">
-      <div className="w-0 flex-1 relative">
+      <div className="relative w-0 flex-1">
         <ScrollArea
-          className="h-80 border rounded-md p-3"
+          className="h-80 rounded-md border p-3"
           onScroll={() => {
             if (isScrolledToBottom(scrollAreaViewportRef)) {
               setAutoscroll(true);
@@ -669,7 +669,7 @@ const MessagesDisplay: FC<MessagesDisplayProps> = ({ messages }) => {
           orientation="both"
           viewportRef={scrollAreaViewportRef}
         >
-          <div className="mt-1 mr-1 text-sm">
+          <div className="mr-1 mt-1 text-sm">
             {Array.from(
               (function* () {
                 let currentIndex = undefined;
@@ -701,7 +701,7 @@ const MessagesDisplay: FC<MessagesDisplayProps> = ({ messages }) => {
 
         {autoscroll ? null : (
           <Button
-            className={cn('absolute right-3 bottom-3 rounded-full', {
+            className={cn('absolute bottom-3 right-3 rounded-full', {
               'animate-pulse': hasUnreadMessages,
             })}
             onClick={() => {

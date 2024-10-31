@@ -15,14 +15,14 @@ export const CorporaInSetList: FC<CorporaInSetListProps> = ({
   corpora,
   corpusSet,
 }) => (
-  <div className="h-full flex flex-col gap-2">
-    <Label className="truncate leading-5 mb-2">
+  <div className="flex h-full flex-col gap-2">
+    <Label className="mb-2 truncate leading-5">
       Corpora in set <span className="px-2">&ldquo;{corpusSet}&rdquo;</span>
     </Label>
 
-    <div className="flex-1 border rounded-md overflow-hidden">
+    <div className="flex-1 overflow-hidden rounded-md border">
       {corpora.length === 0 ? (
-        <p className="text-center text-muted-foreground mt-4">
+        <p className="mt-4 text-center text-muted-foreground">
           No corpora available
         </p>
       ) : (
@@ -61,7 +61,7 @@ const CorporaInSetListItem: FC<CorporaInSetListItemProps> = ({
   return (
     <Label
       htmlFor={id}
-      className="group cursor-pointer flex items-center gap-2 shadow-[0_1px] shadow-gray-200 dark:shadow-gray-800 px-4 py-3"
+      className="group flex cursor-pointer items-center gap-2 px-4 py-3 shadow-[0_1px] shadow-gray-200 dark:shadow-gray-800"
     >
       <Checkbox
         id={id}
@@ -84,7 +84,7 @@ const CorporaInSetListItem: FC<CorporaInSetListItemProps> = ({
           );
         }}
       />
-      <div className="h-6 w-0 flex-1 truncate leading-5 group-hover:underline underline-offset-4 translate-y-0.5">
+      <div className="h-6 w-0 flex-1 translate-y-0.5 truncate leading-5 underline-offset-4 group-hover:underline">
         {corpusName}
       </div>
     </Label>
