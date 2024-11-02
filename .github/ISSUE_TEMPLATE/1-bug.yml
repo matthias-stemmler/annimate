@@ -1,0 +1,59 @@
+name: 🐞 Bug Report
+description: File a bug report.
+title: "[Bug] "
+labels: ["bug"]
+assignees:
+  - matthias-stemmler
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for taking your time to file this bug report!
+
+        ⚠️ Before doing so, please make sure you can reproduce the bug with the latest version of Annimate.
+  - type: textarea
+    id: current-behavior
+    attributes:
+      label: Current Behavior
+      description: What is the behavior that you currently experience?
+    validations:
+      required: true
+  - type: textarea
+    id: expected-behavior
+    attributes:
+      label: Expected Behavior
+      description: What is the behavior that you expect to happen?
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps To Reproduce
+      description: Please provide some instructions on how to reproduce the bug.
+      value: |
+        1.
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Annimate Version
+      description: |
+        Which version of Annimate are you using? You can find out by clicking on Help > About in the menu.
+    validations:
+      required: true
+  - type: checkboxes
+    id: os
+    attributes:
+      label: Operating System
+      description: What operating system are you using?
+      options:
+        - label: Windows
+        - label: Linux
+    validations:
+      required: true
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional Information
+      description: Is there any additional information that you can provide?
