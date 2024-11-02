@@ -1,0 +1,30 @@
+name: 📖 Documentation Issue
+description: Help improve our docs.
+title: "[Docs] "
+labels: ["docs"]
+assignees:
+  - matthias-stemmler
+body:
+  - type: checkboxes
+    id: type
+    attributes:
+      label: Issue Type
+      description: What type of documentation issue would you like to report?
+      options:
+        - label: Typo
+        - label: Wrong information
+        - label: Suggestion for improvement
+        - label: General feedback
+  - type: textarea
+    id: pages
+    attributes:
+      label: Documentation Page(s)
+      description: |
+        Does your issue apply to a specific page or pages in the documentation? If so, enter the page URL(s) here.
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: Please describe your issue.
+    validations:
+      required: true
