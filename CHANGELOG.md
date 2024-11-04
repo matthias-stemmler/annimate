@@ -2,6 +2,10 @@
 
 ## [Unreleased] - (release date)
 
+### Added
+
+- Added link to User Guide in "Help" menu.
+
 ### Changed
 
 - Decreased auto-scrolling acceleration when reordering columns.

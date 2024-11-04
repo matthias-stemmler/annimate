@@ -15,6 +15,7 @@ import {
 } from '@/components/ui/tooltip';
 import { shellOpen } from '@/lib/api';
 import { useDbDir } from '@/lib/store';
+import { URL_ANNIMATE, URL_GRAPHANNIS } from '@/lib/urls';
 import { Folder } from 'lucide-react';
 import { RefObject, useCallback, useEffect, useRef } from 'react';
 
@@ -58,7 +59,7 @@ export const AboutDialog = () => {
           <Button
             className="h-4 min-w-32 p-0"
             onClick={() => {
-              shellOpen('https://github.com/matthias-stemmler/annimate');
+              shellOpen(URL_ANNIMATE);
             }}
             variant="link"
           >
@@ -74,7 +75,7 @@ export const AboutDialog = () => {
           <Button
             className="h-4 p-0"
             onClick={() => {
-              shellOpen('https://github.com/korpling/graphANNIS');
+              shellOpen(URL_GRAPHANNIS);
             }}
             variant="link"
           >
