@@ -7,17 +7,33 @@ import {
   MenubarItem,
   MenubarMenu,
   MenubarSeparator,
+  MenubarShortcut,
   MenubarTrigger,
 } from '@/components/ui/menubar';
 import { UpdateAppTrigger } from '@/components/update-app-trigger';
 import { exit, shellOpen } from '@/lib/api';
+import { URL_ANNIMATE_USER_GUIDE, URL_AQL_OPERATORS } from '@/lib/urls';
 import { ExternalLink } from 'lucide-react';
-import { FC } from 'react';
+import { FC, useEffect } from 'react';
 import { Outlet } from 'react-router-dom';
 
 export const Window: FC = () => {
   const [aboutDialogOpen, setAboutDialogOpen, aboutDialogKey] =
     useDialogState();
+
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.code === 'F1') {
+        shellOpen(URL_ANNIMATE_USER_GUIDE);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  });
 
   return (
     <div className="flex h-full flex-col">
@@ -45,13 +61,21 @@ export const Window: FC = () => {
             <MenubarContent>
               <MenubarItem
                 onSelect={() => {
-                  shellOpen(
-                    'https://korpling.github.io/ANNIS/4.0/user-guide/aql/operators.html',
-                  );
+                  shellOpen(URL_ANNIMATE_USER_GUIDE);
                 }}
               >
                 <ExternalLink className="mr-2 h-4 w-4" />
-                AQL operator reference
+                User Guide
+                <MenubarShortcut>F1</MenubarShortcut>
+              </MenubarItem>
+
+              <MenubarItem
+                onSelect={() => {
+                  shellOpen(URL_AQL_OPERATORS);
+                }}
+              >
+                <ExternalLink className="mr-2 h-4 w-4" />
+                AQL Operators
               </MenubarItem>
 
               <MenubarSeparator />
