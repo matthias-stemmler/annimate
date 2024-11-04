@@ -35,6 +35,8 @@ There are several ways to obtain corpus data:
   - For Annatto, use the [`graphml`](https://github.com/korpling/annatto/blob/main/docs/exporters/graphml.md) exporter to convert the corpus into the graphANNIS/GraphML format.
 - If the corpus is accessible through a public installation of ANNIS, ask the maintainers of the installation to provide the data.
 
+> **Note:** See the [Links](links.md#corpora) section for download links for some publicly available corpora.
+
 ### Importing Into Annimate
 
 1. In Annimate, click on the ![Settings](img/settings.svg) button to reach the "Manage corpora" screen.
