@@ -2,6 +2,8 @@
 
 ## [Unreleased] - (release date)
 
+## [1.3.0] - 2024-11-04
+
 ### Added
 
 - Added link to User Guide in "Help" menu.
@@ -72,7 +74,8 @@
 Initial version
 
 <!-- next-url -->
-[Unreleased]: https://github.com/matthias-stemmler/annimate/compare/v1.2.0...HEAD
+[Unreleased]: https://github.com/matthias-stemmler/annimate/compare/v1.3.0...HEAD
+[1.3.0]: https://github.com/matthias-stemmler/annimate/compare/v1.2.0...v1.3.0
 [1.2.0]: https://github.com/matthias-stemmler/annimate/compare/v1.1.4...v1.2.0
 [1.1.4]: https://github.com/matthias-stemmler/annimate/compare/v1.1.3...v1.1.4
 [1.1.3]: https://github.com/matthias-stemmler/annimate/compare/v1.1.2...v1.1.3

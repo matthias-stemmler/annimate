@@ -23,9 +23,9 @@ Annimate is available as a desktop application for Windows and Linux. MacOS is c
 
 | Operating system | Format         | Installation required? | Automatic updates | Download link                      |
 | ---------------- | -------------- | ---------------------- | ----------------- | ---------------------------------- |
-| Windows          | Installer      | ✅                     | ✅                | [Annimate_1.2.0_x64-setup.exe][1]  |
-| Linux            | AppImage       | ❌                     | ✅                | [Annimate_1.2.0_amd64.AppImage][2] |
-| Linux            | Debian package | ✅                     | ❌                | [Annimate_1.2.0_amd64.deb][3]      |
+| Windows          | Installer      | ✅                     | ✅                | [Annimate_1.3.0_x64-setup.exe][1]  |
+| Linux            | AppImage       | ❌                     | ✅                | [Annimate_1.3.0_amd64.AppImage][2] |
+| Linux            | Debian package | ✅                     | ❌                | [Annimate_1.3.0_amd64.deb][3]      |
 
 For a list of previous releases, see the [releases page](https://github.com/matthias-stemmler/annimate/releases).
 
@@ -41,9 +41,9 @@ See [CHANGELOG.md](CHANGELOG.md)
 
 Licensed under the Apache License, Version 2.0 (see [LICENSE](LICENSE) or https://www.apache.org/licenses/LICENSE-2.0)
 
-[1]: https://github.com/matthias-stemmler/annimate/releases/download/v1.2.0/Annimate_1.2.0_x64-setup.exe
-[2]: https://github.com/matthias-stemmler/annimate/releases/download/v1.2.0/Annimate_1.2.0_amd64.AppImage
-[3]: https://github.com/matthias-stemmler/annimate/releases/download/v1.2.0/Annimate_1.2.0_amd64.deb
+[1]: https://github.com/matthias-stemmler/annimate/releases/download/v1.3.0/Annimate_1.3.0_x64-setup.exe
+[2]: https://github.com/matthias-stemmler/annimate/releases/download/v1.3.0/Annimate_1.3.0_amd64.AppImage
+[3]: https://github.com/matthias-stemmler/annimate/releases/download/v1.3.0/Annimate_1.3.0_amd64.deb
 
 [^1]:
     **Krause, Thomas & Zeldes, Amir** (2016):
