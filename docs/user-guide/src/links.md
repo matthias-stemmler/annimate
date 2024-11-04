@@ -23,7 +23,7 @@ Repository containing data for many corpora:
 
 - [LAUDATIO](https://www.laudatio-repository.org/): Long-term Access and Usage of Deeply Annotated Information
 
-Reference corpora of historic German (see [Deutsch Diachron Digital](https://www.deutschdiachrondigital.de/) for an overview):
+Reference corpora of historical German (see [Deutsch Diachron Digital](https://www.deutschdiachrondigital.de/) for an overview):
 
 | Name                                                                                                | Version | ANNIS web interface                                             | Data download                                                                                                |
 | --------------------------------------------------------------------------------------------------- | ------- | --------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |

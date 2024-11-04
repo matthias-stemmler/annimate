@@ -23,6 +23,9 @@ export const CorpusSetDialog: FC<CorpusSetDialogProps> = ({
   title,
 }) => {
   const [newName, setNewName] = useState<string>(currentName ?? '');
+  const [confirmedName, setConfirmedName] = useState<string | undefined>(
+    undefined,
+  );
 
   const { data: corpusSets, error: corpusSetsError } = useCorpusSets();
 
@@ -30,8 +33,12 @@ export const CorpusSetDialog: FC<CorpusSetDialogProps> = ({
     throw new Error(`Failed to load corpora: ${corpusSetsError.message}`);
   }
 
+  // If newName === confirmedName, this means that the dialog is closing after the new name has been confirmed,
+  // so it's okay if it's already in the list of corpus sets
   const alreadyExists =
-    newName !== currentName && corpusSets?.includes(newName);
+    newName !== currentName &&
+    newName !== confirmedName &&
+    corpusSets?.includes(newName);
 
   return (
     <DialogContent aria-describedby={undefined}>
@@ -70,6 +77,7 @@ export const CorpusSetDialog: FC<CorpusSetDialogProps> = ({
               className="min-w-32"
               disabled={newName === '' || alreadyExists}
               onClick={() => {
+                setConfirmedName(newName);
                 onConfirm?.(newName);
               }}
               type="submit"
