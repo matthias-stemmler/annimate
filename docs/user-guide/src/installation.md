@@ -14,7 +14,7 @@ On Windows, Annimate comes with an installer that takes care of the installation
 
 In order to install Annimate, go through the following steps:
 
-1. Download the installer `.exe` file from GitHub: [Annimate_1.2.0_x64-setup.exe][1]
+1. Download the installer `.exe` file from GitHub: [Annimate_1.3.0_x64-setup.exe][1]
 2. Run the downloaded `.exe` file and follow the instructions of the installation wizard
 3. Afterwards, you can run Annimate through the Windows start menu entry and/or the link on your desktop, depending on the options you chose in the installation wizard
 
@@ -39,7 +39,7 @@ The Annimate AppImage is a self-contained application bundle that includes all o
 
 In order to use the AppImage, go through the following steps:
 
-1. Download the `.AppImage` file from GitHub: [Annimate_1.2.0_amd64.AppImage][2]
+1. Download the `.AppImage` file from GitHub: [Annimate_1.3.0_amd64.AppImage][2]
 2. Make it executable:
    ```shell
    chmod a+x Annimate*.AppImage
@@ -68,7 +68,7 @@ On Debian and its derivatives (such as Ubuntu), you can alternatively install An
 
 In order to install the Debian package, go through the following steps:
 
-1. Download the `.deb` file from GitHub: [Annimate_1.2.0_amd64.deb][3]
+1. Download the `.deb` file from GitHub: [Annimate_1.3.0_amd64.deb][3]
 2. Install it:
    ```shell
    sudo dpkg -i ./Annimate_*_amd64.deb
@@ -82,9 +82,9 @@ In order to install the Debian package, go through the following steps:
 
 For reference, you can find the most recent and all previous releases of Annimate on the [Releases](https://github.com/matthias-stemmler/annimate/releases) page on GitHub.
 
-[1]: https://github.com/matthias-stemmler/annimate/releases/download/v1.2.0/Annimate_1.2.0_x64-setup.exe
-[2]: https://github.com/matthias-stemmler/annimate/releases/download/v1.2.0/Annimate_1.2.0_amd64.AppImage
-[3]: https://github.com/matthias-stemmler/annimate/releases/download/v1.2.0/Annimate_1.2.0_amd64.deb
+[1]: https://github.com/matthias-stemmler/annimate/releases/download/v1.3.0/Annimate_1.3.0_x64-setup.exe
+[2]: https://github.com/matthias-stemmler/annimate/releases/download/v1.3.0/Annimate_1.3.0_amd64.AppImage
+[3]: https://github.com/matthias-stemmler/annimate/releases/download/v1.3.0/Annimate_1.3.0_amd64.deb
 
 ## What's Next?
 
