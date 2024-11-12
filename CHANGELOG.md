@@ -2,6 +2,10 @@
 
 ## [Unreleased] - (release date)
 
+### Added
+
+- Added support for macOS.
+
 ## [1.3.0] - 2024-11-04
 
 ### Added
@@ -14,7 +18,7 @@
 
 ### Fixed
 
-- Fixed occasional flashing of dialogs during fade-out. 
+- Fixed occasional flashing of dialogs during fade-out.
 
 ## [1.2.0] - 2024-10-19
 

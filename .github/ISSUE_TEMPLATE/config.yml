@@ -7,5 +7,5 @@ contact_links:
     about: "Start a discussion to share your experience with Annimate"
     url: https://github.com/matthias-stemmler/annimate/discussions/new/choose
   - name: Read the User Guide
-    about: "Please make sure you have read the User Guide before filing a bug report"
+    about: "Please make sure you have read the User Guide (especially the Troubleshooting section) before filing a bug report"
     url: https://matthias-stemmler.github.io/annimate/user-guide/
