@@ -17,7 +17,8 @@ This User Guide explains the details on how to work with Annimate.
 1. [Installation](installation.md)
 2. [Importing Corpus Data](import.md)
 3. [Exporting Query Results](export.md)
-4. [Links](links.md)
+4. [Troubleshooting](troubleshooting.md)
+5. [Links](links.md)
 
 If you are unfamiliar with Annimate, we recommend that you go through all sections one by one, starting with [Installation](installation.md).
 

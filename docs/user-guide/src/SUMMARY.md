@@ -7,4 +7,5 @@
   - [Match in context](columns/match-in-context.md)
   - [Match annotation](columns/match-annotation.md)
   - [Corpus/document metadata](columns/metadata.md)
+- [Troubleshooting](troubleshooting.md)
 - [Links](links.md)

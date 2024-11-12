@@ -50,6 +50,7 @@ body:
       options:
         - label: Windows
         - label: Linux
+        - label: macOS
     validations:
       required: true
   - type: textarea
