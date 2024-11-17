@@ -50,7 +50,7 @@ itertools = "0.13.0"
 regex = "1.11.1"
 rust_xlsxwriter = "0.79.3"
 serde = "1.0.215"
-serde_json = "1.0.132"
+serde_json = "1.0.133"
 tauri = { version = "2.1.1" }
 tauri-build = "2.0.3"
 tauri-plugin-dialog = "2.0.3"
