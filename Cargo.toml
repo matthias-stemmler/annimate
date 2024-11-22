@@ -64,7 +64,7 @@ thiserror = "2.0.3"
 tokio = "1.41.1"
 toml = "0.8.19"
 urlencoding = "2.1.3"
-zip = "2.2.0"
+zip = "2.2.1"
 
 [profile.release]
 codegen-units = 1
