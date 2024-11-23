@@ -1,6 +1,6 @@
 import { ErrorAlert } from '@/components/error-alert';
 import { Component, PropsWithChildren } from 'react';
-import { useRouteError } from 'react-router-dom';
+import { useRouteError } from 'react-router';
 
 type ErrorBoundaryState = {
   error?: Error;

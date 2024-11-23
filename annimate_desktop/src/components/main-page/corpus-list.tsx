@@ -19,7 +19,7 @@ import {
 } from '@/lib/store';
 import { Settings } from 'lucide-react';
 import { FC } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 
 export const CorpusList: FC = () => {
   const isExporting = useIsExporting();
