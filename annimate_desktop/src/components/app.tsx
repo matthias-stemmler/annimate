@@ -7,7 +7,8 @@ import { TooltipProvider } from '@/components/ui/tooltip';
 import { Window } from '@/components/window';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { FC } from 'react';
-import { RouterProvider, createMemoryRouter } from 'react-router-dom';
+import { createMemoryRouter } from 'react-router';
+import { RouterProvider } from 'react-router/dom';
 
 const queryClient = new QueryClient({
   defaultOptions: {

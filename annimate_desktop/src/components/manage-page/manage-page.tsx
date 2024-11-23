@@ -8,7 +8,7 @@ import {
 } from '@/components/ui/tooltip';
 import { ArrowLeft } from 'lucide-react';
 import { FC, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 
 export const ManagePage: FC = () => {
   const navigate = useNavigate();

@@ -15,7 +15,7 @@ import { exit, shellOpen } from '@/lib/api';
 import { URL_ANNIMATE_USER_GUIDE, URL_AQL_OPERATORS } from '@/lib/urls';
 import { ExternalLink } from 'lucide-react';
 import { FC, useEffect } from 'react';
-import { Outlet } from 'react-router-dom';
+import { Outlet } from 'react-router';
 
 export const Window: FC = () => {
   const [aboutDialogOpen, setAboutDialogOpen, aboutDialogKey] =
