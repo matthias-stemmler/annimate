@@ -1,0 +1,12 @@
+---
+source: annimate_core/tests/segmentations.rs
+info:
+  corpus_paths:
+    - nondefaultsegmentation.demo_graphml.zip
+  corpus_names:
+    - nondefaultsegmentation.demo
+---
+[
+    "diplomatic",
+    "norm",
+]

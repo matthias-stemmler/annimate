@@ -54,7 +54,7 @@ export const AnnoSelect: FC<AnnoSelectProps> = ({
         },
         {
           groupKey: 'annis',
-          groupCaption: 'Annis',
+          groupCaption: 'ANNIS',
           groupItems: exportableAnnoKeysForCategory
             .filter((e) => e.annoKey.ns === 'annis')
             .map(toOption),

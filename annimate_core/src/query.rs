@@ -11,6 +11,7 @@ use graphannis::model::AnnotationComponentType;
 use graphannis::util::node_names_from_match;
 use graphannis::Graph;
 use graphannis_core::errors::GraphAnnisCoreError;
+use graphannis_core::graph::DEFAULT_NS;
 use graphannis_core::types::{AnnoKey, NodeID};
 use itertools::Itertools;
 
@@ -106,13 +107,8 @@ pub(crate) struct Match {
 
 #[derive(Debug, Clone)]
 pub(crate) enum TextPart {
-    Match {
-        index: usize,
-        fragments: Vec<String>,
-    },
-    Context {
-        fragments: Vec<String>,
-    },
+    Match { index: usize, segments: Vec<String> },
+    Context { segments: Vec<String> },
     Gap,
 }
 
@@ -279,7 +275,7 @@ pub(crate) struct MatchesPaginated<'a, S> {
     aql_query: &'a str,
     query_language: QueryLanguage,
     export_data: HashSet<ExportData>,
-    fragment_anno_keys: HashMap<Option<String>, AnnoKey>,
+    segment_anno_keys: HashMap<Option<String>, AnnoKey>,
 }
 
 impl<S> Clone for MatchesPaginated<'_, S> {
@@ -289,7 +285,7 @@ impl<S> Clone for MatchesPaginated<'_, S> {
             aql_query: self.aql_query,
             query_language: self.query_language,
             export_data: self.export_data.clone(),
-            fragment_anno_keys: self.fragment_anno_keys.clone(),
+            segment_anno_keys: self.segment_anno_keys.clone(),
         }
     }
 }
@@ -304,12 +300,12 @@ where
         query_language: QueryLanguage,
         export_data: HashSet<ExportData>,
     ) -> Result<Self, AnnimateError> {
-        let mut fragment_anno_keys = HashMap::new();
+        let mut segment_anno_keys = HashMap::new();
 
         for data in &export_data {
             if let ExportData::Text(text) = data {
-                if !fragment_anno_keys.contains_key(&text.segmentation) {
-                    fragment_anno_keys.insert(
+                if !segment_anno_keys.contains_key(&text.segmentation) {
+                    segment_anno_keys.insert(
                         text.segmentation.clone(),
                         get_anno_key_for_segmentation(corpus_ref, text.segmentation.as_deref())?,
                     );
@@ -322,7 +318,7 @@ where
             aql_query,
             query_language,
             export_data,
-            fragment_anno_keys,
+            segment_anno_keys,
         })
     }
 
@@ -380,7 +376,7 @@ where
             Ok(match_ids) => Some(Ok(MatchesPage {
                 corpus_ref: self.matches_paginated.corpus_ref,
                 export_data: self.matches_paginated.export_data.clone(),
-                fragment_anno_keys: self.matches_paginated.fragment_anno_keys.clone(),
+                segment_anno_keys: self.matches_paginated.segment_anno_keys.clone(),
                 match_ids_iter: match_ids.into_iter(),
             })),
             Err(err) => Some(Err(err)),
@@ -391,7 +387,7 @@ where
 pub(crate) struct MatchesPage<'a, S> {
     corpus_ref: CorpusRef<'a, S>,
     export_data: HashSet<ExportData>,
-    fragment_anno_keys: HashMap<Option<String>, AnnoKey>,
+    segment_anno_keys: HashMap<Option<String>, AnnoKey>,
     match_ids_iter: vec::IntoIter<String>,
 }
 
@@ -464,7 +460,7 @@ impl<S> MatchesPage<'_, S> {
                             &corpus_name,
                             match_node_names.clone(),
                             text,
-                            self.fragment_anno_keys.get(&text.segmentation).unwrap(),
+                            self.segment_anno_keys.get(&text.segmentation).unwrap(),
                         )?,
                     );
                 }
@@ -533,7 +529,7 @@ fn get_parts(
     corpus_name: &str,
     match_node_names: Vec<String>,
     export_data: &ExportDataText,
-    fragment_anno_key: &AnnoKey,
+    segment_anno_key: &AnnoKey,
 ) -> Result<Vec<TextPart>, AnnimateError> {
     #[derive(Debug)]
     struct Chain {
@@ -560,12 +556,32 @@ fn get_parts(
         }
     };
 
+    // The `subgraph` method assumes that there exists a component
+    // Ordering/default_ns/<segmentation>. However, some corpora use segmentations with Ordering
+    // component in a different layer. In that case, we pass `None`, causing the context to be
+    // measured in tokens.
+    let segmentation = match segmentation {
+        Some(s)
+            if storage
+                .list_components(
+                    corpus_name,
+                    Some(AnnotationComponentType::Ordering),
+                    Some(s),
+                )?
+                .into_iter()
+                .any(|c| c.layer == DEFAULT_NS) =>
+        {
+            Some(s.clone())
+        }
+        _ => None,
+    };
+
     let subgraph = storage.subgraph(
         corpus_name,
         match_node_names.clone(),
         *left_context,
         *right_context,
-        segmentation.clone(),
+        segmentation,
     )?;
 
     let graph_helper = GraphHelper::new(&subgraph);
@@ -633,26 +649,26 @@ fn get_parts(
             parts.push(TextPart::Gap);
         }
 
-        let get_fragment_node_id = |token_id: &NodeID| {
+        let get_segment_node_id = |token_id: &NodeID| {
             graph_helper
                 .get_covering_node_ids(*token_id)
                 .find_map(|node_id| {
                     node_id
                         .and_then(|node_id| {
                             node_annos
-                                .has_value_for_item(&node_id, fragment_anno_key)
-                                .map(|has_fragment| has_fragment.then_some(node_id))
+                                .has_value_for_item(&node_id, segment_anno_key)
+                                .map(|has_segment| has_segment.then_some(node_id))
                         })
                         .transpose()
                 })
                 .transpose()
         };
 
-        for group in group_by(&chain.token_ids, get_fragment_node_id) {
-            let (fragment_node_id, token_ids) = group?;
-            let fragment = node_annos
-                .get_value_for_item(&fragment_node_id, fragment_anno_key)?
-                .expect("value should be present by choice of fragment_node_id")
+        for group in group_by(&chain.token_ids, get_segment_node_id) {
+            let (segment_node_id, token_ids) = group?;
+            let segment = node_annos
+                .get_value_for_item(&segment_node_id, segment_anno_key)?
+                .expect("value should be present by choice of segment_node_id")
                 .to_string();
 
             let match_node_index = primary_node_indices
@@ -671,48 +687,48 @@ fn get_parts(
                 (
                     Some(TextPart::Match {
                         index,
-                        mut fragments,
+                        mut segments,
                     }),
                     Some(match_node_index),
                 ) if index == match_node_index => TextPart::Match {
                     index,
-                    fragments: {
-                        fragments.push(fragment);
-                        fragments
+                    segments: {
+                        segments.push(segment);
+                        segments
                     },
                 },
-                (Some(TextPart::Match { index, fragments }), Some(match_node_index)) => {
-                    parts.push(TextPart::Match { index, fragments });
+                (Some(TextPart::Match { index, segments }), Some(match_node_index)) => {
+                    parts.push(TextPart::Match { index, segments });
                     TextPart::Match {
                         index: match_node_index,
-                        fragments: vec![fragment],
+                        segments: vec![segment],
                     }
                 }
-                (Some(TextPart::Match { index, fragments }), None) => {
-                    parts.push(TextPart::Match { index, fragments });
+                (Some(TextPart::Match { index, segments }), None) => {
+                    parts.push(TextPart::Match { index, segments });
                     TextPart::Context {
-                        fragments: vec![fragment],
+                        segments: vec![segment],
                     }
                 }
-                (Some(TextPart::Context { fragments }), Some(match_node_index)) => {
-                    parts.push(TextPart::Context { fragments });
+                (Some(TextPart::Context { segments }), Some(match_node_index)) => {
+                    parts.push(TextPart::Context { segments });
                     TextPart::Match {
                         index: match_node_index,
-                        fragments: vec![fragment],
+                        segments: vec![segment],
                     }
                 }
-                (Some(TextPart::Context { mut fragments }), None) => TextPart::Context {
-                    fragments: {
-                        fragments.push(fragment);
-                        fragments
+                (Some(TextPart::Context { mut segments }), None) => TextPart::Context {
+                    segments: {
+                        segments.push(segment);
+                        segments
                     },
                 },
                 (_, Some(index)) => TextPart::Match {
                     index,
-                    fragments: vec![fragment],
+                    segments: vec![segment],
                 },
                 (_, None) => TextPart::Context {
-                    fragments: vec![fragment],
+                    segments: vec![segment],
                 },
             });
         }

@@ -2,6 +2,10 @@
 
 ## [Unreleased] - (release date)
 
+### Fixed
+
+- Segmentations with layers other than `default_ns` are now supported. This applies to the `tok_anno` and `tok_dipl` segmentations of ReM 2.x.
+
 ## [1.3.1] - 2024-11-17
 
 ### Added
