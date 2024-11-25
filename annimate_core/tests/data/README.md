@@ -6,6 +6,10 @@
 - `nocoverage.demo_graphml.zip`
   - Name: nocoverage.demo
   - Source: generated using graphANNIS, consists of text "There is no coverage." and has no coverage components
+- `nondefaultsegmentation.demo_graphml.zip`
+  - Name: nondefaultsegmentation.demo
+  - Original source: <https://corpus-tools.org/corpora/subtok.demo_relANNIS.zip>
+  - Adaptation: Renamed corpus, renamed component Ordering/default_ns/norm to Ordering/grammar/norm
 - `pcc2_v7_relANNIS.zip`
   - Name: pcc2 (Potsdam Commentary Corpus 2)
   - Source: <https://corpus-tools.org/corpora/pcc2_v7_relANNIS.zip>

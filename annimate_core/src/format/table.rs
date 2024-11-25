@@ -230,8 +230,8 @@ impl Iterator for TextColumns {
 
         let match_column = loop {
             let serialized_part = match self.parts.next() {
-                Some(TextPart::Match { fragments, .. }) => break Some(fragments.join(" ")),
-                Some(TextPart::Context { fragments }) => fragments.join(" "),
+                Some(TextPart::Match { segments, .. }) => break Some(segments.join(" ")),
+                Some(TextPart::Context { segments }) => segments.join(" "),
                 Some(TextPart::Gap) => "(...)".into(),
                 None => break None,
             };
@@ -402,8 +402,8 @@ mod tests {
             }
         )* };
 
-        (@expand_part (C $($t:expr)*)) => { TextPart::Context { fragments: vec![$($t.into()),*] } };
-        (@expand_part (M $($t:expr)*)) => { TextPart::Match { index: 0, fragments: vec![$($t.into()),*] } };
+        (@expand_part (C $($t:expr)*)) => { TextPart::Context { segments: vec![$($t.into()),*] } };
+        (@expand_part (M $($t:expr)*)) => { TextPart::Match { index: 0, segments: vec![$($t.into()),*] } };
         (@expand_part (G)) => { TextPart::Gap };
     }
 
@@ -466,7 +466,7 @@ mod tests {
             ["1"     , "doc1"    , "111 (...) 222"        , "abc"           , "333 (...) 444"         ],
         ]
 
-        one_match_node_multiple_fragments: context=(1, 1), matches = [
+        one_match_node_multiple_segments: context=(1, 1), matches = [
             {doc_name = "doc1", parts = [(C "111" "222") (G) (C "333" "444") (M "abc" "def") (C "555" "666") (G) (C "777" "888")]}
         ] => [
             ["Number", "Document", "Left context (tokens)", "Match (tokens)", "Right context (tokens)"],

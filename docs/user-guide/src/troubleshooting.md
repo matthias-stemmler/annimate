@@ -48,6 +48,12 @@ If the [Match in context](columns/match-in-context.md) columns in your CSV or Ex
 
 To fix this, try to choose an option different from _Tokens (default)_ under "Segmentation". If there is no other option, check out the [previous point](#match-in-context-desired-segmentation-is-not-listed).
 
+### Match in context: Context window is smaller than expected
+
+If the "Context" columns in your CSV or Excel file contain fewer segmentation nodes than expected, this may be because you selected a non-standard segmentation where the context size cannot be measured in segmentation nodes for technical reasons and is measured in tokens instead.
+
+To fix this, increase the context size as needed.
+
 ### Corpus/document metadata: Column is empty
 
 If a [Corpus/document metadata](columns/metadata.md) column in your CSV or Excel file is empty, this may be because the selected meta annotation is present on a different level than you configured. For instance, you may have configured a "Document metadata" column, but the selected annotation may actually be present at the corpus level.

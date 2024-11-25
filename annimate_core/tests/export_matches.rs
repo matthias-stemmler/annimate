@@ -389,6 +389,21 @@ export_matches_test! {
             })),
         ],
     }
+    nondefaultsegmentation: {
+        corpus_paths: ["nondefaultsegmentation.demo_graphml.zip"],
+        corpus_names: ["nondefaultsegmentation.demo"],
+        aql_query: "norm",
+        query_language: AQL,
+        export_columns: [
+            Number,
+            Data(Text(TestExportDataText {
+                left_context: 2,
+                right_context: 2,
+                segmentation: Some("norm"),
+                primary_node_indices: None,
+            })),
+        ],
+    }
 }
 
 #[test]

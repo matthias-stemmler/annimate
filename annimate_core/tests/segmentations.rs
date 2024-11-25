@@ -62,6 +62,10 @@ segmentations_test! {
         corpus_paths: ["pcc2_v7_relANNIS.zip"],
         corpus_names: ["pcc2"],
     }
+    nondefaultsegmentation: {
+        corpus_paths: ["nondefaultsegmentation.demo_graphml.zip"],
+        corpus_names: ["nondefaultsegmentation.demo"],
+    }
 }
 
 #[derive(Serialize)]

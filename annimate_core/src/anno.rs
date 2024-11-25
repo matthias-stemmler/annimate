@@ -52,7 +52,10 @@ where
             .list_components(name.as_ref(), Some(AnnotationComponentType::Ordering), None)
             .map(|components| {
                 components.into_iter().filter_map(|component| {
-                    (component.layer == DEFAULT_NS).then_some(component.name)
+                    // This is the same filter that ANNIS applies to provide the list of
+                    // segmentations
+                    (component.layer != ANNIS_NS && !component.name.is_empty())
+                        .then_some(component.name)
                 })
             })
     });

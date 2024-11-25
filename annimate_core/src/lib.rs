@@ -352,7 +352,8 @@ impl Storage {
     ///
     /// This collects the segmentations (i.e. names of
     /// [`Ordering`](https://docs.rs/graphannis/latest/graphannis/model/enum.AnnotationComponentType.html#variant.Ordering)
-    /// components in the `default_ns` namespace) that appear in *all* of the given corpora.
+    /// components in non-`annis` namespaces with non-empty names for which there exists an
+    /// annotation of the same name in any namespace) that appear in *all* of the given corpora.
     pub fn segmentations<S>(&self, corpus_names: &[S]) -> Result<Vec<String>, AnnimateError>
     where
         S: AsRef<str>,

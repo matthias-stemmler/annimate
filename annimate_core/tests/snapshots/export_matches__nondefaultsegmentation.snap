@@ -1,0 +1,28 @@
+---
+source: annimate_core/tests/export_matches.rs
+info:
+  corpus_paths:
+    - nondefaultsegmentation.demo_graphml.zip
+  corpus_names:
+    - nondefaultsegmentation.demo
+  aql_query: norm
+  query_language: AQL
+  export_columns:
+    - Number
+    - Data:
+        Text:
+          left_context: 2
+          right_context: 2
+          segmentation: norm
+          primary_node_indices: ~
+---
+Number,Left context (norm),Match (norm),Right context (norm)
+1,,This,is an
+2,This,is,an example
+3,This is,an,example of
+4,is an,example,of a
+5,an example,of,a subtokenized
+6,example of,a,subtokenized
+7,of a,subtokenized,corpus .
+8,subtokenized,corpus,.
+9,subtokenized corpus,.,
