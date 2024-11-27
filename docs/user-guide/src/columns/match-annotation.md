@@ -46,29 +46,3 @@ pos=/N.*/ | pos=/V.*/
 ```
 
 you will just see a single entry showing `#1 pos=/N.*/` and `#2 pos=/V.*/` next to each other. The export for each match will then contain the selected annotation either for `#1` or for `#2`, depending on which alternative applied for that particular match.
-
-Similarly, when the query contains optional nodes followed by other (optional or non-optional) nodes, those following nodes appear in multiple entries under "Query node". For instance, say you want to restrict the above query to cases where the match is not preceded by an adjective:
-
-```
-pos=/ADJ.*/? &
-pos=/N.*/ &
-inflection=/.*GEN.*/ &
-pos=/N.*/ &
-#1!. #4 &
-#2_=_#3 &
-#4 . #3
-```
-
-Now the query node `#2 pos=/N.*/` can either be the first or the second node of any particular match, depending on whether the optional node `#1 pos=/ADJ.*/?` is present or not. In this case, you would have to select _all_ entries containing `#2` in order to make sure that the export always includes the selected annotation for `#2`. However, you can avoid this problem at least for non-optional nodes by putting optional nodes at the end of the query:
-
-```
-pos=/N.*/ &
-inflection=/.*GEN.*/ &
-pos=/N.*/ &
-pos=/ADJ.*/? &
-#1_=_#2 &
-#3 . #2 &
-#4!. #3
-```
-
-Now the position of each non-optional node is unique, because there is no optional node before it.

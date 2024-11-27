@@ -12,7 +12,7 @@ pos=/N.*/ &
 #3 . #2
 ```
 
-consists of three nodes referenced by the variables `#1`, `#2` and `#3`, so each match also consists of three nodes. As queries can be "or" queries with multiple alternatives and can contain optional nodes, the number of nodes may vary from one match to another. The exact number of columns in the export depends on the maximal number of nodes contained in any match. In the simplest case, if the query contains only a single node (referred to as `#1`), every match also contains a single node and the export will contain three columns:
+consists of three nodes referenced by the variables `#1`, `#2` and `#3`, so each match also consists of three nodes. As queries can be "or" queries with multiple alternatives, the number of nodes may vary from one match to another. The exact number of columns in the export depends on the maximal number of nodes contained in any match. In the simplest case, if the query contains only a single node (referred to as `#1`), every match also contains a single node and the export will contain three columns:
 
 | Left context | Match | Right context |
 | ------------ | ----- | ------------- |
@@ -22,7 +22,7 @@ If the query contains two nodes (referred to as `#1` and `#2`), the export will 
 | Context 1 | Match 1 | Context 2 | Match 2 | Context 3 |
 | --------- | ------- | --------- | ------- | --------- |
 
-And so on.
+And so on. Note that [optional nodes](https://korpling.github.io/ANNIS/4/user-guide/aql/negation.html#negation-without-the-assumption-of-existence) are not included in the export.
 
 A corpus may define several different _segmentation layers_ (or _segmentations_ for short), which define how the text is split up into nodes. The most fine-grained segmentation layer is called the _token layer_. This layer is always present and each node on any segmentation layer spans one or more of these tokens. For instance, the ReA corpus contains the `edition` and `text` layers besides the token layer.
 

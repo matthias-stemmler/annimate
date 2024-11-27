@@ -2,6 +2,10 @@
 
 ## [Unreleased] - (release date)
 
+### Fixed
+
+- Optional query nodes are now always excluded from the selection under "Match annotation" and "Match in context" since they never correspond to match nodes.
+
 ## [1.3.2] - 2024-11-25
 
 ### Fixed
