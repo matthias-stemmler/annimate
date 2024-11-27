@@ -1,0 +1,28 @@
+---
+source: annimate_core/tests/export_matches.rs
+info:
+  corpus_paths:
+    - subtok.demo_relANNIS.zip
+  corpus_names:
+    - subtok.demo
+  aql_query: "norm? !.norm,3 norm"
+  query_language: AQL
+  export_columns:
+    - Data:
+        Anno:
+          MatchNode:
+            anno_key:
+              - grammar
+              - lemma
+            index: 0
+    - Data:
+        Text:
+          left_context: 1
+          right_context: 1
+          segmentation: norm
+          primary_node_indices: ~
+---
+#2 lemma,Left context (norm),Match (norm),Right context (norm)
+This,,This,is
+be,This,is,an
+a,is,an,example

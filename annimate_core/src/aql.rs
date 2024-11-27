@@ -82,11 +82,13 @@ pub(crate) fn query_nodes_valid(
     }
 
     let mut count_by_alternative = BTreeMap::new();
-    let mut nodes_by_potential_index_in_match = BTreeMap::new();
-
-    let mut num_optional_before = 0;
+    let mut nodes_by_index_in_alternative = BTreeMap::new();
 
     for node in node_descriptions {
+        if node.optional {
+            continue;
+        }
+
         let index_in_alternative = {
             let count = count_by_alternative.entry(node.alternative).or_insert(0);
             let index = *count;
@@ -94,22 +96,16 @@ pub(crate) fn query_nodes_valid(
             index
         };
 
-        for i in (index_in_alternative - num_optional_before)..=index_in_alternative {
-            nodes_by_potential_index_in_match
-                .entry(i)
-                .or_insert_with(Vec::new)
-                .push(QueryNode {
-                    query_fragment: node.query_fragment.clone(),
-                    variable: node.variable.clone(),
-                });
-        }
-
-        if node.optional {
-            num_optional_before += 1;
-        }
+        nodes_by_index_in_alternative
+            .entry(index_in_alternative)
+            .or_insert_with(Vec::new)
+            .push(QueryNode {
+                query_fragment: node.query_fragment.clone(),
+                variable: node.variable.clone(),
+            });
     }
 
-    Ok(nodes_by_potential_index_in_match
+    Ok(nodes_by_index_in_alternative
         .into_values()
         .collect_vec()
         .into())
@@ -156,16 +152,13 @@ impl<T> QueryAnalysisResult<T> {
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct QueryNodes {
-    /// Nodes grouped by their potential indices within a match.
+    /// Nodes grouped by their indices within a match.
     ///
-    /// The outer `Vec` groups the nodes by their potential indices in a match.
+    /// The outer `Vec` groups the nodes by their indices in a match.
     /// If `nodes` has length `n`, then each match consists of up to `n` nodes,
     /// and the `i`-th match node could refer to any of the nodes in the group `nodes[i]`.
-    /// In the presence of optional nodes, the same node can appear in multiple groups.
     ///
-    /// # Examples
-    /// - If the query is `(foo & bar) | baz`, this is `[[#1, #3], [#2]]`.
-    /// - If the query is `foo & bar? & baz`, this is `[[#1], [#2, #3], [#3]]`.
+    /// Example: If the query is `(foo & bar) | baz`, this is `[[#1, #3], [#2]]`.
     nodes: Vec<Vec<QueryNode>>,
 }
 

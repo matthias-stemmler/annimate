@@ -276,6 +276,24 @@ export_matches_test! {
             })),
         ],
     }
+    subtok_optional_nodes: {
+        corpus_paths: ["subtok.demo_relANNIS.zip"],
+        corpus_names: ["subtok.demo"],
+        aql_query: "norm? !.norm,3 norm",
+        query_language: AQL,
+        export_columns: [
+            Data(Anno(TestExportDataAnno::MatchNode {
+                anno_key: ("grammar", "lemma"),
+                index: 0,
+            })),
+            Data(Text(TestExportDataText {
+                left_context: 1,
+                right_context: 1,
+                segmentation: Some("norm"),
+                primary_node_indices: None,
+            })),
+        ],
+    }
     subtok_multiple_corpora: {
         corpus_paths: ["subtok.demo_relANNIS.zip", "subtok.demo2_relANNIS.zip"],
         corpus_names: ["subtok.demo", "subtok.demo2"],
