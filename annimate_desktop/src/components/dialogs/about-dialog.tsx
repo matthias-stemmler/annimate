@@ -64,8 +64,9 @@ export const AboutDialog = () => {
             variant="link"
           >
             <GithubLogo className="mr-2 h-full w-4" />
-            Annimate v{window.__ANNIMATE__.versionInfo.annimateVersion} by
-            Matthias Stemmler
+            Annimate v{
+              window.__ANNIMATE__.versionInfo.annimateVersion
+            } by Matthias Stemmler
           </Button>
         </div>
 
@@ -80,8 +81,9 @@ export const AboutDialog = () => {
             variant="link"
           >
             <GithubLogo className="mr-2 h-full w-4" />
-            graphANNIS v{window.__ANNIMATE__.versionInfo.graphannisVersion} by
-            Thomas Krause
+            graphANNIS v{
+              window.__ANNIMATE__.versionInfo.graphannisVersion
+            } by Thomas Krause
           </Button>
         </div>
 
