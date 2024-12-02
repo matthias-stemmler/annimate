@@ -53,7 +53,7 @@ serde = "1.0.215"
 serde_json = "1.0.133"
 tauri = { version = "2.1.1" }
 tauri-build = "2.0.3"
-tauri-plugin-dialog = "2.0.3"
+tauri-plugin-dialog = "2.0.4"
 tauri-plugin-process = "2.0.1"
 tauri-plugin-shell = "2.0.2"
 tauri-plugin-single-instance = "2.0.1"
