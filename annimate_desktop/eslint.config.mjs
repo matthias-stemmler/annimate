@@ -49,13 +49,6 @@ export default tseslint.config(
     ignores: ['dist/**'],
   },
 
-  {
-    files: ['tailwind.config.js'],
-    languageOptions: {
-      sourceType: 'commonjs',
-    },
-  },
-
   // Disallow imports without '@/*' and from '@tauri-apps/*'
   // (with exceptions, see below)
   {
