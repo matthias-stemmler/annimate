@@ -13,9 +13,9 @@ import { useEffect, useRef } from 'react';
 
 export const UpdateAppTrigger = () => {
   const checkedRef = useRef<boolean>(false);
-  const updateRef = useRef<Update | null>(null);
+  const updateRef = useRef<Update>(null);
   // Save update data for display separately, so we can close (drop) the update when the dialog is closed without breaking the fade-out animation
-  const updateDataRef = useRef<UpdateData | null>(null);
+  const updateDataRef = useRef<UpdateData>(null);
 
   const { mutation, progress, reset, stage } = useApplyAppUpdate();
 

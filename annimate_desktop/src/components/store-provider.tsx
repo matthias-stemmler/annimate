@@ -3,10 +3,10 @@ import { FC, PropsWithChildren, useRef } from 'react';
 import { StoreApi } from 'zustand';
 
 export const StoreProvider: FC<PropsWithChildren> = ({ children }) => {
-  const storeRef = useRef<StoreApi<State>>();
-  if (storeRef.current === undefined) {
+  const storeRef = useRef<StoreApi<State>>(null);
+  if (storeRef.current === null) {
     storeRef.current = createStoreForContext();
   }
 
-  return <StoreContext.Provider value={storeRef.current} children={children} />;
+  return <StoreContext value={storeRef.current} children={children} />;
 };

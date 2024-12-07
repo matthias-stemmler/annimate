@@ -41,7 +41,7 @@ export type ReorderListContext = {
   dragHandleListeners: DraggableSyntheticListeners;
   isOverlay: boolean;
   isPlaceholder: boolean;
-  ref: (node: HTMLElement | null) => void;
+  ref?: (node: HTMLElement | null) => void;
   style: CSSProperties;
 };
 

@@ -9,7 +9,7 @@ import { Progress } from '@/components/ui/progress';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { shellOpen } from '@/lib/api';
 import { formatPercentage } from '@/lib/utils';
-import { FC } from 'react';
+import { FC, JSX } from 'react';
 import Markdown from 'react-markdown';
 
 export type UpdateData = {
