@@ -1,6 +1,6 @@
 import { App } from '@/components/app';
 import '@/index.css';
-import React from 'react';
+import { StrictMode } from 'react';
 import ReactDOM from 'react-dom/client';
 
 if (import.meta.env.PROD) {
@@ -12,7 +12,7 @@ if (import.meta.env.PROD) {
 }
 
 ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
-  <React.StrictMode>
+  <StrictMode>
     <App />
-  </React.StrictMode>,
+  </StrictMode>,
 );

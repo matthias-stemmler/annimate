@@ -162,11 +162,15 @@ const ExportColumnListItem: FC<ExportColumnListItemProps> = ({
 
   const { toast } = useToast();
 
-  const localRef = useRef<HTMLDivElement | null>(null);
+  const localRef = useRef<HTMLDivElement>(null);
+  const scrolledIntoViewRef = useRef<boolean>(false);
 
   useEffect(() => {
-    localRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [localRef]);
+    if (!scrolledIntoViewRef.current) {
+      localRef.current?.scrollIntoView({ behavior: 'smooth' });
+      scrolledIntoViewRef.current = true;
+    }
+  }, [localRef, scrolledIntoViewRef]);
 
   return (
     <Card
@@ -185,7 +189,7 @@ const ExportColumnListItem: FC<ExportColumnListItemProps> = ({
         'ring-2': isOverlay,
       })}
       ref={(ref) => {
-        contextRef(ref);
+        contextRef?.(ref);
         localRef.current = ref;
       }}
       style={style}

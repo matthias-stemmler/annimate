@@ -49,8 +49,8 @@ import {
 import {
   FC,
   Fragment,
+  RefAttributes,
   RefObject,
-  forwardRef,
   useEffect,
   useId,
   useImperativeHandle,
@@ -364,141 +364,135 @@ type ImportStatusDisplayRef = {
   focus: () => void;
 };
 
-const ImportStatusDisplay = forwardRef<
-  ImportStatusDisplayRef,
-  ImportStatusDisplayProps
->(
-  (
-    {
-      active,
-      cancelStatus,
-      corporaStatus,
-      messages,
-      onCancelRequested,
-      result,
-    },
-    ref,
-  ) => {
-    const statusTabRef = useRef<HTMLButtonElement>(null);
-    useImperativeHandle(ref, () => ({
-      focus: () => statusTabRef.current?.focus(),
-    }));
+const ImportStatusDisplay: FC<
+  ImportStatusDisplayProps & RefAttributes<ImportStatusDisplayRef>
+> = ({
+  active,
+  cancelStatus,
+  corporaStatus,
+  messages,
+  onCancelRequested,
+  ref,
+  result,
+}) => {
+  const statusTabRef = useRef<HTMLButtonElement>(null);
+  useImperativeHandle(ref, () => ({
+    focus: () => statusTabRef.current?.focus(),
+  }));
 
-    const totalCorporaCount = corporaStatus?.length ?? 0;
-    const finishedCorporaCount =
-      corporaStatus?.filter((status) => status.type === 'finished').length ?? 0;
-    const failedCorporaCount =
-      corporaStatus?.filter(
-        (status) =>
-          status.type === 'finished' && status.result.type === 'failed',
-      ).length ?? 0;
-    const progress =
-      totalCorporaCount === 0 ? 0 : finishedCorporaCount / totalCorporaCount;
+  const totalCorporaCount = corporaStatus?.length ?? 0;
+  const finishedCorporaCount =
+    corporaStatus?.filter((status) => status.type === 'finished').length ?? 0;
+  const failedCorporaCount =
+    corporaStatus?.filter(
+      (status) => status.type === 'finished' && status.result.type === 'failed',
+    ).length ?? 0;
+  const progress =
+    totalCorporaCount === 0 ? 0 : finishedCorporaCount / totalCorporaCount;
 
-    return (
-      <div hidden={!active}>
-        <div className="mb-4 flex items-end gap-8">
-          <div className="grow">
-            <div className="mb-1 flex justify-between">
-              <p className="w-0 grow-[2] truncate">
-                {(() => {
-                  if (result?.type === 'failed') {
-                    return result.cancelled ? 'Stopped' : 'Failed';
-                  }
+  return (
+    <div hidden={!active}>
+      <div className="mb-4 flex items-end gap-8">
+        <div className="grow">
+          <div className="mb-1 flex justify-between">
+            <p className="w-0 grow-[2] truncate">
+              {(() => {
+                if (result?.type === 'failed') {
+                  return result.cancelled ? 'Stopped' : 'Failed';
+                }
 
-                  if (corporaStatus !== undefined) {
-                    return `Processed ${finishedCorporaCount}${totalCorporaCount === 0 ? '' : ` of ${totalCorporaCount}`} corpora`;
-                  }
+                if (corporaStatus !== undefined) {
+                  return `Processed ${finishedCorporaCount}${totalCorporaCount === 0 ? '' : ` of ${totalCorporaCount}`} corpora`;
+                }
 
-                  return cancelStatus === 'pending'
-                    ? 'Stopping ...'
-                    : 'Collecting corpora ...';
-                })()}
+                return cancelStatus === 'pending'
+                  ? 'Stopping ...'
+                  : 'Collecting corpora ...';
+              })()}
+            </p>
+
+            {failedCorporaCount > 0 && (
+              <p className="w-0 grow truncate text-right text-destructive">
+                {failedCorporaCount} not imported
               </p>
-
-              {failedCorporaCount > 0 && (
-                <p className="w-0 grow truncate text-right text-destructive">
-                  {failedCorporaCount} not imported
-                </p>
-              )}
-            </div>
-
-            <Progress value={Math.round(progress * 100)} />
+            )}
           </div>
 
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                className="h-8 w-8 p-0"
-                disabled={cancelStatus !== 'enabled'}
-                onClick={onCancelRequested}
-                variant="destructive"
-              >
-                {cancelStatus === 'pending' ? (
-                  <Hourglass className="h-4 w-4" />
-                ) : (
-                  <X className="h-4 w-4" />
-                )}
-              </Button>
-            </TooltipTrigger>
-
-            <TooltipContent>Stop import</TooltipContent>
-          </Tooltip>
+          <Progress value={Math.round(progress * 100)} />
         </div>
 
-        <Tabs defaultValue="status">
-          <TabsList className="mb-2 grid w-full grid-cols-2">
-            <TabsTrigger ref={statusTabRef} value="status">
-              Status
-            </TabsTrigger>
-            <TabsTrigger value="messages">Messages</TabsTrigger>
-          </TabsList>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              className="h-8 w-8 p-0"
+              disabled={cancelStatus !== 'enabled'}
+              onClick={onCancelRequested}
+              variant="destructive"
+            >
+              {cancelStatus === 'pending' ? (
+                <Hourglass className="h-4 w-4" />
+              ) : (
+                <X className="h-4 w-4" />
+              )}
+            </Button>
+          </TooltipTrigger>
 
-          {/* Keep tabs mounted to preserve state (including scroll position) when switching tabs */}
-          <TabsContent
-            className="data-[state=inactive]:invisible"
-            forceMount
-            tabIndex={-1}
-            value="status"
-          >
-            {result?.type === 'failed' ? (
-              <div className="h-80">
-                {result.cancelled ? (
-                  <Alert>
-                    <AlertCircle className="h-4 w-4" />
-                    <AlertTitle>Import stopped</AlertTitle>
-                  </Alert>
-                ) : (
-                  <Alert variant="destructive">
-                    <AlertCircle className="h-4 w-4" />
-                    <AlertTitle>Import failed</AlertTitle>
-
-                    <AlertDescription>
-                      <p>{result.message}</p>
-                    </AlertDescription>
-                  </Alert>
-                )}
-              </div>
-            ) : (
-              <CorporaStatusDisplay corporaStatus={corporaStatus} />
-            )}
-          </TabsContent>
-
-          <TabsContent
-            // Use `visibility: hidden` instead of `display: none`
-            // because WebKit would otherwise reset the scroll position
-            className="-mt-80 data-[state=inactive]:invisible"
-            forceMount
-            tabIndex={-1}
-            value="messages"
-          >
-            <MessagesDisplay messages={messages} />
-          </TabsContent>
-        </Tabs>
+          <TooltipContent>Stop import</TooltipContent>
+        </Tooltip>
       </div>
-    );
-  },
-);
+
+      <Tabs defaultValue="status">
+        <TabsList className="mb-2 grid w-full grid-cols-2">
+          <TabsTrigger ref={statusTabRef} value="status">
+            Status
+          </TabsTrigger>
+          <TabsTrigger value="messages">Messages</TabsTrigger>
+        </TabsList>
+
+        {/* Keep tabs mounted to preserve state (including scroll position) when switching tabs */}
+        <TabsContent
+          className="data-[state=inactive]:invisible"
+          forceMount
+          tabIndex={-1}
+          value="status"
+        >
+          {result?.type === 'failed' ? (
+            <div className="h-80">
+              {result.cancelled ? (
+                <Alert>
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertTitle>Import stopped</AlertTitle>
+                </Alert>
+              ) : (
+                <Alert variant="destructive">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertTitle>Import failed</AlertTitle>
+
+                  <AlertDescription>
+                    <p>{result.message}</p>
+                  </AlertDescription>
+                </Alert>
+              )}
+            </div>
+          ) : (
+            <CorporaStatusDisplay corporaStatus={corporaStatus} />
+          )}
+        </TabsContent>
+
+        <TabsContent
+          // Use `visibility: hidden` instead of `display: none`
+          // because WebKit would otherwise reset the scroll position
+          className="-mt-80 data-[state=inactive]:invisible"
+          forceMount
+          tabIndex={-1}
+          value="messages"
+        >
+          <MessagesDisplay messages={messages} />
+        </TabsContent>
+      </Tabs>
+    </div>
+  );
+};
 
 type CorporaStatusDisplayProps = {
   corporaStatus: ImportCorpusStatus[] | undefined;
@@ -718,7 +712,7 @@ const MessagesDisplay: FC<MessagesDisplayProps> = ({ messages }) => {
   );
 };
 
-const isScrolledToBottom = (viewportRef: RefObject<HTMLDivElement>) => {
+const isScrolledToBottom = (viewportRef: RefObject<HTMLDivElement | null>) => {
   const viewport = viewportRef.current;
   return (
     viewport !== null &&
@@ -726,7 +720,7 @@ const isScrolledToBottom = (viewportRef: RefObject<HTMLDivElement>) => {
   );
 };
 
-const scrollToBottom = (viewportRef: RefObject<HTMLDivElement>) => {
+const scrollToBottom = (viewportRef: RefObject<HTMLDivElement | null>) => {
   const viewport = viewportRef.current;
   if (viewport !== null) {
     viewport.scrollTop = viewport.scrollHeight;

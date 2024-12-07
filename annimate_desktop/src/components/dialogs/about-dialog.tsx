@@ -126,10 +126,10 @@ export const AboutDialog = () => {
 };
 
 // JS instead of CSS animation because the native webview used by Tauri doesn't seem to support animation-timing-function
-const useLogoAnimation = (logoRef: RefObject<HTMLElement>) => {
-  const animationFrameRef = useRef<number | null>(null);
+const useLogoAnimation = (logoRef: RefObject<HTMLElement | null>) => {
+  const animationFrameRef = useRef<number>(null);
   const delayRef = useRef<number>(ANIMATION_INITIAL_DELAY);
-  const startTimeRef = useRef<number | null>(null);
+  const startTimeRef = useRef<number>(null);
 
   const animationFrame = useCallback(
     (time: number) => {

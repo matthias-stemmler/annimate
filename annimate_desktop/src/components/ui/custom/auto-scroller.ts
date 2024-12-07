@@ -29,7 +29,7 @@ export type AutoScroller = {
 };
 
 export const useAutoScroller = (): AutoScroller => {
-  const ref = useRef<Element | null>(null);
+  const ref = useRef<Element>(null);
 
   useEffect(() => {
     if (ref.current === null) {
