@@ -11,7 +11,7 @@ env:
   RELEASE_CONFIG_FILE: release.json
   RUSTFLAGS: --deny warnings
   # renovate: datasource=crate versioning=semver-coerced depName=cargo-release
-  VERSION_CARGO_RELEASE: 0.25.13
+  VERSION_CARGO_RELEASE: 0.25.14
   # renovate: datasource=crate versioning=semver-coerced depName=parse-changelog
   VERSION_PARSE_CHANGELOG: 0.6.10
 
