@@ -32,8 +32,8 @@ jobs:
           path: ~/.cargo/
           key: cargo-udeps-${{ env.VERSION_CARGO_UDEPS }}
 
-      - name: Install nightly toolchain
-        uses: dtolnay/rust-toolchain@nightly
+      - name: Install stable toolchain
+        uses: dtolnay/rust-toolchain@stable
 
       - name: Rust cache
         uses: swatinem/rust-cache@v2
@@ -43,4 +43,9 @@ jobs:
         run: cargo install cargo-udeps@${{ env.VERSION_CARGO_UDEPS }}
 
       - name: Check for unused dependencies
-        run: cargo udeps
+        # cargo-udeps uses unstable flags, so we are supposed to use a nightly toolchain.
+        # However, it internally uses cargo-the-library from crates.io, which aligns with the stable toolchain.
+        # This means that it effectively uses stable cargo, but nightly rustc, which can cause incompatibilities.
+        # Example: The `test` cfg was turned into a userspace check-cfg in nightly rustc, while stable cargo still assumed it was a well-known cfg.
+        # To mitigate this issue, we set RUSTC_BOOTSTRAP=1 to be able to use unstable flags with stable rustc.
+        run: RUSTC_BOOTSTRAP=1 cargo udeps
