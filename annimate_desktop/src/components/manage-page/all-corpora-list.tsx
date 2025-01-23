@@ -29,7 +29,7 @@ export const AllCorporaList: FC<AllCorporaListProps> = ({ corpusNames }) => {
 
       <div className="flex-1 overflow-hidden rounded-md border">
         {corpusNames.length === 0 ? (
-          <p className="mt-4 text-center text-muted-foreground">
+          <p className="text-muted-foreground mt-4 text-center">
             No corpora available
           </p>
         ) : (
@@ -38,7 +38,7 @@ export const AllCorporaList: FC<AllCorporaListProps> = ({ corpusNames }) => {
               <div
                 key={corpusName}
                 className={
-                  'flex items-center justify-between gap-2 py-1 pl-4 pr-3 shadow-[0_1px] shadow-gray-200 dark:shadow-gray-800'
+                  'flex items-center justify-between gap-2 py-1 pr-3 pl-4 shadow-[0_1px] shadow-gray-200 dark:shadow-gray-800'
                 }
               >
                 <Label className="w-0 flex-1 truncate leading-5">
