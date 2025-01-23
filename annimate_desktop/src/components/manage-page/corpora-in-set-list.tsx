@@ -22,7 +22,7 @@ export const CorporaInSetList: FC<CorporaInSetListProps> = ({
 
     <div className="flex-1 overflow-hidden rounded-md border">
       {corpora.length === 0 ? (
-        <p className="mt-4 text-center text-muted-foreground">
+        <p className="text-muted-foreground mt-4 text-center">
           No corpora available
         </p>
       ) : (

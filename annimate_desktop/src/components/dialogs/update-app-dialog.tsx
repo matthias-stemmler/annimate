@@ -69,7 +69,7 @@ export const UpdateAppDialog: FC<UpdateAppDialogProps> = ({
     <div className="flex h-96 flex-col gap-6">
       <ScrollArea className="h-full rounded-md border">
         <Markdown
-          className="prose prose-sm m-3 cursor-text select-text dark:prose-invert prose-a:text-blue-800"
+          className="prose prose-sm dark:prose-invert prose-a:text-blue-800 m-3 cursor-text select-text"
           components={{ a: ExternalAnchor }}
         >
           {update.notes}

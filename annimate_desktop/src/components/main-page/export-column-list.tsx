@@ -62,9 +62,9 @@ export const ExportColumnList: FC = () => {
   const autoScroller = useAutoScroller();
 
   return (
-    <div className="flex flex-1 flex-col gap-2 overflow-hidden pr-1 pt-1">
+    <div className="flex flex-1 flex-col gap-2 overflow-hidden pt-1 pr-1">
       <div className="flex items-end justify-between">
-        <Label className="mb-2 mr-2">Columns</Label>
+        <Label className="mr-2 mb-2">Columns</Label>
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -194,7 +194,7 @@ const ExportColumnListItem: FC<ExportColumnListItemProps> = ({
       }}
       style={style}
     >
-      <CardContent className="flex items-center gap-4 py-0 pl-4 pr-3">
+      <CardContent className="flex items-center gap-4 py-0 pr-3 pl-4">
         <div className="flex grow flex-col gap-4 py-2">
           <p
             className={cn('cursor-default py-2 text-sm font-semibold', {
@@ -328,7 +328,7 @@ const CardMenuItem: FC<CardMenuItemProps> = ({
 }) => (
   <DropdownMenuItem className="group focus:bg-transparent" onClick={onClick}>
     <Card
-      className={cn('w-full border-l-8 shadow-md group-focus:bg-accent', {
+      className={cn('group-focus:bg-accent w-full border-l-8 shadow-md', {
         'border-column-number-600': columnType === 'number',
         'border-column-anno-corpus-600': columnType === 'anno_corpus',
         'border-column-anno-document-600': columnType === 'anno_document',

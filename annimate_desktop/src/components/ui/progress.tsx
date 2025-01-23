@@ -9,13 +9,13 @@ const Progress: FC<ComponentProps<typeof ProgressPrimitive.Root>> = ({
 }) => (
   <ProgressPrimitive.Root
     className={cn(
-      'relative h-4 w-full overflow-hidden rounded-full bg-secondary',
+      'bg-secondary relative h-4 w-full overflow-hidden rounded-full',
       className,
     )}
     {...props}
   >
     <ProgressPrimitive.Indicator
-      className="h-full w-full flex-1 bg-primary"
+      className="bg-primary h-full w-full flex-1"
       style={{ transform: `translateX(-${100 - (value || 0)}%)` }}
     />
   </ProgressPrimitive.Root>

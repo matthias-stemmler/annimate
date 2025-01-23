@@ -143,7 +143,7 @@ export const ImportDialog: FC<ImportDialogProps> = ({
 
       {canAddToSet && addToSetActive && (
         <div>
-          <p className="mb-4 mt-1">
+          <p className="mt-1 mb-4">
             Add the{' '}
             {result.corpusNames.length === 1 ? (
               <>
@@ -161,7 +161,7 @@ export const ImportDialog: FC<ImportDialogProps> = ({
           <RadioGroup onValueChange={setOption} value={option}>
             <div
               className={cn(
-                'mb-4 cursor-pointer rounded-md px-4 py-7 shadow-[0_0_0_1px] shadow-border',
+                'shadow-border mb-4 cursor-pointer rounded-md px-4 py-7 shadow-[0_0_0_1px]',
                 {
                   'shadow-[0_0_0_2px] shadow-gray-400': option === 'none',
                 },
@@ -190,7 +190,7 @@ export const ImportDialog: FC<ImportDialogProps> = ({
 
             <div
               className={cn(
-                'mb-3 cursor-pointer rounded-md p-4 pb-6 shadow-[0_0_0_1px] shadow-border',
+                'shadow-border mb-3 cursor-pointer rounded-md p-4 pb-6 shadow-[0_0_0_1px]',
                 {
                   'shadow-[0_0_0_2px] shadow-gray-400': option === 'new',
                 },
@@ -248,7 +248,7 @@ export const ImportDialog: FC<ImportDialogProps> = ({
 
             <div
               className={cn(
-                'text-md mb-4 cursor-pointer rounded-md p-4 pb-6 shadow-[0_0_0_1px] shadow-border',
+                'text-md shadow-border mb-4 cursor-pointer rounded-md p-4 pb-6 shadow-[0_0_0_1px]',
                 {
                   'cursor-not-allowed': noSetsAvailable,
                   'shadow-[0_0_0_2px] shadow-gray-400': option === 'existing',
@@ -395,7 +395,7 @@ const ImportStatusDisplay: FC<
       <div className="mb-4 flex items-end gap-8">
         <div className="grow">
           <div className="mb-1 flex justify-between">
-            <p className="w-0 grow-[2] truncate">
+            <p className="w-0 grow-2 truncate">
               {(() => {
                 if (result?.type === 'failed') {
                   return result.cancelled ? 'Stopped' : 'Failed';
@@ -412,7 +412,7 @@ const ImportStatusDisplay: FC<
             </p>
 
             {failedCorporaCount > 0 && (
-              <p className="w-0 grow truncate text-right text-destructive">
+              <p className="text-destructive w-0 grow truncate text-right">
                 {failedCorporaCount} not imported
               </p>
             )}
@@ -513,7 +513,7 @@ const CorporaStatusDisplay: FC<CorporaStatusDisplayProps> = ({
     <div className="flex">
       <div className="w-0 flex-1">
         <ScrollArea className="h-80 rounded-md border p-3">
-          <div className="mr-1 mt-1">
+          <div className="mt-1 mr-1">
             {(corporaStatus ?? []).map((corpusStatus, index) => (
               <CorpusStatusDisplay key={index} corpusStatus={corpusStatus} />
             ))}
@@ -559,7 +559,7 @@ const CorpusStatusDisplay: FC<CorpusStatusDisplayProps> = ({
         corpusStatus.result.type === 'failed' &&
         !corpusStatus.result.cancelled && (
           <div className="my-1 flex w-full">
-            <p className="w-0 flex-1 overflow-hidden text-destructive">
+            <p className="text-destructive w-0 flex-1 overflow-hidden">
               {corpusStatus.result.message}
             </p>
           </div>
@@ -576,11 +576,11 @@ type CorpusStatusIconProps = {
 const CorpusStatusIcon: FC<CorpusStatusIconProps> = ({ corpusStatus }) =>
   corpusStatus.type === 'finished' && corpusStatus.result.type === 'failed' ? (
     <Tooltip delayDuration={0}>
-      <TooltipTrigger className="outline-none" tabIndex={-1}>
+      <TooltipTrigger className="outline-hidden" tabIndex={-1}>
         {corpusStatus.result.cancelled ? (
-          <CircleMinus className="h-6 w-6 fill-destructive text-white" />
+          <CircleMinus className="fill-destructive h-6 w-6 text-white" />
         ) : (
-          <XCircle className="h-6 w-6 fill-destructive text-white" />
+          <XCircle className="fill-destructive h-6 w-6 text-white" />
         )}
       </TooltipTrigger>
 
@@ -663,7 +663,7 @@ const MessagesDisplay: FC<MessagesDisplayProps> = ({ messages }) => {
           orientation="both"
           viewportRef={scrollAreaViewportRef}
         >
-          <div className="mr-1 mt-1 text-sm">
+          <div className="mt-1 mr-1 text-sm">
             {Array.from(
               (function* () {
                 let currentIndex = undefined;
@@ -695,7 +695,7 @@ const MessagesDisplay: FC<MessagesDisplayProps> = ({ messages }) => {
 
         {autoscroll ? null : (
           <Button
-            className={cn('absolute bottom-3 right-3 rounded-full', {
+            className={cn('absolute right-3 bottom-3 rounded-full', {
               'animate-pulse': hasUnreadMessages,
             })}
             onClick={() => {

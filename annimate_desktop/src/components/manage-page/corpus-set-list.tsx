@@ -68,7 +68,7 @@ export const CorpusSetList: FC<CorpusSetListProps> = ({
 
       <div className="flex-1 overflow-hidden rounded-md border">
         {corpusSetsWithCount.length === 0 ? (
-          <p className="mt-4 text-center text-muted-foreground">
+          <p className="text-muted-foreground mt-4 text-center">
             No corpus sets available
           </p>
         ) : (
@@ -291,7 +291,7 @@ const SelectableRow: FC<SelectableRowProps> = ({
 }) => (
   <div
     className={cn(
-      'flex items-stretch justify-between gap-2 py-1 pl-4 pr-3 shadow-[0_1px] shadow-gray-200 dark:shadow-gray-800',
+      'flex items-stretch justify-between gap-2 py-1 pr-3 pl-4 shadow-[0_1px] shadow-gray-200 dark:shadow-gray-800',
       {
         'border-l-8 border-l-gray-400 pl-2': isSelected,
       },

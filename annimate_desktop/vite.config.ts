@@ -1,5 +1,6 @@
 /// <reference types="vitest" />
 
+import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';
 import { defineConfig } from 'vite';
@@ -18,7 +19,7 @@ export default defineConfig(async () => {
       chunkSizeWarningLimit: 1024,
     },
     clearScreen: false,
-    plugins: [react(), svgr()],
+    plugins: [react(), svgr(), tailwindcss()],
     resolve: {
       alias: {
         '@/lib/api': path.resolve(
