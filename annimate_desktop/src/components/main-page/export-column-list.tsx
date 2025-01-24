@@ -186,7 +186,7 @@ const ExportColumnListItem: FC<ExportColumnListItemProps> = ({
         'border-column-match-in-context-600 ring-column-match-in-context-600':
           item.type === 'match_in_context',
         'opacity-30': isPlaceholder,
-        'ring-2': isOverlay,
+        ring: isOverlay,
       })}
       ref={(ref) => {
         contextRef?.(ref);
