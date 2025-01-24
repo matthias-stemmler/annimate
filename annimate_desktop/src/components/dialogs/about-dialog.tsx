@@ -46,7 +46,7 @@ export const AboutDialog = () => {
         <DialogTitle className="mb-4">About Annimate</DialogTitle>
       </DialogHeader>
 
-      <div className="overflow-hidden text-sm">
+      <div className="overflow-hidden px-1 pb-1 text-sm">
         <div
           ref={logoRef}
           className="mx-auto mb-8 w-36"
