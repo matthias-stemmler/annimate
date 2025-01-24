@@ -2,6 +2,10 @@
 
 ## [Unreleased] - (release date)
 
+### Changed
+
+- Minor UI changes to improve consistency
+
 ## [1.3.3] - 2024-11-27
 
 ### Fixed

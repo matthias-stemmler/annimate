@@ -57,33 +57,27 @@ export const DeleteCorpusSetDialog: FC<DeleteCorpusSetDialogProps> = ({
             value={option}
           >
             <div
-              className="flex cursor-pointer items-center gap-2 py-1"
+              className="flex items-center gap-2 py-1"
               onClick={() => {
                 setOption('only-set');
               }}
             >
               <RadioGroupItem id={onlySetOptionId} value="only-set" />
 
-              <Label
-                htmlFor={onlySetOptionId}
-                className="text-md cursor-pointer"
-              >
+              <Label htmlFor={onlySetOptionId} className="text-md">
                 Only delete set, keep {corpusOrCorpora}
               </Label>
             </div>
 
             <div
-              className="flex cursor-pointer items-center gap-2 py-1"
+              className="flex items-center gap-2 py-1"
               onClick={() => {
                 setOption('also-corpora');
               }}
             >
               <RadioGroupItem id={alsoCorporaOptionId} value="also-corpora" />
 
-              <Label
-                htmlFor={alsoCorporaOptionId}
-                className="text-md cursor-pointer"
-              >
+              <Label htmlFor={alsoCorporaOptionId} className="text-md">
                 Delete set and {corpusOrCorpora}
               </Label>
             </div>
