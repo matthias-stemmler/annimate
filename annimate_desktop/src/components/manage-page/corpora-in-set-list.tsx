@@ -61,7 +61,7 @@ const CorporaInSetListItem: FC<CorporaInSetListItemProps> = ({
   return (
     <Label
       htmlFor={id}
-      className="group flex cursor-pointer items-center gap-2 px-4 py-3 shadow-[0_1px] shadow-gray-200 dark:shadow-gray-800"
+      className="flex items-center gap-2 px-4 py-3 shadow-[0_1px] shadow-gray-200 dark:shadow-gray-800"
     >
       <Checkbox
         id={id}
@@ -84,7 +84,7 @@ const CorporaInSetListItem: FC<CorporaInSetListItemProps> = ({
           );
         }}
       />
-      <div className="h-6 w-0 flex-1 translate-y-0.5 truncate leading-5 underline-offset-4 group-hover:underline">
+      <div className="h-6 w-0 flex-1 translate-y-0.5 truncate leading-5">
         {corpusName}
       </div>
     </Label>

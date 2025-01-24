@@ -161,7 +161,7 @@ export const ImportDialog: FC<ImportDialogProps> = ({
           <RadioGroup onValueChange={setOption} value={option}>
             <div
               className={cn(
-                'shadow-border mb-4 cursor-pointer rounded-md px-4 py-7 shadow-[0_0_0_1px]',
+                'shadow-border mb-4 rounded-md px-4 py-7 shadow-[0_0_0_1px]',
                 {
                   'shadow-[0_0_0_2px] shadow-gray-400': option === 'none',
                 },
@@ -173,10 +173,7 @@ export const ImportDialog: FC<ImportDialogProps> = ({
               <div className="mb-2 flex items-center gap-3">
                 <RadioGroupItem id={noneOptionId} value="none" />
 
-                <Label
-                  htmlFor={noneOptionId}
-                  className="text-md cursor-pointer"
-                >
+                <Label htmlFor={noneOptionId} className="text-md">
                   Do not add to a set
                 </Label>
               </div>
@@ -190,7 +187,7 @@ export const ImportDialog: FC<ImportDialogProps> = ({
 
             <div
               className={cn(
-                'shadow-border mb-3 cursor-pointer rounded-md p-4 pb-6 shadow-[0_0_0_1px]',
+                'shadow-border mb-3 rounded-md p-4 pb-6 shadow-[0_0_0_1px]',
                 {
                   'shadow-[0_0_0_2px] shadow-gray-400': option === 'new',
                 },
@@ -204,7 +201,7 @@ export const ImportDialog: FC<ImportDialogProps> = ({
 
                 <Label
                   htmlFor={newOptionId}
-                  className="text-md grow cursor-pointer peer-disabled:opacity-50"
+                  className="text-md grow peer-disabled:opacity-50"
                 >
                   Add to a new set:
                 </Label>
@@ -248,7 +245,7 @@ export const ImportDialog: FC<ImportDialogProps> = ({
 
             <div
               className={cn(
-                'text-md shadow-border mb-4 cursor-pointer rounded-md p-4 pb-6 shadow-[0_0_0_1px]',
+                'text-md shadow-border mb-4 rounded-md p-4 pb-6 shadow-[0_0_0_1px]',
                 {
                   'cursor-not-allowed': noSetsAvailable,
                   'shadow-[0_0_0_2px] shadow-gray-400': option === 'existing',
@@ -270,7 +267,7 @@ export const ImportDialog: FC<ImportDialogProps> = ({
 
                 <Label
                   htmlFor={existingOptionId}
-                  className="text-md cursor-pointer peer-disabled:opacity-50"
+                  className="text-md peer-disabled:opacity-50"
                 >
                   Add to an existing set:
                 </Label>

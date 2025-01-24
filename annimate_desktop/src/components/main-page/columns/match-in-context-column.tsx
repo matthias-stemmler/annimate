@@ -323,7 +323,7 @@ const QueryNodesSelectItem: FC<QueryNodesSelectItemProps> = ({
     <Label
       htmlFor={id}
       className={cn(
-        'flex cursor-pointer items-center gap-2 overflow-hidden p-1 has-disabled:cursor-not-allowed has-disabled:opacity-70',
+        'flex items-center gap-2 overflow-hidden p-1 has-disabled:cursor-not-allowed has-disabled:opacity-70',
         className,
       )}
     >
