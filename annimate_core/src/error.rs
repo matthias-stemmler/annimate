@@ -38,7 +38,7 @@ pub enum AnnimateError {
         path: PathBuf,
 
         /// Inner error.
-        err: AnnisExportMetadataError,
+        err: AnnimateMetadataError,
     },
 
     /// Failed to write XLSX workbook
@@ -92,7 +92,7 @@ impl From<Vec<String>> for AnnimateErrorCorpusNames {
 }
 
 #[derive(Debug, Error)]
-pub enum AnnisExportMetadataError {
+pub enum AnnimateMetadataError {
     #[error("Invalid format: {0}")]
     InvalidFormat(#[from] toml::de::Error),
 

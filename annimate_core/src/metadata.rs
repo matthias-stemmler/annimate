@@ -7,7 +7,7 @@ use std::{fs, io};
 
 use serde::{Deserialize, Serialize};
 
-use crate::error::AnnisExportMetadataError;
+use crate::error::AnnimateMetadataError;
 use crate::AnnimateError;
 
 const METADATA_VERSION: usize = 1;
@@ -112,13 +112,13 @@ impl Default for Metadata {
 }
 
 impl FromStr for Metadata {
-    type Err = AnnisExportMetadataError;
+    type Err = AnnimateMetadataError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let metadata: Metadata = toml::from_str(s)?;
 
         if metadata.metadata_version == 0 || metadata.metadata_version > METADATA_VERSION {
-            Err(AnnisExportMetadataError::UnsupportedVersion {
+            Err(AnnimateMetadataError::UnsupportedVersion {
                 version: metadata.metadata_version,
             })
         } else {
