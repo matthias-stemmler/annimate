@@ -204,7 +204,7 @@ jobs:
 
       - name: Create release
         id: create-release
-        uses: tauri-apps/tauri-action@v0.5.18
+        uses: tauri-apps/tauri-action@v0.5.19
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_PRIVATE_KEY }}
