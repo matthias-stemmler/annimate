@@ -8,6 +8,10 @@ on:
     - cron: "0 0 * * SAT"
   workflow_dispatch:
 
+env:
+  # renovate: datasource=npm versioning=semver-coerced depName=corepack
+  VERSION_COREPACK: 0.31.0
+
 jobs:
   audit:
     name: Audit
@@ -19,6 +23,10 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      # Install a specific version of corepack to make sure we have the latest signing keys
+      - name: Install corepack
+        run: npm install --global corepack@${{ env.VERSION_COREPACK }}
 
       - name: Enable corepack
         run: corepack enable
