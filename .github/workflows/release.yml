@@ -15,7 +15,7 @@ env:
   # renovate: datasource=npm versioning=semver-coerced depName=corepack
   VERSION_COREPACK: 0.31.0
   # renovate: datasource=crate versioning=semver-coerced depName=parse-changelog
-  VERSION_PARSE_CHANGELOG: 0.6.11
+  VERSION_PARSE_CHANGELOG: 0.6.12
 
 jobs:
   ci:
