@@ -4,7 +4,8 @@
 
 ### Changed
 
-- Minor UI changes to improve consistency
+- Automatic updates on macOS now work even when they require administrator permissions.
+- Minor UI changes to improve consistency.
 
 ## [1.3.3] - 2024-11-27
 
