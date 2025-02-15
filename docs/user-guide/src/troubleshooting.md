@@ -14,23 +14,19 @@ this is because Annimate has not been signed by Apple.
 
 To fix this, make sure that you remove the "quarantine" attribute as described in the [Installation](installation.md#macos) section.
 
-### There is a "permission denied" error when trying to install an update
+### On Linux, there is a "permission denied" error when trying to install an update
 
-If you see an error message like this when Annimate tries to install an update (instead of `os error 13`, it could also show `os error 1`):
+If you see an error message like this when Annimate tries to install an update on Linux (instead of `os error 13`, it could also show `os error 1`):
 
 ![Screenshot of error during update](img/update-error.png)
 
-this is because Annimate has no write permissions on its executable file.
-
-This mostly happens on macOS if Annimate is installed into a folder such as `/Applications` that requires administrator permissions or in a protected folder such as `Desktop`, `Documents` or `Downloads` in the home directory. To fix this, make sure to install Annimate into a non-protected folder as described in the [Installation](installation.md#macos) section.
-
-It can also happen on Linux if the current user has no permission to write to the folder containing the Annimate AppImage. To fix this, you may assign the necessary permissions by running
+this is because the current user has no permission to write to the folder containing the Annimate AppImage. To fix this, you may assign the necessary permissions by running
 
 ```shell
 chmod u+w <folder containing the .appimage file>
 ```
 
-In any case, instead of letting Annimate update itself, you can alternatively just download and install/run the latest release.
+In any case, instead of letting Annimate update itself, you can alternatively just download and run the latest release.
 
 > **Note:** Your imported corpora are persisted across updates and will _not_ be lost even if you install a newer version manually.
 
