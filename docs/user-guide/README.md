@@ -1,4 +1,6 @@
-# Taking Screenshots
+# Annimate User Guide Authoring
+
+## Taking Screenshots
 
 - In `tauri.conf.json`, set window size to `1088x768`
 - In `main.rs`, comment the restoration of the window state
