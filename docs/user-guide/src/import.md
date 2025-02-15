@@ -50,6 +50,10 @@ There are several ways to obtain corpus data:
 5. In the final step you can optionally add all imported corpora to a (new or existing) corpus set. Click on "OK" to finish the import.
    ![Screenshot showing how to add imported corpora to a set](img/import-add-to-set.png)
 
+> **Note:** It is _not_ possible to keep two corpora of the same name imported at the same time. If you try to import a corpus with the same name as a corpus that was previously imported, the import will fail. This is true even if the old and new corpora are added to different sets.
+>
+> A common case where this can happen is when there are multiple versions of a corpus, and the version numbers are not included in the corpus names. In this case, when an older version has already been imported, you cannot just import the newer version, because it has the same name. Instead, you first need to delete the older version (see below) before you can import the newer version.
+
 ### Organizing Corpora and Corpus Sets
 
 While you can add corpora to sets directly when they are imported, it is also possible to organize corpus sets at any time on the "Manage corpora" screen.
