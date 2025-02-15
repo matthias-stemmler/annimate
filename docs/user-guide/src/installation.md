@@ -80,8 +80,6 @@ In order to install the Debian package, go through the following steps:
 
 On macOS, Annimate comes as a macOS Application Bundle (`.app` file) packaged in a `.tar.gz` archive. It can update itself automatically whenever a new version of Annimate becomes available.
 
-> **Note:** Installing Annimate on macOS does _not_ require administrator permissions unless it is installed into a protected folder such as `/Applications` that requires adminitrator permissions. However, installing it into a protected folder is discouraged because it will not be able to update itself automatically.
-
 There are two different versions of the Application Bundle for different types of processors:
 
 - Apple silicon processors (for newer Mac computers, starting from late 2020)
@@ -103,7 +101,10 @@ In order to install Annimate, go through the following steps:
 
    ![Screenshot of macOS extracted archive file](img/macos-extracted.png)
 
-3. Move the `Annimate` Application Bundle to a folder that is not protected. This excludes folders that require administrator permissions such as `/Applications`, your desktop or other special folders in your home directory such as `Documents` or `Downloads`. You could, for instance, move it into your home directory or in a subfolder of your home directory such as `~/Applications` that you may have to create first.
+3. Move the `Annimate` Application Bundle to one of the following folders:
+
+   - To install it only for the current user (does _not_ require administrator permissions): Move it to a subfolder of your home directory such as `~/Applications`. You may have to create this folder first in case it does not exist yet.
+   - To install it system-wide (requires administrator permissions): Move it to the system-wide `/Applications` folder.
 
 4. Open a terminal by clicking on the "Terminal" icon in your Dock:
    ![Screenshot of macOS terminal button](img/macos-terminal-button.png)
@@ -114,12 +115,14 @@ In order to install Annimate, go through the following steps:
    xattr -d com.apple.quarantine Annimate.app
    ```
 
-   The following screenshot shows a terminal session where the file is moved from the `Downloads` folder to the home directory (`~`) and the quarantine attribute is removed:
+   The following screenshot shows a terminal session where the file is moved from the `Downloads` folder to the (newly created) `~/Applications` folder and the quarantine attribute is removed:
 
    ![Screenshot of macOS terminal](img/macos-terminal.png)
 
-6. Afterwards you can run Annimate by double-clicking on the `Annimate` app icon (shown here in the home directory):
+6. Afterwards you can run Annimate by navigating to the installation folder (here: `~/Applications`) and double-clicking on the `Annimate` app icon:
+
    ![Screenshot of macOS home folder](img/macos-home.png)
+   ![Screenshot of macOS applications folder](img/macos-applications.png)
 
 #### Automatic updates
 
@@ -132,7 +135,9 @@ If you choose to apply the update, the application will restart itself afterward
 
 > **Note:** We strongly recommend that you install updates in order to keep up with new features and bugfixes.
 
-In case you see an error message when Annimate tries to install the update, make sure that the folder containing the Annimate Application Bundle does not require administrator permissions and isn't one of the protected folders `Desktop`, `Documents` or `Downloads`.
+In case Annimate is installed in a folder that requires administrator permissions, you are prompted to enter your administrator credentials:
+
+![Screenshot of macOS automatic update](img/macos-update.png)
 
 ## Obtaining Older Versions
 
