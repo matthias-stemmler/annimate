@@ -1,29 +1,29 @@
 use std::collections::{HashMap, HashSet};
-use std::iter::{self, successors, StepBy};
+use std::iter::{self, StepBy, successors};
 use std::ops::{Bound, RangeFrom};
 use std::{slice, vec};
 
+use graphannis::Graph;
 pub use graphannis::corpusstorage::QueryLanguage;
 use graphannis::corpusstorage::{ResultOrder, SearchQuery};
 use graphannis::errors::GraphAnnisError;
 use graphannis::graph::GraphStorage;
 use graphannis::model::AnnotationComponentType;
 use graphannis::util::node_names_from_match;
-use graphannis::Graph;
 use graphannis_core::errors::GraphAnnisCoreError;
 use graphannis_core::graph::DEFAULT_NS;
 use graphannis_core::types::{AnnoKey, NodeID};
 use itertools::Itertools;
 
 use crate::anno::{
-    self, get_anno_key_for_segmentation, DEFAULT_ORDERING_COMPONENT, GAP_ORDERING_COMPONENT,
-    TOKEN_ANNO_KEY,
+    self, DEFAULT_ORDERING_COMPONENT, GAP_ORDERING_COMPONENT, TOKEN_ANNO_KEY,
+    get_anno_key_for_segmentation,
 };
 use crate::corpus::CorpusRef;
 use crate::error::AnnimateError;
 use crate::node_name::{self, node_name_to_node_id};
 use crate::util::group_by;
-use crate::{aql, QueryNode};
+use crate::{QueryNode, aql};
 
 const PAGE_SIZE: usize = 1000;
 
@@ -254,7 +254,7 @@ where
                 };
             }
 
-            if let Some(ref mut page) = &mut self.matches_page {
+            if let Some(page) = &mut self.matches_page {
                 match page.next() {
                     Some(m) => return Some(m),
                     None => self.matches_page = None,

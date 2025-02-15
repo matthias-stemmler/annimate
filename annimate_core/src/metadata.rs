@@ -7,8 +7,8 @@ use std::{fs, io};
 
 use serde::{Deserialize, Serialize};
 
-use crate::error::AnnimateMetadataError;
 use crate::AnnimateError;
+use crate::error::AnnimateMetadataError;
 
 const METADATA_VERSION: usize = 1;
 

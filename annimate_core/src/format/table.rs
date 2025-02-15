@@ -2,11 +2,11 @@ use std::collections::{BTreeSet, HashMap};
 use std::ops::Range;
 use std::vec;
 
-use itertools::{put_back, Itertools, PutBack};
+use itertools::{Itertools, PutBack, put_back};
 
-use crate::anno::{is_doc_anno_key, AnnoKeyFormat};
+use crate::anno::{AnnoKeyFormat, is_doc_anno_key};
 use crate::aql::QueryNode;
-use crate::error::{cancel_if, AnnimateError};
+use crate::error::{AnnimateError, cancel_if};
 use crate::query::{ExportData, ExportDataAnno, ExportDataText, Match, TextPart};
 
 #[derive(Clone, Copy, Debug)]
@@ -151,10 +151,12 @@ where
         out.write_record(columns.iter().flat_map(|c| match c {
             TableExportColumn::Number => vec![(i + 1).to_string()],
             TableExportColumn::Data(ExportData::Anno(anno)) => {
-                vec![annos
-                    .get(anno)
-                    .map(|s| s.trim().to_string())
-                    .unwrap_or_default()]
+                vec![
+                    annos
+                        .get(anno)
+                        .map(|s| s.trim().to_string())
+                        .unwrap_or_default(),
+                ]
             }
             TableExportColumn::Data(ExportData::Text(text)) => {
                 let max_match_parts = *max_match_parts_by_text.get(text).unwrap();

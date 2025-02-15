@@ -2,10 +2,10 @@ use std::io::{Seek, Write};
 
 use super::table::{self, TableWriter};
 use super::{Exporter, QueryInfo};
+use crate::TableExportColumn;
 use crate::anno::AnnoKeyFormat;
 use crate::error::AnnimateError;
 use crate::query::{ExportData, Match};
-use crate::TableExportColumn;
 
 #[derive(Debug)]
 pub(super) struct CsvExporter;
