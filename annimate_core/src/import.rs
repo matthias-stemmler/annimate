@@ -11,7 +11,7 @@ use serde::Serialize;
 use tempfile::TempDir;
 use zip::ZipArchive;
 
-use crate::{cancel_if, AnnimateError};
+use crate::{AnnimateError, cancel_if};
 
 pub(crate) fn find_importable_corpora<F, G>(
     paths: Vec<PathBuf>,

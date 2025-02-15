@@ -2,11 +2,11 @@ use std::collections::{BTreeSet, HashSet};
 use std::fmt::{self, Display, Formatter};
 use std::sync::LazyLock;
 
+use graphannis::AnnotationGraph;
 use graphannis::corpusstorage::{QueryLanguage, ResultOrder, SearchQuery};
 use graphannis::errors::GraphAnnisError;
 use graphannis::model::AnnotationComponentType;
 use graphannis::util::node_names_from_match;
-use graphannis::AnnotationGraph;
 use graphannis_core::graph::{ANNIS_NS, DEFAULT_NS, NODE_NAME};
 use graphannis_core::types::{AnnoKey, Component, NodeID};
 use itertools::Itertools;
