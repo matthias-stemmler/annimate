@@ -60,7 +60,7 @@
   "devDependencies": {
     "@eslint/js": "^9.20.0",
     "@tailwindcss/typography": "^0.5.16",
-    "@tailwindcss/vite": "^4.0.6",
+    "@tailwindcss/vite": "^4.0.7",
     "@tanstack/eslint-plugin-query": "^5.66.1",
     "@tauri-apps/cli": "^2.2.7",
     "@testing-library/dom": "^10.4.0",
@@ -76,12 +76,12 @@
     "jsdom": "^26.0.0",
     "prettier": "^3.5.1",
     "prettier-plugin-tailwindcss": "^0.6.11",
-    "tailwindcss": "^4.0.6",
+    "tailwindcss": "^4.0.7",
     "typescript": "^5.7.3",
     "typescript-eslint": "^8.24.1",
-    "vite": "^6.1.0",
+    "vite": "^6.1.1",
     "vite-plugin-svgr": "^4.3.0",
-    "vitest": "^3.0.5"
+    "vitest": "^3.0.6"
   },
   "pnpm": {
     "onlyBuiltDependencies": [
