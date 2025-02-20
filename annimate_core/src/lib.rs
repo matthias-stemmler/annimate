@@ -10,7 +10,7 @@ use std::path::{Path, PathBuf};
 use anno::AnnoKeys;
 use corpus::CorpusRef;
 use error::cancel_if;
-use format::{export, QueryInfo};
+use format::{QueryInfo, export};
 use graphannis::corpusstorage::CacheStrategy;
 use import::{FilesystemEntity, ImportFormat, ImportableCorpus};
 use itertools::Itertools;
@@ -38,7 +38,7 @@ pub use graphannis::corpusstorage::CorpusInfo;
 pub use graphannis::graph::AnnoKey;
 pub use query::{ExportData, ExportDataAnno, ExportDataText, QueryLanguage};
 use tempfile::PersistError;
-pub use version::{VersionInfo, VERSION_INFO};
+pub use version::{VERSION_INFO, VersionInfo};
 
 /// Storage of corpora and metadata.
 pub struct Storage {
