@@ -4,13 +4,13 @@
 
 use std::collections::btree_map::Entry;
 use std::fs;
-use std::io::{self, Write};
+use std::io::{self, ErrorKind, Write};
 use std::path::{Path, PathBuf};
 
 use anno::AnnoKeys;
 use corpus::CorpusRef;
 use error::cancel_if;
-use format::{QueryInfo, export};
+use format::{export, QueryInfo};
 use graphannis::corpusstorage::CacheStrategy;
 use import::{FilesystemEntity, ImportFormat, ImportableCorpus};
 use itertools::Itertools;
@@ -38,7 +38,7 @@ pub use graphannis::corpusstorage::CorpusInfo;
 pub use graphannis::graph::AnnoKey;
 pub use query::{ExportData, ExportDataAnno, ExportDataText, QueryLanguage};
 use tempfile::PersistError;
-pub use version::{VERSION_INFO, VersionInfo};
+pub use version::{VersionInfo, VERSION_INFO};
 
 /// Storage of corpora and metadata.
 pub struct Storage {
@@ -425,11 +425,8 @@ impl Storage {
         out.flush()?;
 
         match out.persist(&output_file) {
-            Err(PersistError { file, .. }) => {
-                // In case the file cannot be persisted, most likely because persisting would cross
-                // file systems, copy the file as a workaround
-                // Once io::ErrorKind::CrossesDevices is stable, we can match on it and only apply
-                // the workaround in that case
+            Err(PersistError { error, file }) if error.kind() == ErrorKind::CrossesDevices => {
+                // In case renaming would cross file systems, copy the file instead
                 fs::copy(file.path(), output_file)?;
             }
             result => {
