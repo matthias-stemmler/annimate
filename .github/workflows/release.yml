@@ -77,29 +77,11 @@ jobs:
         if: steps.determine-version-bump.outputs.bump != 'none'
         uses: swatinem/rust-cache@v2
 
-      - name: Cache cargo-release
-        id: cache-cargo-release
+      - name: Install cargo-release and parse-changelog
         if: steps.determine-version-bump.outputs.bump != 'none'
-        uses: actions/cache@v4
+        uses: taiki-e/install-action@v2
         with:
-          path: ~/.cargo/
-          key: cargo-release-${{ env.VERSION_CARGO_RELEASE }}
-
-      - name: Install cargo-release
-        if: steps.determine-version-bump.outputs.bump != 'none' && !steps.cache-cargo-release.outputs.cache-hit
-        run: cargo install cargo-release@${{ env.VERSION_CARGO_RELEASE }}
-
-      - name: Cache parse-changelog
-        id: cache-parse-changelog
-        if: steps.determine-version-bump.outputs.bump != 'none'
-        uses: actions/cache@v4
-        with:
-          path: ~/.cargo/
-          key: parse-changelog-${{ env.VERSION_PARSE_CHANGELOG }}
-
-      - name: Install parse-changelog
-        if: steps.determine-version-bump.outputs.bump != 'none' && !steps.cache-parse-changelog.outputs.cache-hit
-        run: cargo install parse-changelog@${{ env.VERSION_PARSE_CHANGELOG }}
+          tool: cargo-release@${{ env.VERSION_CARGO_RELEASE }},parse-changelog@${{ env.VERSION_PARSE_CHANGELOG }}
 
       - name: Pre-release
         id: pre-release
@@ -135,6 +117,7 @@ jobs:
           echo '--'
 
       - name: Create pull request
+        if: steps.determine-version-bump.outputs.bump != 'none'
         uses: peter-evans/create-pull-request@v7
         with:
           # use PAT instead of GITHUB_TOKEN so created PR can trigger workflows
