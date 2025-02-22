@@ -29,16 +29,10 @@ jobs:
       - name: Rust cache
         uses: swatinem/rust-cache@v2
 
-      - name: Cache mdbook
-        id: cache-mdbook
-        uses: actions/cache@v4
-        with:
-          path: ~/.cargo/
-          key: mdbook-${{ env.VERSION_MDBOOK }}
-
       - name: Install mdbook
-        if: ${{ !steps.cache-mdbook.outputs.cache-hit }}
-        run: cargo install mdbook@${{ env.VERSION_MDBOOK }}
+        uses: taiki-e/install-action@v2
+        with:
+          tool: mdbook@${{ env.VERSION_MDBOOK }}
 
       - name: Setup GitHub Pages
         uses: actions/configure-pages@v5
