@@ -77,10 +77,10 @@
     "prettier-plugin-tailwindcss": "^0.6.11",
     "tailwindcss": "^4.0.8",
     "typescript": "^5.7.3",
-    "typescript-eslint": "^8.24.1",
+    "typescript-eslint": "^8.25.0",
     "vite": "^6.1.1",
     "vite-plugin-svgr": "^4.3.0",
-    "vitest": "^3.0.6"
+    "vitest": "^3.0.7"
   },
   "pnpm": {
     "onlyBuiltDependencies": [
