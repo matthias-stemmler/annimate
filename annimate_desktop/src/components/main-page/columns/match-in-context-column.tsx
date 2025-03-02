@@ -271,7 +271,7 @@ const PrimaryNodesSelect: FC<PrimaryNodesSelectProps> = ({
               {...dragHandleAttributes}
               {...dragHandleListeners}
             >
-              <GripVertical className="h-4 w-4" />
+              <GripVertical className="size-4" />
             </Button>
             <QueryNodesSelectItem
               checked

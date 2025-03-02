@@ -39,7 +39,7 @@ export const CorpusList: FC = () => {
               }}
               variant="ghost"
             >
-              <Settings className="h-4 w-4" />
+              <Settings className="size-4" />
             </Button>
           </TooltipTrigger>
 

@@ -62,15 +62,15 @@ export const ExportTrigger = () => {
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
-                className="h-8 w-8 p-0"
+                className="size-8 p-0"
                 disabled={cancelRequested}
                 onClick={requestCancel}
                 variant="destructive"
               >
                 {cancelRequested ? (
-                  <Hourglass className="h-4 w-4" />
+                  <Hourglass className="size-4" />
                 ) : (
-                  <X className="h-4 w-4" />
+                  <X className="size-4" />
                 )}
               </Button>
             </TooltipTrigger>
@@ -114,7 +114,7 @@ export const ExportTrigger = () => {
                             }
                             variant="link"
                           >
-                            <Folder className="mr-2 h-4 w-4" />
+                            <Folder className="mr-2 size-4" />
                             Open folder
                           </Button>
 
@@ -123,7 +123,7 @@ export const ExportTrigger = () => {
                             onClick={() => shellOpen(outputFile)}
                             variant="link"
                           >
-                            <File className="mr-2 h-4 w-4" />
+                            <File className="mr-2 size-4" />
                             Open file
                           </Button>
                         </div>

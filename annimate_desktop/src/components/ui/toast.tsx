@@ -71,7 +71,7 @@ const ToastClose: FC<ComponentProps<typeof ToastPrimitives.Close>> = ({
     toast-close=""
     {...props}
   >
-    <X className="h-4 w-4" />
+    <X className="size-4" />
   </ToastPrimitives.Close>
 );
 

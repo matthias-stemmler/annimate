@@ -131,7 +131,7 @@ const AddCorpusSetTrigger: FC<AddCorpusSetTriggerProps> = ({
     <Dialog onOpenChange={setOpen} open={open}>
       <DialogTrigger asChild>
         <Button className="ml-1" variant="secondary">
-          <Plus className="mr-2 h-4 w-4" />
+          <Plus className="mr-2 size-4" />
           Add corpus set
         </Button>
       </DialogTrigger>

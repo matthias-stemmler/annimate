@@ -64,7 +64,7 @@ export const Window: FC = () => {
                   shellOpen(URL_ANNIMATE_USER_GUIDE);
                 }}
               >
-                <ExternalLink className="mr-2 h-4 w-4" />
+                <ExternalLink className="mr-2 size-4" />
                 User Guide
                 <MenubarShortcut>F1</MenubarShortcut>
               </MenubarItem>
@@ -74,7 +74,7 @@ export const Window: FC = () => {
                   shellOpen(URL_AQL_OPERATORS);
                 }}
               >
-                <ExternalLink className="mr-2 h-4 w-4" />
+                <ExternalLink className="mr-2 size-4" />
                 AQL Operators
               </MenubarItem>
 

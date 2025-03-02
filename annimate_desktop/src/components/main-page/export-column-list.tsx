@@ -69,7 +69,7 @@ export const ExportColumnList: FC = () => {
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button disabled={disabled} variant="outline">
-              <Plus className="mr-2 h-4 w-4" /> Add column
+              <Plus className="mr-2 size-4" /> Add column
             </Button>
           </DropdownMenuTrigger>
 
@@ -288,7 +288,7 @@ const ExportColumnListItem: FC<ExportColumnListItemProps> = ({
                 size="icon"
                 variant="ghost"
               >
-                <Trash2 className="h-4 w-4" />
+                <Trash2 className="size-4" />
               </Button>
             </TooltipTrigger>
 
@@ -296,7 +296,7 @@ const ExportColumnListItem: FC<ExportColumnListItemProps> = ({
           </Tooltip>
 
           <Button
-            className={cn('h-5 w-5 cursor-grab p-0 hover:bg-inherit', {
+            className={cn('size-5 cursor-grab p-0 hover:bg-inherit', {
               'focus-visible:ring-transparent': isPlaceholder,
               'cursor-grabbing': isOverlay || isPlaceholder,
             })}
@@ -305,7 +305,7 @@ const ExportColumnListItem: FC<ExportColumnListItemProps> = ({
             {...dragHandleAttributes}
             {...dragHandleListeners}
           >
-            <GripVertical className="h-4 w-4" />
+            <GripVertical className="size-4" />
           </Button>
         </div>
       </CardContent>
