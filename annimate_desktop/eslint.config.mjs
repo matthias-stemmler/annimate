@@ -28,20 +28,8 @@ export default tseslint.config(
 
   /***** Plugins *****/
   ...pluginQuery.configs['flat/recommended'],
-  {
-    plugins: {
-      'react-hooks': pluginReactHooks,
-    },
-    rules: pluginReactHooks.configs.recommended.rules,
-  },
-  {
-    plugins: {
-      'react-refresh': pluginReactRefresh,
-    },
-    rules: {
-      'react-refresh/only-export-components': 'error',
-    },
-  },
+  pluginReactHooks.configs['recommended-latest'],
+  pluginReactRefresh.configs.vite,
 
   /***** Custom config *****/
 
