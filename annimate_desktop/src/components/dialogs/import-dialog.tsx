@@ -421,15 +421,15 @@ const ImportStatusDisplay: FC<
         <Tooltip>
           <TooltipTrigger asChild>
             <Button
-              className="h-8 w-8 p-0"
+              className="size-8 p-0"
               disabled={cancelStatus !== 'enabled'}
               onClick={onCancelRequested}
               variant="destructive"
             >
               {cancelStatus === 'pending' ? (
-                <Hourglass className="h-4 w-4" />
+                <Hourglass className="size-4" />
               ) : (
-                <X className="h-4 w-4" />
+                <X className="size-4" />
               )}
             </Button>
           </TooltipTrigger>
@@ -457,12 +457,12 @@ const ImportStatusDisplay: FC<
             <div className="h-80">
               {result.cancelled ? (
                 <Alert>
-                  <AlertCircle className="h-4 w-4" />
+                  <AlertCircle className="size-4" />
                   <AlertTitle>Import stopped</AlertTitle>
                 </Alert>
               ) : (
                 <Alert variant="destructive">
-                  <AlertCircle className="h-4 w-4" />
+                  <AlertCircle className="size-4" />
                   <AlertTitle>Import failed</AlertTitle>
 
                   <AlertDescription>
@@ -546,7 +546,7 @@ const CorpusStatusDisplay: FC<CorpusStatusDisplayProps> = ({
             </span>
           </div>
 
-          <ChevronsUpDown className="ml-2 h-4 w-4" />
+          <ChevronsUpDown className="ml-2 size-4" />
         </Button>
       </CollapsibleTrigger>
     </div>
@@ -575,9 +575,9 @@ const CorpusStatusIcon: FC<CorpusStatusIconProps> = ({ corpusStatus }) =>
     <Tooltip delayDuration={0}>
       <TooltipTrigger className="outline-hidden" tabIndex={-1}>
         {corpusStatus.result.cancelled ? (
-          <CircleMinus className="fill-destructive h-6 w-6 text-white" />
+          <CircleMinus className="fill-destructive size-6 text-white" />
         ) : (
-          <XCircle className="fill-destructive h-6 w-6 text-white" />
+          <XCircle className="fill-destructive size-6 text-white" />
         )}
       </TooltipTrigger>
 
@@ -587,9 +587,9 @@ const CorpusStatusIcon: FC<CorpusStatusIconProps> = ({ corpusStatus }) =>
     </Tooltip>
   ) : (
     {
-      idle: <div className="mx-1 h-4 w-4" />,
-      pending: <Spinner className="mx-1 h-4 w-4" />,
-      finished: <CheckCircle2 className="h-6 w-6 fill-green-700 text-white" />,
+      idle: <div className="mx-1 size-4" />,
+      pending: <Spinner className="mx-1 size-4" />,
+      finished: <CheckCircle2 className="size-6 fill-green-700 text-white" />,
     }[corpusStatus.type]
   );
 
@@ -611,9 +611,9 @@ const CorpusTraceDisplay: FC<CorpusTraceDisplayProps> = ({ trace }) => (
         >
           {
             {
-              archive: <Package className="h-4 w-4" />,
-              GraphML: <File className="h-4 w-4" />,
-              RelANNIS: <Folder className="h-4 w-4" />,
+              archive: <Package className="size-4" />,
+              GraphML: <File className="size-4" />,
+              RelANNIS: <Folder className="size-4" />,
             }[kind.type === 'corpus' ? kind.format : kind.type]
           }
           <div className="w-0 whitespace-nowrap">{path}</div>
@@ -701,7 +701,7 @@ const MessagesDisplay: FC<MessagesDisplayProps> = ({ messages }) => {
             size="icon"
             variant="secondary"
           >
-            <ArrowDown className="h-4 w-4" />
+            <ArrowDown className="size-4" />
           </Button>
         )}
       </div>
