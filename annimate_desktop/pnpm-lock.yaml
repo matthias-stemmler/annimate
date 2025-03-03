@@ -66,8 +66,8 @@ importers:
         specifier: ^1.1.8
         version: 1.1.8(@types/react-dom@19.0.4(@types/react@19.0.10))(@types/react@19.0.10)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
       '@tanstack/react-query':
-        specifier: ^5.66.11
-        version: 5.66.11(react@19.0.0)
+        specifier: ^5.67.1
+        version: 5.67.1(react@19.0.0)
       '@tauri-apps/api':
         specifier: ^2.3.0
         version: 2.3.0
@@ -102,8 +102,8 @@ importers:
         specifier: ^19.0.0
         version: 19.0.0(react@19.0.0)
       react-markdown:
-        specifier: ^10.0.0
-        version: 10.0.0(@types/react@19.0.10)(react@19.0.0)
+        specifier: ^10.0.1
+        version: 10.0.1(@types/react@19.0.10)(react@19.0.0)
       react-resizable-panels:
         specifier: ^2.1.7
         version: 2.1.7(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
@@ -1369,11 +1369,11 @@ packages:
     peerDependencies:
       eslint: ^8.57.0 || ^9.0.0
 
-  '@tanstack/query-core@5.66.11':
-    resolution: {integrity: sha512-ZEYxgHUcohj3sHkbRaw0gYwFxjY5O6M3IXOYXEun7E1rqNhsP8fOtqjJTKPZpVHcdIdrmX4lzZctT4+pts0OgA==}
+  '@tanstack/query-core@5.67.1':
+    resolution: {integrity: sha512-AkFmuukVejyqVIjEQoFhLb3q+xHl7JG8G9cANWTMe3s8iKzD9j1VBSYXgCjy6vm6xM8cUCR9zP2yqWxY9pTWOA==}
 
-  '@tanstack/react-query@5.66.11':
-    resolution: {integrity: sha512-uPDiQbZScWkAeihmZ9gAm3wOBA1TmLB1KCB1fJ1hIiEKq3dTT+ja/aYM7wGUD+XiEsY4sDSE7p8VIz/21L2Dow==}
+  '@tanstack/react-query@5.67.1':
+    resolution: {integrity: sha512-fH5u4JLwB6A+wLFdi8wWBWAYoJV5deYif2OveJ26ktAWjU499uvVFS1wPWnyEyq5LvZX1MZInvv9QRaIZANRaQ==}
     peerDependencies:
       react: ^18 || ^19
 
@@ -2578,8 +2578,8 @@ packages:
   react-is@17.0.2:
     resolution: {integrity: sha512-w2GsyukL62IJnlaff/nRegPQR94C/XXamvMWmSHRJ4y7Ts/4ocGRmTHvOs8PSE6pB3dWOrD/nueuU5sduBsQ4w==}
 
-  react-markdown@10.0.0:
-    resolution: {integrity: sha512-4mTz7Sya/YQ1jYOrkwO73VcFdkFJ8L8I9ehCxdcV0XrClHyOJGKbBk5FR4OOOG+HnyKw5u+C/Aby9TwinCteYA==}
+  react-markdown@10.0.1:
+    resolution: {integrity: sha512-Qt9TWsQJ75np2AVoKftns5eI7r50H6u3qwp+TSihlxOcw8ZaStmR0FEeeENU+mWSxyAgOmqMYjiIKn7ibMheKA==}
     peerDependencies:
       '@types/react': '>=18'
       react: '>=18'
@@ -4197,11 +4197,11 @@ snapshots:
       - supports-color
       - typescript
 
-  '@tanstack/query-core@5.66.11': {}
+  '@tanstack/query-core@5.67.1': {}
 
-  '@tanstack/react-query@5.66.11(react@19.0.0)':
+  '@tanstack/react-query@5.67.1(react@19.0.0)':
     dependencies:
-      '@tanstack/query-core': 5.66.11
+      '@tanstack/query-core': 5.67.1
       react: 19.0.0
 
   '@tauri-apps/api@2.3.0': {}
@@ -5508,7 +5508,7 @@ snapshots:
 
   react-is@17.0.2: {}
 
-  react-markdown@10.0.0(@types/react@19.0.10)(react@19.0.0):
+  react-markdown@10.0.1(@types/react@19.0.10)(react@19.0.0):
     dependencies:
       '@types/hast': 3.0.4
       '@types/mdast': 4.0.4
