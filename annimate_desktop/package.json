@@ -7,7 +7,6 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "add-component": "pnpm dlx shadcn@latest add",
     "build": "tsc && vite build",
     "check": "tsc --noEmit",
     "dev": "vite",
