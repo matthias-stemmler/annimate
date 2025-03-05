@@ -26,7 +26,7 @@ jobs:
 
       # Install a specific version of corepack to make sure we have the latest signing keys
       - name: Install corepack
-        run: npm install --global corepack@${{ env.VERSION_COREPACK }}
+        run: npm install --global --force corepack@${{ env.VERSION_COREPACK }}
 
       - name: Enable corepack
         run: corepack enable
