@@ -35,7 +35,6 @@ jobs:
 
     outputs:
       is-release: ${{ contains(steps.get-merged-pr.outputs.labels, 'release') }}
-      pr-number: ${{ steps.get-merged-pr.outputs.number }}
       release-notes: ${{ steps.get-merged-pr.outputs.body }}
 
   update-pending-release:
