@@ -57,29 +57,29 @@
     "zustand": "^5.0.3"
   },
   "devDependencies": {
-    "@eslint/js": "^9.21.0",
+    "@eslint/js": "^9.22.0",
     "@tailwindcss/typography": "^0.5.16",
-    "@tailwindcss/vite": "^4.0.10",
-    "@tanstack/eslint-plugin-query": "^5.66.1",
+    "@tailwindcss/vite": "^4.0.12",
+    "@tanstack/eslint-plugin-query": "^5.67.2",
     "@tauri-apps/cli": "^2.3.1",
     "@testing-library/dom": "^10.4.0",
     "@testing-library/react": "^16.2.0",
-    "@types/node": "^22.13.9",
+    "@types/node": "^22.13.10",
     "@types/react": "^19.0.10",
     "@types/react-dom": "^19.0.4",
     "@vitejs/plugin-react": "^4.3.4",
-    "eslint": "^9.21.0",
+    "eslint": "^9.22.0",
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.4.19",
     "jsdom": "^26.0.0",
     "prettier": "^3.5.3",
     "prettier-plugin-tailwindcss": "^0.6.11",
-    "tailwindcss": "^4.0.10",
+    "tailwindcss": "^4.0.12",
     "typescript": "^5.8.2",
     "typescript-eslint": "^8.26.0",
-    "vite": "^6.2.0",
+    "vite": "^6.2.1",
     "vite-plugin-svgr": "^4.3.0",
-    "vitest": "^3.0.7"
+    "vitest": "^3.0.8"
   },
   "pnpm": {
     "onlyBuiltDependencies": [
