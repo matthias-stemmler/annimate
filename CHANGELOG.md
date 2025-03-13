@@ -2,6 +2,10 @@
 
 ## [Unreleased] - (release date)
 
+### Changed
+
+- When offline, there is no more error message during startup saying that the check for updates failed.
+
 ## [1.3.4] - 2025-03-05
 
 ### Changed
