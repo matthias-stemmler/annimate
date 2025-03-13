@@ -41,13 +41,17 @@ export const UpdateAppTrigger = () => {
         }
       })
       .catch((error) => {
-        toast({
-          // Errors returned from `checkForUpdate` are usually strings, we call .toString() just to make sure
-          description: error.toString(),
-          duration: 15000,
-          title: 'Failed to check for update',
-          variant: 'destructive',
-        });
+        // When offline, don't show a toast, as it's expected that we can't check for updates
+        if (navigator.onLine) {
+          toast({
+            // Errors returned from `checkForUpdate` are usually strings, we call .toString() just to make sure
+            className: 'break-all',
+            description: error.toString(),
+            duration: 15000,
+            title: 'Failed to check for update',
+            variant: 'warning',
+          });
+        }
       });
   }, [checkedRef, setDialogOpen, toast, updateDataRef, updateRef]);
 
