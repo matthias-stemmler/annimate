@@ -42,6 +42,10 @@ If you have any kind of feedback on Annimate such as a bug report, documentation
 
 See [CHANGELOG.md](CHANGELOG.md)
 
+## Publication
+
+61\. Jahrestagung des Leibniz-Instituts für Deutsche Sprache "Deutsch im Wandel", [Methodenmesse](https://www.ids-mannheim.de/aktuell/veranstaltungen/tagungen/2025/methodenmesse/) am 12. März 2025, Congress Center Rosengarten Mannheim: [Poster](docs/readme/documents/2025-ids-methodenmesse-poster.pdf), [Abstract](https://www.ids-mannheim.de/fileadmin/aktuell/Jahrestagungen/2025/Methodenmesse/3_Annimate.pdf) (in German)
+
 ## License
 
 Licensed under the Apache License, Version 2.0 (see [LICENSE](LICENSE) or https://www.apache.org/licenses/LICENSE-2.0)
