@@ -6,6 +6,10 @@
 
 - When offline, there is no more error message during startup saying that the check for updates failed.
 
+### Fixed
+
+- Fixed a case of data corruption that could happen under rare circumstances when trying to import a corpus with the same name as an already existing corpus. This is now always rejected with an error message.
+
 ## [1.3.4] - 2025-03-05
 
 ### Changed
