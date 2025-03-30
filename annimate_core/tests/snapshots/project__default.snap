@@ -1,0 +1,18 @@
+---
+source: annimate_core/tests/project.rs
+info:
+  corpus_set: ~
+  corpus_names: []
+  aql_query: ""
+  query_language: AQL
+  export_columns: []
+  export_format: Csv
+---
+# Annimate project file
+# https://github.com/matthias-stemmler/annimate
+
+format-version = 1
+
+[project]
+query-language = "aql"
+export-format = "csv"

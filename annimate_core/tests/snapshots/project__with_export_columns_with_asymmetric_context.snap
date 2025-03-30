@@ -1,0 +1,29 @@
+---
+source: annimate_core/tests/project.rs
+info:
+  corpus_set: ~
+  corpus_names: []
+  aql_query: ""
+  query_language: AQL
+  export_columns:
+    - MatchInContext:
+        context:
+          Asymmetric:
+            left: 5
+            right: 10
+        primary_node_indices: ~
+        segmentation: ~
+  export_format: Csv
+---
+# Annimate project file
+# https://github.com/matthias-stemmler/annimate
+
+format-version = 1
+
+[project]
+query-language = "aql"
+export-format = "csv"
+
+[[project.columns]]
+type = "match-in-context"
+context = { left = 5, right = 10 }

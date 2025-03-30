@@ -7,19 +7,20 @@ import {
   emitImportCancelRequestedEvent,
   exportMatches,
   importCorpora,
+  loadProject,
   relaunch,
   renameCorpusSet,
+  saveProject,
   toggleCorpusInSet,
 } from '@/lib/api';
 import {
   DownloadEvent,
-  ExportColumn,
-  ExportFormat,
+  ExportSpec,
   ExportStatusEvent,
   ImportCorpus,
   ImportCorpusResult,
   ImportStatusEvent,
-  QueryLanguage,
+  Project,
   Update,
 } from '@/lib/api-types';
 import { QUERY_KEY_CORPORA } from '@/lib/queries';
@@ -152,13 +153,7 @@ export const useDeleteCorpusSetMutation = () => {
 };
 
 export const useExportMatchesMutation = (
-  getParams: () => Promise<{
-    corpusNames: string[];
-    aqlQuery: string;
-    queryLanguage: QueryLanguage;
-    exportColumns: ExportColumn[];
-    exportFormat: ExportFormat;
-  }>,
+  getParams: () => Promise<{ spec: ExportSpec }>,
 ) => {
   const [matchCount, setMatchCount] = useState<number | undefined>();
   const [progress, setProgress] = useState<number | undefined>();
@@ -338,6 +333,19 @@ export const useImportCorporaMutation = () => {
   };
 };
 
+export const useLoadProjectMutation = <T>(
+  processData: (data: { project: Project }) => Promise<T>,
+) => {
+  const mutation = useMutation({
+    mutationFn: async (args: { inputFile: string }) => {
+      const project = await loadProject(args);
+      return await processData({ project });
+    },
+  });
+
+  return { mutation };
+};
+
 export const useRenameCorpusSetMutation = () => {
   const queryClient = useQueryClient();
 
@@ -346,6 +354,21 @@ export const useRenameCorpusSetMutation = () => {
       renameCorpusSet(args),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [QUERY_KEY_CORPORA] });
+    },
+  });
+
+  return { mutation };
+};
+
+export const useSaveProjectMutation = (
+  getParams: () => Promise<{
+    project: Project;
+  }>,
+) => {
+  const mutation = useMutation({
+    mutationFn: async (args: { outputFile: string }) => {
+      const params = await getParams();
+      return saveProject({ ...params, ...args });
     },
   });
 

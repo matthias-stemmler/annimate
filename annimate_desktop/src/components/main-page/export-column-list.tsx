@@ -158,7 +158,6 @@ const ExportColumnListItem: FC<ExportColumnListItemProps> = ({
 }) => {
   const updateExportColumn = useUpdateExportColumn();
   const removeExportColumn = useRemoveExportColumn();
-  const unremoveExportColumn = useUnremoveExportColumn();
 
   const { toast } = useToast();
 
@@ -274,14 +273,7 @@ const ExportColumnListItem: FC<ExportColumnListItemProps> = ({
                   removeExportColumn(item.id);
 
                   toast({
-                    action: (
-                      <ToastAction
-                        altText="Undo"
-                        onClick={() => unremoveExportColumn(item.id)}
-                      >
-                        Undo
-                      </ToastAction>
-                    ),
+                    action: <UndoRemoveColumnAction columnId={item.id} />,
                     title: 'Column removed',
                   });
                 }}
@@ -340,3 +332,24 @@ const CardMenuItem: FC<CardMenuItemProps> = ({
     </Card>
   </DropdownMenuItem>
 );
+
+type UndoRemoveColumnActionProps = {
+  columnId: number;
+};
+
+const UndoRemoveColumnAction: FC<UndoRemoveColumnActionProps> = ({
+  columnId,
+}) => {
+  const unremoveExportColumn = useUnremoveExportColumn();
+  const isExporting = useIsExporting();
+
+  return (
+    <ToastAction
+      altText="Undo"
+      disabled={isExporting}
+      onClick={() => unremoveExportColumn(columnId)}
+    >
+      Undo
+    </ToastAction>
+  );
+};

@@ -127,11 +127,11 @@ pub enum QueryAnalysisResult<T = ()> {
 }
 
 impl<T> QueryAnalysisResult<T> {
-    /// Returns the payload if valid, otherwise panics
-    pub fn unwrap_valid(self) -> T {
+    /// Returns the payload if valid, otherwise returns `None`.
+    pub fn valid(self) -> Option<T> {
         match self {
-            QueryAnalysisResult::Valid(x) => x,
-            QueryAnalysisResult::Invalid(err) => panic!("query is invalid: {err}"),
+            QueryAnalysisResult::Valid(x) => Some(x),
+            QueryAnalysisResult::Invalid(_) => None,
         }
     }
 

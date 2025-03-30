@@ -8,9 +8,7 @@ use std::{fs, io};
 use serde::{Deserialize, Serialize};
 
 use crate::AnnimateError;
-use crate::error::AnnimateMetadataError;
-
-const METADATA_VERSION: usize = 1;
+use crate::error::AnnimateReadFileError;
 
 pub(crate) struct MetadataStorage {
     path: PathBuf,
@@ -89,41 +87,53 @@ where
 fn write_metadata(path: &Path, metadata: &Metadata) -> io::Result<()> {
     fs::write(
         path,
-        toml::to_string_pretty(metadata)
-            .map_err(|err| io::Error::new(ErrorKind::Other, err))?
-            .as_bytes(),
+        toml::to_string_pretty(metadata).map_err(|err| io::Error::new(ErrorKind::Other, err))?,
     )
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+struct MetadataVersion {
+    #[serde(rename = "metadata-version")]
+    value: u32,
+}
+
+impl MetadataVersion {
+    const CURRENT: Self = Self { value: 1 };
+
+    fn validate(self) -> Result<(), AnnimateReadFileError> {
+        if self.value == 0 || self.value > Self::CURRENT.value {
+            Err(AnnimateReadFileError::UnsupportedVersion {
+                version: self.value,
+            })
+        } else {
+            Ok(())
+        }
+    }
 }
 
 #[derive(Debug, Deserialize, Serialize)]
 #[serde(rename_all = "kebab-case")]
 struct Metadata {
-    metadata_version: usize,
+    #[serde(flatten)]
+    metadata_version: MetadataVersion,
     corpus_sets: BTreeMap<String, CorpusSet>,
 }
 
 impl Default for Metadata {
     fn default() -> Self {
         Self {
-            metadata_version: METADATA_VERSION,
+            metadata_version: MetadataVersion::CURRENT,
             corpus_sets: BTreeMap::default(),
         }
     }
 }
 
 impl FromStr for Metadata {
-    type Err = AnnimateMetadataError;
+    type Err = AnnimateReadFileError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let metadata: Metadata = toml::from_str(s)?;
-
-        if metadata.metadata_version == 0 || metadata.metadata_version > METADATA_VERSION {
-            Err(AnnimateMetadataError::UnsupportedVersion {
-                version: metadata.metadata_version,
-            })
-        } else {
-            Ok(metadata)
-        }
+        toml::from_str::<MetadataVersion>(s)?.validate()?;
+        Ok(toml::from_str(s)?)
     }
 }
 

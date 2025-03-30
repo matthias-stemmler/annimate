@@ -4,6 +4,7 @@ import {
   ExportColumnType,
   ExportableAnnoKeys,
   InvokeArgs,
+  Project,
   QueryLanguage,
   QueryNodesResult,
   QueryValidationResult,
@@ -18,10 +19,12 @@ import {
   useExportFormat,
   useExportMatches,
   useIsExporting,
+  useLoadProject,
   useQueryLanguage,
   useQueryValidationResult,
   useRemoveExportColumn,
   useReorderExportColumns,
+  useSaveProject,
   useSelectedCorpusNamesInSelectedSet,
   useSelectedCorpusSet,
   useSetAqlQuery,
@@ -71,6 +74,7 @@ describe('store', () => {
   };
 
   const exportMatchesSpy = vi.fn();
+  const saveProjectSpy = vi.fn();
 
   const commandHandler = async (
     cmd: string,
@@ -137,6 +141,47 @@ describe('store', () => {
       case 'get_segmentations': {
         const { corpusNames } = payload as { corpusNames: string[] };
         return corpusNames.length === 0 ? [] : ['segmentation', ''];
+      }
+
+      case 'load_project': {
+        const { inputFile } = payload as { inputFile: string };
+
+        if (inputFile === 'project.anmt') {
+          return {
+            corpusSet: 'set1',
+            spec: {
+              corpusNames: ['a', 'z'],
+              aqlQuery: 'valid',
+              queryLanguage: 'AQLQuirksV3',
+              exportColumns: [
+                { type: 'number' },
+                {
+                  type: 'match_in_context',
+                  context: 5,
+                  contextRightOverride: 1500,
+                  primaryNodeRefs: [{ index: 1, variables: ['2'] }],
+                  secondaryNodeRefs: [{ index: 0, variables: ['1'] }],
+                  segmentation: 'segmentation',
+                },
+                { type: 'anno_corpus', annoKey: ANNO_KEY_CORPUS },
+                { type: 'anno_document', annoKey: ANNO_KEY_DOCUMENT },
+                {
+                  type: 'anno_match',
+                  annoKey: ANNO_KEY_NODE,
+                  nodeRef: { index: 1, variables: ['2'] },
+                },
+              ],
+              exportFormat: 'xlsx',
+            },
+          } satisfies Project;
+        }
+
+        throw new Error(`Failed to load project: File ${inputFile} not found`);
+      }
+
+      case 'save_project': {
+        saveProjectSpy(payload);
+        return;
       }
 
       case 'validate_query': {
@@ -1094,39 +1139,244 @@ describe('store', () => {
 
     expect(exportMatchesSpy).toHaveBeenCalledWith({
       eventChannel: expect.anything(),
-      corpusNames: ['a'],
-      aqlQuery: 'valid',
-      queryLanguage: 'AQLQuirksV3',
-      exportColumns: [
-        expect.objectContaining({
-          type: 'number',
-        }),
-        expect.objectContaining({
+      spec: {
+        corpusNames: ['a'],
+        aqlQuery: 'valid',
+        queryLanguage: 'AQLQuirksV3',
+        exportColumns: [
+          expect.objectContaining({
+            type: 'number',
+          }),
+          expect.objectContaining({
+            type: 'match_in_context',
+            context: 20,
+            contextRightOverride: undefined,
+            primaryNodeRefs: [
+              { index: 0, variables: ['1'] },
+              { index: 1, variables: ['2'] },
+            ],
+            secondaryNodeRefs: [],
+            segmentation: 'segmentation',
+          }),
+          expect.objectContaining({
+            type: 'anno_corpus',
+            annoKey: ANNO_KEY_CORPUS,
+          }),
+          expect.objectContaining({
+            type: 'anno_document',
+            annoKey: ANNO_KEY_DOCUMENT,
+          }),
+          expect.objectContaining({
+            type: 'anno_match',
+            annoKey: ANNO_KEY_NODE,
+          }),
+        ],
+        exportFormat: 'xlsx',
+      },
+      outputFile: 'out.xlsx',
+    });
+  });
+
+  test('loading a project', async () => {
+    const { result } = renderHook(
+      () => ({
+        corpusNames: useCorpusNamesInSelectedSet(),
+        selectedCorpusSet: useSelectedCorpusSet(),
+        selectedCorpusNames: useSelectedCorpusNamesInSelectedSet(),
+        aqlQuery: useAqlQuery(),
+        queryLanguage: useQueryLanguage(),
+        exportColumns: useExportColumnItems(),
+        exportFormat: useExportFormat(),
+        canExport: useCanExport(),
+
+        loadProject: useLoadProject(),
+      }),
+      { wrapper: Wrapper },
+    );
+
+    await waitFor(() => {
+      expect(result.current.corpusNames.isSuccess).toBe(true);
+    });
+
+    const loadProjectResult =
+      await result.current.loadProject.mutation.mutateAsync({
+        inputFile: 'project.anmt',
+      });
+
+    expect(loadProjectResult).toStrictEqual({
+      corpusSet: 'set1',
+      missingCorpusNames: ['z'],
+    });
+
+    await waitFor(() => {
+      expect(result.current.selectedCorpusSet).toBe('set1');
+      expect(result.current.selectedCorpusNames).toEqual(['a']);
+      expect(result.current.aqlQuery).toBe('valid');
+      expect(result.current.queryLanguage).toBe('AQLQuirksV3');
+      expect(result.current.exportColumns).toEqual([
+        { id: 3, type: 'number' },
+        {
+          id: 4,
           type: 'match_in_context',
-          context: 20,
-          contextRightOverride: undefined,
-          primaryNodeRefs: [
-            { index: 0, variables: ['1'] },
-            { index: 1, variables: ['2'] },
-          ],
-          secondaryNodeRefs: [],
+          context: 5,
+          contextRightOverride: 999,
+          primaryNodeRefs: [{ index: 1, variables: ['2'] }],
+          secondaryNodeRefs: [{ index: 0, variables: ['1'] }],
           segmentation: 'segmentation',
-        }),
-        expect.objectContaining({
-          type: 'anno_corpus',
-          annoKey: ANNO_KEY_CORPUS,
-        }),
-        expect.objectContaining({
-          type: 'anno_document',
-          annoKey: ANNO_KEY_DOCUMENT,
-        }),
-        expect.objectContaining({
+        },
+        { id: 5, type: 'anno_corpus', annoKey: ANNO_KEY_CORPUS },
+        { id: 6, type: 'anno_document', annoKey: ANNO_KEY_DOCUMENT },
+        {
+          id: 7,
           type: 'anno_match',
           annoKey: ANNO_KEY_NODE,
-        }),
-      ],
-      exportFormat: 'xlsx',
-      outputFile: 'out.xlsx',
+          nodeRef: { index: 1, variables: ['2'] },
+        },
+      ]);
+      expect(result.current.exportFormat).toBe('xlsx');
+      expect(result.current.canExport).toBe(true);
+    });
+  });
+
+  test('saving a project', async () => {
+    const { result } = renderHook(
+      () => ({
+        corpusNames: useCorpusNamesInSelectedSet(),
+        canExport: useCanExport(),
+
+        setSelectedCorpusSet: useSetSelectedCorpusSet(),
+        toggleCorpus: useToggleCorpus(),
+        setAqlQuery: useSetAqlQuery(),
+        setQueryLanguage: useSetQueryLanguage(),
+        addExportColumn: useAddExportColumn(),
+        updateExportColumn: useUpdateExportColumn(),
+        setExportFormat: useSetExportFormat(),
+
+        saveProject: useSaveProject(),
+      }),
+      { wrapper: Wrapper },
+    );
+
+    await waitFor(() => {
+      expect(result.current.corpusNames.isSuccess).toBe(true);
+    });
+
+    result.current.setSelectedCorpusSet('set1');
+    result.current.toggleCorpus('a');
+    result.current.setAqlQuery('valid');
+    result.current.setQueryLanguage('AQLQuirksV3');
+
+    result.current.updateExportColumn(2, {
+      type: 'match_in_context',
+      payload: {
+        type: 'update_segmentation',
+        segmentation: 'segmentation',
+      },
+    });
+
+    result.current.updateExportColumn(2, {
+      type: 'match_in_context',
+      payload: {
+        type: 'update_context',
+        context: 5,
+      },
+    });
+
+    result.current.updateExportColumn(2, {
+      type: 'match_in_context',
+      payload: {
+        type: 'update_context_right_override',
+        contextRightOverride: 999,
+      },
+    });
+
+    result.current.updateExportColumn(2, {
+      type: 'match_in_context',
+      payload: {
+        type: 'toggle_primary_node_ref',
+        nodeRef: { index: 0, variables: ['1'] },
+      },
+    });
+
+    result.current.addExportColumn('anno_corpus');
+    result.current.updateExportColumn(3, {
+      type: 'anno_corpus',
+      payload: {
+        type: 'update_anno_key',
+        annoKey: ANNO_KEY_CORPUS,
+      },
+    });
+
+    result.current.addExportColumn('anno_document');
+    result.current.updateExportColumn(4, {
+      type: 'anno_document',
+      payload: {
+        type: 'update_anno_key',
+        annoKey: ANNO_KEY_DOCUMENT,
+      },
+    });
+
+    result.current.addExportColumn('anno_match');
+    result.current.updateExportColumn(5, {
+      type: 'anno_match',
+      payload: {
+        type: 'update_anno_key',
+        annoKey: ANNO_KEY_NODE,
+      },
+    });
+    result.current.updateExportColumn(5, {
+      type: 'anno_match',
+      payload: {
+        type: 'update_node_ref',
+        nodeRef: { index: 1, variables: ['2'] },
+      },
+    });
+
+    result.current.setExportFormat('xlsx');
+
+    await waitFor(() => {
+      expect(result.current.canExport).toBe(true);
+    });
+
+    await result.current.saveProject.mutation.mutateAsync({
+      outputFile: 'project.anmt',
+    });
+
+    expect(saveProjectSpy).toHaveBeenCalledWith({
+      outputFile: 'project.anmt',
+      project: {
+        corpusSet: 'set1',
+        spec: {
+          corpusNames: ['a'],
+          aqlQuery: 'valid',
+          queryLanguage: 'AQLQuirksV3',
+          exportColumns: [
+            expect.objectContaining({ type: 'number' }),
+            expect.objectContaining({
+              type: 'match_in_context',
+              context: 5,
+              contextRightOverride: 999,
+              primaryNodeRefs: [{ index: 1, variables: ['2'] }],
+              secondaryNodeRefs: [{ index: 0, variables: ['1'] }],
+              segmentation: 'segmentation',
+            }),
+            expect.objectContaining({
+              type: 'anno_corpus',
+              annoKey: ANNO_KEY_CORPUS,
+            }),
+            expect.objectContaining({
+              type: 'anno_document',
+              annoKey: ANNO_KEY_DOCUMENT,
+            }),
+            expect.objectContaining({
+              type: 'anno_match',
+              annoKey: ANNO_KEY_NODE,
+              nodeRef: { index: 1, variables: ['2'] },
+            }),
+          ],
+          exportFormat: 'xlsx',
+        },
+      },
     });
   });
 });
