@@ -1,5 +1,3 @@
-use std::io;
-
 use annimate_core::AnnimateError;
 use serde::Serialize;
 
@@ -36,10 +34,12 @@ impl From<tauri_plugin_opener::Error> for Error {
     }
 }
 
-impl From<io::Error> for Error {
-    fn from(err: io::Error) -> Self {
+pub(crate) struct ConversionError;
+
+impl From<ConversionError> for Error {
+    fn from(_: ConversionError) -> Self {
         Self {
-            message: err.to_string(),
+            message: "Failed to convert data".into(),
             cancelled: false,
         }
     }

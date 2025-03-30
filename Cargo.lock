@@ -94,6 +94,7 @@ dependencies = [
  "tempfile",
  "thiserror 2.0.12",
  "toml",
+ "toml_edit 0.22.24",
  "urlencoding",
  "zip 2.6.1",
 ]

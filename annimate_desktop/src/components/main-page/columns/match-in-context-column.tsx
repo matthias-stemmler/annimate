@@ -12,13 +12,16 @@ import { Select } from '@/components/ui/custom/select';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { QueryNode, QueryNodeRef } from '@/lib/api-types';
-import { useIsExporting, useQueryNodes, useSegmentations } from '@/lib/store';
+import {
+  CONTEXT_MAX,
+  CONTEXT_MIN,
+  useIsExporting,
+  useQueryNodes,
+  useSegmentations,
+} from '@/lib/store';
 import { cn } from '@/lib/utils';
 import { GripVertical, Link2, Unlink2 } from 'lucide-react';
 import { FC, useId } from 'react';
-
-const CONTEXT_MIN = 0;
-const CONTEXT_MAX = 999;
 
 export const MatchInContextColumn: FC<ColumnProps<'match_in_context'>> = ({
   autoScroller,

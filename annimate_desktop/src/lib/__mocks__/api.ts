@@ -14,8 +14,7 @@ import {
   Corpora,
   DownloadEvent,
   DownloadOptions,
-  ExportColumn,
-  ExportFormat,
+  ExportSpec,
   ExportStatusEvent,
   ExportableAnnoKey,
   ExportableAnnoKeys,
@@ -24,6 +23,7 @@ import {
   ImportStatusEvent,
   OpenDialogOptions,
   OpenDialogReturn,
+  Project,
   QueryLanguage,
   QueryNode,
   QueryNodesResult,
@@ -49,6 +49,18 @@ const CORPUS_FAILING_ANNO_KEYS = 'Corpus with failing anno keys';
 const CORPUS_FAILING_TOGGLE = 'Corpus that fails to toggle';
 const CORPUS_FAILING_DELETE = 'Corpus that fails to delete';
 
+const CORPUS_SET_NORMAL = 'Normal';
+const CORPUS_SET_WORKING = 'Working';
+const CORPUS_SET_FAILING = 'Failing';
+
+const NS_CORPUS = 'corpus';
+const NS_DOCUMENT = 'doc';
+const NS_NODE = 'node';
+
+const SEGMENTATION1 = 'segmentation1';
+const SEGMENTATION2 = 'segmentation2';
+const SEGMENTATION3 = 'segmentation3';
+
 let corpusNames = [
   CORPUS_NORMAL,
   CORPUS_INVALID_QUERY,
@@ -64,10 +76,10 @@ let corpusNames = [
 ];
 
 const corpusSets: Record<string, { corpusNames: string[] }> = {
-  Normal: {
+  [CORPUS_SET_NORMAL]: {
     corpusNames: [CORPUS_NORMAL],
   },
-  Working: {
+  [CORPUS_SET_WORKING]: {
     corpusNames: [
       CORPUS_NORMAL,
       CORPUS_NO_MATCHES,
@@ -77,7 +89,7 @@ const corpusSets: Record<string, { corpusNames: string[] }> = {
       CORPUS_MULTIPLE_SEGMENTATIONS,
     ],
   },
-  Failing: {
+  [CORPUS_SET_FAILING]: {
     corpusNames: [
       CORPUS_INVALID_QUERY,
       CORPUS_FAILING_EXPORT,
@@ -188,15 +200,15 @@ const makeExportableAnnoKeys = (count: number): ExportableAnnoKeys => {
   for (let i = 0; i < count; i++) {
     corpus.push({
       annoKey: { ns: 'corpus', name: `anno_${i}` },
-      displayName: `corpus:anno_${i}`,
+      displayName: `${NS_CORPUS}:anno_${i}`,
     });
     doc.push({
       annoKey: { ns: 'doc', name: `anno_${i}` },
-      displayName: `doc:anno_${i}`,
+      displayName: `${NS_DOCUMENT}:anno_${i}`,
     });
     node.push({
       annoKey: { ns: 'node', name: `anno_${i}` },
-      displayName: `node:anno_${i}`,
+      displayName: `${NS_NODE}:anno_${i}`,
     });
   }
 
@@ -334,6 +346,10 @@ class MockUpdate {
   }
 }
 
+export const documentDir = async (): Promise<string> => 'mock/document_dir';
+
+export const downloadDir = async (): Promise<string> => 'mock/download_dir';
+
 export const exit = async (exitCode?: number): Promise<void> => {
   logAction('Exit', COLOR_BUILTIN_COMMAND, { exitCode });
   alert(`Exit\nexitCode: ${exitCode}`);
@@ -345,15 +361,23 @@ export const open = async <T extends OpenDialogOptions>(
   logAction('File Open', COLOR_BUILTIN_COMMAND, options);
 
   return options?.multiple
-    ? ((await openMultiple()) as OpenDialogReturn<T>)
-    : ((await openSingle()) as OpenDialogReturn<T>);
+    ? ((await openMultiple(options)) as OpenDialogReturn<T>)
+    : ((await openSingle(options)) as OpenDialogReturn<T>);
 };
 
-const openSingle = async (): Promise<string | null> =>
-  prompt('File Open\nEnter file path:');
+const openSingle = async (
+  options?: OpenDialogOptions,
+): Promise<string | null> =>
+  prompt(
+    `File Open - ${options?.defaultPath} - ${options?.filters?.[0].name}\nEnter file path:`,
+  );
 
-const openMultiple = async (): Promise<string[] | null> => {
-  const answer = prompt('File Open\nEnter file paths (comma-separated):');
+const openMultiple = async (
+  options?: OpenDialogOptions,
+): Promise<string[] | null> => {
+  const answer = prompt(
+    `File Open - ${options?.defaultPath} - ${options?.filters?.[0].name}\nEnter file paths (comma-separated):`,
+  );
   if (answer === null) {
     return null;
   }
@@ -390,7 +414,9 @@ export const save = async (
   options?: SaveDialogOptions,
 ): Promise<string | null> => {
   logAction('Save', COLOR_BUILTIN_COMMAND, options);
-  return prompt(`Save - ${options?.filters?.[0].name}\nEnter file path:`);
+  return prompt(
+    `Save - ${options?.defaultPath} - ${options?.filters?.[0].name}\nEnter file path:`,
+  );
 };
 
 export const addCorporaToSet = async (params: {
@@ -455,11 +481,7 @@ export const deleteCorpusSet = async (params: {
 
 export const exportMatches = async (
   params: {
-    corpusNames: string[];
-    aqlQuery: string;
-    queryLanguage: QueryLanguage;
-    exportColumns: ExportColumn[];
-    exportFormat: ExportFormat;
+    spec: ExportSpec;
     outputFile: string;
   },
   handlers: {
@@ -475,7 +497,7 @@ export const exportMatches = async (
   });
 
   try {
-    const matchCount = params.corpusNames.reduce(
+    const matchCount = params.spec.corpusNames.reduce(
       (acc, c) => acc + getMatchCountForCorpus(c),
       0,
     );
@@ -493,7 +515,7 @@ export const exportMatches = async (
 
       if (
         i >= matchCount / 2 &&
-        params.corpusNames.includes(CORPUS_FAILING_EXPORT)
+        params.spec.corpusNames.includes(CORPUS_FAILING_EXPORT)
       ) {
         throw new Error('Export failed');
       }
@@ -539,7 +561,7 @@ export const getCorpora = async (): Promise<Corpora> => {
   };
 };
 
-export const getDbDir = async (): Promise<string> => 'mock/db/dir';
+export const getDbDir = async (): Promise<string> => 'mock/db_dir';
 
 export const getExportableAnnoKeys = async (params: {
   corpusNames: string[];
@@ -571,15 +593,16 @@ export const getQueryNodes = async (params: {
     return { type: 'invalid' };
   }
 
+  let variable = 0;
   const nodesWithIndex = params.aqlQuery
     .split(/\s*\|\s*/)
-    .flatMap((line) =>
-      line
+    .flatMap((alternative) =>
+      alternative
         .split(/\s*&\s*/)
-        .map((queryFragment, index): [QueryNode, number] => [
-          { queryFragment, variable: `${index + 1}` },
-          index,
-        ]),
+        .map((queryFragment, index): [QueryNode, number] => {
+          variable++;
+          return [{ queryFragment, variable: variable.toString() }, index];
+        }),
     );
 
   const nodes: QueryNode[][] = [];
@@ -604,10 +627,14 @@ export const getSegmentations = async (params: {
 
   return params.corpusNames.length === 1 &&
     params.corpusNames[0] === CORPUS_MULTIPLE_SEGMENTATIONS
-    ? ['segmentation1', 'segmentation2', 'segmentation3', '']
+    ? [SEGMENTATION1, SEGMENTATION2, SEGMENTATION3]
     : [''];
 };
 
+// Special cases:
+// - `paths` includes 'fail': Error
+// - `paths` includes 'fast': Fast import
+// - `paths` is empty:        No corpora found
 export const importCorpora = async (
   params: {
     paths: string[];
@@ -745,6 +772,104 @@ const subscribeToImportCancelRequestedEvent = (
   };
 };
 
+// Special cases:
+// - `inputFile`='fail':           Error
+// - `inputFile`='empty':          Empty project
+// - `inputFile`='invalid-query':  Project with invalid query
+// - `inputFile`='missing-corpus': Project with missing corpus
+export const loadProject = async (params: {
+  inputFile: string;
+}): Promise<Project> => {
+  logAction('Load project', COLOR_CUSTOM_COMMAND, params);
+
+  if (params.inputFile === 'fail') {
+    throw new Error('Invalid file');
+  }
+
+  if (params.inputFile === 'empty') {
+    return {
+      corpusSet: '',
+      spec: {
+        corpusNames: [],
+        aqlQuery: '',
+        queryLanguage: 'AQLQuirksV3',
+        exportColumns: [],
+        exportFormat: 'xlsx',
+      },
+    };
+  }
+
+  if (params.inputFile === 'invalid-query') {
+    return {
+      corpusSet: CORPUS_SET_WORKING,
+      spec: {
+        corpusNames: [CORPUS_MULTIPLE_SEGMENTATIONS],
+        aqlQuery: 'invalid!!',
+        queryLanguage: 'AQLQuirksV3',
+        exportColumns: [
+          { type: 'number' },
+          { type: 'anno_corpus', annoKey: { ns: NS_CORPUS, name: 'anno_1' } },
+          {
+            type: 'anno_document',
+            annoKey: { ns: NS_DOCUMENT, name: 'anno_1' },
+          },
+          {
+            type: 'anno_match',
+            annoKey: { ns: NS_NODE, name: 'anno_1' },
+          },
+          {
+            type: 'match_in_context',
+            segmentation: SEGMENTATION1,
+            context: 5,
+            contextRightOverride: 10,
+            primaryNodeRefs: [],
+            secondaryNodeRefs: [],
+          },
+        ],
+        exportFormat: 'xlsx',
+      },
+    };
+  }
+
+  return {
+    corpusSet: CORPUS_SET_WORKING,
+    spec: {
+      corpusNames: [
+        CORPUS_MULTIPLE_SEGMENTATIONS,
+        ...(params.inputFile === 'missing-corpus'
+          ? ['Nonexistent corpus']
+          : []),
+      ],
+      aqlQuery: 'foo="bar" & baz="qux"',
+      queryLanguage: 'AQLQuirksV3',
+      exportColumns: [
+        { type: 'number' },
+        { type: 'anno_corpus', annoKey: { ns: NS_CORPUS, name: 'anno_1' } },
+        { type: 'anno_document', annoKey: { ns: NS_DOCUMENT, name: 'anno_1' } },
+        {
+          type: 'anno_match',
+          annoKey: { ns: NS_NODE, name: 'anno_1' },
+          nodeRef: { index: 1, variables: ['2'] },
+        },
+        {
+          type: 'match_in_context',
+          segmentation: SEGMENTATION1,
+          context: 5,
+          contextRightOverride: 10,
+          primaryNodeRefs: [
+            {
+              index: 1,
+              variables: ['2'],
+            },
+          ],
+          secondaryNodeRefs: [{ index: 0, variables: ['1'] }],
+        },
+      ],
+      exportFormat: 'xlsx',
+    },
+  };
+};
+
 export const renameCorpusSet = async (params: {
   corpusSet: string;
   newCorpusSet: string;
@@ -753,6 +878,13 @@ export const renameCorpusSet = async (params: {
 
   corpusSets[params.newCorpusSet] = corpusSets[params.corpusSet];
   delete corpusSets[params.corpusSet];
+};
+
+export const saveProject = async (params: {
+  project: Project;
+  outputFile: string;
+}): Promise<void> => {
+  logAction('Save project', COLOR_CUSTOM_COMMAND, params);
 };
 
 export const toggleCorpusInSet = async (params: {

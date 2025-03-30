@@ -6,8 +6,9 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { useToast } from '@/components/ui/use-toast';
 import { ArrowLeft } from 'lucide-react';
-import { FC, useState } from 'react';
+import { FC, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
 
 export const ManagePage: FC = () => {
@@ -15,6 +16,10 @@ export const ManagePage: FC = () => {
   const [selectedCorpusSet, setSelectedCorpusSet] = useState<
     string | undefined
   >();
+  const { dismiss: dismissToast } = useToast();
+  useEffect(() => {
+    dismissToast();
+  }, [dismissToast]);
 
   return (
     <div className="flex h-full flex-col overflow-hidden">

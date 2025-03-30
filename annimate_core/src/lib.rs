@@ -26,6 +26,7 @@ mod format;
 mod import;
 mod metadata;
 mod node_name;
+mod project;
 mod query;
 mod util;
 mod version;
@@ -36,6 +37,9 @@ pub use error::AnnimateError;
 pub use format::{CsvExportConfig, ExportFormat, TableExportColumn, XlsxExportConfig};
 pub use graphannis::corpusstorage::CorpusInfo;
 pub use graphannis::graph::AnnoKey;
+pub use project::{
+    Project, ProjectContext, ProjectExportColumn, ProjectExportFormat, load_project, save_project,
+};
 pub use query::{ExportData, ExportDataAnno, ExportDataText, QueryLanguage};
 use tempfile::PersistError;
 pub use version::{VERSION_INFO, VersionInfo};
@@ -364,9 +368,9 @@ impl Storage {
     }
 
     /// Exports matches for a query.
-    pub fn export_matches<F, G, P, S>(
+    pub fn export_matches<F, G, P>(
         &self,
-        config: ExportConfig<'_, S>,
+        config: ExportConfig,
         output_file: P,
         on_status: F,
         cancel_requested: G,
@@ -375,14 +379,13 @@ impl Storage {
         F: Fn(ExportStatusEvent),
         G: Fn() -> bool,
         P: AsRef<Path>,
-        S: AsRef<str>,
     {
         cancel_if(&cancel_requested)?;
 
-        let anno_keys = AnnoKeys::new(self.corpus_ref(config.corpus_names))?;
+        let anno_keys = AnnoKeys::new(self.corpus_ref(&config.corpus_names))?;
         let query = Query::new(
-            self.corpus_ref(config.corpus_names),
-            config.aql_query,
+            self.corpus_ref(&config.corpus_names),
+            &config.aql_query,
             config.query_language,
         )?;
         let matches = query.find(config.format.get_export_data())?;
@@ -404,8 +407,8 @@ impl Storage {
         };
 
         let query_info = QueryInfo {
-            corpus_names: config.corpus_names,
-            aql_query: config.aql_query,
+            corpus_names: &config.corpus_names,
+            aql_query: &config.aql_query,
             query_language: config.query_language,
             nodes: query.nodes(),
         };
@@ -472,12 +475,12 @@ pub struct Corpus {
 }
 
 /// Configuration of a request to export matches.
-pub struct ExportConfig<'a, S> {
+pub struct ExportConfig {
     /// Names of the corpora to run a query on.
-    pub corpus_names: &'a [S],
+    pub corpus_names: Vec<String>,
 
     /// AQL query to run.
-    pub aql_query: &'a str,
+    pub aql_query: String,
 
     /// Language of the query to run.
     pub query_language: QueryLanguage,
