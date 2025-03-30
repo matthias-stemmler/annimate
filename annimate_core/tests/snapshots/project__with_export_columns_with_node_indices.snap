@@ -1,0 +1,38 @@
+---
+source: annimate_core/tests/project.rs
+info:
+  corpus_set: ~
+  corpus_names: []
+  aql_query: ""
+  query_language: AQL
+  export_columns:
+    - AnnoMatch:
+        anno_key: ~
+        node_index: 0
+    - MatchInContext:
+        context:
+          Symmetric: 20
+        primary_node_indices:
+          - 1
+          - 2
+          - 3
+        segmentation: ~
+  export_format: Csv
+---
+# Annimate project file
+# https://github.com/matthias-stemmler/annimate
+
+format-version = 1
+
+[project]
+query-language = "aql"
+export-format = "csv"
+
+[[project.columns]]
+type = "match-annotation"
+node-index = 0
+
+[[project.columns]]
+type = "match-in-context"
+context = 20
+primary-node-indices = [1, 2, 3]

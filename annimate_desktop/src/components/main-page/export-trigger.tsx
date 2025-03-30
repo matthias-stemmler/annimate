@@ -7,7 +7,6 @@ import {
 } from '@/components/ui/tooltip';
 import { useToast } from '@/components/ui/use-toast';
 import { openPath, revealItemInDir, save } from '@/lib/api';
-import { ExportFormat } from '@/lib/api-types';
 import { CancellableOperationError } from '@/lib/mutations';
 import {
   useCanExport,
@@ -17,10 +16,7 @@ import {
 import { formatPercentage } from '@/lib/utils';
 import { File, Folder, Hourglass, X } from 'lucide-react';
 
-const EXPORT_FORMAT_FILTERS: Record<
-  ExportFormat,
-  { name: string; extensions: string[] }[]
-> = {
+const EXPORT_FORMAT_FILTERS = {
   csv: [{ name: 'Comma-separated values (*.csv)', extensions: ['csv'] }],
   xlsx: [{ name: 'Excel (*.xlsx)', extensions: ['xlsx'] }],
 };

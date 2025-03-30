@@ -6,6 +6,7 @@ import {
   ExportColumnData,
   ExportColumnType,
   ExportFormat,
+  ExportSpec,
   ExportableAnnoKey,
   ExportableAnnoKeys,
   QueryLanguage,
@@ -14,12 +15,17 @@ import {
   QueryNodesResult,
   QueryValidationResult,
 } from '@/lib/api-types';
-import { useExportMatchesMutation } from '@/lib/mutations';
+import {
+  useExportMatchesMutation,
+  useLoadProjectMutation,
+  useSaveProjectMutation,
+} from '@/lib/mutations';
 import {
   useCorporaQuery,
   useExportableAnnoKeysQuery,
   useGetCorporaQueryData,
   useGetExportableAnnoKeysQueryData,
+  UseGetQueryDataOptions,
   useGetQueryNodesQueryData,
   useGetSegmentationsQueryData,
   useQueryNodesQuery,
@@ -198,14 +204,16 @@ export const useSelectedCorpusSet = (): string => {
   return toSelectedCorpusSet(corpusSets, selectedCorpusSet);
 };
 
-export const useGetSelectedCorpusSet = (): (() => Promise<string>) => {
-  const getCorporaQueryData = useGetCorporaQueryData();
+const useGetSelectedCorpusSet = <Wait extends boolean = true>(
+  options: UseGetQueryDataOptions<Wait> = {},
+): (() => Promise<string>) => {
+  const getCorporaQueryData = useGetCorporaQueryData(options);
   const getState = useGetState();
 
   return async () => {
-    const { sets } = await getCorporaQueryData();
+    const corporaQueryData = await getCorporaQueryData();
     const { selectedCorpusSet } = getState();
-    return toSelectedCorpusSet(sets, selectedCorpusSet);
+    return toSelectedCorpusSet(corporaQueryData?.sets, selectedCorpusSet);
   };
 };
 
@@ -228,18 +236,18 @@ export const useSelectedCorpusNamesInSelectedSet = (): string[] => {
   );
 };
 
-export const useGetSelectedCorpusNamesInSelectedSet = (): (() => Promise<
-  string[]
->) => {
-  const getCorporaQueryData = useGetCorporaQueryData();
+const useGetSelectedCorpusNamesInSelectedSet = <Wait extends boolean = true>(
+  options: UseGetQueryDataOptions<Wait> = {},
+): (() => Promise<string[]>) => {
+  const getCorporaQueryData = useGetCorporaQueryData(options);
   const getState = useGetState();
 
   return async () => {
-    const { corpora } = await getCorporaQueryData();
+    const corporaQueryData = await getCorporaQueryData();
     const { selectedCorpusNames, selectedCorpusSet } = getState();
 
     return toSelectedCorpusNamesInSet(
-      corpora,
+      corporaQueryData?.corpora,
       selectedCorpusSet,
       selectedCorpusNames,
     );
@@ -261,7 +269,7 @@ const toSelectedCorpusNamesInSet = (
 
 export const useAqlQuery = (): string => useSelector((state) => state.aqlQuery);
 
-export const useGetAqlQuery = (): (() => string) => {
+const useGetAqlQuery = (): (() => string) => {
   const getState = useGetState();
   return () => getState().aqlQuery;
 };
@@ -274,7 +282,7 @@ const useGetAqlQueryDebounced = (): (() => string) => {
 export const useQueryLanguage = (): QueryLanguage =>
   useSelector((state) => state.queryLanguage);
 
-export const useGetQueryLanguage = (): (() => QueryLanguage) => {
+const useGetQueryLanguage = (): (() => QueryLanguage) => {
   const getState = useGetState();
   return () => getState().queryLanguage;
 };
@@ -293,13 +301,16 @@ export const useExportColumnItems = (): ExportColumnItem[] => {
   );
 };
 
-export const useGetExportColumns = (): (() => Promise<ExportColumn[]>) => {
+const useGetExportColumns = <Wait extends boolean = true>(
+  options: UseGetQueryDataOptions<Wait> = {},
+): (() => Promise<ExportColumn[]>) => {
   const getSelectedCorpusNamesInSelectedSet =
-    useGetSelectedCorpusNamesInSelectedSet();
+    useGetSelectedCorpusNamesInSelectedSet(options);
 
-  const getExportableAnnoKeysQueryData = useGetExportableAnnoKeysQueryData();
-  const getSegmentationsQueryData = useGetSegmentationsQueryData();
-  const getQueryNodes = useGetQueryNodes();
+  const getExportableAnnoKeysQueryData =
+    useGetExportableAnnoKeysQueryData(options);
+  const getSegmentationsQueryData = useGetSegmentationsQueryData(options);
+  const getQueryNodes = useGetQueryNodes(options);
 
   const getState = useGetState();
 
@@ -320,13 +331,15 @@ export const useGetExportColumns = (): (() => Promise<ExportColumn[]>) => {
   };
 };
 
-const useGetQueryNodes = (): (() => Promise<QueryNodesResult>) => {
-  const getQueryNodesQueryData = useGetQueryNodesQueryData();
+const useGetQueryNodes = <Wait extends boolean = true>(
+  options: UseGetQueryDataOptions<Wait> = {},
+): (() => Promise<QueryNodesResult | undefined>) => {
+  const getQueryNodesQueryData = useGetQueryNodesQueryData(options);
   const getAqlQueryDebounced = useGetAqlQueryDebounced();
   const getQueryLanguage = useGetQueryLanguage();
 
-  return () =>
-    getQueryNodesQueryData({
+  return async (): Promise<QueryNodesResult | undefined> =>
+    await getQueryNodesQueryData({
       aqlQuery: getAqlQueryDebounced(),
       queryLanguage: getQueryLanguage(),
     });
@@ -515,6 +528,25 @@ const isExportColumnValid = (exportColumn: ExportColumn): boolean => {
     default:
       return true;
   }
+};
+
+const useGetExportSpec = <Wait extends boolean = true>(
+  options: UseGetQueryDataOptions<Wait> = {},
+): (() => Promise<ExportSpec>) => {
+  const getSelectedCorpusNamesInSelectedSet =
+    useGetSelectedCorpusNamesInSelectedSet(options);
+  const getAqlQuery = useGetAqlQuery();
+  const getQueryLanguage = useGetQueryLanguage();
+  const getExportColumns = useGetExportColumns(options);
+  const getExportFormat = useGetExportFormat();
+
+  return async () => ({
+    corpusNames: await getSelectedCorpusNamesInSelectedSet(),
+    aqlQuery: getAqlQuery(),
+    queryLanguage: getQueryLanguage(),
+    exportColumns: await getExportColumns(),
+    exportFormat: getExportFormat(),
+  });
 };
 
 // STATE SET
@@ -895,18 +927,38 @@ export {
 } from '@/lib/mutations';
 
 export const useExportMatches = () => {
-  const getSelectedCorpusNamesInSelectedSet =
-    useGetSelectedCorpusNamesInSelectedSet();
-  const getAqlQuery = useGetAqlQuery();
-  const getQueryLanguage = useGetQueryLanguage();
-  const getExportColumns = useGetExportColumns();
-  const getExportFormat = useGetExportFormat();
+  const getExportSpec = useGetExportSpec();
 
   return useExportMatchesMutation(async () => ({
-    corpusNames: await getSelectedCorpusNamesInSelectedSet(),
-    aqlQuery: getAqlQuery(),
-    queryLanguage: getQueryLanguage(),
-    exportColumns: await getExportColumns(),
-    exportFormat: getExportFormat(),
+    spec: await getExportSpec(),
+  }));
+};
+
+export const useLoadProject = () => {
+  const getCorporaQueryData = useGetCorporaQueryData();
+  const setState = useSetState();
+
+  return useLoadProjectMutation(async ({ project }) => {
+    const { corpora, sets } = await getCorporaQueryData();
+
+    console.log(project);
+
+    // TODO Persist project to state, filtering for existing corpora, return result telling if project was fully loaded
+    return 'foo';
+  });
+};
+
+export const useSaveProject = () => {
+  const getSelectedCorpusSet = useGetSelectedCorpusSet({ wait: false });
+  const getExportSpec = useGetExportSpec({ wait: false });
+
+  return useSaveProjectMutation(async () => ({
+    project: {
+      // TODO Don't wait for query data, just use current query data
+      // or show loading state during save
+      // or disable save while the necessary data are being loaded
+      corpusSet: await getSelectedCorpusSet(),
+      spec: await getExportSpec(),
+    },
   }));
 };

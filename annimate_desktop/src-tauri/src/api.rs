@@ -11,12 +11,12 @@ use annimate_core::{
     QueryNodes, TableExportColumn, XlsxExportConfig,
 };
 use itertools::Itertools;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use tauri::ipc::Channel;
 use tauri::{EventId, Listener, Runtime, WebviewWindow, Window};
 use tauri_plugin_opener::OpenerExt;
 
-use crate::error::Error;
+use crate::error::{ConversionError, Error};
 use crate::state::AppState;
 
 #[tauri::command]
@@ -76,11 +76,7 @@ pub(crate) async fn export_matches(
     state: tauri::State<'_, AppState>,
     event_channel: Channel<ExportStatusEvent>,
     window: WebviewWindow,
-    corpus_names: Vec<String>,
-    aql_query: String,
-    query_language: QueryLanguage,
-    export_columns: Vec<ExportColumn>,
-    export_format: ExportFormat,
+    spec: ExportSpec,
     output_file: PathBuf,
 ) -> Result<(), Error> {
     let mut subscription = state.storage_slot.subscribe();
@@ -100,22 +96,7 @@ pub(crate) async fn export_matches(
         );
 
         storage.export_matches(
-            ExportConfig {
-                corpus_names: &corpus_names,
-                aql_query: &aql_query,
-                query_language,
-                format: {
-                    let columns = export_columns.into_iter().map_into().collect();
-                    match export_format {
-                        ExportFormat::Csv => {
-                            annimate_core::ExportFormat::Csv(CsvExportConfig { columns })
-                        }
-                        ExportFormat::Xlsx => {
-                            annimate_core::ExportFormat::Xlsx(XlsxExportConfig { columns })
-                        }
-                    }
-                },
-            },
+            spec.try_into()?,
             output_file,
             |status_event| {
                 event_channel
@@ -241,6 +222,36 @@ pub(crate) async fn open_path<R: Runtime>(
 }
 
 #[tauri::command]
+pub(crate) async fn load_project(_input_file: PathBuf) -> Result<Project, Error> {
+    // TODO Actually load project, in conversion from core::Project to Project:
+    // - Convert context between symmetric/asymmetric and right-override
+    // - Add variables to node refs
+    // - Sanitize, e.g. clamp context sizes?
+    Ok(Project {
+        corpus_set: "my_corpus_set".into(),
+        spec: ExportSpec {
+            corpus_names: vec!["a".into(), "b".into()],
+            aql_query: "my_aql_query".into(),
+            query_language: QueryLanguage::AQL,
+            export_columns: vec![
+                ExportColumn::Number,
+                ExportColumn::AnnoMatch {
+                    anno_key: Some(AnnoKey {
+                        name: "doc".into(),
+                        ns: "annis".into(),
+                    }),
+                    node_ref: Some(QueryNodeRef {
+                        index: 5,
+                        variables: vec![],
+                    }),
+                },
+            ],
+            export_format: ExportFormat::Csv,
+        },
+    })
+}
+
+#[tauri::command]
 pub(crate) async fn rename_corpus_set(
     state: tauri::State<'_, AppState>,
     corpus_set: String,
@@ -253,6 +264,68 @@ pub(crate) async fn rename_corpus_set(
         Ok(storage.rename_corpus_set(&corpus_set, new_corpus_set)?)
     })
     .await?
+}
+
+#[tauri::command(async)]
+pub(crate) fn save_project(project: Project, output_file: PathBuf) -> Result<(), Error> {
+    let project = annimate_core::Project {
+        corpus_set: (!project.corpus_set.is_empty()).then_some(project.corpus_set),
+        corpus_names: project.spec.corpus_names,
+        aql_query: project.spec.aql_query,
+        query_language: project.spec.query_language,
+        export_columns: project
+            .spec
+            .export_columns
+            .into_iter()
+            .map(|c| {
+                Ok(match c {
+                    ExportColumn::Number => annimate_core::ProjectExportColumn::Number,
+                    ExportColumn::AnnoCorpus { anno_key } => {
+                        annimate_core::ProjectExportColumn::AnnoCorpus { anno_key }
+                    }
+                    ExportColumn::AnnoDocument { anno_key } => {
+                        annimate_core::ProjectExportColumn::AnnoDocument { anno_key }
+                    }
+                    ExportColumn::AnnoMatch { anno_key, node_ref } => {
+                        annimate_core::ProjectExportColumn::AnnoMatch {
+                            anno_key,
+                            node_index: node_ref
+                                .map(|n| u32::try_from(n.index).map_err(|_| ConversionError))
+                                .transpose()?,
+                        }
+                    }
+                    ExportColumn::MatchInContext {
+                        context,
+                        context_right_override,
+                        primary_node_refs,
+                        segmentation,
+                        ..
+                    } => annimate_core::ProjectExportColumn::MatchInContext {
+                        segmentation,
+                        context: match context_right_override {
+                            Some(context_right) => annimate_core::ProjectContext::Asymmetric {
+                                left: u32::try_from(context).map_err(|_| ConversionError)?,
+                                right: u32::try_from(context_right).map_err(|_| ConversionError)?,
+                            },
+                            None => annimate_core::ProjectContext::Symmetric(
+                                u32::try_from(context).map_err(|_| ConversionError)?,
+                            ),
+                        },
+                        primary_node_indices: primary_node_refs
+                            .into_iter()
+                            .map(|n| u32::try_from(n.index).map_err(|_| ConversionError))
+                            .try_collect()?,
+                    },
+                })
+            })
+            .try_collect::<_, _, ConversionError>()?,
+        export_format: match project.spec.export_format {
+            ExportFormat::Csv => annimate_core::ProjectExportFormat::Csv,
+            ExportFormat::Xlsx => annimate_core::ProjectExportFormat::Xlsx,
+        },
+    };
+
+    Ok(annimate_core::save_project(project, output_file)?)
 }
 
 #[tauri::command]
@@ -286,7 +359,52 @@ pub(crate) async fn validate_query(
     .await?
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub(crate) struct Project {
+    corpus_set: String,
+    spec: ExportSpec,
+}
+
+#[derive(Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub(crate) struct ExportSpec {
+    corpus_names: Vec<String>,
+    aql_query: String,
+    query_language: QueryLanguage,
+    export_columns: Vec<ExportColumn>,
+    export_format: ExportFormat,
+}
+
+impl TryFrom<ExportSpec> for ExportConfig {
+    type Error = ConversionError;
+
+    fn try_from(spec: ExportSpec) -> Result<ExportConfig, ConversionError> {
+        Ok(ExportConfig {
+            corpus_names: spec.corpus_names,
+            aql_query: spec.aql_query,
+            query_language: spec.query_language,
+            format: {
+                let columns = spec
+                    .export_columns
+                    .into_iter()
+                    .map(|c| c.try_into())
+                    .try_collect()?;
+
+                match spec.export_format {
+                    ExportFormat::Csv => {
+                        annimate_core::ExportFormat::Csv(CsvExportConfig { columns })
+                    }
+                    ExportFormat::Xlsx => {
+                        annimate_core::ExportFormat::Xlsx(XlsxExportConfig { columns })
+                    }
+                }
+            },
+        })
+    }
+}
+
+#[derive(Deserialize, Serialize)]
 #[serde(
     tag = "type",
     rename_all = "snake_case",
@@ -295,43 +413,57 @@ pub(crate) async fn validate_query(
 pub(crate) enum ExportColumn {
     Number,
     AnnoCorpus {
-        anno_key: AnnoKey,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        anno_key: Option<AnnoKey>,
     },
     AnnoDocument {
-        anno_key: AnnoKey,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        anno_key: Option<AnnoKey>,
     },
     AnnoMatch {
-        anno_key: AnnoKey,
-        node_ref: QueryNodeRef,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        anno_key: Option<AnnoKey>,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        node_ref: Option<QueryNodeRef>,
     },
     MatchInContext {
         context: usize,
+        #[serde(skip_serializing_if = "Option::is_none")]
         context_right_override: Option<usize>,
         primary_node_refs: Vec<QueryNodeRef>,
-        segmentation: String,
+        secondary_node_refs: Vec<QueryNodeRef>,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        segmentation: Option<String>,
     },
 }
 
-#[derive(Deserialize)]
-#[serde(tag = "type", rename_all = "camelCase")]
+#[derive(Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub(crate) struct QueryNodeRef {
     index: usize,
+    variables: Vec<String>,
 }
 
-impl From<ExportColumn> for TableExportColumn {
-    fn from(export_column: ExportColumn) -> TableExportColumn {
-        match export_column {
+impl TryFrom<ExportColumn> for TableExportColumn {
+    type Error = ConversionError;
+
+    fn try_from(export_column: ExportColumn) -> Result<TableExportColumn, ConversionError> {
+        Ok(match export_column {
             ExportColumn::Number => TableExportColumn::Number,
             ExportColumn::AnnoCorpus { anno_key } => {
-                TableExportColumn::Data(ExportData::Anno(ExportDataAnno::Corpus { anno_key }))
+                TableExportColumn::Data(ExportData::Anno(ExportDataAnno::Corpus {
+                    anno_key: anno_key.ok_or(ConversionError)?,
+                }))
             }
             ExportColumn::AnnoDocument { anno_key } => {
-                TableExportColumn::Data(ExportData::Anno(ExportDataAnno::Document { anno_key }))
+                TableExportColumn::Data(ExportData::Anno(ExportDataAnno::Document {
+                    anno_key: anno_key.ok_or(ConversionError)?,
+                }))
             }
             ExportColumn::AnnoMatch { anno_key, node_ref } => {
                 TableExportColumn::Data(ExportData::Anno(ExportDataAnno::MatchNode {
-                    anno_key,
-                    index: node_ref.index,
+                    anno_key: anno_key.ok_or(ConversionError)?,
+                    index: node_ref.ok_or(ConversionError)?.index,
                 }))
             }
             ExportColumn::MatchInContext {
@@ -339,19 +471,23 @@ impl From<ExportColumn> for TableExportColumn {
                 context_right_override,
                 primary_node_refs,
                 segmentation,
+                ..
             } => TableExportColumn::Data(ExportData::Text(ExportDataText {
                 left_context: context,
                 right_context: context_right_override.unwrap_or(context),
-                segmentation: (!segmentation.is_empty()).then_some(segmentation),
+                segmentation: {
+                    let segmentation = segmentation.ok_or(ConversionError)?;
+                    (!segmentation.is_empty()).then_some(segmentation)
+                },
                 primary_node_indices: Some(
                     primary_node_refs.into_iter().map(|n| n.index).collect(),
                 ),
             })),
-        }
+        })
     }
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Serialize)]
 #[serde(rename_all = "snake_case")]
 pub(crate) enum ExportFormat {
     Csv,

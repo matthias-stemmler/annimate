@@ -8,9 +8,9 @@ use std::{fs, io};
 use serde::{Deserialize, Serialize};
 
 use crate::AnnimateError;
-use crate::error::AnnimateMetadataError;
+use crate::error::AnnimateReadFileError;
 
-const METADATA_VERSION: usize = 1;
+const METADATA_VERSION: u32 = 1;
 
 pub(crate) struct MetadataStorage {
     path: PathBuf,
@@ -89,16 +89,14 @@ where
 fn write_metadata(path: &Path, metadata: &Metadata) -> io::Result<()> {
     fs::write(
         path,
-        toml::to_string_pretty(metadata)
-            .map_err(|err| io::Error::new(ErrorKind::Other, err))?
-            .as_bytes(),
+        toml::to_string_pretty(metadata).map_err(|err| io::Error::new(ErrorKind::Other, err))?,
     )
 }
 
 #[derive(Debug, Deserialize, Serialize)]
 #[serde(rename_all = "kebab-case")]
 struct Metadata {
-    metadata_version: usize,
+    metadata_version: u32,
     corpus_sets: BTreeMap<String, CorpusSet>,
 }
 
@@ -112,13 +110,13 @@ impl Default for Metadata {
 }
 
 impl FromStr for Metadata {
-    type Err = AnnimateMetadataError;
+    type Err = AnnimateReadFileError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let metadata: Metadata = toml::from_str(s)?;
 
         if metadata.metadata_version == 0 || metadata.metadata_version > METADATA_VERSION {
-            Err(AnnimateMetadataError::UnsupportedVersion {
+            Err(AnnimateReadFileError::UnsupportedVersion {
                 version: metadata.metadata_version,
             })
         } else {

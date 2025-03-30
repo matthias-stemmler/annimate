@@ -10,16 +10,39 @@ import {
   MenubarShortcut,
   MenubarTrigger,
 } from '@/components/ui/menubar';
+import { useToast } from '@/components/ui/use-toast';
 import { UpdateAppTrigger } from '@/components/update-app-trigger';
-import { exit, openUrl } from '@/lib/api';
+import { exit, open, openUrl, save } from '@/lib/api';
+import { useIsExporting } from '@/lib/mutations';
+import { useLoadProject, useSaveProject } from '@/lib/store';
 import { URL_ANNIMATE_USER_GUIDE, URL_AQL_OPERATORS } from '@/lib/urls';
 import { ExternalLink } from 'lucide-react';
 import { FC, useEffect } from 'react';
 import { Outlet } from 'react-router';
 
+const PROJECT_FILTERS = [
+  {
+    name: 'Annimate project (*.anmt)',
+    extensions: ['anmt'],
+  },
+  {
+    name: 'All files',
+    extensions: ['*'],
+  },
+];
+
 export const Window: FC = () => {
+  const {
+    mutation: { mutate: loadProject },
+  } = useLoadProject();
+  const {
+    mutation: { mutate: saveProject },
+  } = useSaveProject();
+  const isExporting = useIsExporting();
+
   const [aboutDialogOpen, setAboutDialogOpen, aboutDialogKey] =
     useDialogState();
+  const { toast } = useToast();
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -45,6 +68,66 @@ export const Window: FC = () => {
             <MenubarTrigger>File</MenubarTrigger>
 
             <MenubarContent>
+              <MenubarItem
+                disabled={isExporting}
+                onSelect={async () => {
+                  const inputFile = await open({
+                    filters: PROJECT_FILTERS,
+                    title: 'Load project',
+                  });
+
+                  if (inputFile !== null) {
+                    loadProject(
+                      { inputFile },
+                      {
+                        onSuccess: (result) => {
+                          // TODO show yellow toast if result says project was not fully loaded
+                        },
+                        onError: (error: Error) => {
+                          toast({
+                            description: error.message,
+                            duration: 15000,
+                            title: 'Failed to load project',
+                            variant: 'destructive',
+                          });
+                        },
+                      },
+                    );
+                  }
+                }}
+              >
+                Load project
+              </MenubarItem>
+
+              <MenubarItem
+                onSelect={async () => {
+                  const outputFile = await save({
+                    filters: PROJECT_FILTERS,
+                    title: 'Save project',
+                  });
+
+                  if (outputFile !== null) {
+                    saveProject(
+                      { outputFile },
+                      {
+                        onError: (error: Error) => {
+                          toast({
+                            description: error.message,
+                            duration: 15000,
+                            title: 'Failed to save project',
+                            variant: 'destructive',
+                          });
+                        },
+                      },
+                    );
+                  }
+                }}
+              >
+                Save project as &hellip;
+              </MenubarItem>
+
+              <MenubarSeparator />
+
               <MenubarItem
                 onClick={() => {
                   exit(0);

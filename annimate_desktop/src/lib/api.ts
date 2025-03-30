@@ -1,10 +1,10 @@
 import {
   Corpora,
-  ExportColumn,
-  ExportFormat,
+  ExportSpec,
   ExportStatusEvent,
   ExportableAnnoKeys,
   ImportStatusEvent,
+  Project,
   QueryLanguage,
   QueryNodesResult,
   QueryValidationResult,
@@ -34,11 +34,7 @@ export const emitImportCancelRequestedEvent = (): Promise<void> =>
 
 export const exportMatches = async (
   params: {
-    corpusNames: string[];
-    aqlQuery: string;
-    queryLanguage: QueryLanguage;
-    exportColumns: ExportColumn[];
-    exportFormat: ExportFormat;
+    spec: ExportSpec;
     outputFile: string;
   },
   handlers: {
@@ -92,6 +88,9 @@ export const importCorpora = async (
   return await invoke('import_corpora', { eventChannel, ...params });
 };
 
+export const loadProject = (params: { inputFile: string }): Promise<Project> =>
+  invoke('load_project', params);
+
 // We use a custom command instead of the `open_path` command of tauri-plugin-opener because we need to allow arbitrary
 // paths. While the plugin allows configuration of the allowed paths via a glob pattern, it (at least on Linux) matches
 // paths whose components have leading dots only if the leading dots appear literally in the glob pattern, which
@@ -107,6 +106,11 @@ export const renameCorpusSet = (params: {
   corpusSet: string;
   newCorpusSet: string;
 }): Promise<void> => invoke('rename_corpus_set', params);
+
+export const saveProject = (params: {
+  project: Project;
+  outputFile: string;
+}): Promise<void> => invoke('save_project', params);
 
 export const toggleCorpusInSet = (params: {
   corpusSet: string;

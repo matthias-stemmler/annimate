@@ -14,8 +14,7 @@ import {
   Corpora,
   DownloadEvent,
   DownloadOptions,
-  ExportColumn,
-  ExportFormat,
+  ExportSpec,
   ExportStatusEvent,
   ExportableAnnoKey,
   ExportableAnnoKeys,
@@ -24,6 +23,7 @@ import {
   ImportStatusEvent,
   OpenDialogOptions,
   OpenDialogReturn,
+  Project,
   QueryLanguage,
   QueryNode,
   QueryNodesResult,
@@ -455,11 +455,7 @@ export const deleteCorpusSet = async (params: {
 
 export const exportMatches = async (
   params: {
-    corpusNames: string[];
-    aqlQuery: string;
-    queryLanguage: QueryLanguage;
-    exportColumns: ExportColumn[];
-    exportFormat: ExportFormat;
+    spec: ExportSpec;
     outputFile: string;
   },
   handlers: {
@@ -475,7 +471,7 @@ export const exportMatches = async (
   });
 
   try {
-    const matchCount = params.corpusNames.reduce(
+    const matchCount = params.spec.corpusNames.reduce(
       (acc, c) => acc + getMatchCountForCorpus(c),
       0,
     );
@@ -493,7 +489,7 @@ export const exportMatches = async (
 
       if (
         i >= matchCount / 2 &&
-        params.corpusNames.includes(CORPUS_FAILING_EXPORT)
+        params.spec.corpusNames.includes(CORPUS_FAILING_EXPORT)
       ) {
         throw new Error('Export failed');
       }
@@ -745,6 +741,25 @@ const subscribeToImportCancelRequestedEvent = (
   };
 };
 
+export const loadProject = async (params: {
+  inputFile: string;
+}): Promise<Project> => {
+  logAction('Load project', COLOR_CUSTOM_COMMAND, params);
+  alert(`Load project\ninputFile: ${params.inputFile}`);
+
+  // TODO Use proper test data
+  return {
+    corpusSet: 'Working',
+    spec: {
+      corpusNames: [CORPUS_NORMAL, CORPUS_NO_MATCHES, CORPUS_MANY_MATCHES],
+      aqlQuery: 'foo="bar"',
+      queryLanguage: 'AQL',
+      exportColumns: [],
+      exportFormat: 'xlsx',
+    },
+  };
+};
+
 export const renameCorpusSet = async (params: {
   corpusSet: string;
   newCorpusSet: string;
@@ -753,6 +768,14 @@ export const renameCorpusSet = async (params: {
 
   corpusSets[params.newCorpusSet] = corpusSets[params.corpusSet];
   delete corpusSets[params.corpusSet];
+};
+
+export const saveProject = async (params: {
+  project: Project;
+  outputFile: string;
+}): Promise<void> => {
+  logAction('Save project', COLOR_CUSTOM_COMMAND, params);
+  alert(`Save project\noutputFile: ${params.outputFile}`);
 };
 
 export const toggleCorpusInSet = async (params: {

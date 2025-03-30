@@ -1094,38 +1094,40 @@ describe('store', () => {
 
     expect(exportMatchesSpy).toHaveBeenCalledWith({
       eventChannel: expect.anything(),
-      corpusNames: ['a'],
-      aqlQuery: 'valid',
-      queryLanguage: 'AQLQuirksV3',
-      exportColumns: [
-        expect.objectContaining({
-          type: 'number',
-        }),
-        expect.objectContaining({
-          type: 'match_in_context',
-          context: 20,
-          contextRightOverride: undefined,
-          primaryNodeRefs: [
-            { index: 0, variables: ['1'] },
-            { index: 1, variables: ['2'] },
-          ],
-          secondaryNodeRefs: [],
-          segmentation: 'segmentation',
-        }),
-        expect.objectContaining({
-          type: 'anno_corpus',
-          annoKey: ANNO_KEY_CORPUS,
-        }),
-        expect.objectContaining({
-          type: 'anno_document',
-          annoKey: ANNO_KEY_DOCUMENT,
-        }),
-        expect.objectContaining({
-          type: 'anno_match',
-          annoKey: ANNO_KEY_NODE,
-        }),
-      ],
-      exportFormat: 'xlsx',
+      spec: {
+        corpusNames: ['a'],
+        aqlQuery: 'valid',
+        queryLanguage: 'AQLQuirksV3',
+        exportColumns: [
+          expect.objectContaining({
+            type: 'number',
+          }),
+          expect.objectContaining({
+            type: 'match_in_context',
+            context: 20,
+            contextRightOverride: undefined,
+            primaryNodeRefs: [
+              { index: 0, variables: ['1'] },
+              { index: 1, variables: ['2'] },
+            ],
+            secondaryNodeRefs: [],
+            segmentation: 'segmentation',
+          }),
+          expect.objectContaining({
+            type: 'anno_corpus',
+            annoKey: ANNO_KEY_CORPUS,
+          }),
+          expect.objectContaining({
+            type: 'anno_document',
+            annoKey: ANNO_KEY_DOCUMENT,
+          }),
+          expect.objectContaining({
+            type: 'anno_match',
+            annoKey: ANNO_KEY_NODE,
+          }),
+        ],
+        exportFormat: 'xlsx',
+      },
       outputFile: 'out.xlsx',
     });
   });

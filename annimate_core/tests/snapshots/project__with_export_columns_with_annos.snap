@@ -1,0 +1,43 @@
+---
+source: annimate_core/tests/project.rs
+info:
+  corpus_set: ~
+  corpus_names: []
+  aql_query: ""
+  query_language: AQL
+  export_columns:
+    - AnnoCorpus:
+        anno_key:
+          - ns1
+          - anno1
+    - AnnoDocument:
+        anno_key:
+          - ns2
+          - anno2
+    - AnnoMatch:
+        anno_key:
+          - ns3
+          - anno3
+        node_index: ~
+  export_format: Csv
+---
+# Annimate project file
+# https://github.com/matthias-stemmler/annimate
+
+format-version = 1
+
+[project]
+query-language = "aql"
+export-format = "csv"
+
+[[project.columns]]
+type = "corpus-metadata"
+annotation = { ns = "ns1", name = "anno1" }
+
+[[project.columns]]
+type = "document-metadata"
+annotation = { ns = "ns2", name = "anno2" }
+
+[[project.columns]]
+type = "match-annotation"
+annotation = { ns = "ns3", name = "anno3" }
