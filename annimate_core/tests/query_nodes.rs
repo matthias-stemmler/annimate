@@ -20,7 +20,8 @@ macro_rules! query_nodes_test {
             let actual: Vec<_> = storage
                 .query_nodes($query, $query_language)
                 .unwrap()
-                .unwrap_valid()
+                .valid()
+                .unwrap()
                 .into_iter()
                 .collect();
 

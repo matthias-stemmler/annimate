@@ -66,8 +66,8 @@ macro_rules! export_matches_test {
                 storage
                     .export_matches(
                         ExportConfig {
-                            corpus_names: test_data.corpus_names,
-                            aql_query: test_data.aql_query,
+                            corpus_names: test_data.corpus_names.into_iter().cloned().map_into().collect_vec(),
+                            aql_query: test_data.aql_query.into(),
                             query_language: test_data.query_language,
                             format: ExportFormat::Csv(CsvExportConfig {
                                 columns: test_data
@@ -445,8 +445,8 @@ fn export_cancelled_before_matches_found() {
 
     let result = storage.export_matches(
         ExportConfig {
-            corpus_names: &["subtok.demo"],
-            aql_query: "tok",
+            corpus_names: vec!["subtok.demo".into()],
+            aql_query: "tok".into(),
             query_language: QueryLanguage::AQL,
             format: ExportFormat::Csv(CsvExportConfig {
                 columns: vec![TableExportColumn::Number],
@@ -484,8 +484,8 @@ fn export_cancelled_after_matches_found() {
 
     let result = storage.export_matches(
         ExportConfig {
-            corpus_names: &["subtok.demo"],
-            aql_query: "tok",
+            corpus_names: vec!["subtok.demo".into()],
+            aql_query: "tok".into(),
             query_language: QueryLanguage::AQL,
             format: ExportFormat::Csv(CsvExportConfig {
                 columns: vec![TableExportColumn::Number],

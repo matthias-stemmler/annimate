@@ -2,8 +2,13 @@
 
 ## [Unreleased] - (release date)
 
+### Added
+
+- It is now possible to save the current export configuration (query, selected corpora, columns, etc.) to a "project" file and load such a file back into Annimate via the corresponding items in the "File" menu. See the User Guide for details.
+
 ### Changed
 
+- Dialogs for choosing files or folders now start in the "documents" folder (for export) respectively "downloads" folder (for import).
 - When offline, there is no more error message during startup saying that the check for updates failed.
 
 ### Fixed

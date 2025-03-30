@@ -31,6 +31,10 @@ pub enum AnnimateError {
     #[error("Failed to order chains")]
     FailedToOrderChains,
 
+    /// Failed to read project.
+    #[error(transparent)]
+    FailedToReadProject(AnnimateReadFileError),
+
     /// Failed to read metadata.
     #[error("Failed to read metadata from {path}: {err}")]
     FailedToReadMetadata {
@@ -38,7 +42,7 @@ pub enum AnnimateError {
         path: PathBuf,
 
         /// Inner error.
-        err: AnnimateMetadataError,
+        err: AnnimateReadFileError,
     },
 
     /// Failed to write XLSX workbook
@@ -92,12 +96,12 @@ impl From<Vec<String>> for AnnimateErrorCorpusNames {
 }
 
 #[derive(Debug, Error)]
-pub enum AnnimateMetadataError {
-    #[error("Invalid format: {0}")]
+pub enum AnnimateReadFileError {
+    #[error("Invalid format")]
     InvalidFormat(#[from] toml::de::Error),
 
     #[error("Unsupported version: {version}")]
-    UnsupportedVersion { version: usize },
+    UnsupportedVersion { version: u32 },
 }
 
 impl AnnimateError {

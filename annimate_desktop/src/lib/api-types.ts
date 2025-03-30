@@ -39,30 +39,43 @@ export type AnnoKey = {
   name: string;
 };
 
+export type Project = {
+  corpusSet: string;
+  spec: ExportSpec;
+};
+
+export type ExportSpec = {
+  corpusNames: string[];
+  aqlQuery: string;
+  queryLanguage: QueryLanguage;
+  exportColumns: ExportColumn[];
+  exportFormat: ExportFormat;
+};
+
 export type ExportColumn =
   | {
       type: 'number';
     }
   | {
       type: 'anno_corpus';
-      annoKey: AnnoKey | undefined;
+      annoKey?: AnnoKey;
     }
   | {
       type: 'anno_document';
-      annoKey: AnnoKey | undefined;
+      annoKey?: AnnoKey;
     }
   | {
       type: 'anno_match';
-      annoKey: AnnoKey | undefined;
-      nodeRef: QueryNodeRef | undefined;
+      annoKey?: AnnoKey;
+      nodeRef?: QueryNodeRef;
     }
   | {
       type: 'match_in_context';
       context: number;
-      contextRightOverride: number | undefined;
+      contextRightOverride?: number;
       primaryNodeRefs: QueryNodeRef[];
       secondaryNodeRefs: QueryNodeRef[];
-      segmentation: string | undefined;
+      segmentation?: string;
     };
 
 export type ExportColumnType = ExportColumn['type'];

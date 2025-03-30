@@ -14,6 +14,9 @@ import {
   QueryValidationResult,
 } from '@/lib/api-types';
 import {
+  DefaultError,
+  EnsureQueryDataOptions,
+  QueryKey,
   UseQueryResult,
   useQuery,
   useQueryClient,
@@ -39,9 +42,11 @@ export const useCorporaQuery = <T>(
     select,
   });
 
-export const useGetCorporaQueryData = (): (() => Promise<Corpora>) => {
-  const queryClient = useQueryClient();
-  return () => queryClient.ensureQueryData(corporaQueryConfig());
+export const useGetCorporaQueryData = <Wait extends boolean = true>(
+  options: UseGetQueryDataOptions<Wait> = {},
+): (() => QueryData<Corpora, Wait>) => {
+  const getQueryData = useGetQueryData<Corpora, Wait>(options);
+  return () => getQueryData(corporaQueryConfig());
 };
 
 export const useDbDirQuery = (): UseQueryResult<string> =>
@@ -85,12 +90,12 @@ export const useSegmentationsQuery = (params: {
   corpusNames: string[];
 }): UseQueryResult<string[]> => useQuery(segmentationsQueryConfig(params));
 
-export const useGetSegmentationsQueryData = (): ((params: {
-  corpusNames: string[];
-}) => Promise<string[]>) => {
-  const queryClient = useQueryClient();
+export const useGetSegmentationsQueryData = <Wait extends boolean = true>(
+  options: UseGetQueryDataOptions<Wait> = {},
+): ((params: { corpusNames: string[] }) => QueryData<string[], Wait>) => {
+  const getQueryData = useGetQueryData<string[], Wait>(options);
   return (params: { corpusNames: string[] }) =>
-    queryClient.ensureQueryData(segmentationsQueryConfig(params));
+    getQueryData(segmentationsQueryConfig(params));
 };
 
 const exportableAnnoKeysQueryConfig = (params: { corpusNames: string[] }) => ({
@@ -103,19 +108,48 @@ export const useExportableAnnoKeysQuery = (params: {
 }): UseQueryResult<ExportableAnnoKeys> =>
   useQuery(exportableAnnoKeysQueryConfig(params));
 
-export const useGetExportableAnnoKeysQueryData = (): ((params: {
+export const useGetExportableAnnoKeysQueryData = <Wait extends boolean = true>(
+  options: UseGetQueryDataOptions<Wait> = {},
+): ((params: {
   corpusNames: string[];
-}) => Promise<ExportableAnnoKeys>) => {
-  const queryClient = useQueryClient();
+}) => QueryData<ExportableAnnoKeys, Wait>) => {
+  const getQueryData = useGetQueryData<ExportableAnnoKeys, Wait>(options);
   return (params: { corpusNames: string[] }) =>
-    queryClient.ensureQueryData(exportableAnnoKeysQueryConfig(params));
+    getQueryData(exportableAnnoKeysQueryConfig(params));
 };
 
-export const useGetQueryNodesQueryData = (): ((params: {
+export const useGetQueryNodesQueryData = <Wait extends boolean = true>(
+  options: UseGetQueryDataOptions<Wait> = {},
+): ((params: {
   aqlQuery: string;
   queryLanguage: QueryLanguage;
-}) => Promise<QueryNodesResult>) => {
-  const queryClient = useQueryClient();
+}) => QueryData<QueryNodesResult, Wait>) => {
+  const getQueryData = useGetQueryData<QueryNodesResult, Wait>(options);
   return (params: { aqlQuery: string; queryLanguage: QueryLanguage }) =>
-    queryClient.ensureQueryData(queryNodesQueryConfig(params));
+    getQueryData(queryNodesQueryConfig(params));
+};
+
+export type UseGetQueryDataOptions<Wait extends boolean> = {
+  wait?: Wait;
+};
+
+type QueryData<T, Wait extends boolean> = Wait extends true
+  ? Promise<T>
+  : T | undefined;
+
+/**
+ * Wrapper around either `queryClient.getQueryData` or `queryClient.ensureQueryData` depending on the given `wait` option.
+ * It is meant for cases where we either want to wait for the data (as a `Promise<T>`) or just get the currently available data (as a `T | undefined`), depending on the context.
+ */
+const useGetQueryData = <T, Wait extends boolean>(
+  options: UseGetQueryDataOptions<Wait> = {},
+): ((
+  queryConfig: EnsureQueryDataOptions<unknown, DefaultError, T, QueryKey>,
+) => QueryData<T, Wait>) => {
+  const queryClient = useQueryClient();
+
+  return (queryConfig) =>
+    (options.wait === false
+      ? queryClient.getQueryData(queryConfig.queryKey)
+      : queryClient.ensureQueryData(queryConfig)) as QueryData<T, Wait>;
 };
