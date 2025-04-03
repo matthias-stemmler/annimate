@@ -8,10 +8,9 @@
     "dialog:allow-open",
     "dialog:allow-save",
     "dialog:default",
+    "opener:default",
     "process:allow-exit",
     "process:allow-restart",
-    "shell:allow-open",
-    "shell:default",
     "updater:default",
     "window-state:default"
   ]

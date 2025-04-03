@@ -13,7 +13,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { shellOpen } from '@/lib/api';
+import { openPath, openUrl } from '@/lib/api';
 import { useDbDir } from '@/lib/store';
 import { URL_ANNIMATE, URL_GRAPHANNIS } from '@/lib/urls';
 import { Folder } from 'lucide-react';
@@ -59,7 +59,7 @@ export const AboutDialog = () => {
           <Button
             className="h-4 min-w-32 p-0"
             onClick={() => {
-              shellOpen(URL_ANNIMATE);
+              openUrl(URL_ANNIMATE);
             }}
             variant="link"
           >
@@ -75,7 +75,7 @@ export const AboutDialog = () => {
           <Button
             className="h-4 p-0"
             onClick={() => {
-              shellOpen(URL_GRAPHANNIS);
+              openUrl(URL_GRAPHANNIS);
             }}
             variant="link"
           >
@@ -95,7 +95,7 @@ export const AboutDialog = () => {
                 disabled={dbDir === undefined}
                 onClick={async () => {
                   if (dbDir !== undefined) {
-                    await shellOpen(dbDir);
+                    await openPath(dbDir);
                   }
                 }}
                 variant="link"
