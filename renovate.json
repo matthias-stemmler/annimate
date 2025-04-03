@@ -43,6 +43,11 @@
       "groupSlug": "graphannis-monorepo"
     },
     {
+      "matchPackageNames": ["tauri", "tauri-*", "@tauri-apps/**"],
+      "groupName": "Tauri monorepo",
+      "groupSlug": "tauri-monorepo"
+    },
+    {
       "matchDatasources": ["github-runners"],
       "enabled": false,
       "description": "GitHub runners need to be pinned to make sure the required packages are available"
