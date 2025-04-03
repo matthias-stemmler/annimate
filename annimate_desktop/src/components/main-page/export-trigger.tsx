@@ -6,7 +6,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { useToast } from '@/components/ui/use-toast';
-import { dirname, save, shellOpen } from '@/lib/api';
+import { openPath, revealItemInDir, save } from '@/lib/api';
 import { ExportFormat } from '@/lib/api-types';
 import { CancellableOperationError } from '@/lib/mutations';
 import {
@@ -109,9 +109,7 @@ export const ExportTrigger = () => {
                         <div className="flex gap-8">
                           <Button
                             className="px-0"
-                            onClick={async () =>
-                              shellOpen(await dirname(outputFile))
-                            }
+                            onClick={async () => revealItemInDir(outputFile)}
                             variant="link"
                           >
                             <Folder className="mr-2 size-4" />
@@ -120,7 +118,7 @@ export const ExportTrigger = () => {
 
                           <Button
                             className="px-0"
-                            onClick={() => shellOpen(outputFile)}
+                            onClick={() => openPath(outputFile)}
                             variant="link"
                           >
                             <File className="mr-2 size-4" />

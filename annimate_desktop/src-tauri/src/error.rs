@@ -27,6 +27,15 @@ impl From<tauri::Error> for Error {
     }
 }
 
+impl From<tauri_plugin_opener::Error> for Error {
+    fn from(err: tauri_plugin_opener::Error) -> Self {
+        Self {
+            message: err.to_string(),
+            cancelled: false,
+        }
+    }
+}
+
 impl From<io::Error> for Error {
     fn from(err: io::Error) -> Self {
         Self {

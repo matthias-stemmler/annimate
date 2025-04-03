@@ -9,7 +9,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useToast } from '@/components/ui/use-toast';
-import { fileOpen } from '@/lib/api';
+import { open } from '@/lib/api';
 import { OpenDialogOptions } from '@/lib/api-types';
 import { useAddCorporaToSet, useImportCorpora } from '@/lib/store';
 import { File, Folder, FolderInput } from 'lucide-react';
@@ -39,7 +39,7 @@ export const ImportTrigger: FC<ImportTriggerProps> = ({
   const [dialogOpen, setDialogOpen, dialogKey] = useDialogState();
 
   const importCorporaFromDialog = async (options: OpenDialogOptions) => {
-    const pathsRaw = await fileOpen(options);
+    const pathsRaw = await open(options);
 
     if (pathsRaw !== null) {
       importCorpora({ paths: Array.isArray(pathsRaw) ? pathsRaw : [pathsRaw] });

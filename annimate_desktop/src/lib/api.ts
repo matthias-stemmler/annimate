@@ -11,13 +11,12 @@ import {
 } from '@/lib/api-types';
 import { Channel, invoke } from '@tauri-apps/api/core';
 import { emit } from '@tauri-apps/api/event';
-import { dirname } from '@tauri-apps/api/path';
-import { open as fileOpen, save } from '@tauri-apps/plugin-dialog';
+import { open, save } from '@tauri-apps/plugin-dialog';
+import { openUrl, revealItemInDir } from '@tauri-apps/plugin-opener';
 import { exit, relaunch } from '@tauri-apps/plugin-process';
-import { open as shellOpen } from '@tauri-apps/plugin-shell';
 import { check as checkForUpdate } from '@tauri-apps/plugin-updater';
 
-export { checkForUpdate, dirname, exit, fileOpen, relaunch, save, shellOpen };
+export { checkForUpdate, exit, open, openUrl, relaunch, revealItemInDir, save };
 
 export const deleteCorpus = (params: { corpusName: string }): Promise<void> =>
   invoke('delete_corpus', params);
@@ -91,6 +90,17 @@ export const importCorpora = async (
     eventChannel.onmessage = handlers.onEvent;
   }
   return await invoke('import_corpora', { eventChannel, ...params });
+};
+
+// We use a custom command instead of the `open_path` command of tauri-plugin-opener because we need to allow arbitrary
+// paths. While the plugin allows configuration of the allowed paths via a glob pattern, it (at least on Linux) matches
+// paths whose components have leading dots only if the leading dots appear literally in the glob pattern, which
+// essentially rules out a glob pattern that allows all paths.
+export const openPath = async (
+  path: string,
+  openWith?: string,
+): Promise<void> => {
+  await invoke('open_path', { path, with: openWith });
 };
 
 export const renameCorpusSet = (params: {

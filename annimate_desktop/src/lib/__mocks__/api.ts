@@ -334,28 +334,25 @@ class MockUpdate {
   }
 }
 
-export const dirname = async (path: string): Promise<string> =>
-  `<Dirname of ${path}>`;
-
 export const exit = async (exitCode?: number): Promise<void> => {
   logAction('Exit', COLOR_BUILTIN_COMMAND, { exitCode });
   alert(`Exit\nexitCode: ${exitCode}`);
 };
 
-export const fileOpen = async <T extends OpenDialogOptions>(
+export const open = async <T extends OpenDialogOptions>(
   options?: T,
 ): Promise<OpenDialogReturn<T>> => {
   logAction('File Open', COLOR_BUILTIN_COMMAND, options);
 
   return options?.multiple
-    ? ((await fileOpenMultiple()) as OpenDialogReturn<T>)
-    : ((await fileOpenSingle()) as OpenDialogReturn<T>);
+    ? ((await openMultiple()) as OpenDialogReturn<T>)
+    : ((await openSingle()) as OpenDialogReturn<T>);
 };
 
-const fileOpenSingle = async (): Promise<string | null> =>
+const openSingle = async (): Promise<string | null> =>
   prompt('File Open\nEnter file path:');
 
-const fileOpenMultiple = async (): Promise<string[] | null> => {
+const openMultiple = async (): Promise<string[] | null> => {
   const answer = prompt('File Open\nEnter file paths (comma-separated):');
   if (answer === null) {
     return null;
@@ -363,8 +360,30 @@ const fileOpenMultiple = async (): Promise<string[] | null> => {
   return answer === '' ? [] : answer.split(',');
 };
 
+export const openPath = async (
+  path: string,
+  openWith?: string,
+): Promise<void> => {
+  logAction('Open Path', COLOR_BUILTIN_COMMAND, { path, openWith });
+  alert(`Open Path\npath: ${path}\nopenWith: ${openWith}`);
+};
+
+export const openUrl = async (
+  url: string,
+  openWith?: string,
+): Promise<void> => {
+  logAction('Open URL', COLOR_BUILTIN_COMMAND, { url, openWith });
+  alert(`Open URL\nurl: ${url}\nopenWith: ${openWith}`);
+};
+
 export const relaunch = async (): Promise<void> => {
   window.location.reload();
+};
+
+export const revealItemInDir = async (path: string): Promise<unknown> => {
+  logAction('Reveal Item in Dir', COLOR_BUILTIN_COMMAND, { path });
+  alert(`Reveal Item in Dir\npath: ${path}`);
+  return undefined;
 };
 
 export const save = async (
@@ -372,14 +391,6 @@ export const save = async (
 ): Promise<string | null> => {
   logAction('Save', COLOR_BUILTIN_COMMAND, options);
   return prompt(`Save - ${options?.filters?.[0].name}\nEnter file path:`);
-};
-
-export const shellOpen = async (
-  path: string,
-  openWith?: string,
-): Promise<void> => {
-  logAction('Shell Open', COLOR_BUILTIN_COMMAND, { path, openWith });
-  alert(`Shell Open\npath: ${path}\nopenWith: ${openWith}`);
 };
 
 export const addCorporaToSet = async (params: {

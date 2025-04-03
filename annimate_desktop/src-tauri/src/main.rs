@@ -17,8 +17,8 @@ use tauri_plugin_window_state::{StateFlags, WindowExt};
 fn main() {
     tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
+        .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_process::init())
-        .plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_single_instance::init(|app, _, _| {
             // In case this instance is terminated because another instance is already running,
             // focus the main window of the running instance (ignoring errors, because this is not
@@ -46,6 +46,7 @@ fn main() {
             api::get_query_nodes,
             api::get_segmentations,
             api::import_corpora,
+            api::open_path,
             api::rename_corpus_set,
             api::toggle_corpus_in_set,
             api::validate_query

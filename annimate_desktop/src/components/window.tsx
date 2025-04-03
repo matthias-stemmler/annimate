@@ -11,7 +11,7 @@ import {
   MenubarTrigger,
 } from '@/components/ui/menubar';
 import { UpdateAppTrigger } from '@/components/update-app-trigger';
-import { exit, shellOpen } from '@/lib/api';
+import { exit, openUrl } from '@/lib/api';
 import { URL_ANNIMATE_USER_GUIDE, URL_AQL_OPERATORS } from '@/lib/urls';
 import { ExternalLink } from 'lucide-react';
 import { FC, useEffect } from 'react';
@@ -24,7 +24,7 @@ export const Window: FC = () => {
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.code === 'F1') {
-        shellOpen(URL_ANNIMATE_USER_GUIDE);
+        openUrl(URL_ANNIMATE_USER_GUIDE);
       }
     };
 
@@ -61,7 +61,7 @@ export const Window: FC = () => {
             <MenubarContent>
               <MenubarItem
                 onSelect={() => {
-                  shellOpen(URL_ANNIMATE_USER_GUIDE);
+                  openUrl(URL_ANNIMATE_USER_GUIDE);
                 }}
               >
                 <ExternalLink className="mr-2 size-4" />
@@ -71,7 +71,7 @@ export const Window: FC = () => {
 
               <MenubarItem
                 onSelect={() => {
-                  shellOpen(URL_AQL_OPERATORS);
+                  openUrl(URL_AQL_OPERATORS);
                 }}
               >
                 <ExternalLink className="mr-2 size-4" />
