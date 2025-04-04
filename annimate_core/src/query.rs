@@ -549,7 +549,7 @@ fn get_parts(
         match primary_node_indices {
             Some(node_indices) => node_indices
                 .iter()
-                .filter(|i| valid_node_indices.contains(i))
+                .filter(|&i| valid_node_indices.contains(i))
                 .copied()
                 .collect(),
             None => valid_node_indices.collect(),
