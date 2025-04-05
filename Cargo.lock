@@ -95,7 +95,7 @@ dependencies = [
  "thiserror 2.0.12",
  "toml",
  "urlencoding",
- "zip 2.6.0",
+ "zip 2.6.1",
 ]
 
 [[package]]
@@ -4000,7 +4000,7 @@ version = "0.85.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e04e5c9e505db0e7f0b48449b138d6de1fba90bd178833a0e401f8d1aab16774"
 dependencies = [
- "zip 2.6.0",
+ "zip 2.6.1",
 ]
 
 [[package]]
@@ -4959,7 +4959,7 @@ dependencies = [
  "tokio",
  "url",
  "windows-sys 0.59.0",
- "zip 2.6.0",
+ "zip 2.6.1",
 ]
 
 [[package]]
@@ -6648,9 +6648,9 @@ dependencies = [
 
 [[package]]
 name = "zip"
-version = "2.6.0"
+version = "2.6.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "febbe83a485467affa75a75d28dc7494acd2f819e549536c47d46b3089b56164"
+checksum = "1dcb24d0152526ae49b9b96c1dcf71850ca1e0b882e4e28ed898a93c41334744"
 dependencies = [
  "aes",
  "arbitrary",
