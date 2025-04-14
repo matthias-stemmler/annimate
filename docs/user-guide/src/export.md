@@ -104,4 +104,4 @@ The `.xlsx` files produced by Annimate can be opened directly in Microsoft Excel
 
 ## What's Next?
 
-Have fun with Annimate! If you encounter any problems, check out the [Troubleshooting](troubleshooting.md) section. [Let us know](https://github.com/matthias-stemmler/annimate/issues/new/choose) in case you need support.
+In order to save and resume your work or collaborate with others, learn about [Working With Projects](projects.md).
