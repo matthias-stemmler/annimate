@@ -1,0 +1,61 @@
+# Annimate project file
+# https://github.com/matthias-stemmler/annimate
+
+format-version = 1
+
+[project]
+corpus-set = "ReA 1.2"
+corpora = [
+    "DDD-AD-Benediktiner_Regel_1.2",
+    "DDD-AD-Benediktiner_Regel_Latein_1.2",
+    "DDD-AD-Genesis_1.2",
+    "DDD-AD-Heliand_1.2",
+    "DDD-AD-Isidor_1.2",
+    "DDD-AD-Isidor_Latein_1.2",
+    "DDD-AD-Kleinere_Althochdeutsche_Denkmäler_1.2",
+    "DDD-AD-Kleinere_Altsächsische_Denkmäler_1.2",
+    "DDD-AD-Monsee_1.2",
+    "DDD-AD-Murbacher_Hymnen_1.2",
+    "DDD-AD-Murbacher_Hymnen_Latein_1.2",
+    "DDD-AD-Otfrid_1.2",
+    "DDD-AD-Physiologus_1.2",
+    "DDD-AD-Tatian_1.2",
+    "DDD-AD-Tatian_Latein_1.2",
+    "DDD-AD-Z-Notker-Martianus_Capella_1.2",
+    "DDD-AD-Z-Notker-Psalmen-Glossen_1.2",
+    "DDD-AD-Z-Notker-Psalmen_1.2",
+    "DDD-AD-Z-Notker_Boethius-Categoriae_1.2",
+    "DDD-AD-Z-Notker_Boethius-De_Consolatione_philosophiae_1.2",
+    "DDD-AD-Z-Notker_Boethius-De_Interpretatione_1.2",
+    "DDD-AD-Z-Notker_Cantica_1.2",
+    "DDD-AD-Z-Notker_Kleinere-Ars_Rhetorica_1.2",
+    "DDD-AD-Z-Notker_Kleinere-De_Musica_1.2",
+    "DDD-AD-Z-Notker_Kleinere-De_Partibus_logice_1.2",
+    "DDD-AD-Z-Notker_Kleinere-Syllogismus_1.2",
+]
+query = """
+pos=/N.*/ &
+inflection=/.*GEN.*/ &
+pos=/N.*/ &
+#1_=_#2 &
+#3 . #2"""
+query-language = "aql"
+export-format = "xlsx"
+
+[[project.columns]]
+type = "number"
+
+[[project.columns]]
+type = "document-metadata"
+annotation = { ns = "", name = "time" }
+
+[[project.columns]]
+type = "match-annotation"
+annotation = { ns = "default_ns", name = "pos" }
+node-index = 0
+
+[[project.columns]]
+type = "match-in-context"
+segmentation = "edition"
+context = 20
+primary-node-indices = [0, 1, 2]

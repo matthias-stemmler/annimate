@@ -17,15 +17,15 @@ This User Guide explains the details on how to work with Annimate.
 1. [Installation](installation.md)
 2. [Importing Corpus Data](import.md)
 3. [Exporting Query Results](export.md)
-4. [Troubleshooting](troubleshooting.md)
-5. [Links](links.md)
+4. [Working With Projects](projects.md)
+5. [Troubleshooting](troubleshooting.md)
+6. [Links](links.md)
 
 If you are unfamiliar with Annimate, we recommend that you go through all sections one by one, starting with [Installation](installation.md).
 
 ## Feedback
 
 If you have any kind of feedback on Annimate such as a bug report, documentation issue or idea for a new feature, please [create an issue](https://github.com/matthias-stemmler/annimate/issues/new/choose) in the Annimate GitHub repository.
-
 
 [^1]:
     **Krause, Thomas & Zeldes, Amir** (2016):
