@@ -4,6 +4,7 @@ import { ComponentProps, FC, Ref, UIEventHandler } from 'react';
 
 const ScrollArea: FC<
   ComponentProps<typeof ScrollAreaPrimitive.Root> & {
+    focusable?: boolean;
     onScroll?: UIEventHandler<HTMLDivElement>;
     orientation?:
       | ComponentProps<
@@ -15,19 +16,26 @@ const ScrollArea: FC<
 > = ({
   className,
   children,
+  focusable = false,
   onScroll,
   orientation = 'vertical',
   viewportRef,
   ...props
 }) => (
   <ScrollAreaPrimitive.Root
-    className={cn('relative overflow-hidden', className)}
+    className={cn(
+      'relative overflow-hidden',
+      focusable &&
+        'has-focus-visible:ring-ring has-focus-visible:ring has-focus-visible:ring-offset-1',
+      className,
+    )}
     {...props}
   >
     <ScrollAreaPrimitive.Viewport
       ref={viewportRef}
-      className="h-full w-full rounded-[inherit]"
+      className="h-full w-full rounded-[inherit] focus-visible:outline-hidden"
       onScroll={onScroll}
+      tabIndex={focusable ? 0 : undefined}
     >
       {children}
     </ScrollAreaPrimitive.Viewport>

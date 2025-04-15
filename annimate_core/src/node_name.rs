@@ -18,16 +18,15 @@ use crate::AnnimateError;
 /// ```
 ///
 /// We assume that the name of a corpus always equals the node name of its corpus root node.
+///
 /// This URL-decodes the corpus name because the corpus name is usually URL-encoded in node names,
 /// but not URL-encoded as a corpus name or the name of the corpus root node.
 pub(crate) fn get_corpus_name(node_name: &str) -> Result<Cow<'_, str>, AnnimateError> {
-    let corpus_name_encoded = match node_name.split_once('/') {
-        Some((corpus_name, _)) => corpus_name,
-        None => node_name,
-    };
-
-    urlencoding::decode(corpus_name_encoded)
-        .map_err(|_| AnnimateError::CorpusNameDecodesToInvalidUtf8(corpus_name_encoded.into()))
+    match node_name.split_once('/') {
+        Some((corpus_name_encoded, _)) => urlencoding::decode(corpus_name_encoded)
+            .map_err(|_| AnnimateError::CorpusNameDecodesToInvalidUtf8(corpus_name_encoded.into())),
+        None => Ok(node_name.into()),
+    }
 }
 
 /// Returns the name of the document node for a given node name.
@@ -84,8 +83,19 @@ mod tests {
     }
 
     #[test]
-    fn get_corpus_name_encoded() {
-        assert_eq!(get_corpus_name("c%C3%B6rp%C3%BCs").unwrap(), "cörpüs");
+    fn get_corpus_name_encoded_no_slash() {
+        assert_eq!(
+            get_corpus_name("c%C3%B6rp%C3%BCs").unwrap(),
+            "c%C3%B6rp%C3%BCs"
+        );
+    }
+
+    #[test]
+    fn get_corpus_name_encoded_slash() {
+        assert_eq!(
+            get_corpus_name("c%C3%B6rp%C3%BCs/doc#node").unwrap(),
+            "cörpüs"
+        );
     }
 
     #[test]
