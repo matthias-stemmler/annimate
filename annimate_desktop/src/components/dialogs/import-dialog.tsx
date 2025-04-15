@@ -649,6 +649,7 @@ const MessagesDisplay: FC<MessagesDisplayProps> = ({ messages }) => {
       <div className="relative w-0 flex-1">
         <ScrollArea
           className="h-80 rounded-md border p-3"
+          focusable
           onScroll={() => {
             if (isScrolledToBottom(scrollAreaViewportRef)) {
               setAutoscroll(true);

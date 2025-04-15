@@ -66,9 +66,6 @@ export const QueryInput: FC = () => {
 
       <div className="relative grow">
         <Textarea
-          autoCapitalize="off"
-          autoComplete="off"
-          autoCorrect="off"
           className={cn(
             'focus:bg-background dark:focus:bg-background h-full resize-none pr-9 font-mono',
             {
@@ -82,7 +79,6 @@ export const QueryInput: FC = () => {
             setAqlQuery(event.target.value.replace(/\u200e/g, ''));
           }}
           placeholder="Enter AQL query"
-          spellCheck={false}
           ref={textAreaRef}
           value={aqlQuery}
         />
