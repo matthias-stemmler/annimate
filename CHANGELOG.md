@@ -2,6 +2,8 @@
 
 ## [Unreleased] - (release date)
 
+## [1.4.0] - 2025-04-15
+
 ### Added
 
 - It is now possible to save the current export configuration (query, selected corpora, columns, etc.) to a "project" file and load such a file back into Annimate via the corresponding items in the "File" menu. See the User Guide for details.
@@ -112,7 +114,8 @@
 Initial version
 
 <!-- next-url -->
-[Unreleased]: https://github.com/matthias-stemmler/annimate/compare/v1.3.4...HEAD
+[Unreleased]: https://github.com/matthias-stemmler/annimate/compare/v1.4.0...HEAD
+[1.4.0]: https://github.com/matthias-stemmler/annimate/compare/v1.3.4...v1.4.0
 [1.3.4]: https://github.com/matthias-stemmler/annimate/compare/v1.3.3...v1.3.4
 [1.3.3]: https://github.com/matthias-stemmler/annimate/compare/v1.3.2...v1.3.3
 [1.3.2]: https://github.com/matthias-stemmler/annimate/compare/v1.3.1...v1.3.2
