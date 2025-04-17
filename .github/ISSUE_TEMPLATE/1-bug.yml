@@ -29,7 +29,7 @@ body:
     id: reproduction
     attributes:
       label: Steps To Reproduce
-      description: Please provide some instructions on how to reproduce the bug.
+      description: Please provide some instructions on how to reproduce the bug. If possible, attach an Annimate project file (`.anmt` file), which you can produce by clicking on File > Save project as ... in the menu.
       value: |
         1.
     validations:
