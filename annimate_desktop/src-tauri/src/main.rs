@@ -77,7 +77,7 @@ fn main() {
         })
         .on_page_load(|window, _| {
             window
-                .eval(&format!(
+                .eval(format!(
                     "window.__ANNIMATE__=JSON.parse('{}')",
                     serde_json::json!({
                         "updateEnabled": is_update_enabled(window.app_handle()),
