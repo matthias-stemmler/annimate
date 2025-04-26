@@ -15,7 +15,7 @@ format-version = 1
 
 [project]
 query = """
-a'''\"
+a'''"
 b"""
 query-language = "aql"
 export-format = "csv"
