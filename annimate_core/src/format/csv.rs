@@ -75,10 +75,9 @@ impl<W> TableWriter for CsvTableWriter<W>
 where
     W: Write,
 {
-    fn write_record<I, T>(&mut self, record: I) -> Result<(), AnnimateError>
+    fn write_record<I>(&mut self, record: I) -> Result<(), AnnimateError>
     where
-        I: IntoIterator<Item = T>,
-        T: AsRef<str>,
+        I: IntoIterator<Item: AsRef<str>>,
     {
         Ok(self.0.write_record(record.into_iter().map(StrAsBytes))?)
     }

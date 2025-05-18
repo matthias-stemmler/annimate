@@ -144,10 +144,9 @@ impl XlsxTableWriter {
 }
 
 impl TableWriter for XlsxTableWriter {
-    fn write_record<I, T>(&mut self, record: I) -> Result<(), AnnimateError>
+    fn write_record<I>(&mut self, record: I) -> Result<(), AnnimateError>
     where
-        I: IntoIterator<Item = T>,
-        T: AsRef<str>,
+        I: IntoIterator<Item: AsRef<str>>,
     {
         let row = self.rows;
         let mut col = 0;
