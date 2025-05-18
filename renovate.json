@@ -1,11 +1,17 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": ["config:recommended"],
+  "extends": [
+    "config:recommended"
+  ],
   "rangeStrategy": "bump",
   "packageRules": [
     {
-      "matchManagers": ["npm"],
-      "matchDepTypes": ["dependencies"],
+      "matchManagers": [
+        "npm"
+      ],
+      "matchDepTypes": [
+        "dependencies"
+      ],
       "matchUpdateTypes": [
         "bump",
         "digest",
@@ -21,8 +27,12 @@
       "groupSlug": "npm-non-major"
     },
     {
-      "matchManagers": ["npm"],
-      "matchDepTypes": ["devDependencies"],
+      "matchManagers": [
+        "npm"
+      ],
+      "matchDepTypes": [
+        "devDependencies"
+      ],
       "matchUpdateTypes": [
         "bump",
         "digest",
@@ -38,22 +48,34 @@
       "groupSlug": "npm-dev-non-major"
     },
     {
-      "matchPackageNames": ["graphannis", "graphannis-core"],
+      "matchPackageNames": [
+        "graphannis",
+        "graphannis-core"
+      ],
       "groupName": "graphANNIS monorepo",
       "groupSlug": "graphannis-monorepo"
     },
     {
-      "matchPackageNames": ["tauri", "tauri-*", "@tauri-apps/**"],
+      "matchPackageNames": [
+        "tauri",
+        "tauri-*",
+        "@tauri-apps/**"
+      ],
       "groupName": "Tauri monorepo",
       "groupSlug": "tauri-monorepo"
     },
     {
-      "matchPackageNames": ["toml", "toml_edit"],
+      "matchPackageNames": [
+        "toml",
+        "toml_edit"
+      ],
       "groupName": "Toml monorepo",
       "groupSlug": "toml-monorepo"
     },
     {
-      "matchDatasources": ["github-runners"],
+      "matchDatasources": [
+        "github-runners"
+      ],
       "enabled": false,
       "description": "GitHub runners need to be pinned to make sure the required packages are available"
     }
@@ -61,7 +83,9 @@
   "customManagers": [
     {
       "customType": "regex",
-      "fileMatch": ["^\\.github\\/workflows\\/.*\\.yml$"],
+      "managerFilePatterns": [
+        "/^\\.github\\/workflows\\/.*\\.yml$/"
+      ],
       "matchStrings": [
         "\\s*renovate:\\s*datasource=(?<datasource>.*?)\\s*versioning=(?<versioning>.*?)\\s*depName=(?<depName>.*?)\\s*\\n.*?:\\s*(?<currentValue>.*)\\s*"
       ]
