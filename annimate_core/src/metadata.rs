@@ -1,5 +1,4 @@
 use std::collections::{BTreeMap, BTreeSet};
-use std::io::ErrorKind;
 use std::path::{Path, PathBuf};
 use std::str::FromStr;
 use std::sync::RwLock;
@@ -87,7 +86,7 @@ where
 fn write_metadata(path: &Path, metadata: &Metadata) -> io::Result<()> {
     fs::write(
         path,
-        toml::to_string_pretty(metadata).map_err(|err| io::Error::new(ErrorKind::Other, err))?,
+        toml::to_string_pretty(metadata).map_err(io::Error::other)?,
     )
 }
 

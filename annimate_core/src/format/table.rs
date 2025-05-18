@@ -37,10 +37,9 @@ impl TableExportColumn {
 }
 
 pub(super) trait TableWriter {
-    fn write_record<I, T>(&mut self, record: I) -> Result<(), AnnimateError>
+    fn write_record<I>(&mut self, record: I) -> Result<(), AnnimateError>
     where
-        I: IntoIterator<Item = T>,
-        T: AsRef<str>;
+        I: IntoIterator<Item: AsRef<str>>;
 }
 
 pub(super) fn export<F, G, I, W>(
@@ -548,10 +547,9 @@ mod tests {
     }
 
     impl TableWriter for TestTableWriter {
-        fn write_record<I, T>(&mut self, record: I) -> Result<(), AnnimateError>
+        fn write_record<I>(&mut self, record: I) -> Result<(), AnnimateError>
         where
-            I: IntoIterator<Item = T>,
-            T: AsRef<str>,
+            I: IntoIterator<Item: AsRef<str>>,
         {
             self.0
                 .push(record.into_iter().map(|s| s.as_ref().into()).collect());

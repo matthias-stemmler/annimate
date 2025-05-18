@@ -1,0 +1,5 @@
+autoInstallPeers: false
+onlyBuiltDependencies:
+  - esbuild
+strictDepBuilds: true
+verifyDepsBeforeRun: prompt
