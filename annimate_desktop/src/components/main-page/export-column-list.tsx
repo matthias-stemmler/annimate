@@ -173,7 +173,7 @@ const ExportColumnListItem: FC<ExportColumnListItemProps> = ({
 
   return (
     <Card
-      className={cn('min-w-[36rem] border-0 border-l-8 shadow-md', {
+      className={cn('min-w-xl border-0 border-l-8 shadow-md', {
         'border-column-number-600 ring-column-number-600':
           item.type === 'number',
         'border-column-anno-corpus-600 ring-column-anno-corpus-600':
