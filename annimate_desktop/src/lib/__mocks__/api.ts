@@ -393,7 +393,7 @@ export const openPath = async (
 };
 
 export const openUrl = async (
-  url: string,
+  url: string | URL,
   openWith?: string,
 ): Promise<void> => {
   logAction('Open URL', COLOR_BUILTIN_COMMAND, { url, openWith });
