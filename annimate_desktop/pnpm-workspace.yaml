@@ -1,5 +1,6 @@
 autoInstallPeers: false
 onlyBuiltDependencies:
+  - '@tailwindcss/oxide'
   - esbuild
 strictDepBuilds: true
 verifyDepsBeforeRun: prompt
