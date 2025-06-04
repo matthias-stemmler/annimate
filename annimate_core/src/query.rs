@@ -3,13 +3,13 @@ use std::iter::{self, StepBy, successors};
 use std::ops::{Bound, RangeFrom};
 use std::{slice, vec};
 
-use graphannis::Graph;
 pub use graphannis::corpusstorage::QueryLanguage;
 use graphannis::corpusstorage::{ResultOrder, SearchQuery};
 use graphannis::errors::GraphAnnisError;
 use graphannis::graph::GraphStorage;
 use graphannis::model::AnnotationComponentType;
 use graphannis::util::node_names_from_match;
+use graphannis::{CorpusStorage, Graph};
 use graphannis_core::errors::GraphAnnisCoreError;
 use graphannis_core::graph::DEFAULT_NS;
 use graphannis_core::types::{AnnoKey, NodeID};
@@ -19,7 +19,6 @@ use crate::anno::{
     self, DEFAULT_ORDERING_COMPONENT, GAP_ORDERING_COMPONENT, TOKEN_ANNO_KEY,
     get_anno_key_for_segmentation,
 };
-use crate::corpus::CorpusRef;
 use crate::error::AnnimateError;
 use crate::node_name::{self, node_name_to_node_id};
 use crate::util::group_by;
@@ -119,7 +118,8 @@ impl TextPart {
 }
 
 pub(crate) struct Query<'a, S> {
-    corpus_ref: CorpusRef<'a, S>,
+    corpus_storage: &'a CorpusStorage,
+    corpus_names: &'a [S],
     aql_query: &'a str,
     query_language: QueryLanguage,
     nodes: Vec<Vec<QueryNode>>,
@@ -127,15 +127,17 @@ pub(crate) struct Query<'a, S> {
 
 impl<'a, S> Query<'a, S> {
     pub(crate) fn new(
-        corpus_ref: CorpusRef<'a, S>,
+        corpus_storage: &'a CorpusStorage,
+        corpus_names: &'a [S],
         aql_query: &'a str,
         query_language: QueryLanguage,
     ) -> Result<Self, GraphAnnisError> {
         Ok(Self {
-            corpus_ref,
+            corpus_storage,
+            corpus_names,
             aql_query,
             query_language,
-            nodes: aql::query_nodes_valid(corpus_ref.storage, aql_query, query_language)?.into(),
+            nodes: aql::query_nodes_valid(corpus_storage, aql_query, query_language)?.into(),
         })
     }
 
@@ -164,7 +166,8 @@ impl<'a, S> Query<'a, S> {
             .try_collect::<_, (), _>()?;
 
         ExportableMatches::new(
-            self.corpus_ref,
+            self.corpus_storage,
+            self.corpus_names,
             self.aql_query,
             self.query_language,
             export_data,
@@ -191,13 +194,19 @@ where
     S: AsRef<str>,
 {
     fn new(
-        corpus_ref: CorpusRef<'a, S>,
+        corpus_storage: &'a CorpusStorage,
+        corpus_names: &'a [S],
         aql_query: &'a str,
         query_language: QueryLanguage,
         export_data: HashSet<ExportData>,
     ) -> Result<Self, AnnimateError> {
-        let matches_paginated =
-            MatchesPaginated::new(corpus_ref, aql_query, query_language, export_data)?;
+        let matches_paginated = MatchesPaginated::new(
+            corpus_storage,
+            corpus_names,
+            aql_query,
+            query_language,
+            export_data,
+        )?;
 
         let total_count = {
             let total_count = matches_paginated.total_count()?;
@@ -235,7 +244,7 @@ where
 
 pub(crate) struct ExportableMatchesIter<'a, S> {
     matches_paginated_iter: MatchesPaginatedIter<'a, S>,
-    matches_page: Option<MatchesPage<'a, S>>,
+    matches_page: Option<MatchesPage<'a>>,
     total_count: usize,
 }
 
@@ -271,7 +280,8 @@ where
 impl<S> ExactSizeIterator for ExportableMatchesIter<'_, S> where S: AsRef<str> {}
 
 pub(crate) struct MatchesPaginated<'a, S> {
-    corpus_ref: CorpusRef<'a, S>,
+    corpus_storage: &'a CorpusStorage,
+    corpus_names: &'a [S],
     aql_query: &'a str,
     query_language: QueryLanguage,
     export_data: HashSet<ExportData>,
@@ -281,7 +291,8 @@ pub(crate) struct MatchesPaginated<'a, S> {
 impl<S> Clone for MatchesPaginated<'_, S> {
     fn clone(&self) -> Self {
         Self {
-            corpus_ref: self.corpus_ref,
+            corpus_storage: self.corpus_storage,
+            corpus_names: self.corpus_names,
             aql_query: self.aql_query,
             query_language: self.query_language,
             export_data: self.export_data.clone(),
@@ -295,7 +306,8 @@ where
     S: AsRef<str>,
 {
     pub(crate) fn new(
-        corpus_ref: CorpusRef<'a, S>,
+        corpus_storage: &'a CorpusStorage,
+        corpus_names: &'a [S],
         aql_query: &'a str,
         query_language: QueryLanguage,
         export_data: HashSet<ExportData>,
@@ -308,13 +320,18 @@ where
             {
                 segment_anno_keys.insert(
                     text.segmentation.clone(),
-                    get_anno_key_for_segmentation(corpus_ref, text.segmentation.as_deref())?,
+                    get_anno_key_for_segmentation(
+                        corpus_storage,
+                        corpus_names,
+                        text.segmentation.as_deref(),
+                    )?,
                 );
             }
         }
 
         Ok(Self {
-            corpus_ref,
+            corpus_storage,
+            corpus_names,
             aql_query,
             query_language,
             export_data,
@@ -323,12 +340,12 @@ where
     }
 
     pub(crate) fn total_count(&self) -> Result<u64, GraphAnnisError> {
-        self.corpus_ref.storage.count(self.search_query())
+        self.corpus_storage.count(self.search_query())
     }
 
     fn search_query(&'a self) -> SearchQuery<'a, S> {
         SearchQuery {
-            corpus_names: self.corpus_ref.names,
+            corpus_names: self.corpus_names,
             query: self.aql_query,
             query_language: self.query_language,
             timeout: None,
@@ -340,7 +357,7 @@ impl<'a, S> IntoIterator for MatchesPaginated<'a, S>
 where
     S: AsRef<str>,
 {
-    type Item = Result<MatchesPage<'a, S>, GraphAnnisError>;
+    type Item = Result<MatchesPage<'a>, GraphAnnisError>;
     type IntoIter = MatchesPaginatedIter<'a, S>;
 
     fn into_iter(self) -> Self::IntoIter {
@@ -360,11 +377,11 @@ impl<'a, S> Iterator for MatchesPaginatedIter<'a, S>
 where
     S: AsRef<str>,
 {
-    type Item = Result<MatchesPage<'a, S>, GraphAnnisError>;
+    type Item = Result<MatchesPage<'a>, GraphAnnisError>;
 
     fn next(&mut self) -> Option<Self::Item> {
         let offset = self.offset_iter.next()?;
-        let result = self.matches_paginated.corpus_ref.storage.find(
+        let result = self.matches_paginated.corpus_storage.find(
             self.matches_paginated.search_query(),
             offset,
             Some(PAGE_SIZE),
@@ -374,7 +391,7 @@ where
         match result {
             Ok(match_ids) if match_ids.is_empty() => None,
             Ok(match_ids) => Some(Ok(MatchesPage {
-                corpus_ref: self.matches_paginated.corpus_ref,
+                corpus_storage: self.matches_paginated.corpus_storage,
                 export_data: self.matches_paginated.export_data.clone(),
                 segment_anno_keys: self.matches_paginated.segment_anno_keys.clone(),
                 match_ids_iter: match_ids.into_iter(),
@@ -384,14 +401,14 @@ where
     }
 }
 
-pub(crate) struct MatchesPage<'a, S> {
-    corpus_ref: CorpusRef<'a, S>,
+pub(crate) struct MatchesPage<'a> {
+    corpus_storage: &'a CorpusStorage,
     export_data: HashSet<ExportData>,
     segment_anno_keys: HashMap<Option<String>, AnnoKey>,
     match_ids_iter: vec::IntoIter<String>,
 }
 
-impl<S> Iterator for MatchesPage<'_, S> {
+impl<'a> Iterator for MatchesPage<'a> {
     type Item = Result<Match, AnnimateError>;
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -400,7 +417,7 @@ impl<S> Iterator for MatchesPage<'_, S> {
     }
 }
 
-impl<S> MatchesPage<'_, S> {
+impl<'a> MatchesPage<'a> {
     fn match_id_to_match(&self, match_id: &str) -> Result<Match, AnnimateError> {
         let match_node_names = node_names_from_match(match_id);
         let first_node_name = match_node_names
@@ -418,18 +435,15 @@ impl<S> MatchesPage<'_, S> {
             match d {
                 ExportData::Anno(anno) => match anno {
                     ExportDataAnno::Corpus { anno_key } => {
-                        if let Some(value) = get_anno(
-                            self.corpus_ref.storage,
-                            &corpus_name,
-                            &corpus_name,
-                            anno_key,
-                        )? {
+                        if let Some(value) =
+                            get_anno(self.corpus_storage, &corpus_name, &corpus_name, anno_key)?
+                        {
                             annos.insert(anno.clone(), value);
                         }
                     }
                     ExportDataAnno::Document { anno_key } => {
                         if let Some(value) =
-                            get_anno(self.corpus_ref.storage, &corpus_name, doc_name, anno_key)?
+                            get_anno(self.corpus_storage, &corpus_name, doc_name, anno_key)?
                         {
                             annos.insert(anno.clone(), value);
                         }
@@ -439,7 +453,7 @@ impl<S> MatchesPage<'_, S> {
                             .get(*index)
                             .map(|node_name| {
                                 get_anno_with_overlapping_coverage(
-                                    self.corpus_ref.storage,
+                                    self.corpus_storage,
                                     &corpus_name,
                                     node_name,
                                     anno_key,
@@ -456,7 +470,7 @@ impl<S> MatchesPage<'_, S> {
                     texts.insert(
                         text.clone(),
                         get_parts(
-                            self.corpus_ref.storage,
+                            self.corpus_storage,
                             &corpus_name,
                             match_node_names.clone(),
                             text,
@@ -472,7 +486,7 @@ impl<S> MatchesPage<'_, S> {
 }
 
 fn get_anno(
-    storage: &graphannis::CorpusStorage,
+    corpus_storage: &CorpusStorage,
     corpus_name: &str,
     node_name: &str,
     anno_key: &AnnoKey,
@@ -485,9 +499,9 @@ fn get_anno(
     }
 
     let graph = if node_name == corpus_name {
-        storage.corpus_graph(corpus_name)
+        corpus_storage.corpus_graph(corpus_name)
     } else {
-        storage.subgraph(corpus_name, vec![node_name.into()], 0, 0, None)
+        corpus_storage.subgraph(corpus_name, vec![node_name.into()], 0, 0, None)
     }?;
 
     let node_id = node_name_to_node_id(&graph, node_name)?;
@@ -495,12 +509,12 @@ fn get_anno(
 }
 
 fn get_anno_with_overlapping_coverage(
-    storage: &graphannis::CorpusStorage,
+    corpus_storage: &CorpusStorage,
     corpus_name: &str,
     node_name: &str,
     anno_key: &AnnoKey,
 ) -> Result<Option<String>, GraphAnnisError> {
-    let graph = storage.subgraph(corpus_name, vec![node_name.into()], 0, 0, None)?;
+    let graph = corpus_storage.subgraph(corpus_name, vec![node_name.into()], 0, 0, None)?;
     let node_id = node_name_to_node_id(&graph, node_name)?;
 
     if let Some(anno) = anno::get_anno(&graph, node_id, anno_key)? {
@@ -525,7 +539,7 @@ fn get_anno_with_overlapping_coverage(
 }
 
 fn get_parts(
-    storage: &graphannis::CorpusStorage,
+    corpus_storage: &CorpusStorage,
     corpus_name: &str,
     match_node_names: Vec<String>,
     export_data: &ExportDataText,
@@ -562,7 +576,7 @@ fn get_parts(
     // measured in tokens.
     let segmentation = match segmentation {
         Some(s)
-            if storage
+            if corpus_storage
                 .list_components(
                     corpus_name,
                     Some(AnnotationComponentType::Ordering),
@@ -576,7 +590,7 @@ fn get_parts(
         _ => None,
     };
 
-    let subgraph = storage.subgraph(
+    let subgraph = corpus_storage.subgraph(
         corpus_name,
         match_node_names.clone(),
         *left_context,
