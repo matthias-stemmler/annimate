@@ -2,62 +2,59 @@ use std::collections::BTreeMap;
 use std::sync::LazyLock;
 use std::vec;
 
+use graphannis::CorpusStorage;
 use graphannis::corpusstorage::QueryLanguage;
 use graphannis::errors::{AQLError, GraphAnnisError};
 use itertools::{Itertools, Position};
 use regex::Regex;
 use serde::Serialize;
 
-use crate::corpus::CorpusRef;
-
 pub(crate) fn validate_query<S>(
-    corpus_ref: CorpusRef<'_, S>,
+    corpus_storage: &CorpusStorage,
+    corpus_names: &[S],
     aql_query: &str,
     query_language: QueryLanguage,
 ) -> Result<QueryAnalysisResult<()>, GraphAnnisError>
 where
     S: AsRef<str>,
 {
-    // Shortcut for empty query because graphannis::CorpusStorage::validate_query overflows
+    // Shortcut for empty query because CorpusStorage::validate_query overflows
     if aql_query.is_empty() {
         return Ok(QueryAnalysisResult::Valid(()));
     }
 
-    // When there are no corpora, graphannis::CorpusStorage::validate_query always succeeds, even
-    // when there are syntax errors. So we catch these by using
-    // graphannis::CorpusStorage::node_descriptions instead
-    QueryAnalysisResult::from_result(if corpus_ref.names.is_empty() {
-        corpus_ref
-            .storage
+    // When there are no corpora, CorpusStorage::validate_query always succeeds, even when there are
+    // syntax errors. So we catch these by using CorpusStorage::node_descriptions instead
+    QueryAnalysisResult::from_result(if corpus_names.is_empty() {
+        corpus_storage
             .node_descriptions(aql_query, query_language)
             .map(|_| ())
     } else {
-        corpus_ref
-            .storage
-            .validate_query(corpus_ref.names, aql_query, query_language)
+        corpus_storage
+            .validate_query(corpus_names, aql_query, query_language)
             .map(|_| ())
     })
 }
 
 pub(crate) fn query_nodes(
-    storage: &graphannis::CorpusStorage,
+    corpus_storage: &CorpusStorage,
     aql_query: &str,
     query_language: QueryLanguage,
 ) -> Result<QueryAnalysisResult<QueryNodes>, GraphAnnisError> {
-    QueryAnalysisResult::from_result(query_nodes_valid(storage, aql_query, query_language))
+    QueryAnalysisResult::from_result(query_nodes_valid(corpus_storage, aql_query, query_language))
 }
 
 pub(crate) fn query_nodes_valid(
-    storage: &graphannis::CorpusStorage,
+    corpus_storage: &CorpusStorage,
     aql_query: &str,
     query_language: QueryLanguage,
 ) -> Result<QueryNodes, GraphAnnisError> {
-    // Shortcut for empty query because graphannis::CorpusStorage::node_descriptions overflows
+    // Shortcut for empty query because CorpusStorage::node_descriptions overflows
     if aql_query.is_empty() {
         return Ok(Vec::new().into());
     }
 
-    let mut node_descriptions = storage.node_descriptions(aql_query, query_language)?;
+    let mut node_descriptions = corpus_storage.node_descriptions(aql_query, query_language)?;
 
     // In quirks mode, remove artifically added nodes for meta queries
     if let QueryLanguage::AQLQuirksV3 = query_language {

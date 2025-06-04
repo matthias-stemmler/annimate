@@ -6,6 +6,7 @@ use std::io;
 use std::path::{Path, PathBuf};
 use std::rc::Rc;
 
+use graphannis::CorpusStorage;
 use itertools::Itertools;
 use serde::Serialize;
 use tempfile::TempDir;
@@ -326,7 +327,7 @@ where
 }
 
 pub(crate) fn import_corpus<F, G, H>(
-    storage: &graphannis::CorpusStorage,
+    corpus_storage: &CorpusStorage,
     corpus: &ImportableCorpus,
     on_started: F,
     on_progress: G,
@@ -347,7 +348,7 @@ where
         corpus.path.as_ref().display(),
     ));
 
-    let name = storage.import_from_fs(
+    let name = corpus_storage.import_from_fs(
         corpus.path.as_ref(),
         corpus.format.into(),
         None,

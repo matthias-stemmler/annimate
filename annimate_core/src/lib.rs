@@ -8,9 +8,9 @@ use std::io::{self, ErrorKind, Write};
 use std::path::{Path, PathBuf};
 
 use anno::AnnoKeys;
-use corpus::CorpusRef;
 use error::cancel_if;
 use format::{QueryInfo, export};
+use graphannis::CorpusStorage;
 use graphannis::corpusstorage::CacheStrategy;
 use import::{FilesystemEntity, ImportFormat, ImportableCorpus};
 use itertools::Itertools;
@@ -20,7 +20,6 @@ use serde::Serialize;
 
 mod anno;
 mod aql;
-mod corpus;
 mod error;
 mod format;
 mod import;
@@ -46,7 +45,7 @@ pub use version::{VERSION_INFO, VersionInfo};
 
 /// Storage of corpora and metadata.
 pub struct Storage {
-    corpus_storage: graphannis::CorpusStorage,
+    corpus_storage: CorpusStorage,
     metadata_storage: MetadataStorage,
 }
 
@@ -56,7 +55,7 @@ impl Storage {
     where
         P: AsRef<Path>,
     {
-        let corpus_storage = graphannis::CorpusStorage::with_cache_strategy(
+        let corpus_storage = CorpusStorage::with_cache_strategy(
             db_dir.as_ref(),
             CacheStrategy::PercentOfFreeMemory(25.0),
             true, /* use_parallel_joins */
@@ -319,8 +318,12 @@ impl Storage {
     where
         S: AsRef<str>,
     {
-        let analysis_result =
-            aql::validate_query(self.corpus_ref(corpus_names), aql_query, query_language)?;
+        let analysis_result = aql::validate_query(
+            &self.corpus_storage,
+            corpus_names,
+            aql_query,
+            query_language,
+        )?;
 
         Ok(analysis_result)
     }
@@ -347,7 +350,8 @@ impl Storage {
     where
         S: AsRef<str>,
     {
-        let exportable_anno_keys = AnnoKeys::new(self.corpus_ref(corpus_names))?.into_exportable();
+        let exportable_anno_keys =
+            AnnoKeys::new(&self.corpus_storage, corpus_names)?.into_exportable();
 
         Ok(exportable_anno_keys)
     }
@@ -362,7 +366,7 @@ impl Storage {
     where
         S: AsRef<str>,
     {
-        let segmentations = anno::segmentations(self.corpus_ref(corpus_names))?;
+        let segmentations = anno::segmentations(&self.corpus_storage, corpus_names)?;
 
         Ok(segmentations)
     }
@@ -381,10 +385,10 @@ impl Storage {
         P: AsRef<Path>,
     {
         cancel_if(&cancel_requested)?;
-
-        let anno_keys = AnnoKeys::new(self.corpus_ref(&config.corpus_names))?;
+        let anno_keys = AnnoKeys::new(&self.corpus_storage, &config.corpus_names)?;
         let query = Query::new(
-            self.corpus_ref(&config.corpus_names),
+            &self.corpus_storage,
+            &config.corpus_names,
             &config.aql_query,
             config.query_language,
         )?;
@@ -438,10 +442,6 @@ impl Storage {
         };
 
         Ok(())
-    }
-
-    fn corpus_ref<'a, S>(&'a self, corpus_names: &'a [S]) -> CorpusRef<'a, S> {
-        CorpusRef::new(&self.corpus_storage, corpus_names)
     }
 }
 
