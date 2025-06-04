@@ -2,17 +2,16 @@ use std::collections::{BTreeSet, HashSet};
 use std::fmt::{self, Display, Formatter};
 use std::sync::LazyLock;
 
-use graphannis::AnnotationGraph;
 use graphannis::corpusstorage::{QueryLanguage, ResultOrder, SearchQuery};
 use graphannis::errors::GraphAnnisError;
 use graphannis::model::AnnotationComponentType;
 use graphannis::util::node_names_from_match;
+use graphannis::{AnnotationGraph, CorpusStorage};
 use graphannis_core::graph::{ANNIS_NS, DEFAULT_NS, NODE_NAME};
 use graphannis_core::types::{AnnoKey, Component, NodeID};
 use itertools::Itertools;
 use serde::Serialize;
 
-use crate::corpus::CorpusRef;
 use crate::error::AnnimateError;
 use crate::node_name;
 
@@ -42,13 +41,15 @@ pub(crate) static GAP_ORDERING_COMPONENT: LazyLock<Component<AnnotationComponent
         )
     });
 
-pub(crate) fn segmentations<S>(corpus_ref: CorpusRef<'_, S>) -> Result<Vec<String>, GraphAnnisError>
+pub(crate) fn segmentations<S>(
+    corpus_storage: &CorpusStorage,
+    corpus_names: &[S],
+) -> Result<Vec<String>, GraphAnnisError>
 where
     S: AsRef<str>,
 {
-    let mut segmentations_by_corpus = corpus_ref.names.iter().map(|name| {
-        corpus_ref
-            .storage
+    let mut segmentations_by_corpus = corpus_names.iter().map(|name| {
+        corpus_storage
             .list_components(name.as_ref(), Some(AnnotationComponentType::Ordering), None)
             .map(|components| {
                 components.into_iter().filter_map(|component| {
@@ -74,7 +75,7 @@ where
     segmentations_present_in_all_corpora
         .into_iter()
         .map(|name| {
-            get_anno_key_for_segmentation_if_exists(corpus_ref, &name)
+            get_anno_key_for_segmentation_if_exists(corpus_storage, corpus_names, &name)
                 .map(|anno_key| (name, anno_key))
         })
         .filter_map_ok(|(name, anno_key)| anno_key.map(|_| name.into()))
@@ -87,32 +88,35 @@ where
 /// namespace `default_ns` is preferred if it exists, otherwise the first one in the alphabetical
 /// order is returned. If the given segmentation is `None`, then `annis:tok` is returned.
 pub(crate) fn get_anno_key_for_segmentation<S>(
-    corpus_ref: CorpusRef<'_, S>,
+    corpus_storage: &CorpusStorage,
+    corpus_names: &[S],
     segmentation: Option<&str>,
 ) -> Result<AnnoKey, AnnimateError>
 where
     S: AsRef<str>,
 {
     match segmentation {
-        Some(segmentation) => get_anno_key_for_segmentation_if_exists(corpus_ref, segmentation)?
-            .ok_or_else(|| {
-                AnnimateError::MissingAnnotationForSegmentation(segmentation.to_string())
-            }),
+        Some(segmentation) => {
+            get_anno_key_for_segmentation_if_exists(corpus_storage, corpus_names, segmentation)?
+                .ok_or_else(|| {
+                    AnnimateError::MissingAnnotationForSegmentation(segmentation.to_string())
+                })
+        }
 
         None => Ok(TOKEN_ANNO_KEY.clone()),
     }
 }
 
 fn get_anno_key_for_segmentation_if_exists<S>(
-    corpus_ref: CorpusRef<'_, S>,
+    corpus_storage: &CorpusStorage,
+    corpus_names: &[S],
     segmentation: &str,
 ) -> Result<Option<AnnoKey>, GraphAnnisError>
 where
     S: AsRef<str>,
 {
-    let mut anno_keys_by_corpus = corpus_ref.names.iter().map(|name| {
-        corpus_ref
-            .storage
+    let mut anno_keys_by_corpus = corpus_names.iter().map(|name| {
+        corpus_storage
             .list_node_annotations(name.as_ref(), false, false)
             .map(|annos| {
                 annos
@@ -169,7 +173,10 @@ pub(crate) struct AnnoKeys {
 }
 
 impl AnnoKeys {
-    pub(crate) fn new<S>(corpus_ref: CorpusRef<'_, S>) -> Result<Self, AnnimateError>
+    pub(crate) fn new<S>(
+        corpus_storage: &CorpusStorage,
+        corpus_names: &[S],
+    ) -> Result<Self, AnnimateError>
     where
         S: AsRef<str>,
     {
@@ -177,18 +184,17 @@ impl AnnoKeys {
         let mut corpus_anno_keys = HashSet::new();
         let mut doc_anno_keys = HashSet::new();
 
-        for corpus_name in corpus_ref.names {
+        for corpus_name in corpus_names {
             let corpus_name = corpus_name.as_ref();
 
             all_anno_keys.extend(
-                corpus_ref
-                    .storage
+                corpus_storage
                     .list_node_annotations(corpus_name.as_ref(), false, false)?
                     .into_iter()
                     .map(|anno| anno.key),
             );
 
-            let graph = corpus_ref.storage.corpus_graph(corpus_name)?;
+            let graph = corpus_storage.corpus_graph(corpus_name)?;
 
             // We assume that the name of the corpus node is the same as the corpus name
             let corpus_node_id = node_name::node_name_to_node_id(&graph, corpus_name)?;
@@ -201,7 +207,7 @@ impl AnnoKeys {
                     .map(|anno_key| (*anno_key).clone()),
             );
 
-            let doc_match_ids = corpus_ref.storage.find(
+            let doc_match_ids = corpus_storage.find(
                 SearchQuery {
                     corpus_names: &[corpus_name],
                     query: "annis:node_type=\"corpus\" _ident_ annis:doc",
