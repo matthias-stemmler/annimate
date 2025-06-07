@@ -3962,11 +3962,11 @@ dependencies = [
 
 [[package]]
 name = "rust_xlsxwriter"
-version = "0.87.0"
+version = "0.88.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8079587c37b35a067846a853a524cfde7012754650de7274beecc35e43acd44b"
+checksum = "11a9ee3bdc80c80c012e551066a1963a1e550690d186372f33fe3e0a8b3f7661"
 dependencies = [
- "zip 3.0.0",
+ "zip 4.0.0",
 ]
 
 [[package]]
@@ -6610,20 +6610,6 @@ dependencies = [
  "indexmap 2.9.0",
  "memchr",
  "thiserror 2.0.12",
-]
-
-[[package]]
-name = "zip"
-version = "3.0.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "12598812502ed0105f607f941c386f43d441e00148fce9dec3ca5ffb0bde9308"
-dependencies = [
- "arbitrary",
- "crc32fast",
- "flate2",
- "indexmap 2.9.0",
- "memchr",
- "zopfli",
 ]
 
 [[package]]
