@@ -413,7 +413,6 @@ pub(crate) async fn toggle_corpus_in_set(
 #[tauri::command]
 pub(crate) async fn validate_query(
     state: tauri::State<'_, AppState>,
-    corpus_names: Vec<String>,
     aql_query: String,
     query_language: QueryLanguage,
 ) -> Result<QueryAnalysisResult<()>, Error> {
@@ -421,7 +420,7 @@ pub(crate) async fn validate_query(
     let storage = subscription.wait().await.clone()?;
 
     tauri::async_runtime::spawn_blocking(move || {
-        Ok(storage.validate_query(&corpus_names, &aql_query, query_language)?)
+        Ok(storage.validate_query(&aql_query, query_language)?)
     })
     .await?
 }

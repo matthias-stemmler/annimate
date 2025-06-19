@@ -16,7 +16,7 @@ import {
   useSetAqlQuery,
   useSetQueryLanguage,
 } from '@/lib/store';
-import { cn, lineColumnToCharacterIndex } from '@/lib/utils';
+import { cn, lineColumnToCharacterIndex, useIsSlow } from '@/lib/utils';
 import { CheckSquare2, XSquare } from 'lucide-react';
 import { FC, useId, useRef } from 'react';
 
@@ -27,10 +27,13 @@ export const QueryInput: FC = () => {
   const setQueryLanguage = useSetQueryLanguage();
 
   const {
-    data: validationResult,
+    data,
     error: validationError,
-    isFetching: validationIsFetching,
+    isFetching: isValidationResultFetching,
   } = useQueryValidationResult();
+  const isValidationSlow = useIsSlow(isValidationResultFetching, 500);
+  const validationResult = isValidationSlow ? null : data;
+
   const isExporting = useIsExporting();
   const disabled = isExporting;
 
@@ -41,7 +44,6 @@ export const QueryInput: FC = () => {
     throw new Error(`Failed to validate query: ${validationError.message}`);
   }
 
-  const status = validationIsFetching ? 'validating' : validationResult?.type;
   const isValid = validationResult?.type === 'valid';
   const isInvalid = validationResult?.type === 'invalid';
 
@@ -83,7 +85,7 @@ export const QueryInput: FC = () => {
           value={aqlQuery}
         />
 
-        {status !== undefined && (
+        {validationResult !== undefined && (
           <Tooltip
             delayDuration={isValid ? undefined : 0}
             open={disabled ? false : undefined}
@@ -119,7 +121,7 @@ export const QueryInput: FC = () => {
                 }
               }}
             >
-              <StatusIcon status={status} />
+              <StatusIcon status={validationResult?.type ?? 'validating'} />
             </TooltipTrigger>
 
             <TooltipContent className="max-w-[80vw]">
@@ -149,13 +151,13 @@ const StatusIcon: FC<StatusIconProps> = ({ status }) => {
 };
 
 type ValidationResultDisplayProps = {
-  validationResult?: QueryValidationResult;
+  validationResult: QueryValidationResult | null;
 };
 
 const ValidationResultDisplay: FC<ValidationResultDisplayProps> = ({
   validationResult,
 }) => {
-  if (validationResult === undefined) {
+  if (validationResult === null) {
     return 'Validating query ...';
   }
 

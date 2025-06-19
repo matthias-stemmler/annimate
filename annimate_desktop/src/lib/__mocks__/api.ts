@@ -38,7 +38,6 @@ const COLOR_BUILTIN_COMMAND = '#93c5fd';
 const COLOR_CUSTOM_COMMAND = '#86efac';
 
 const CORPUS_NORMAL = 'Normal corpus';
-const CORPUS_INVALID_QUERY = 'Corpus with any query invalid';
 const CORPUS_NO_MATCHES = 'Corpus without matches';
 const CORPUS_MANY_MATCHES = 'Corpus with many matches';
 const CORPUS_FAILING_EXPORT = 'Corpus with failing export';
@@ -63,7 +62,6 @@ const SEGMENTATION3 = 'segmentation3';
 
 let corpusNames = [
   CORPUS_NORMAL,
-  CORPUS_INVALID_QUERY,
   CORPUS_NO_MATCHES,
   CORPUS_MANY_MATCHES,
   CORPUS_FAILING_EXPORT,
@@ -91,7 +89,6 @@ const corpusSets: Record<string, { corpusNames: string[] }> = {
   },
   [CORPUS_SET_FAILING]: {
     corpusNames: [
-      CORPUS_INVALID_QUERY,
       CORPUS_FAILING_EXPORT,
       CORPUS_FAILING_ANNO_KEYS,
       CORPUS_FAILING_TOGGLE,
@@ -589,7 +586,7 @@ export const getQueryNodes = async (params: {
     return { type: 'valid', nodes: [] };
   }
 
-  if (!isQuerySyntacticallyValid(params.aqlQuery, params.queryLanguage)) {
+  if (!isQueryValid(params.aqlQuery, params.queryLanguage)) {
     return { type: 'invalid' };
   }
 
@@ -906,30 +903,21 @@ export const toggleCorpusInSet = async (params: {
 };
 
 export const validateQuery = async (params: {
-  corpusNames: string[];
   aqlQuery: string;
   queryLanguage: QueryLanguage;
 }): Promise<QueryValidationResult> => {
-  if (params.corpusNames.includes(CORPUS_INVALID_QUERY)) {
-    return {
-      type: 'invalid',
-      desc: 'Query is semantically invalid',
-      location: null,
-    };
-  }
-
-  const error = getQuerySyntaxError(params.aqlQuery, params.queryLanguage);
+  const error = getQueryValidationError(params.aqlQuery, params.queryLanguage);
   return error === undefined
     ? { type: 'valid' }
     : { type: 'invalid', ...error };
 };
 
-const isQuerySyntacticallyValid = (
+const isQueryValid = (
   aqlQuery: string,
   queryLanguage: QueryLanguage,
-): boolean => getQuerySyntaxError(aqlQuery, queryLanguage) === undefined;
+): boolean => getQueryValidationError(aqlQuery, queryLanguage) === undefined;
 
-const getQuerySyntaxError = (
+const getQueryValidationError = (
   aqlQuery: string,
   queryLanguage: QueryLanguage,
 ): AQLError | undefined => {

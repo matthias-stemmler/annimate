@@ -119,7 +119,6 @@ export const toggleCorpusInSet = (params: {
 }): Promise<void> => invoke('toggle_corpus_in_set', params);
 
 export const validateQuery = (params: {
-  corpusNames: string[];
   aqlQuery: string;
   queryLanguage: QueryLanguage;
 }): Promise<QueryValidationResult> => invoke('validate_query', params);
