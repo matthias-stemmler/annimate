@@ -185,32 +185,23 @@ describe('store', () => {
       }
 
       case 'validate_query': {
-        const { corpusNames, aqlQuery, queryLanguage } = payload as {
-          corpusNames: string;
+        const { aqlQuery, queryLanguage } = payload as {
           aqlQuery: string;
           queryLanguage: QueryLanguage;
         };
 
-        if (corpusNames.includes('b') || corpusNames.includes('c')) {
-          return {
-            type: 'invalid',
-            desc: '',
-            location: null,
-          } satisfies QueryValidationResult;
-        } else {
-          return (
-            aqlQuery === 'valid' ||
-            (aqlQuery === 'valid legacy' && queryLanguage === 'AQLQuirksV3')
-              ? {
-                  type: 'valid',
-                }
-              : {
-                  type: 'invalid',
-                  desc: '',
-                  location: null,
-                }
-          ) satisfies QueryValidationResult;
-        }
+        return (
+          aqlQuery === 'valid' ||
+          (aqlQuery === 'valid legacy' && queryLanguage === 'AQLQuirksV3')
+            ? {
+                type: 'valid',
+              }
+            : {
+                type: 'invalid',
+                desc: '',
+                location: null,
+              }
+        ) satisfies QueryValidationResult;
       }
 
       // ignore Tauri-internal commands
@@ -294,11 +285,6 @@ describe('store', () => {
   test('validating AQL query', async () => {
     const { result } = renderHook(
       () => ({
-        setSelectedCorpusSet: useSetSelectedCorpusSet(),
-        corpusNames: useCorpusNamesInSelectedSet(),
-        selectedCorpusNames: useSelectedCorpusNamesInSelectedSet(),
-        toggleCorpus: useToggleCorpus(),
-
         aqlQuery: useAqlQuery(),
         queryLanguage: useQueryLanguage(),
         queryValidationResult: useQueryValidationResult(),
@@ -307,13 +293,6 @@ describe('store', () => {
       }),
       { wrapper: Wrapper },
     );
-
-    await waitFor(() => {
-      expect(result.current.corpusNames.isSuccess).toBe(true);
-    });
-
-    result.current.toggleCorpus('c');
-    result.current.setSelectedCorpusSet('set1');
 
     expect(result.current.aqlQuery).toEqual('');
     expect(result.current.queryLanguage).toEqual('AQL');
@@ -334,12 +313,6 @@ describe('store', () => {
 
     await waitFor(() => {
       expect(result.current.queryValidationResult.data?.type).toBe('valid');
-    });
-
-    result.current.toggleCorpus('b');
-
-    await waitFor(() => {
-      expect(result.current.queryValidationResult.data?.type).toBe('invalid');
     });
   });
 
