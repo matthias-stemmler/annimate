@@ -14,7 +14,22 @@ use state::AppState;
 use tauri::{AppHandle, Manager};
 use tauri_plugin_window_state::{StateFlags, WindowExt};
 
+const THREAD_STACK_SIZE_MB: usize = 4;
+
 fn main() {
+    // Use custom tokio runtime with larger stack size (default is 2 MB) to avoid stack overflows
+    // when validating queries. 4 MB is enough for worst-case queries of the maximal length of
+    // 400 characters.
+    let runtime = tokio::runtime::Builder::new_multi_thread()
+        .thread_stack_size(THREAD_STACK_SIZE_MB * 1024 * 1024)
+        .enable_all()
+        .build()
+        .expect("runtime should build successfully");
+
+    // Note that `runtime` must stay live until the end of `main`, which is not guaranteed by just
+    // having an existing handle.
+    tauri::async_runtime::set(runtime.handle().clone());
+
     tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_opener::init())
