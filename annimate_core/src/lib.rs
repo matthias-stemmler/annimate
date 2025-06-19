@@ -43,9 +43,12 @@ pub use query::{ExportData, ExportDataAnno, ExportDataText, QueryLanguage};
 use tempfile::PersistError;
 pub use version::{VERSION_INFO, VersionInfo};
 
+use crate::aql::ValidationStorage;
+
 /// Storage of corpora and metadata.
 pub struct Storage {
     corpus_storage: CorpusStorage,
+    validation_storage: ValidationStorage,
     metadata_storage: MetadataStorage,
 }
 
@@ -61,6 +64,8 @@ impl Storage {
             true, /* use_parallel_joins */
         )?;
 
+        let validation_storage = ValidationStorage::new()?;
+
         let metadata_storage = MetadataStorage::from_db_dir(
             &db_dir,
             &corpus_storage
@@ -72,6 +77,7 @@ impl Storage {
 
         Ok(Self {
             corpus_storage,
+            validation_storage,
             metadata_storage,
         })
     }
@@ -309,21 +315,14 @@ impl Storage {
     }
 
     /// Validates an AQL query.
-    pub fn validate_query<S>(
+    pub fn validate_query(
         &self,
-        corpus_names: &[S],
         aql_query: &str,
         query_language: QueryLanguage,
-    ) -> Result<QueryAnalysisResult<()>, AnnimateError>
-    where
-        S: AsRef<str>,
-    {
-        let analysis_result = aql::validate_query(
-            &self.corpus_storage,
-            corpus_names,
-            aql_query,
-            query_language,
-        )?;
+    ) -> Result<QueryAnalysisResult<()>, AnnimateError> {
+        let analysis_result = self
+            .validation_storage
+            .validate_query(aql_query, query_language)?;
 
         Ok(analysis_result)
     }

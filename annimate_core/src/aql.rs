@@ -3,37 +3,73 @@ use std::sync::LazyLock;
 use std::vec;
 
 use graphannis::CorpusStorage;
-use graphannis::corpusstorage::QueryLanguage;
+use graphannis::corpusstorage::{CacheStrategy, QueryLanguage};
 use graphannis::errors::{AQLError, GraphAnnisError};
 use itertools::{Itertools, Position};
 use regex::Regex;
 use serde::Serialize;
+use tempfile::TempDir;
 
-pub(crate) fn validate_query<S>(
-    corpus_storage: &CorpusStorage,
-    corpus_names: &[S],
-    aql_query: &str,
-    query_language: QueryLanguage,
-) -> Result<QueryAnalysisResult<()>, GraphAnnisError>
-where
-    S: AsRef<str>,
-{
-    // Shortcut for empty query because CorpusStorage::validate_query overflows
-    if aql_query.is_empty() {
-        return Ok(QueryAnalysisResult::Valid(()));
+use crate::error::AnnimateError;
+
+const MAX_QUERY_LENGTH: usize = 400;
+
+/// Storage for validating AQL queries.
+///
+/// We validate queries against an empty corpus, which has multiple advantages over validating
+/// against the actual corpora:
+/// - It is faster because the actual corpora don't need to be loaded.
+/// - We catch syntax errors and corpus-independent semantic errors (e.g. "variable not bound") even
+///   when there are no corpora.
+///
+/// The disadvantage is that we may miss corpus-dependent semantic errors, but those seem to be rare
+/// and will be caught during export anyway.
+///
+/// This type encapsulates the temporary corpus storage needed for this empty corpus.
+pub(crate) struct ValidationStorage {
+    corpus_storage: CorpusStorage,
+    _temp_dir: TempDir, // must be last field to ensure it is dropped after `corpus_storage`
+}
+
+impl ValidationStorage {
+    const VALIDATION_CORPUS_NAME: &str = "validation";
+
+    pub(crate) fn new() -> Result<Self, AnnimateError> {
+        let temp_dir = TempDir::new()?;
+
+        let corpus_storage = CorpusStorage::with_cache_strategy(
+            temp_dir.path(),
+            CacheStrategy::FixedMaxMemory(0),
+            true, /* use_parallel_joins */
+        )?;
+        corpus_storage
+            .create_empty_corpus(Self::VALIDATION_CORPUS_NAME, false /* disk_based */)?;
+
+        Ok(Self {
+            corpus_storage,
+            _temp_dir: temp_dir,
+        })
     }
 
-    // When there are no corpora, CorpusStorage::validate_query always succeeds, even when there are
-    // syntax errors. So we catch these by using CorpusStorage::node_descriptions instead
-    QueryAnalysisResult::from_result(if corpus_names.is_empty() {
-        corpus_storage
-            .node_descriptions(aql_query, query_language)
-            .map(|_| ())
-    } else {
-        corpus_storage
-            .validate_query(corpus_names, aql_query, query_language)
-            .map(|_| ())
-    })
+    pub(crate) fn validate_query(
+        &self,
+        aql_query: &str,
+        query_language: QueryLanguage,
+    ) -> Result<QueryAnalysisResult<()>, GraphAnnisError> {
+        QueryAnalysisResult::from_result({
+            // Shortcut for empty query because CorpusStorage::validate_query overflows
+            if aql_query.is_empty() {
+                Ok(())
+            } else {
+                // Validate query length first to prevent stack overflow
+                validate_query_length(aql_query).and_then(|_| {
+                    self.corpus_storage
+                        .validate_query(&[Self::VALIDATION_CORPUS_NAME], aql_query, query_language)
+                        .map(|_| ())
+                })
+            }
+        })
+    }
 }
 
 pub(crate) fn query_nodes(
@@ -53,6 +89,9 @@ pub(crate) fn query_nodes_valid(
     if aql_query.is_empty() {
         return Ok(Vec::new().into());
     }
+
+    // Validate query length first to prevent stack overflow
+    validate_query_length(aql_query)?;
 
     let mut node_descriptions = corpus_storage.node_descriptions(aql_query, query_language)?;
 
@@ -105,6 +144,21 @@ pub(crate) fn query_nodes_valid(
         .into_values()
         .collect_vec()
         .into())
+}
+
+fn validate_query_length(aql_query: &str) -> Result<(), GraphAnnisError> {
+    if aql_query.len() > MAX_QUERY_LENGTH {
+        Err(GraphAnnisError::AQLSyntaxError(AQLError {
+            desc: format!(
+                "Query is too long ({} characters), must be at most {} characters.",
+                aql_query.len(),
+                MAX_QUERY_LENGTH
+            ),
+            location: None,
+        }))
+    } else {
+        Ok(())
+    }
 }
 
 /// Result of analyzing an AQL query.

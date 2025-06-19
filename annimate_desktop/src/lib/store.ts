@@ -21,11 +21,11 @@ import {
   useSaveProjectMutation,
 } from '@/lib/mutations';
 import {
+  UseGetQueryDataOptions,
   useCorporaQuery,
   useExportableAnnoKeysQuery,
   useGetCorporaQueryData,
   useGetExportableAnnoKeysQueryData,
-  UseGetQueryDataOptions,
   useGetQueryNodesQueryData,
   useGetSegmentationsQueryData,
   useQueryNodesQuery,
@@ -615,7 +615,7 @@ export const useToggleAllCorporaInSelectedSet = (): (() => Promise<void>) => {
   };
 };
 
-let aqlQueryDebounceTimeout: NodeJS.Timeout | undefined;
+let aqlQueryDebounceTimeout: number | undefined;
 
 export const useSetAqlQuery = (): ((aqlQuery: string) => void) => {
   const setState = useSetState();
@@ -626,7 +626,7 @@ export const useSetAqlQuery = (): ((aqlQuery: string) => void) => {
     }));
 
     if (aqlQueryDebounceTimeout !== undefined) {
-      clearTimeout(aqlQueryDebounceTimeout);
+      window.clearTimeout(aqlQueryDebounceTimeout);
     }
 
     if (aqlQuery === '') {
@@ -634,7 +634,7 @@ export const useSetAqlQuery = (): ((aqlQuery: string) => void) => {
         aqlQueryDebounced: '',
       }));
     } else {
-      aqlQueryDebounceTimeout = setTimeout(() => {
+      aqlQueryDebounceTimeout = window.setTimeout(() => {
         setState(() => ({
           aqlQueryDebounced: aqlQuery,
         }));
@@ -886,18 +886,17 @@ export const useQueryNodes = (): UseQueryResult<QueryNodesResult> => {
   });
 };
 
-export const useQueryValidationResult =
-  (): UseQueryResult<QueryValidationResult> => {
-    const selectedCorpusNames = useSelectedCorpusNamesInSelectedSet();
-    const aqlQueryDebounced = useSelector((state) => state.aqlQueryDebounced);
-    const queryLanguage = useQueryLanguage();
+export const useQueryValidationResult = (): UseQueryResult<
+  QueryValidationResult | undefined
+> => {
+  const aqlQueryDebounced = useSelector((state) => state.aqlQueryDebounced);
+  const queryLanguage = useQueryLanguage();
 
-    return useQueryValidationResultQuery({
-      corpusNames: selectedCorpusNames,
-      aqlQuery: aqlQueryDebounced,
-      queryLanguage,
-    });
-  };
+  return useQueryValidationResultQuery({
+    aqlQuery: aqlQueryDebounced,
+    queryLanguage,
+  });
+};
 
 export const useSegmentations = (): UseQueryResult<string[]> => {
   const selectedCorpusNames = useSelectedCorpusNamesInSelectedSet();
