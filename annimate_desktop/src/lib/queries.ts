@@ -18,6 +18,7 @@ import {
   EnsureQueryDataOptions,
   QueryKey,
   UseQueryResult,
+  keepPreviousData,
   useQuery,
   useQueryClient,
 } from '@tanstack/react-query';
@@ -69,14 +70,14 @@ export const useQueryNodesQuery = (params: {
 }): UseQueryResult<QueryNodesResult> => useQuery(queryNodesQueryConfig(params));
 
 export const useQueryValidationResultQuery = (params: {
-  corpusNames: string[];
   aqlQuery: string;
   queryLanguage: QueryLanguage;
-}): UseQueryResult<QueryValidationResult> =>
+}): UseQueryResult<QueryValidationResult | undefined> =>
   useQuery({
-    enabled: params.aqlQuery !== '',
+    placeholderData: keepPreviousData,
     queryKey: [QUERY_KEY_QUERY_VALIDATION_RESULT, params],
-    queryFn: () => validateQuery(params),
+    queryFn: () => (params.aqlQuery === '' ? null : validateQuery(params)),
+    select: (data) => data ?? undefined,
   });
 
 export const segmentationsQueryConfig = (params: {
