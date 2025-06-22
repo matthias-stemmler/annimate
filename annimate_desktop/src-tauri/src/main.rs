@@ -47,7 +47,6 @@ fn main() {
             api::get_segmentations,
             api::import_corpora,
             api::load_project,
-            api::open_path,
             api::rename_corpus_set,
             api::save_project,
             api::toggle_corpus_in_set,

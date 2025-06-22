@@ -14,7 +14,6 @@ use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 use tauri::ipc::Channel;
 use tauri::{EventId, Listener, Runtime, WebviewWindow, Window};
-use tauri_plugin_opener::OpenerExt;
 
 use crate::error::{ConversionError, Error};
 use crate::state::AppState;
@@ -210,15 +209,6 @@ pub(crate) async fn import_corpora(
         Ok(corpus_names)
     })
     .await?
-}
-
-#[tauri::command]
-pub(crate) async fn open_path<R: Runtime>(
-    app: tauri::AppHandle<R>,
-    path: String,
-    with: Option<String>,
-) -> Result<(), Error> {
-    Ok(app.opener().open_path(path, with)?)
 }
 
 #[tauri::command]
