@@ -12,7 +12,9 @@ use serde::Serialize;
 use tempfile::TempDir;
 use zip::ZipArchive;
 
-use crate::{AnnimateError, cancel_if};
+use crate::cache::CacheStorage;
+use crate::error::AnnimateError;
+use crate::{anno, error};
 
 pub(crate) fn find_importable_corpora<F, G>(
     paths: Vec<PathBuf>,
@@ -35,7 +37,7 @@ where
         .collect_vec();
 
     while let Some(location) = stack.pop() {
-        cancel_if(&cancel_requested)?;
+        error::cancel_if(&cancel_requested)?;
 
         if !location.scoped_path.has_temp_dir()
             && !seen_paths.insert(location.scoped_path.path.clone())
@@ -306,7 +308,7 @@ where
     let mut archive = ZipArchive::new(File::open(zip_path.as_ref())?)?;
 
     for i in 0..archive.len() {
-        cancel_if(&cancel_requested)?;
+        error::cancel_if(&cancel_requested)?;
 
         let mut entry = archive.by_index(i)?;
 
@@ -328,6 +330,7 @@ where
 
 pub(crate) fn import_corpus<F, G, H>(
     corpus_storage: &CorpusStorage,
+    cache_storage: &CacheStorage,
     corpus: &ImportableCorpus,
     on_started: F,
     on_progress: G,
@@ -338,7 +341,7 @@ where
     G: Fn(&str),
     H: Fn() -> bool,
 {
-    cancel_if(&cancel_requested)?;
+    error::cancel_if(&cancel_requested)?;
 
     on_started();
 
@@ -356,6 +359,9 @@ where
         false,
         &on_progress,
     )?;
+
+    on_progress(&format!("prefilling annotation cache for corpus {name}"));
+    anno::prefill_cache(corpus_storage, cache_storage, &name)?;
 
     on_progress(&format!("done importing corpus {name}"));
 

@@ -4,7 +4,7 @@ use std::path::Path;
 use annimate_core::QueryLanguage::*;
 use annimate_core::{QueryNode, Storage};
 
-const DB_DIR: &str = concat!(env!("CARGO_TARGET_TMPDIR"), "/tests/query_nodes");
+const DB_DIR: &str = concat!(env!("CARGO_TARGET_TMPDIR"), "/tests/query_nodes/db");
 
 macro_rules! query_nodes_test {
     ($(

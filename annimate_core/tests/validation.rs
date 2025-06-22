@@ -4,7 +4,7 @@ use std::path::Path;
 use annimate_core::QueryLanguage::*;
 use annimate_core::{QueryAnalysisResult, Storage};
 
-const DB_DIR: &str = concat!(env!("CARGO_TARGET_TMPDIR"), "/tests/validation");
+const DB_DIR: &str = concat!(env!("CARGO_TARGET_TMPDIR"), "/tests/validation/db");
 
 macro_rules! validation_test {
     ($(

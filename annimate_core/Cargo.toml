@@ -21,6 +21,7 @@ csv = { workspace = true }
 graphannis = { workspace = true }
 graphannis-core = { workspace = true }
 itertools = { workspace = true }
+percent-encoding = { workspace = true }
 regex = { workspace = true }
 rust_xlsxwriter = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
@@ -28,8 +29,8 @@ tempfile = { workspace = true }
 thiserror = { workspace = true }
 toml = { workspace = true }
 toml_edit = { workspace = true }
-urlencoding = { workspace = true }
 zip = { workspace = true }
 
 [dev-dependencies]
 insta = { workspace = true, features = ["redactions", "serde", "yaml"] }
+serde_json = { workspace = true }

@@ -16,7 +16,7 @@ fn import() {
     let db_dir = Path::new(DB_DIR).join("import");
 
     let _ = fs::remove_dir_all(&db_dir);
-    let storage = Storage::from_db_dir(&db_dir).unwrap();
+    let storage = Storage::from_db_dir(db_dir).unwrap();
 
     let events = RefCell::new(Vec::new());
 
@@ -143,7 +143,7 @@ fn import_cancelled_before_corpora_collected() {
     let db_dir = Path::new(DB_DIR).join("import_cancelled_before_corpora_collected");
 
     let _ = fs::remove_dir_all(&db_dir);
-    let storage = Storage::from_db_dir(&db_dir).unwrap();
+    let storage = Storage::from_db_dir(db_dir).unwrap();
 
     let result = storage.import_corpora(
         vec![
@@ -163,7 +163,7 @@ fn import_cancelled_after_corpora_collected() {
     let db_dir = Path::new(DB_DIR).join("import_cancelled_after_corpora_collected");
 
     let _ = fs::remove_dir_all(&db_dir);
-    let storage = Storage::from_db_dir(&db_dir).unwrap();
+    let storage = Storage::from_db_dir(db_dir).unwrap();
 
     let cancel_requested = Cell::new(false);
 
@@ -191,7 +191,7 @@ fn import_cancelled_after_corpus_import_started() {
     let db_dir = Path::new(DB_DIR).join("import_cancelled_after_corpus_import_started");
 
     let _ = fs::remove_dir_all(&db_dir);
-    let storage = Storage::from_db_dir(&db_dir).unwrap();
+    let storage = Storage::from_db_dir(db_dir).unwrap();
 
     let cancel_requested = Cell::new(false);
 
