@@ -13,7 +13,7 @@ import { Channel, invoke } from '@tauri-apps/api/core';
 import { emit } from '@tauri-apps/api/event';
 import { documentDir, downloadDir } from '@tauri-apps/api/path';
 import { open, save } from '@tauri-apps/plugin-dialog';
-import { openUrl, revealItemInDir } from '@tauri-apps/plugin-opener';
+import { openPath, openUrl, revealItemInDir } from '@tauri-apps/plugin-opener';
 import { exit, relaunch } from '@tauri-apps/plugin-process';
 import { check as checkForUpdate } from '@tauri-apps/plugin-updater';
 
@@ -23,6 +23,7 @@ export {
   downloadDir,
   exit,
   open,
+  openPath,
   openUrl,
   relaunch,
   revealItemInDir,
@@ -101,17 +102,6 @@ export const importCorpora = async (
 
 export const loadProject = (params: { inputFile: string }): Promise<Project> =>
   invoke('load_project', params);
-
-// We use a custom command instead of the `open_path` command of tauri-plugin-opener because we need to allow arbitrary
-// paths. While the plugin allows configuration of the allowed paths via a glob pattern, it (at least on Linux) matches
-// paths whose components have leading dots only if the leading dots appear literally in the glob pattern, which
-// essentially rules out a glob pattern that allows all paths.
-export const openPath = async (
-  path: string,
-  openWith?: string,
-): Promise<void> => {
-  await invoke('open_path', { path, with: openWith });
-};
 
 export const renameCorpusSet = (params: {
   corpusSet: string;

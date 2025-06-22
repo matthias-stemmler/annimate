@@ -52,6 +52,9 @@
   "identifier": "com.github.matthias-stemmler.annimate",
   "mainBinaryName": "Annimate",
   "plugins": {
+    "opener": {
+      "requireLiteralLeadingDot": false
+    },
     "updater": {
       "endpoints": [
         "https://github.com/matthias-stemmler/annimate/releases/latest/download/latest.json"

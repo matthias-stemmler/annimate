@@ -12,6 +12,14 @@
     "process:allow-exit",
     "process:allow-restart",
     "updater:default",
-    "window-state:default"
+    "window-state:default",
+    {
+      "identifier": "opener:allow-open-path",
+      "allow": [
+        {
+          "path": "**/*"
+        }
+      ]
+    }
   ]
 }
