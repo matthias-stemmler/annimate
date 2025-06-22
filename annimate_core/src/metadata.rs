@@ -28,16 +28,15 @@ impl MetadataStorage {
             match data.parse() {
                 Ok(mut metadata) => {
                     cleanup_metadata(&mut metadata, corpus_names);
-                    write_metadata(&path, &metadata)?;
                     metadata
                 }
                 Err(err) => return Err(AnnimateError::FailedToReadMetadata { path, err }),
             }
         } else {
-            let metadata = Metadata::default();
-            write_metadata(&path, &metadata)?;
-            metadata
+            Metadata::default()
         };
+
+        write_metadata(&path, &metadata)?;
 
         Ok(Self {
             path,

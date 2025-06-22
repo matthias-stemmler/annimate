@@ -1,10 +1,22 @@
 use std::borrow::Cow;
+use std::path::{Path, PathBuf};
 
 use graphannis::AnnotationGraph;
 use graphannis::errors::GraphAnnisError;
 use graphannis_core::types::NodeID;
+use percent_encoding::{AsciiSet, CONTROLS};
 
 use crate::AnnimateError;
+
+pub(crate) fn get_corpus_path(db_dir: &Path, corpus_name: &str) -> PathBuf {
+    db_dir.join(
+        Cow::from(percent_encoding::utf8_percent_encode(
+            corpus_name,
+            PATH_ENCODE_SET,
+        ))
+        .as_ref(),
+    )
+}
 
 /// Returns the name of the corpus/corpus node for a given node name.
 ///
@@ -23,7 +35,8 @@ use crate::AnnimateError;
 /// but not URL-encoded as a corpus name or the name of the corpus root node.
 pub(crate) fn get_corpus_name(node_name: &str) -> Result<Cow<'_, str>, AnnimateError> {
     match node_name.split_once('/') {
-        Some((corpus_name_encoded, _)) => urlencoding::decode(corpus_name_encoded)
+        Some((corpus_name_encoded, _)) => percent_encoding::percent_decode_str(corpus_name_encoded)
+            .decode_utf8()
             .map_err(|_| AnnimateError::CorpusNameDecodesToInvalidUtf8(corpus_name_encoded.into())),
         None => Ok(node_name.into()),
     }
@@ -60,9 +73,44 @@ pub(crate) fn node_name_to_node_id(
         .and_then(|node_id| node_id.ok_or_else(|| GraphAnnisError::NoSuchNodeID(node_name.into())))
 }
 
+// From https://github.com/korpling/graphANNIS/blob/2c656d5c79e15b7c29809132c467681fa473464f/graphannis/src/annis/db/corpusstorage.rs#L301
+const PATH_ENCODE_SET: &AsciiSet = &CONTROLS
+    .add(b' ')
+    .add(b'"')
+    .add(b'#')
+    .add(b'<')
+    .add(b'>')
+    .add(b'`')
+    .add(b'?')
+    .add(b'{')
+    .add(b'}')
+    .add(b'%')
+    .add(b'/')
+    .add(b':')
+    .add(b'"')
+    .add(b'|')
+    .add(b'*')
+    .add(b'\\');
+
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn get_corpus_path_no_special_characters() {
+        assert_eq!(
+            get_corpus_path(Path::new("data"), "corpus"),
+            Path::new("data/corpus")
+        );
+    }
+
+    #[test]
+    fn get_corpus_path_special_characters() {
+        assert_eq!(
+            get_corpus_path(Path::new("data"), "cörpüs"),
+            Path::new("data/c%C3%B6rp%C3%BCs")
+        );
+    }
 
     #[test]
     fn get_corpus_name_no_slash() {
