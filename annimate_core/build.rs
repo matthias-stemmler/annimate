@@ -14,7 +14,7 @@ fn inject_graphannis_version() {
     let graphannis_version = metadata
         .packages
         .into_iter()
-        .find(|p| p.name == "graphannis")
+        .find(|p| p.name.as_str() == "graphannis")
         .expect("Cargo metadata should contain `graphannis` package")
         .version
         .to_string();
