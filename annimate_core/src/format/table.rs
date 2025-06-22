@@ -2,11 +2,11 @@ use std::collections::{BTreeSet, HashMap};
 use std::ops::Range;
 use std::vec;
 
-use itertools::{Itertools, PutBack, put_back};
+use itertools::{Itertools, PutBack};
 
-use crate::anno::{AnnoKeyFormat, is_doc_anno_key};
+use crate::anno::{self, AnnoKeyFormat};
 use crate::aql::QueryNode;
-use crate::error::{AnnimateError, cancel_if};
+use crate::error::{self, AnnimateError};
 use crate::query::{ExportData, ExportDataAnno, ExportDataText, Match, TextPart};
 
 #[derive(Clone, Copy, Debug)]
@@ -66,7 +66,7 @@ where
         let mut max_match_parts_by_text = HashMap::new();
 
         for (i, m) in matches_iter.enumerate() {
-            cancel_if(&cancel_requested)?;
+            error::cancel_if(&cancel_requested)?;
 
             let m = m?;
 
@@ -85,7 +85,7 @@ where
         max_match_parts_by_text
     };
 
-    cancel_if(&cancel_requested)?;
+    error::cancel_if(&cancel_requested)?;
 
     out.write_record(columns.iter().flat_map(|c| match c {
         TableExportColumn::Number => vec!["Number".into()],
@@ -93,7 +93,7 @@ where
             vec![format!("Corpus {}", anno_key_format.display(anno_key))]
         }
         TableExportColumn::Data(ExportData::Anno(ExportDataAnno::Document { anno_key })) => {
-            if is_doc_anno_key(anno_key) {
+            if anno::is_doc_anno_key(anno_key) {
                 vec!["Document".into()]
             } else {
                 vec![format!("Document {}", anno_key_format.display(anno_key))]
@@ -145,7 +145,7 @@ where
     }))?;
 
     for (i, Match { annos, texts }) in matches.into_iter().enumerate() {
-        cancel_if(&cancel_requested)?;
+        error::cancel_if(&cancel_requested)?;
 
         out.write_record(columns.iter().flat_map(|c| match c {
             TableExportColumn::Number => vec![(i + 1).to_string()],
@@ -178,7 +178,7 @@ struct TextColumnsAligned {
 impl TextColumnsAligned {
     fn new(parts: Vec<TextPart>, column_types: ColumnTypes) -> Self {
         Self {
-            text_columns: put_back(TextColumns::new(parts)),
+            text_columns: itertools::put_back(TextColumns::new(parts)),
             column_types: column_types.into_iter(),
         }
     }
@@ -350,6 +350,7 @@ impl Iterator for ColumnTypesIter {
 #[cfg(test)]
 mod tests {
     use std::array;
+    use std::collections::HashSet;
 
     use graphannis_core::graph::ANNIS_NS;
     use graphannis_core::types::AnnoKey;
@@ -393,7 +394,7 @@ mod tests {
                         }),*
                     ]),
                     &[vec![]],
-                    &AnnoKeyFormat::new([]),
+                    &AnnoKeyFormat::new(&HashSet::new()),
                     &mut writer,
                     |_| (),
                     || false,

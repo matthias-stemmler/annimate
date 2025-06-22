@@ -8,8 +8,7 @@ use std::io::{self, ErrorKind, Write};
 use std::path::{Path, PathBuf};
 
 use anno::AnnoKeys;
-use error::cancel_if;
-use format::{QueryInfo, export};
+use format::QueryInfo;
 use graphannis::CorpusStorage;
 use graphannis::corpusstorage::CacheStrategy;
 use import::{FilesystemEntity, ImportFormat, ImportableCorpus};
@@ -20,11 +19,12 @@ use serde::Serialize;
 
 mod anno;
 mod aql;
+mod cache;
 mod error;
 mod format;
 mod import;
 mod metadata;
-mod node_name;
+mod name;
 mod project;
 mod query;
 mod util;
@@ -44,41 +44,41 @@ use tempfile::PersistError;
 pub use version::{VERSION_INFO, VersionInfo};
 
 use crate::aql::ValidationStorage;
+use crate::cache::CacheStorage;
 
 /// Storage of corpora and metadata.
 pub struct Storage {
     corpus_storage: CorpusStorage,
     validation_storage: ValidationStorage,
     metadata_storage: MetadataStorage,
+    cache_storage: CacheStorage,
 }
 
 impl Storage {
     /// Creates a [Storage] from a database directory.
-    pub fn from_db_dir<P>(db_dir: P) -> Result<Self, AnnimateError>
-    where
-        P: AsRef<Path>,
-    {
+    pub fn from_db_dir(db_dir: PathBuf) -> Result<Self, AnnimateError> {
         let corpus_storage = CorpusStorage::with_cache_strategy(
-            db_dir.as_ref(),
+            &db_dir,
             CacheStrategy::PercentOfFreeMemory(25.0),
             true, /* use_parallel_joins */
         )?;
 
         let validation_storage = ValidationStorage::new()?;
 
-        let metadata_storage = MetadataStorage::from_db_dir(
-            &db_dir,
-            &corpus_storage
-                .list()?
-                .into_iter()
-                .map(|c| c.name)
-                .collect_vec(),
-        )?;
+        let corpus_names = corpus_storage
+            .list()?
+            .into_iter()
+            .map(|c| c.name)
+            .collect_vec();
+
+        let metadata_storage = MetadataStorage::from_db_dir(&db_dir, &corpus_names)?;
+        let cache_storage = CacheStorage::from_db_dir(db_dir);
 
         Ok(Self {
             corpus_storage,
             validation_storage,
             metadata_storage,
+            cache_storage,
         })
     }
 
@@ -154,6 +154,7 @@ impl Storage {
         for (index, corpus) in importable_corpora.into_iter().enumerate() {
             let result = import::import_corpus(
                 &self.corpus_storage,
+                &self.cache_storage,
                 &corpus,
                 || on_status(ImportStatusEvent::CorpusImportStarted { index }),
                 |message| {
@@ -350,7 +351,8 @@ impl Storage {
         S: AsRef<str>,
     {
         let exportable_anno_keys =
-            AnnoKeys::new(&self.corpus_storage, corpus_names)?.into_exportable();
+            AnnoKeys::new(&self.corpus_storage, &self.cache_storage, corpus_names)?
+                .into_exportable();
 
         Ok(exportable_anno_keys)
     }
@@ -365,7 +367,8 @@ impl Storage {
     where
         S: AsRef<str>,
     {
-        let segmentations = anno::segmentations(&self.corpus_storage, corpus_names)?;
+        let segmentations =
+            anno::segmentations(&self.corpus_storage, &self.cache_storage, corpus_names)?;
 
         Ok(segmentations)
     }
@@ -383,17 +386,22 @@ impl Storage {
         G: Fn() -> bool,
         P: AsRef<Path>,
     {
-        cancel_if(&cancel_requested)?;
-        let anno_keys = AnnoKeys::new(&self.corpus_storage, &config.corpus_names)?;
+        error::cancel_if(&cancel_requested)?;
+        let anno_keys = AnnoKeys::new(
+            &self.corpus_storage,
+            &self.cache_storage,
+            &config.corpus_names,
+        )?;
         let query = Query::new(
             &self.corpus_storage,
+            &self.cache_storage,
             &config.corpus_names,
             &config.aql_query,
             config.query_language,
         )?;
         let matches = query.find(config.format.get_export_data())?;
 
-        cancel_if(&cancel_requested)?;
+        error::cancel_if(&cancel_requested)?;
 
         on_status(ExportStatusEvent::Found {
             count: matches.total_count(),
@@ -416,7 +424,7 @@ impl Storage {
             nodes: query.nodes(),
         };
 
-        export(
+        format::export(
             config.format,
             matches,
             query_info,
@@ -426,7 +434,7 @@ impl Storage {
             &cancel_requested,
         )?;
 
-        cancel_if(cancel_requested)?;
+        error::cancel_if(cancel_requested)?;
 
         out.flush()?;
 
