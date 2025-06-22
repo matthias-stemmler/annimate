@@ -4,7 +4,7 @@ use std::path::Path;
 use annimate_core::Storage;
 
 const DATA_DIR: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/tests/data");
-const DB_DIR: &str = concat!(env!("CARGO_TARGET_TMPDIR"), "/tests/corpora");
+const DB_DIR: &str = concat!(env!("CARGO_TARGET_TMPDIR"), "/tests/metadata/db");
 const METADATA_FILE: &str = "annimate.toml";
 
 const INITIAL_METADATA: &str = r#"
@@ -32,7 +32,7 @@ macro_rules! snapshot {
 #[test]
 fn metadata() {
     let _ = fs::remove_dir_all(DB_DIR);
-    let storage = Storage::from_db_dir(DB_DIR).unwrap();
+    let storage = Storage::from_db_dir(DB_DIR.into()).unwrap();
     storage
         .import_corpora(
             vec![
@@ -48,7 +48,7 @@ fn metadata() {
 
     drop(storage);
     fs::write(Path::new(DB_DIR).join(METADATA_FILE), INITIAL_METADATA).unwrap();
-    let storage = Storage::from_db_dir(DB_DIR).unwrap();
+    let storage = Storage::from_db_dir(DB_DIR.into()).unwrap();
 
     snapshot!("01_initial", storage);
 

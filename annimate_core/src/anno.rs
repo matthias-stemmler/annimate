@@ -5,15 +5,15 @@ use std::sync::LazyLock;
 use graphannis::corpusstorage::{QueryLanguage, ResultOrder, SearchQuery};
 use graphannis::errors::GraphAnnisError;
 use graphannis::model::AnnotationComponentType;
-use graphannis::util::node_names_from_match;
-use graphannis::{AnnotationGraph, CorpusStorage};
+use graphannis::{AnnotationGraph, CorpusStorage, util};
 use graphannis_core::graph::{ANNIS_NS, DEFAULT_NS, NODE_NAME};
 use graphannis_core::types::{AnnoKey, Component, NodeID};
 use itertools::Itertools;
 use serde::Serialize;
 
+use crate::cache::{AnnoKeyInfo, CacheStorage};
 use crate::error::AnnimateError;
-use crate::node_name;
+use crate::name;
 
 pub(crate) const DOC: &str = "doc";
 pub(crate) const TOK: &str = "tok";
@@ -43,6 +43,7 @@ pub(crate) static GAP_ORDERING_COMPONENT: LazyLock<Component<AnnotationComponent
 
 pub(crate) fn segmentations<S>(
     corpus_storage: &CorpusStorage,
+    cache_storage: &CacheStorage,
     corpus_names: &[S],
 ) -> Result<Vec<String>, GraphAnnisError>
 where
@@ -75,8 +76,13 @@ where
     segmentations_present_in_all_corpora
         .into_iter()
         .map(|name| {
-            get_anno_key_for_segmentation_if_exists(corpus_storage, corpus_names, &name)
-                .map(|anno_key| (name, anno_key))
+            get_anno_key_for_segmentation_if_exists(
+                corpus_storage,
+                cache_storage,
+                corpus_names,
+                &name,
+            )
+            .map(|anno_key| (name, anno_key))
         })
         .filter_map_ok(|(name, anno_key)| anno_key.map(|_| name.into()))
         .collect()
@@ -89,6 +95,7 @@ where
 /// order is returned. If the given segmentation is `None`, then `annis:tok` is returned.
 pub(crate) fn get_anno_key_for_segmentation<S>(
     corpus_storage: &CorpusStorage,
+    cache_storage: &CacheStorage,
     corpus_names: &[S],
     segmentation: Option<&str>,
 ) -> Result<AnnoKey, AnnimateError>
@@ -96,12 +103,13 @@ where
     S: AsRef<str>,
 {
     match segmentation {
-        Some(segmentation) => {
-            get_anno_key_for_segmentation_if_exists(corpus_storage, corpus_names, segmentation)?
-                .ok_or_else(|| {
-                    AnnimateError::MissingAnnotationForSegmentation(segmentation.to_string())
-                })
-        }
+        Some(segmentation) => get_anno_key_for_segmentation_if_exists(
+            corpus_storage,
+            cache_storage,
+            corpus_names,
+            segmentation,
+        )?
+        .ok_or_else(|| AnnimateError::MissingAnnotationForSegmentation(segmentation.to_string())),
 
         None => Ok(TOKEN_ANNO_KEY.clone()),
     }
@@ -109,21 +117,21 @@ where
 
 fn get_anno_key_for_segmentation_if_exists<S>(
     corpus_storage: &CorpusStorage,
+    cache_storage: &CacheStorage,
     corpus_names: &[S],
     segmentation: &str,
 ) -> Result<Option<AnnoKey>, GraphAnnisError>
 where
     S: AsRef<str>,
 {
-    let mut anno_keys_by_corpus = corpus_names.iter().map(|name| {
-        corpus_storage
-            .list_node_annotations(name.as_ref(), false, false)
-            .map(|annos| {
-                annos
-                    .into_iter()
-                    .map(|anno| anno.key)
-                    .filter(|anno_key| anno_key.name == *segmentation)
-            })
+    let mut anno_keys_by_corpus = corpus_names.iter().map(|corpus_name| {
+        get_anno_key_infos(corpus_storage, cache_storage, corpus_name.as_ref()).map(
+            |anno_key_infos| {
+                anno_key_infos.into_iter().filter_map(|anno_key_info| {
+                    (anno_key_info.anno_key.name == *segmentation).then_some(anno_key_info.anno_key)
+                })
+            },
+        )
     });
 
     let mut anno_keys_present_in_all_corpora: BTreeSet<_> = match anno_keys_by_corpus.next() {
@@ -175,6 +183,7 @@ pub(crate) struct AnnoKeys {
 impl AnnoKeys {
     pub(crate) fn new<S>(
         corpus_storage: &CorpusStorage,
+        cache_storage: &CacheStorage,
         corpus_names: &[S],
     ) -> Result<Self, AnnimateError>
     where
@@ -185,55 +194,20 @@ impl AnnoKeys {
         let mut doc_anno_keys = HashSet::new();
 
         for corpus_name in corpus_names {
-            let corpus_name = corpus_name.as_ref();
-
-            all_anno_keys.extend(
-                corpus_storage
-                    .list_node_annotations(corpus_name.as_ref(), false, false)?
-                    .into_iter()
-                    .map(|anno| anno.key),
-            );
-
-            let graph = corpus_storage.corpus_graph(corpus_name)?;
-
-            // We assume that the name of the corpus node is the same as the corpus name
-            let corpus_node_id = node_name::node_name_to_node_id(&graph, corpus_name)?;
+            let anno_key_infos =
+                get_anno_key_infos(corpus_storage, cache_storage, corpus_name.as_ref())?;
 
             corpus_anno_keys.extend(
-                graph
-                    .get_node_annos()
-                    .get_all_keys_for_item(&corpus_node_id, None, None)?
-                    .into_iter()
-                    .map(|anno_key| (*anno_key).clone()),
+                anno_key_infos
+                    .iter()
+                    .filter_map(|info| info.is_corpus.then_some(info.anno_key.clone())),
             );
-
-            let doc_match_ids = corpus_storage.find(
-                SearchQuery {
-                    corpus_names: &[corpus_name],
-                    query: "annis:node_type=\"corpus\" _ident_ annis:doc",
-                    query_language: QueryLanguage::AQL,
-                    timeout: None,
-                },
-                0,
-                None,
-                ResultOrder::NotSorted,
-            )?;
-
-            for doc_match_id in doc_match_ids {
-                let Some(doc_node_name) = node_names_from_match(&doc_match_id).into_iter().next()
-                else {
-                    continue;
-                };
-
-                let doc_node_id = node_name::node_name_to_node_id(&graph, &doc_node_name)?;
-                doc_anno_keys.extend(
-                    graph
-                        .get_node_annos()
-                        .get_all_keys_for_item(&doc_node_id, None, None)?
-                        .into_iter()
-                        .map(|anno_key| (*anno_key).clone()),
-                );
-            }
+            doc_anno_keys.extend(
+                anno_key_infos
+                    .iter()
+                    .filter_map(|info| info.is_document.then_some(info.anno_key.clone())),
+            );
+            all_anno_keys.extend(anno_key_infos.into_iter().map(|info| info.anno_key));
         }
 
         let format = AnnoKeyFormat::new(&all_anno_keys);
@@ -270,21 +244,100 @@ impl AnnoKeys {
     }
 }
 
+pub(crate) fn prefill_cache(
+    corpus_storage: &CorpusStorage,
+    cache_storage: &CacheStorage,
+    corpus_name: &str,
+) -> Result<(), GraphAnnisError> {
+    get_anno_key_infos(corpus_storage, cache_storage, corpus_name)?;
+    Ok(())
+}
+
+fn get_anno_key_infos(
+    corpus_storage: &CorpusStorage,
+    cache_storage: &CacheStorage,
+    corpus_name: &str,
+) -> Result<Vec<AnnoKeyInfo>, GraphAnnisError> {
+    cache_storage.get_anno_key_infos(corpus_name, || {
+        let all_anno_keys: BTreeSet<_> = corpus_storage
+            .list_node_annotations(corpus_name, false, false)?
+            .into_iter()
+            .map(|anno| anno.key)
+            .collect();
+
+        let graph = corpus_storage.corpus_graph(corpus_name)?;
+
+        let corpus_anno_keys = {
+            // We assume that the name of the corpus node is the same as the corpus name
+            let corpus_node_id = name::node_name_to_node_id(&graph, corpus_name)?;
+
+            graph
+                .get_node_annos()
+                .get_all_keys_for_item(&corpus_node_id, None, None)?
+        };
+
+        let doc_anno_keys = {
+            let doc_match_ids = corpus_storage.find(
+                SearchQuery {
+                    corpus_names: &[corpus_name],
+                    query: "annis:node_type=\"corpus\" _ident_ annis:doc",
+                    query_language: QueryLanguage::AQL,
+                    timeout: None,
+                },
+                0,
+                None,
+                ResultOrder::NotSorted,
+            )?;
+
+            let mut doc_anno_keys = HashSet::new();
+
+            for doc_match_id in doc_match_ids {
+                let Some(doc_node_name) = util::node_names_from_match(&doc_match_id)
+                    .into_iter()
+                    .next()
+                else {
+                    continue;
+                };
+
+                let doc_node_id = name::node_name_to_node_id(&graph, &doc_node_name)?;
+                doc_anno_keys.extend(graph.get_node_annos().get_all_keys_for_item(
+                    &doc_node_id,
+                    None,
+                    None,
+                )?);
+            }
+
+            doc_anno_keys
+        };
+
+        let anno_key_infos = all_anno_keys
+            .into_iter()
+            .map(|anno_key| {
+                let is_corpus = corpus_anno_keys.iter().any(|key| **key == anno_key);
+                let is_document = doc_anno_keys.iter().any(|key| **key == anno_key);
+
+                AnnoKeyInfo {
+                    anno_key,
+                    is_corpus,
+                    is_document,
+                }
+            })
+            .collect();
+
+        Ok(anno_key_infos)
+    })
+}
+
 #[derive(Debug)]
 pub(crate) struct AnnoKeyFormat {
     ambiguous_names: HashSet<String>,
 }
 
 impl AnnoKeyFormat {
-    pub(crate) fn new<'a, I>(anno_keys: I) -> Self
-    where
-        I: IntoIterator<Item = &'a AnnoKey>,
-    {
+    pub(crate) fn new(anno_keys: &HashSet<AnnoKey>) -> Self {
         Self {
             ambiguous_names: anno_keys
-                .into_iter()
-                .collect::<HashSet<_>>()
-                .into_iter()
+                .iter()
                 .map(|anno_key| anno_key.name.to_string())
                 .duplicates()
                 .collect(),
@@ -383,14 +436,18 @@ mod tests {
             name: "empty_ns_unambiguous_name".into(),
         };
 
-        let format = AnnoKeyFormat::new(&[
-            ambiguous1.clone(),
-            unambiguous.clone(),
-            ambiguous2.clone(),
-            unambiguous.clone(),
-            empty_ns_ambiguous.clone(),
-            empty_ns_unambiguous.clone(),
-        ]);
+        let format = AnnoKeyFormat::new(
+            &[
+                ambiguous1.clone(),
+                unambiguous.clone(),
+                ambiguous2.clone(),
+                unambiguous.clone(),
+                empty_ns_ambiguous.clone(),
+                empty_ns_unambiguous.clone(),
+            ]
+            .into_iter()
+            .collect(),
+        );
 
         assert_eq!(
             format.display(&ambiguous1).to_string(),

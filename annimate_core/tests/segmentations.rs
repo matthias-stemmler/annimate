@@ -5,7 +5,7 @@ use annimate_core::Storage;
 use serde::Serialize;
 
 const DATA_DIR: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/tests/data");
-const DB_DIR: &str = concat!(env!("CARGO_TARGET_TMPDIR"), "/tests/segmentations");
+const DB_DIR: &str = concat!(env!("CARGO_TARGET_TMPDIR"), "/tests/segmentations/db");
 
 macro_rules! segmentations_test {
     ($(
