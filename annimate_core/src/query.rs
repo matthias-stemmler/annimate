@@ -303,13 +303,13 @@ where
         let mut segment_anno_keys = HashMap::new();
 
         for data in &export_data {
-            if let ExportData::Text(text) = data {
-                if !segment_anno_keys.contains_key(&text.segmentation) {
-                    segment_anno_keys.insert(
-                        text.segmentation.clone(),
-                        get_anno_key_for_segmentation(corpus_ref, text.segmentation.as_deref())?,
-                    );
-                }
+            if let ExportData::Text(text) = data
+                && !segment_anno_keys.contains_key(&text.segmentation)
+            {
+                segment_anno_keys.insert(
+                    text.segmentation.clone(),
+                    get_anno_key_for_segmentation(corpus_ref, text.segmentation.as_deref())?,
+                );
             }
         }
 

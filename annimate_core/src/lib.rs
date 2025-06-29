@@ -299,10 +299,10 @@ impl Storage {
         corpus_name: &str,
     ) -> Result<(), AnnimateError> {
         self.metadata_storage.update_corpus_sets(|corpus_sets| {
-            if let Some(CorpusSet { corpus_names }) = corpus_sets.get_mut(corpus_set_name) {
-                if !corpus_names.remove(corpus_name) {
-                    corpus_names.insert(corpus_name.into());
-                }
+            if let Some(CorpusSet { corpus_names }) = corpus_sets.get_mut(corpus_set_name)
+                && !corpus_names.remove(corpus_name)
+            {
+                corpus_names.insert(corpus_name.into());
             }
         })?;
 
