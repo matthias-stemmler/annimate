@@ -62,13 +62,12 @@ pub(crate) fn query_nodes_valid(
     // In quirks mode, remove artifically added nodes for meta queries
     if let QueryLanguage::AQLQuirksV3 = query_language {
         for (position, capture) in META_REGEX.captures_iter(aql_query).with_position() {
-            if let Position::First | Position::Only = position {
-                if let Some(i) = node_descriptions
+            if let Position::First | Position::Only = position
+                && let Some(i) = node_descriptions
                     .iter()
                     .rposition(|n| n.query_fragment == "annis:doc")
-                {
-                    node_descriptions.swap_remove(i);
-                }
+            {
+                node_descriptions.swap_remove(i);
             }
 
             let anno_name = capture.get(1).unwrap().as_str();
