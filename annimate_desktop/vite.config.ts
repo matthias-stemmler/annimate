@@ -42,6 +42,7 @@ export default defineConfig(async () => {
       sequence: {
         shuffle: true,
       },
+      setupFiles: ['src/setup-tests.ts'],
     },
   };
 });
