@@ -96,7 +96,7 @@ dependencies = [
  "toml",
  "toml_edit 0.22.27",
  "urlencoding",
- "zip 4.2.0",
+ "zip 4.3.0",
 ]
 
 [[package]]
@@ -532,11 +532,11 @@ dependencies = [
 
 [[package]]
 name = "bzip2"
-version = "0.5.2"
+version = "0.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "49ecfb22d906f800d4fe833b6282cf4dc1c298f5057ca0b5445e5c209735ca47"
+checksum = "bea8dcd42434048e4f7a304411d9273a411f647446c1234a65ce0554923f4cff"
 dependencies = [
- "bzip2-sys",
+ "libbz2-rs-sys",
 ]
 
 [[package]]
@@ -2527,6 +2527,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "libbz2-rs-sys"
+version = "0.2.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "775bf80d5878ab7c2b1080b5351a48b2f737d9f6f8b383574eebcc22be0dfccb"
+
+[[package]]
 name = "libc"
 version = "0.2.172"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3562,6 +3568,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "439ee305def115ba05938db6eb1644ff94165c5ab5e9420d1c1bcedbba909391"
 
 [[package]]
+name = "ppmd-rust"
+version = "1.2.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c834641d8ad1b348c9ee86dec3b9840d805acd5f24daa5f90c788951a52ff59b"
+
+[[package]]
 name = "ppv-lite86"
 version = "0.2.21"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4017,7 +4029,7 @@ version = "0.88.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1aeb5b05e174a2f19f17bcd1275fd12165ce6b86496233386357dcade748a921"
 dependencies = [
- "zip 4.2.0",
+ "zip 4.3.0",
 ]
 
 [[package]]
@@ -4984,7 +4996,7 @@ dependencies = [
  "tokio",
  "url",
  "windows-sys 0.60.2",
- "zip 4.2.0",
+ "zip 4.3.0",
 ]
 
 [[package]]
@@ -6660,13 +6672,13 @@ dependencies = [
 
 [[package]]
 name = "zip"
-version = "4.2.0"
+version = "4.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "95ab361742de920c5535880f89bbd611ee62002bf11341d16a5f057bb8ba6899"
+checksum = "9aed4ac33e8eb078c89e6cbb1d5c4c7703ec6d299fc3e7c3695af8f8b423468b"
 dependencies = [
  "aes",
  "arbitrary",
- "bzip2 0.5.2",
+ "bzip2 0.6.0",
  "constant_time_eq 0.3.1",
  "crc32fast",
  "deflate64",
@@ -6677,6 +6689,7 @@ dependencies = [
  "liblzma",
  "memchr",
  "pbkdf2 0.12.2",
+ "ppmd-rust",
  "sha1",
  "time",
  "zeroize",
