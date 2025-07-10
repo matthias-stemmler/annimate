@@ -38,12 +38,15 @@ const COLOR_BUILTIN_COMMAND = '#93c5fd';
 const COLOR_CUSTOM_COMMAND = '#86efac';
 
 const CORPUS_NORMAL = 'Normal corpus';
+
 const CORPUS_NO_MATCHES = 'Corpus without matches';
 const CORPUS_MANY_MATCHES = 'Corpus with many matches';
-const CORPUS_FAILING_EXPORT = 'Corpus with failing export';
 const CORPUS_NO_ANNO_KEYS = 'Corpus without anno keys';
 const CORPUS_MANY_ANNO_KEYS = 'Corpus with many anno keys';
 const CORPUS_MULTIPLE_SEGMENTATIONS = 'Corpus with multiple segmentations';
+const CORPUS_SLOW = 'Corpus with slow segmentations/anno keys';
+
+const CORPUS_FAILING_EXPORT = 'Corpus with failing export';
 const CORPUS_FAILING_ANNO_KEYS = 'Corpus with failing anno keys';
 const CORPUS_FAILING_TOGGLE = 'Corpus that fails to toggle';
 const CORPUS_FAILING_DELETE = 'Corpus that fails to delete';
@@ -64,10 +67,11 @@ let corpusNames = [
   CORPUS_NORMAL,
   CORPUS_NO_MATCHES,
   CORPUS_MANY_MATCHES,
-  CORPUS_FAILING_EXPORT,
   CORPUS_NO_ANNO_KEYS,
   CORPUS_MANY_ANNO_KEYS,
   CORPUS_MULTIPLE_SEGMENTATIONS,
+  CORPUS_SLOW,
+  CORPUS_FAILING_EXPORT,
   CORPUS_FAILING_ANNO_KEYS,
   CORPUS_FAILING_TOGGLE,
   CORPUS_FAILING_DELETE,
@@ -85,6 +89,7 @@ const corpusSets: Record<string, { corpusNames: string[] }> = {
       CORPUS_NO_ANNO_KEYS,
       CORPUS_MANY_ANNO_KEYS,
       CORPUS_MULTIPLE_SEGMENTATIONS,
+      CORPUS_SLOW,
     ],
   },
   [CORPUS_SET_FAILING]: {
@@ -563,6 +568,10 @@ export const getDbDir = async (): Promise<string> => 'mock/db_dir';
 export const getExportableAnnoKeys = async (params: {
   corpusNames: string[];
 }): Promise<ExportableAnnoKeys> => {
+  if (params.corpusNames.includes(CORPUS_SLOW)) {
+    await sleep(1500);
+  }
+
   if (params.corpusNames.includes(CORPUS_FAILING_ANNO_KEYS)) {
     throw new Error('Failed to get exportable anno keys');
   }
@@ -582,6 +591,10 @@ export const getQueryNodes = async (params: {
   aqlQuery: string;
   queryLanguage: QueryLanguage;
 }): Promise<QueryNodesResult> => {
+  if (params.aqlQuery.includes('$')) {
+    await sleep(1500);
+  }
+
   if (params.aqlQuery === '') {
     return { type: 'valid', nodes: [] };
   }
@@ -620,6 +633,10 @@ export const getSegmentations = async (params: {
 }): Promise<string[]> => {
   if (params.corpusNames.length === 0) {
     return [];
+  }
+
+  if (params.corpusNames.includes(CORPUS_SLOW)) {
+    await sleep(1500);
   }
 
   return params.corpusNames.length === 1 &&
@@ -906,6 +923,10 @@ export const validateQuery = async (params: {
   aqlQuery: string;
   queryLanguage: QueryLanguage;
 }): Promise<QueryValidationResult> => {
+  if (params.aqlQuery.includes('$')) {
+    await sleep(1500);
+  }
+
   const error = getQueryValidationError(params.aqlQuery, params.queryLanguage);
   return error === undefined
     ? { type: 'valid' }

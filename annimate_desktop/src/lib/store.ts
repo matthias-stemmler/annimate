@@ -33,6 +33,7 @@ import {
   useSegmentationsQuery,
 } from '@/lib/queries';
 import { findEligibleQueryNodeRefIndex } from '@/lib/query-node-utils';
+import { UseSlowTrackingQueryResult } from '@/lib/slow-queries';
 import { filterEligible } from '@/lib/utils';
 import { UseQueryResult } from '@tanstack/react-query';
 import { createContext, useCallback, useContext } from 'react';
@@ -495,15 +496,12 @@ export const useGetExportFormat = (): (() => ExportFormat) => {
 
 export const useCanExport = (): boolean => {
   const selectedCorpusNames = useSelectedCorpusNamesInSelectedSet();
-  const aqlQuery = useAqlQuery();
   const { data: queryValidationResult } = useQueryValidationResult();
   const exportColumns = useExportColumnItems();
 
   return (
     selectedCorpusNames.length > 0 &&
-    aqlQuery !== '' &&
-    (queryValidationResult === undefined ||
-      queryValidationResult.type === 'valid') &&
+    queryValidationResult?.type === 'valid' &&
     exportColumns.length > 0 &&
     exportColumns.every(isExportColumnValid)
   );
@@ -876,17 +874,18 @@ export const useCorpusNamesInSelectedSet = (): UseQueryResult<string[]> => {
 export const useCorpusSets = (): UseQueryResult<string[]> =>
   useCorporaQuery(({ sets }) => sets);
 
-export const useQueryNodes = (): UseQueryResult<QueryNodesResult> => {
-  const aqlQueryDebounced = useSelector((state) => state.aqlQueryDebounced);
-  const queryLanguage = useQueryLanguage();
+export const useQueryNodes =
+  (): UseSlowTrackingQueryResult<QueryNodesResult> => {
+    const aqlQueryDebounced = useSelector((state) => state.aqlQueryDebounced);
+    const queryLanguage = useQueryLanguage();
 
-  return useQueryNodesQuery({
-    aqlQuery: aqlQueryDebounced,
-    queryLanguage,
-  });
-};
+    return useQueryNodesQuery({
+      aqlQuery: aqlQueryDebounced,
+      queryLanguage,
+    });
+  };
 
-export const useQueryValidationResult = (): UseQueryResult<
+export const useQueryValidationResult = (): UseSlowTrackingQueryResult<
   QueryValidationResult | undefined
 > => {
   const aqlQueryDebounced = useSelector((state) => state.aqlQueryDebounced);
@@ -898,7 +897,7 @@ export const useQueryValidationResult = (): UseQueryResult<
   });
 };
 
-export const useSegmentations = (): UseQueryResult<string[]> => {
+export const useSegmentations = (): UseSlowTrackingQueryResult<string[]> => {
   const selectedCorpusNames = useSelectedCorpusNamesInSelectedSet();
 
   return useSegmentationsQuery({
@@ -906,13 +905,14 @@ export const useSegmentations = (): UseQueryResult<string[]> => {
   });
 };
 
-export const useExportableAnnoKeys = (): UseQueryResult<ExportableAnnoKeys> => {
-  const selectedCorpusNames = useSelectedCorpusNamesInSelectedSet();
+export const useExportableAnnoKeys =
+  (): UseSlowTrackingQueryResult<ExportableAnnoKeys> => {
+    const selectedCorpusNames = useSelectedCorpusNamesInSelectedSet();
 
-  return useExportableAnnoKeysQuery({
-    corpusNames: selectedCorpusNames,
-  });
-};
+    return useExportableAnnoKeysQuery({
+      corpusNames: selectedCorpusNames,
+    });
+  };
 
 // MUTATIONS
 
