@@ -1,5 +1,4 @@
 import { clsx, type ClassValue } from 'clsx';
-import { useEffect, useRef, useState } from 'react';
 import { twMerge } from 'tailwind-merge';
 
 const LOCALE = 'en-US';
@@ -64,29 +63,4 @@ export const uniq = <T>(items: readonly T[]): T[] => {
     }
   }
   return result;
-};
-
-export const useIsSlow = (
-  inProgress: boolean,
-  slowThresholdMillis: number,
-): boolean => {
-  const [isSlow, setIsSlow] = useState(false);
-  const timer = useRef<number | undefined>(undefined);
-
-  useEffect(() => {
-    if (inProgress) {
-      timer.current = window.setTimeout(() => {
-        setIsSlow(true);
-      }, slowThresholdMillis);
-    } else {
-      window.clearTimeout(timer.current);
-      setIsSlow(false);
-    }
-
-    return () => {
-      window.clearTimeout(timer.current);
-    };
-  }, [inProgress, slowThresholdMillis]);
-
-  return isSlow;
 };

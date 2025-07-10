@@ -14,13 +14,16 @@ import {
   QueryValidationResult,
 } from '@/lib/api-types';
 import {
+  useSlowTrackingQuery,
+  UseSlowTrackingQueryResult,
+} from '@/lib/slow-queries';
+import {
   DefaultError,
   EnsureQueryDataOptions,
   QueryKey,
-  UseQueryResult,
-  keepPreviousData,
   useQuery,
   useQueryClient,
+  UseQueryResult,
 } from '@tanstack/react-query';
 
 export const QUERY_KEY_CORPORA = 'corpora';
@@ -29,6 +32,8 @@ export const QUERY_KEY_QUERY_NODES = 'query-nodes';
 export const QUERY_KEY_QUERY_VALIDATION_RESULT = 'query-validation-result';
 export const QUERY_KEY_SEGMENTATIONS = 'segmentations';
 export const QUERY_KEY_EXPORTABLE_ANNO_KEYS = 'exportable-anno-keys';
+
+const SLOW_TRACKING_TIMEOUT = 500;
 
 const corporaQueryConfig = () => ({
   queryKey: [QUERY_KEY_CORPORA],
@@ -62,22 +67,30 @@ const queryNodesQueryConfig = (params: {
 }) => ({
   queryKey: [QUERY_KEY_QUERY_NODES, params],
   queryFn: () => getQueryNodes(params),
+  slowTracking: {
+    peerQueryKey: [QUERY_KEY_QUERY_NODES],
+    timeout: SLOW_TRACKING_TIMEOUT,
+  },
 });
 
 export const useQueryNodesQuery = (params: {
   aqlQuery: string;
   queryLanguage: QueryLanguage;
-}): UseQueryResult<QueryNodesResult> => useQuery(queryNodesQueryConfig(params));
+}): UseSlowTrackingQueryResult<QueryNodesResult> =>
+  useSlowTrackingQuery(queryNodesQueryConfig(params));
 
 export const useQueryValidationResultQuery = (params: {
   aqlQuery: string;
   queryLanguage: QueryLanguage;
-}): UseQueryResult<QueryValidationResult | undefined> =>
-  useQuery({
-    placeholderData: keepPreviousData,
+}): UseSlowTrackingQueryResult<QueryValidationResult | undefined> =>
+  useSlowTrackingQuery({
     queryKey: [QUERY_KEY_QUERY_VALIDATION_RESULT, params],
     queryFn: () => (params.aqlQuery === '' ? null : validateQuery(params)),
-    select: (data) => data ?? undefined,
+    select: (result) => result ?? undefined,
+    slowTracking: {
+      peerQueryKey: [QUERY_KEY_QUERY_VALIDATION_RESULT],
+      timeout: SLOW_TRACKING_TIMEOUT,
+    },
   });
 
 export const segmentationsQueryConfig = (params: {
@@ -85,11 +98,16 @@ export const segmentationsQueryConfig = (params: {
 }) => ({
   queryKey: [QUERY_KEY_SEGMENTATIONS, params],
   queryFn: () => getSegmentations(params),
+  slowTracking: {
+    peerQueryKey: [QUERY_KEY_SEGMENTATIONS],
+    timeout: SLOW_TRACKING_TIMEOUT,
+  },
 });
 
 export const useSegmentationsQuery = (params: {
   corpusNames: string[];
-}): UseQueryResult<string[]> => useQuery(segmentationsQueryConfig(params));
+}): UseSlowTrackingQueryResult<string[]> =>
+  useSlowTrackingQuery(segmentationsQueryConfig(params));
 
 export const useGetSegmentationsQueryData = <Wait extends boolean = true>(
   options: UseGetQueryDataOptions<Wait> = {},
@@ -102,12 +120,16 @@ export const useGetSegmentationsQueryData = <Wait extends boolean = true>(
 const exportableAnnoKeysQueryConfig = (params: { corpusNames: string[] }) => ({
   queryKey: [QUERY_KEY_EXPORTABLE_ANNO_KEYS, params],
   queryFn: () => getExportableAnnoKeys(params),
+  slowTracking: {
+    peerQueryKey: [QUERY_KEY_EXPORTABLE_ANNO_KEYS],
+    timeout: SLOW_TRACKING_TIMEOUT,
+  },
 });
 
 export const useExportableAnnoKeysQuery = (params: {
   corpusNames: string[];
-}): UseQueryResult<ExportableAnnoKeys> =>
-  useQuery(exportableAnnoKeysQueryConfig(params));
+}): UseSlowTrackingQueryResult<ExportableAnnoKeys> =>
+  useSlowTrackingQuery(exportableAnnoKeysQueryConfig(params));
 
 export const useGetExportableAnnoKeysQueryData = <Wait extends boolean = true>(
   options: UseGetQueryDataOptions<Wait> = {},
