@@ -9,6 +9,7 @@ import {
   QueryNodesResult,
   QueryValidationResult,
 } from '@/lib/api-types';
+import { SlowTrackingQueryCache } from '@/lib/slow-queries';
 import {
   ExportColumnUpdate,
   useAddExportColumn,
@@ -63,6 +64,7 @@ describe('store', () => {
 
   const Wrapper: FC<PropsWithChildren> = ({ children }) => {
     const queryClient = new QueryClient({
+      queryCache: new SlowTrackingQueryCache(),
       defaultOptions: { queries: { retry: false } },
     });
 

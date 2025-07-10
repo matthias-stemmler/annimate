@@ -3,10 +3,8 @@ import {
   groupBy,
   lineColumnToCharacterIndex,
   uniq,
-  useIsSlow,
 } from '@/lib/utils';
-import { act, renderHook } from '@testing-library/react';
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
 
 describe('utils', () => {
   describe('lineColumnToCharacterIndex', () => {
@@ -109,45 +107,5 @@ describe('utils', () => {
         expect(uniq(items)).toEqual(expectedUniqueItems);
       },
     );
-  });
-
-  describe('useIsSlow', () => {
-    beforeEach(() => {
-      vi.useFakeTimers();
-    });
-
-    afterEach(() => {
-      vi.useRealTimers();
-    });
-
-    it('returns true if and only if the process is in progress and the threshold is met', () => {
-      const { result, rerender } = renderHook(
-        (inProgress: boolean) => useIsSlow(inProgress, 100),
-        { initialProps: false },
-      );
-
-      // Not in progress -> false, even after threshold
-      expect(result.current).toBe(false);
-      act(() => {
-        vi.advanceTimersByTime(100);
-      });
-      expect(result.current).toBe(false);
-
-      // In progress -> initially still false, then true after threshold
-      rerender(true);
-      expect(result.current).toBe(false);
-      act(() => {
-        vi.advanceTimersByTime(99);
-      });
-      expect(result.current).toBe(false);
-      act(() => {
-        vi.advanceTimersByTime(1);
-      });
-      expect(result.current).toBe(true);
-
-      // Back to not in progress -> false again
-      rerender(false);
-      expect(result.current).toBe(false);
-    });
   });
 });
