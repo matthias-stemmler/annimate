@@ -29,7 +29,7 @@ import {
   useMutation,
   useQueryClient,
 } from '@tanstack/react-query';
-import { useCallback, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 
 export type CancellableOperationError = Error & { cancelled: boolean };
 
@@ -158,6 +158,8 @@ export const useExportMatchesMutation = (
   const [matchCount, setMatchCount] = useState<number | undefined>();
   const [progress, setProgress] = useState<number | undefined>();
 
+  const startedRef = useRef(false);
+  const cancelRequestedRef = useRef(false);
   const [cancelRequested, setCancelRequested] = useState(false);
 
   const mutation = useMutation<
@@ -167,11 +169,18 @@ export const useExportMatchesMutation = (
   >({
     mutationFn: async (args) => {
       const params = await getParams();
+
       return exportMatches(
         { ...params, ...args },
         {
           onEvent: (event: ExportStatusEvent) => {
-            if (event.type === 'found') {
+            if (event.type === 'started') {
+              startedRef.current = true;
+
+              if (cancelRequestedRef.current) {
+                emitExportCancelRequestedEvent();
+              }
+            } else if (event.type === 'found') {
               setMatchCount(event.count);
             } else if (event.type === 'exported') {
               setProgress(event.progress);
@@ -182,6 +191,8 @@ export const useExportMatchesMutation = (
     },
     mutationKey: [MUTATION_KEY_EXPORT_MATCHES],
     onMutate: () => {
+      startedRef.current = false;
+      cancelRequestedRef.current = false;
       setCancelRequested(false);
       setMatchCount(undefined);
       setProgress(undefined);
@@ -189,8 +200,12 @@ export const useExportMatchesMutation = (
   });
 
   const requestCancel = useCallback(() => {
-    emitExportCancelRequestedEvent();
     setCancelRequested(true);
+    cancelRequestedRef.current = true;
+
+    if (startedRef.current) {
+      emitExportCancelRequestedEvent();
+    }
   }, []);
 
   return { mutation, matchCount, progress, cancelRequested, requestCancel };
@@ -235,6 +250,8 @@ export const useImportCorporaMutation = () => {
   const [messages, setMessages] = useState<ImportCorpusMessage[]>([]);
   const [result, setResult] = useState<ImportResult | undefined>();
 
+  const startedRef = useRef(false);
+  const cancelRequestedRef = useRef(false);
   const [cancelRequested, setCancelRequested] = useState(false);
 
   const mutation = useMutation<
@@ -245,7 +262,13 @@ export const useImportCorporaMutation = () => {
     mutationFn: async (args) =>
       importCorpora(args, {
         onEvent: (event: ImportStatusEvent) => {
-          if (event.type === 'corpora_found') {
+          if (event.type === 'started') {
+            startedRef.current = true;
+
+            if (cancelRequestedRef.current) {
+              emitImportCancelRequestedEvent();
+            }
+          } else if (event.type === 'corpora_found') {
             setCorporaStatus(
               event.corpora.map((importCorpus) => ({
                 importCorpus,
@@ -300,6 +323,8 @@ export const useImportCorporaMutation = () => {
         },
       }),
     onMutate: () => {
+      startedRef.current = false;
+      cancelRequestedRef.current = false;
       setCancelRequested(false);
       setCorporaStatus(undefined);
       setMessages([]);
@@ -319,8 +344,12 @@ export const useImportCorporaMutation = () => {
   });
 
   const requestCancel = useCallback(() => {
-    emitImportCancelRequestedEvent();
     setCancelRequested(true);
+    cancelRequestedRef.current = true;
+
+    if (startedRef.current) {
+      emitImportCancelRequestedEvent();
+    }
   }, []);
 
   return {
