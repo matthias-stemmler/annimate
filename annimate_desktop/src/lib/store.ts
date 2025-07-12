@@ -641,6 +641,22 @@ export const useSetAqlQuery = (): ((aqlQuery: string) => void) => {
   };
 };
 
+export const useFlushAqlQueryDebounce = (): (() => void) => {
+  const setState = useSetState();
+
+  return () => {
+    if (aqlQueryDebounceTimeout !== undefined) {
+      window.clearTimeout(aqlQueryDebounceTimeout);
+    }
+
+    setState((state) =>
+      state.aqlQuery === state.aqlQueryDebounced
+        ? state
+        : { aqlQueryDebounced: state.aqlQuery },
+    );
+  };
+};
+
 export const useSetQueryLanguage = (): ((
   queryLanguage: QueryLanguage,
 ) => void) => {
@@ -929,11 +945,16 @@ export {
 } from '@/lib/mutations';
 
 export const useExportMatches = () => {
+  const flushAqlQueryDebounce = useFlushAqlQueryDebounce();
   const getExportSpec = useGetExportSpec();
 
-  return useExportMatchesMutation(async () => ({
-    spec: await getExportSpec(),
-  }));
+  return useExportMatchesMutation(async () => {
+    flushAqlQueryDebounce();
+
+    return {
+      spec: await getExportSpec(),
+    };
+  });
 };
 
 type LoadProjectResult = {

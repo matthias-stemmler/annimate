@@ -1,6 +1,7 @@
 ---
 source: annimate_core/tests/import.rs
 ---
+- type: started
 - type: corpora_found
   corpora:
     - fileName: subtok.demo_relANNIS

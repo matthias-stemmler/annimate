@@ -498,6 +498,8 @@ export const exportMatches = async (
     cancelRequested = true;
   });
 
+  handlers.onEvent?.({ type: 'started' });
+
   try {
     const matchCount = params.spec.corpusNames.reduce(
       (acc, c) => acc + getMatchCountForCorpus(c),
@@ -664,6 +666,8 @@ export const importCorpora = async (
   const unsubscribe = subscribeToImportCancelRequestedEvent(() => {
     cancelRequested = true;
   });
+
+  handlers.onEvent?.({ type: 'started' });
 
   try {
     const delay = params.paths.includes('fast') ? 20 : 200;

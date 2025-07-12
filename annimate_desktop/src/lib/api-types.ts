@@ -122,10 +122,14 @@ export type LineColumn = {
 };
 
 export type ExportStatusEvent =
+  | { type: 'started' }
   | { type: 'found'; count: number }
   | { type: 'exported'; progress: number };
 
 export type ImportStatusEvent =
+  | {
+      type: 'started';
+    }
   | {
       type: 'corpora_found';
       corpora: ImportCorpus[];

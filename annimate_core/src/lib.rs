@@ -134,6 +134,9 @@ impl Storage {
         F: Fn(ImportStatusEvent),
         G: Fn() -> bool,
     {
+        on_status(ImportStatusEvent::Started);
+        error::cancel_if(&cancel_requested)?;
+
         let mut imported_corpus_names = Vec::new();
 
         let importable_corpora = import::find_importable_corpora(
@@ -386,7 +389,9 @@ impl Storage {
         G: Fn() -> bool,
         P: AsRef<Path>,
     {
+        on_status(ExportStatusEvent::Started);
         error::cancel_if(&cancel_requested)?;
+
         let anno_keys = AnnoKeys::new(
             &self.corpus_storage,
             &self.cache_storage,
@@ -504,6 +509,8 @@ pub struct ExportConfig {
     rename_all_fields = "camelCase"
 )]
 pub enum ExportStatusEvent {
+    /// Export was started.
+    Started,
     /// Corpora were found.
     Found {
         /// Number of corpora found.
@@ -523,6 +530,8 @@ pub enum ExportStatusEvent {
     rename_all_fields = "camelCase"
 )]
 pub enum ImportStatusEvent {
+    /// Import was started.
+    Started,
     /// Corpora were found
     CorporaFound {
         /// Found corpora.
