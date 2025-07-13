@@ -79,19 +79,39 @@ export const useQueryNodesQuery = (params: {
 }): UseSlowTrackingQueryResult<QueryNodesResult> =>
   useSlowTrackingQuery(queryNodesQueryConfig(params));
 
+const queryValidationResultQueryConfig = (params: {
+  aqlQuery: string;
+  queryLanguage: QueryLanguage;
+}) => ({
+  queryKey: [QUERY_KEY_QUERY_VALIDATION_RESULT, params],
+  queryFn: () => (params.aqlQuery === '' ? null : validateQuery(params)),
+  select: (result: QueryValidationResult | null) => result ?? undefined,
+  slowTracking: {
+    peerQueryKey: [QUERY_KEY_QUERY_VALIDATION_RESULT],
+    timeout: SLOW_TRACKING_TIMEOUT,
+  },
+});
+
 export const useQueryValidationResultQuery = (params: {
   aqlQuery: string;
   queryLanguage: QueryLanguage;
 }): UseSlowTrackingQueryResult<QueryValidationResult | undefined> =>
-  useSlowTrackingQuery({
-    queryKey: [QUERY_KEY_QUERY_VALIDATION_RESULT, params],
-    queryFn: () => (params.aqlQuery === '' ? null : validateQuery(params)),
-    select: (result) => result ?? undefined,
-    slowTracking: {
-      peerQueryKey: [QUERY_KEY_QUERY_VALIDATION_RESULT],
-      timeout: SLOW_TRACKING_TIMEOUT,
-    },
-  });
+  useSlowTrackingQuery(queryValidationResultQueryConfig(params));
+
+export const useGetQueryValidationResultQueryData = <
+  Wait extends boolean = true,
+>(
+  options: UseGetQueryDataOptions<Wait> = {},
+): ((params: {
+  aqlQuery: string;
+  queryLanguage: QueryLanguage;
+}) => QueryData<QueryValidationResult | undefined, Wait>) => {
+  const getQueryData = useGetQueryData<QueryValidationResult | undefined, Wait>(
+    options,
+  );
+  return (params: { aqlQuery: string; queryLanguage: QueryLanguage }) =>
+    getQueryData(queryValidationResultQueryConfig(params));
+};
 
 export const segmentationsQueryConfig = (params: {
   corpusNames: string[];

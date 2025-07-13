@@ -27,6 +27,7 @@ import {
   useGetCorporaQueryData,
   useGetExportableAnnoKeysQueryData,
   useGetQueryNodesQueryData,
+  useGetQueryValidationResultQueryData,
   useGetSegmentationsQueryData,
   useQueryNodesQuery,
   useQueryValidationResultQuery,
@@ -494,60 +495,150 @@ export const useGetExportFormat = (): (() => ExportFormat) => {
   return () => getState().exportFormat;
 };
 
-export const useCanExport = (): boolean => {
-  const selectedCorpusNames = useSelectedCorpusNamesInSelectedSet();
+export type ExportPreflight = {
+  spec: ExportSpec;
+} & (
+  | {
+      canExport: true;
+      impediments: undefined;
+    }
+  | {
+      canExport: false;
+      impediments: string[];
+    }
+);
+
+export const useExportPreflight = (): ExportPreflight => {
+  const corpusNames = useSelectedCorpusNamesInSelectedSet();
+  const aqlQuery = useAqlQuery();
+  const queryLanguage = useQueryLanguage();
   const { data: queryValidationResult } = useQueryValidationResult();
   const exportColumns = useExportColumnItems();
+  const exportFormat = useExportFormat();
 
-  return (
-    selectedCorpusNames.length > 0 &&
-    queryValidationResult?.type === 'valid' &&
-    exportColumns.length > 0 &&
-    exportColumns.every(isExportColumnValid)
+  return toExportPreflight(
+    corpusNames,
+    aqlQuery,
+    queryLanguage,
+    queryValidationResult,
+    exportColumns,
+    exportFormat,
   );
 };
 
-const isExportColumnValid = (exportColumn: ExportColumn): boolean => {
-  switch (exportColumn.type) {
-    case 'anno_corpus':
-    case 'anno_document':
-      return exportColumn.annoKey !== undefined;
-
-    case 'anno_match':
-      return (
-        exportColumn.annoKey !== undefined && exportColumn.nodeRef !== undefined
-      );
-
-    case 'match_in_context':
-      return (
-        !isNaN(exportColumn.context) &&
-        (exportColumn.contextRightOverride === undefined ||
-          !isNaN(exportColumn.contextRightOverride)) &&
-        exportColumn.segmentation !== undefined
-      );
-
-    default:
-      return true;
-  }
-};
-
-const useGetExportSpec = <Wait extends boolean = true>(
+const useGetExportPreflight = <Wait extends boolean = true>(
   options: UseGetQueryDataOptions<Wait> = {},
-): (() => Promise<ExportSpec>) => {
+): (() => Promise<ExportPreflight>) => {
   const getSelectedCorpusNamesInSelectedSet =
     useGetSelectedCorpusNamesInSelectedSet(options);
   const getAqlQuery = useGetAqlQuery();
+  const getQueryValidationResultQueryData =
+    useGetQueryValidationResultQueryData(options);
   const getQueryLanguage = useGetQueryLanguage();
   const getExportColumns = useGetExportColumns(options);
   const getExportFormat = useGetExportFormat();
 
-  return async () => ({
-    corpusNames: await getSelectedCorpusNamesInSelectedSet(),
-    aqlQuery: getAqlQuery(),
-    queryLanguage: getQueryLanguage(),
-    exportColumns: await getExportColumns(),
-    exportFormat: getExportFormat(),
+  return async () => {
+    const corpusNames = await getSelectedCorpusNamesInSelectedSet();
+    const aqlQuery = getAqlQuery();
+    const queryLanguage = getQueryLanguage();
+    const queryValidationResult = await getQueryValidationResultQueryData({
+      aqlQuery,
+      queryLanguage,
+    });
+    const exportColumns = await getExportColumns();
+    const exportFormat = getExportFormat();
+
+    return toExportPreflight(
+      corpusNames,
+      aqlQuery,
+      queryLanguage,
+      queryValidationResult,
+      exportColumns,
+      exportFormat,
+    );
+  };
+};
+
+const toExportPreflight = (
+  corpusNames: string[],
+  aqlQuery: string,
+  queryLanguage: QueryLanguage,
+  queryValidationResult: QueryValidationResult | undefined,
+  exportColumns: ExportColumn[],
+  exportFormat: ExportFormat,
+): ExportPreflight => {
+  const impediments: string[] = [];
+
+  if (corpusNames.length === 0) {
+    impediments.push('No corpus selected');
+  }
+
+  if (queryValidationResult === undefined) {
+    impediments.push('Query is empty');
+  } else if (queryValidationResult.type === 'invalid') {
+    impediments.push('Query is invalid');
+  }
+
+  if (exportColumns.length === 0) {
+    impediments.push('No columns defined');
+  }
+
+  exportColumns.forEach((column, index) => {
+    getExportColumnImpediments(column).forEach((impediment) => {
+      impediments.push(`Column ${index + 1}: ${impediment}`);
+    });
   });
+
+  return {
+    spec: {
+      corpusNames,
+      aqlQuery,
+      queryLanguage,
+      exportColumns,
+      exportFormat,
+    },
+    ...(impediments.length === 0
+      ? { canExport: true, impediments: undefined }
+      : { canExport: false, impediments }),
+  };
+};
+
+const getExportColumnImpediments = (exportColumn: ExportColumn): string[] => {
+  const impediments: string[] = [];
+
+  switch (exportColumn.type) {
+    case 'anno_corpus':
+    case 'anno_document':
+      if (exportColumn.annoKey === undefined) {
+        impediments.push('No meta annotation selected');
+      }
+      break;
+
+    case 'anno_match':
+      if (exportColumn.annoKey === undefined) {
+        impediments.push('No annotation selected');
+      }
+      if (exportColumn.nodeRef === undefined) {
+        impediments.push('No query node selected');
+      }
+      break;
+
+    case 'match_in_context':
+      if (exportColumn.segmentation === undefined) {
+        impediments.push('No segmentation selected');
+      }
+      if (
+        isNaN(exportColumn.context) ||
+        (exportColumn.contextRightOverride !== undefined &&
+          isNaN(exportColumn.contextRightOverride))
+      ) {
+        impediments.push('No context selected');
+      }
+      break;
+  }
+
+  return impediments;
 };
 
 // STATE SET
@@ -946,14 +1037,17 @@ export {
 
 export const useExportMatches = () => {
   const flushAqlQueryDebounce = useFlushAqlQueryDebounce();
-  const getExportSpec = useGetExportSpec();
+  const getExportPreflight = useGetExportPreflight();
 
   return useExportMatchesMutation(async () => {
     flushAqlQueryDebounce();
+    const { spec, canExport, impediments } = await getExportPreflight();
 
-    return {
-      spec: await getExportSpec(),
-    };
+    if (!canExport) {
+      throw new Error(impediments.join('\n'));
+    }
+
+    return { spec };
   });
 };
 
@@ -1043,12 +1137,14 @@ const sanitizeExportColumn = (exportColumn: ExportColumn): ExportColumn => {
 
 export const useSaveProject = () => {
   const getSelectedCorpusSet = useGetSelectedCorpusSet({ wait: false });
-  const getExportSpec = useGetExportSpec({ wait: false });
+  const getExportPreflight = useGetExportPreflight({ wait: false });
 
-  return useSaveProjectMutation(async () => ({
-    project: {
-      corpusSet: await getSelectedCorpusSet(),
-      spec: await getExportSpec(),
-    },
-  }));
+  return useSaveProjectMutation(async () => {
+    const corpusSet = await getSelectedCorpusSet();
+    const { spec } = await getExportPreflight();
+
+    return {
+      project: { corpusSet, spec },
+    };
+  });
 };

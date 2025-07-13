@@ -12,13 +12,14 @@ import {
 import { SlowTrackingQueryCache } from '@/lib/slow-queries';
 import {
   ExportColumnUpdate,
+  ExportPreflight,
   useAddExportColumn,
   useAqlQuery,
-  useCanExport,
   useCorpusNamesInSelectedSet,
   useExportColumnItems,
   useExportFormat,
   useExportMatches,
+  useExportPreflight,
   useIsExporting,
   useLoadProject,
   useQueryLanguage,
@@ -103,46 +104,60 @@ describe('store', () => {
       }
 
       case 'get_exportable_anno_keys': {
+        const { corpusNames } = payload as { corpusNames: string[] };
+        const hasCorpora = corpusNames.length > 0;
+
         return {
-          corpus: [
-            {
-              annoKey: ANNO_KEY_CORPUS,
-              displayName: 'corpus_name',
-            },
-          ],
-          doc: [
-            {
-              annoKey: ANNO_KEY_DOCUMENT,
-              displayName: 'document_name',
-            },
-          ],
-          node: [
-            {
-              annoKey: ANNO_KEY_NODE,
-              displayName: 'node_name',
-            },
-          ],
+          corpus: hasCorpora
+            ? [
+                {
+                  annoKey: ANNO_KEY_CORPUS,
+                  displayName: 'corpus_name',
+                },
+              ]
+            : [],
+          doc: hasCorpora
+            ? [
+                {
+                  annoKey: ANNO_KEY_DOCUMENT,
+                  displayName: 'document_name',
+                },
+              ]
+            : [],
+          node: hasCorpora
+            ? [
+                {
+                  annoKey: ANNO_KEY_NODE,
+                  displayName: 'node_name',
+                },
+              ]
+            : [],
         } satisfies ExportableAnnoKeys;
       }
 
       case 'get_query_nodes': {
-        const { aqlQuery } = payload as { aqlQuery: string };
+        const { aqlQuery, queryLanguage } = payload as {
+          aqlQuery: string;
+          queryLanguage: QueryLanguage;
+        };
 
         return {
           type: 'valid',
           nodes:
-            aqlQuery === ''
-              ? []
-              : [
+            aqlQuery === 'valid' ||
+            (aqlQuery === 'valid legacy' && queryLanguage === 'AQLQuirksV3')
+              ? [
                   [{ queryFragment: 'foo', variable: '1' }],
                   [{ queryFragment: 'bar', variable: '2' }],
-                ],
+                ]
+              : [],
         } satisfies QueryNodesResult;
       }
 
       case 'get_segmentations': {
         const { corpusNames } = payload as { corpusNames: string[] };
-        return corpusNames.length === 0 ? [] : ['segmentation', ''];
+        const hasCorpora = corpusNames.length > 0;
+        return hasCorpora ? ['segmentation', ''] : [];
       }
 
       case 'load_project': {
@@ -232,14 +247,12 @@ describe('store', () => {
   test('selecting corpus sets and corpora', async () => {
     const { result } = renderHook(
       () => ({
-        selectedCorpusSet: useSelectedCorpusSet(),
-        setSelectedCorpusSet: useSetSelectedCorpusSet(),
-
         corpusNames: useCorpusNamesInSelectedSet(),
         selectedCorpusNames: useSelectedCorpusNamesInSelectedSet(),
-
-        toggleCorpus: useToggleCorpus(),
+        selectedCorpusSet: useSelectedCorpusSet(),
+        setSelectedCorpusSet: useSetSelectedCorpusSet(),
         toggleAllCorpora: useToggleAllCorporaInSelectedSet(),
+        toggleCorpus: useToggleCorpus(),
       }),
       { wrapper: Wrapper },
     );
@@ -321,13 +334,13 @@ describe('store', () => {
   test('managing export columns', async () => {
     const { result } = renderHook(
       () => ({
-        exportColumns: useExportColumnItems(),
         addExportColumn: useAddExportColumn(),
-        updateExportColumn: useUpdateExportColumn(),
-        reorderExportColumn: useReorderExportColumns(),
+        exportColumns: useExportColumnItems(),
         removeExportColumn: useRemoveExportColumn(),
+        reorderExportColumn: useReorderExportColumns(),
         toggleCorpus: useToggleCorpus(),
         unremoveExportColumn: useUnremoveExportColumn(),
+        updateExportColumn: useUpdateExportColumn(),
       }),
       { wrapper: Wrapper },
     );
@@ -524,13 +537,15 @@ describe('store', () => {
   test('selecting anno_corpus export column data', async () => {
     const { result } = renderHook(
       () => ({
-        exportColumns: useExportColumnItems(),
         addExportColumn: useAddExportColumn(),
+        exportColumns: useExportColumnItems(),
+        toggleCorpus: useToggleCorpus(),
         updateExportColumn: useUpdateExportColumn(),
       }),
       { wrapper: Wrapper },
     );
 
+    result.current.toggleCorpus('a');
     result.current.addExportColumn('anno_corpus');
 
     await waitFor(() => {
@@ -576,13 +591,15 @@ describe('store', () => {
   test('selecting anno_document export column data', async () => {
     const { result } = renderHook(
       () => ({
-        exportColumns: useExportColumnItems(),
         addExportColumn: useAddExportColumn(),
+        exportColumns: useExportColumnItems(),
+        toggleCorpus: useToggleCorpus(),
         updateExportColumn: useUpdateExportColumn(),
       }),
       { wrapper: Wrapper },
     );
 
+    result.current.toggleCorpus('a');
     result.current.addExportColumn('anno_document');
 
     await waitFor(() => {
@@ -628,14 +645,16 @@ describe('store', () => {
   test('selecting anno_match export column data', async () => {
     const { result } = renderHook(
       () => ({
-        exportColumns: useExportColumnItems(),
         addExportColumn: useAddExportColumn(),
+        exportColumns: useExportColumnItems(),
         setAqlQuery: useSetAqlQuery(),
+        toggleCorpus: useToggleCorpus(),
         updateExportColumn: useUpdateExportColumn(),
       }),
       { wrapper: Wrapper },
     );
 
+    result.current.toggleCorpus('a');
     result.current.setAqlQuery('valid');
     result.current.addExportColumn('anno_match');
 
@@ -722,11 +741,11 @@ describe('store', () => {
   test('selecting match_in_context export column data', async () => {
     const { result } = renderHook(
       () => ({
-        exportColumns: useExportColumnItems(),
         addExportColumn: useAddExportColumn(),
-        updateExportColumn: useUpdateExportColumn(),
+        exportColumns: useExportColumnItems(),
         setAqlQuery: useSetAqlQuery(),
         toggleCorpus: useToggleCorpus(),
+        updateExportColumn: useUpdateExportColumn(),
       }),
       { wrapper: Wrapper },
     );
@@ -925,90 +944,122 @@ describe('store', () => {
     });
   });
 
+  type PreflightTestCase = {
+    description: string;
+    change: (c: ChangeContext) => void;
+    expectedPreflight: Partial<ExportPreflight>;
+  };
+
   type ChangeContext = {
+    addExportColumn: (type: ExportColumnType) => void;
+    removeExportColumn: (id: number) => void;
+    setAqlQuery: (aqlQuery: string) => void;
     setSelectedCorpusSet: (corpusSet: string) => void;
     toggleCorpus: (corpusName: string) => void;
-    setAqlQuery: (aqlQuery: string) => void;
-    addExportColumn: (type: ExportColumnType) => void;
     updateExportColumn: (id: number, update: ExportColumnUpdate) => void;
   };
 
-  const allChanges: ((c: ChangeContext) => void)[] = [
-    (c) => c.setSelectedCorpusSet('set1'),
-    (c) => c.toggleCorpus('a'),
-    (c) => c.setAqlQuery('valid'),
-    (c) => c.addExportColumn('anno_corpus'),
-    (c) =>
-      c.updateExportColumn(3, {
-        type: 'anno_corpus',
-        payload: {
-          type: 'update_anno_key',
-          annoKey: ANNO_KEY_CORPUS,
-        },
-      }),
-    (c) => c.addExportColumn('anno_document'),
-    (c) =>
-      c.updateExportColumn(4, {
-        type: 'anno_document',
-        payload: {
-          type: 'update_anno_key',
-          annoKey: ANNO_KEY_DOCUMENT,
-        },
-      }),
-    (c) => c.addExportColumn('anno_match'),
-    (c) =>
-      c.updateExportColumn(5, {
-        type: 'anno_match',
-        payload: {
-          type: 'update_anno_key',
-          annoKey: ANNO_KEY_NODE,
-        },
-      }),
-    (c) =>
-      c.updateExportColumn(5, {
-        type: 'anno_match',
-        payload: {
-          type: 'update_node_ref',
-          nodeRef: { index: 0, variables: ['1'] },
-        },
-      }),
-    (c) => c.addExportColumn('match_in_context'),
-    (c) =>
-      c.updateExportColumn(6, {
-        type: 'match_in_context',
-        payload: {
-          type: 'update_segmentation',
-          segmentation: 'segmentation',
-        },
-      }),
+  const preflightTestCases: PreflightTestCase[] = [
+    {
+      description: 'can export',
+      change: () => {},
+      expectedPreflight: {
+        canExport: true,
+        impediments: undefined,
+      },
+    },
+    {
+      description: 'cannot export (no corpus selected)',
+      change: (c) => c.toggleCorpus('a'),
+      expectedPreflight: {
+        canExport: false,
+        impediments: [
+          'No corpus selected',
+          'Column 2: No segmentation selected',
+          'Column 3: No meta annotation selected',
+          'Column 4: No meta annotation selected',
+          'Column 5: No annotation selected',
+        ],
+      },
+    },
+    {
+      description: 'cannot export (empty query)',
+      change: (c) => c.setAqlQuery(''),
+      expectedPreflight: {
+        canExport: false,
+        impediments: ['Query is empty', 'Column 5: No query node selected'],
+      },
+    },
+    {
+      description: 'cannot export (invalid query)',
+      change: (c) => c.setAqlQuery('invalid'),
+      expectedPreflight: {
+        canExport: false,
+        impediments: ['Query is invalid', 'Column 5: No query node selected'],
+      },
+    },
+    {
+      description: 'cannot export (no columns)',
+      change: (c) => {
+        c.removeExportColumn(1);
+        c.removeExportColumn(2);
+        c.removeExportColumn(3);
+        c.removeExportColumn(4);
+        c.removeExportColumn(5);
+      },
+      expectedPreflight: {
+        canExport: false,
+        impediments: ['No columns defined'],
+      },
+    },
+    {
+      description: 'cannot export (no left context)',
+      change: (c) => {
+        c.updateExportColumn(2, {
+          type: 'match_in_context',
+          payload: {
+            type: 'update_context',
+            context: NaN,
+          },
+        });
+      },
+      expectedPreflight: {
+        canExport: false,
+        impediments: ['Column 2: No context selected'],
+      },
+    },
+    {
+      description: 'cannot export (no right context)',
+      change: (c) => {
+        c.updateExportColumn(2, {
+          type: 'match_in_context',
+          payload: {
+            type: 'update_context_right_override',
+            contextRightOverride: NaN,
+          },
+        });
+      },
+      expectedPreflight: {
+        canExport: false,
+        impediments: ['Column 2: No context selected'],
+      },
+    },
   ];
 
-  test.each([
-    {
-      description: 'all changes',
-      changes: allChanges,
-      expectCanExport: true,
-    },
-    ...allChanges.map((_, i) => ({
-      description: `all changes except #${i + 1}`,
-      changes: allChanges.filter((_, j) => j !== i),
-      expectCanExport: false,
-    })),
-  ])(
-    'checking if export is possible ($description -> $expectCanExport)',
-    async ({ changes, expectCanExport }) => {
+  test.each(preflightTestCases)(
+    'export preflight ($description)',
+    async ({ change, expectedPreflight }) => {
       const { result } = renderHook(
         () => ({
-          setSelectedCorpusSet: useSetSelectedCorpusSet(),
-          corpusNames: useCorpusNamesInSelectedSet(),
-          toggleCorpus: useToggleCorpus(),
-
-          setAqlQuery: useSetAqlQuery(),
-
           addExportColumn: useAddExportColumn(),
+          corpusNames: useCorpusNamesInSelectedSet(),
+          exportPreflight: useExportPreflight(),
+          removeExportColumn: useRemoveExportColumn(),
+          setAqlQuery: useSetAqlQuery(),
+          setQueryLanguage: useSetQueryLanguage(),
+          setSelectedCorpusSet: useSetSelectedCorpusSet(),
+          toggleCorpus: useToggleCorpus(),
           updateExportColumn: useUpdateExportColumn(),
-
-          canExport: useCanExport(),
         }),
         { wrapper: Wrapper },
       );
@@ -1017,11 +1068,53 @@ describe('store', () => {
         expect(result.current.corpusNames.isSuccess).toBe(true);
       });
 
-      result.current.toggleCorpus('c');
-      changes.forEach((c) => c(result.current));
+      result.current.toggleCorpus('a');
+      result.current.setAqlQuery('valid');
+      result.current.updateExportColumn(2, {
+        type: 'match_in_context',
+        payload: {
+          type: 'update_segmentation',
+          segmentation: 'segmentation',
+        },
+      });
+      result.current.addExportColumn('anno_corpus');
+      result.current.updateExportColumn(3, {
+        type: 'anno_corpus',
+        payload: {
+          type: 'update_anno_key',
+          annoKey: ANNO_KEY_CORPUS,
+        },
+      });
+      result.current.addExportColumn('anno_document');
+      result.current.updateExportColumn(4, {
+        type: 'anno_document',
+        payload: {
+          type: 'update_anno_key',
+          annoKey: ANNO_KEY_DOCUMENT,
+        },
+      });
+      result.current.addExportColumn('anno_match');
+      result.current.updateExportColumn(5, {
+        type: 'anno_match',
+        payload: {
+          type: 'update_anno_key',
+          annoKey: ANNO_KEY_NODE,
+        },
+      });
+      result.current.updateExportColumn(5, {
+        type: 'anno_match',
+        payload: {
+          type: 'update_node_ref',
+          nodeRef: { index: 0, variables: ['1'] },
+        },
+      });
+
+      change(result.current);
 
       await waitFor(() => {
-        expect(result.current.canExport).toBe(expectCanExport);
+        expect(result.current.exportPreflight).toEqual(
+          expect.objectContaining(expectedPreflight),
+        );
       });
     },
   );
@@ -1029,21 +1122,17 @@ describe('store', () => {
   test('exporting matches', async () => {
     const { result } = renderHook(
       () => ({
-        setSelectedCorpusSet: useSetSelectedCorpusSet(),
-        corpusNames: useCorpusNamesInSelectedSet(),
-        toggleCorpus: useToggleCorpus(),
-
-        setAqlQuery: useSetAqlQuery(),
-        setQueryLanguage: useSetQueryLanguage(),
-
         addExportColumn: useAddExportColumn(),
-        updateExportColumn: useUpdateExportColumn(),
-
-        setExportFormat: useSetExportFormat(),
-
-        canExport: useCanExport(),
+        canExport: useExportPreflight().canExport,
+        corpusNames: useCorpusNamesInSelectedSet(),
         exportMatches: useExportMatches(),
         isExporting: useIsExporting(),
+        setAqlQuery: useSetAqlQuery(),
+        setExportFormat: useSetExportFormat(),
+        setQueryLanguage: useSetQueryLanguage(),
+        setSelectedCorpusSet: useSetSelectedCorpusSet(),
+        toggleCorpus: useToggleCorpus(),
+        updateExportColumn: useUpdateExportColumn(),
       }),
       { wrapper: Wrapper },
     );
@@ -1155,16 +1244,15 @@ describe('store', () => {
   test('loading a project', async () => {
     const { result } = renderHook(
       () => ({
-        corpusNames: useCorpusNamesInSelectedSet(),
-        selectedCorpusSet: useSelectedCorpusSet(),
-        selectedCorpusNames: useSelectedCorpusNamesInSelectedSet(),
         aqlQuery: useAqlQuery(),
-        queryLanguage: useQueryLanguage(),
+        canExport: useExportPreflight().canExport,
+        corpusNames: useCorpusNamesInSelectedSet(),
         exportColumns: useExportColumnItems(),
         exportFormat: useExportFormat(),
-        canExport: useCanExport(),
-
         loadProject: useLoadProject(),
+        queryLanguage: useQueryLanguage(),
+        selectedCorpusNames: useSelectedCorpusNamesInSelectedSet(),
+        selectedCorpusSet: useSelectedCorpusSet(),
       }),
       { wrapper: Wrapper },
     );
@@ -1216,18 +1304,16 @@ describe('store', () => {
   test('saving a project', async () => {
     const { result } = renderHook(
       () => ({
+        addExportColumn: useAddExportColumn(),
+        canExport: useExportPreflight().canExport,
         corpusNames: useCorpusNamesInSelectedSet(),
-        canExport: useCanExport(),
-
+        saveProject: useSaveProject(),
+        setAqlQuery: useSetAqlQuery(),
+        setExportFormat: useSetExportFormat(),
+        setQueryLanguage: useSetQueryLanguage(),
         setSelectedCorpusSet: useSetSelectedCorpusSet(),
         toggleCorpus: useToggleCorpus(),
-        setAqlQuery: useSetAqlQuery(),
-        setQueryLanguage: useSetQueryLanguage(),
-        addExportColumn: useAddExportColumn(),
         updateExportColumn: useUpdateExportColumn(),
-        setExportFormat: useSetExportFormat(),
-
-        saveProject: useSaveProject(),
       }),
       { wrapper: Wrapper },
     );

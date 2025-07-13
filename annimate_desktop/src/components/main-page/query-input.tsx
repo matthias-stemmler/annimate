@@ -1,3 +1,4 @@
+import { Button } from '@/components/ui/button';
 import { Select } from '@/components/ui/custom/select';
 import { Spinner } from '@/components/ui/custom/spinner';
 import { Label } from '@/components/ui/label';
@@ -90,6 +91,7 @@ export const QueryInput: FC = () => {
             open={disabled ? false : undefined}
           >
             <TooltipTrigger
+              asChild
               className="absolute top-2 right-2 disabled:cursor-not-allowed disabled:opacity-70"
               disabled={disabled}
               onMouseDown={(event) => {
@@ -120,7 +122,13 @@ export const QueryInput: FC = () => {
                 }
               }}
             >
-              <StatusIcon status={status} />
+              <Button
+                className="size-6 hover:bg-inherit"
+                size="icon"
+                variant="ghost"
+              >
+                <StatusIcon className="size-full" status={status} />
+              </Button>
             </TooltipTrigger>
 
             <TooltipContent className="max-w-[80vw]">
@@ -134,19 +142,20 @@ export const QueryInput: FC = () => {
 };
 
 type StatusIconProps = {
+  className?: string;
   status: QueryValidationResult['type'] | 'validating';
 };
 
-const StatusIcon: FC<StatusIconProps> = ({ status }) => {
+const StatusIcon: FC<StatusIconProps> = (props) => {
   const [Icon, className] = (
     {
       valid: [CheckSquare2, 'text-green-700'],
       invalid: [XSquare, 'text-destructive'],
       validating: [Spinner],
     } as const
-  )[status];
+  )[props.status];
 
-  return <Icon className={className} />;
+  return <Icon className={cn(className, props.className)} />;
 };
 
 type ValidationResultDisplayProps = {

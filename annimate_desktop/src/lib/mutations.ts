@@ -31,7 +31,14 @@ import {
 } from '@tanstack/react-query';
 import { useCallback, useRef, useState } from 'react';
 
-export type CancellableOperationError = Error & { cancelled: boolean };
+export class CancellableOperationError extends Error {
+  cancelled: boolean;
+
+  constructor(message?: string, cancelled: boolean = true) {
+    super(message);
+    this.cancelled = cancelled;
+  }
+}
 
 const MUTATION_KEY_EXPORT_MATCHES = 'export-matches';
 
@@ -168,7 +175,12 @@ export const useExportMatchesMutation = (
     { outputFile: string }
   >({
     mutationFn: async (args) => {
-      const params = await getParams();
+      const params = await getParams().catch((error) => {
+        throw new CancellableOperationError(
+          error.message,
+          cancelRequestedRef.current,
+        );
+      });
 
       return exportMatches(
         { ...params, ...args },
