@@ -12,7 +12,7 @@ on:
 env:
   RUSTFLAGS: --deny warnings
   # renovate: datasource=crate versioning=semver-coerced depName=mdbook
-  VERSION_MDBOOK: 0.4.51
+  VERSION_MDBOOK: 0.4.52
 
 jobs:
   build-user-guide:
