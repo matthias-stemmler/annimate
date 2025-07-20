@@ -4,8 +4,9 @@
 #![deny(missing_docs)]
 
 mod api;
+mod async_util;
 mod error;
-mod slot;
+mod preload;
 mod state;
 
 use std::env;
@@ -64,6 +65,7 @@ fn main() {
             api::load_project,
             api::rename_corpus_set,
             api::save_project,
+            api::set_corpus_names_to_preload,
             api::toggle_corpus_in_set,
             api::validate_query
         ])

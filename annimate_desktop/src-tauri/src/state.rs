@@ -6,24 +6,32 @@ use annimate_core::Storage;
 use tauri::path::BaseDirectory;
 use tauri::{AppHandle, Manager};
 
+use crate::async_util::Slot;
 use crate::error::Error;
-use crate::slot::Slot;
+use crate::preload::Preloader;
 
 #[derive(Default)]
 pub(crate) struct AppState {
     pub(crate) db_dir_slot: Arc<Slot<Result<PathBuf, Error>>>,
+    pub(crate) preloader_slot: Arc<Slot<Result<Arc<Preloader>, Error>>>,
     pub(crate) storage_slot: Arc<Slot<Result<Arc<Storage>, Error>>>,
 }
 
 impl AppState {
     pub(crate) fn init(&self, app_handle: AppHandle) {
         let db_dir_slot = Arc::clone(&self.db_dir_slot);
+        let preloader_slot = Arc::clone(&self.preloader_slot);
         let storage_slot = Arc::clone(&self.storage_slot);
 
         tauri::async_runtime::spawn_blocking(move || {
             let db_dir = get_db_dir(&app_handle);
             db_dir_slot.set(db_dir.clone());
-            storage_slot.set(db_dir.and_then(create_storage).map(Arc::new));
+
+            let storage = db_dir.and_then(create_storage).map(Arc::new);
+            storage_slot.set(storage.clone());
+
+            let preloader = storage.map(Preloader::new).map(Arc::new);
+            preloader_slot.set(preloader);
         });
     }
 }

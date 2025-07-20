@@ -905,6 +905,12 @@ export const saveProject = async (params: {
   logAction('Save project', COLOR_CUSTOM_COMMAND, params);
 };
 
+export const setCorpusNamesToPreload = async (params: {
+  corpusNames: string[];
+}): Promise<void> => {
+  logAction('Set corpus names to preload', COLOR_CUSTOM_COMMAND, params);
+};
+
 export const toggleCorpusInSet = async (params: {
   corpusSet: string;
   corpusName: string;

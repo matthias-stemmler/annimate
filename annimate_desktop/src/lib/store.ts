@@ -16,9 +16,13 @@ import {
   QueryValidationResult,
 } from '@/lib/api-types';
 import {
+  useDeleteCorpusMutation,
+  useDeleteCorpusSetMutation,
   useExportMatchesMutation,
   useLoadProjectMutation,
+  useRenameCorpusSetMutation,
   useSaveProjectMutation,
+  useSetCorpusNamesToPreloadMutation,
 } from '@/lib/mutations';
 import {
   UseGetQueryDataOptions,
@@ -245,11 +249,13 @@ const useGetSelectedCorpusNamesInSelectedSet = <Wait extends boolean = true>(
   options: UseGetQueryDataOptions<Wait> = {},
 ): (() => Promise<string[]>) => {
   const getCorporaQueryData = useGetCorporaQueryData(options);
+  const getSelectedCorpusSet = useGetSelectedCorpusSet();
   const getState = useGetState();
 
   return async () => {
     const corporaQueryData = await getCorporaQueryData();
-    const { selectedCorpusNames, selectedCorpusSet } = getState();
+    const selectedCorpusSet = await getSelectedCorpusSet();
+    const { selectedCorpusNames } = getState();
 
     return toSelectedCorpusNamesInSet(
       corporaQueryData?.corpora,
@@ -643,23 +649,29 @@ const getExportColumnImpediments = (exportColumn: ExportColumn): string[] => {
 
 // STATE SET
 
-export const useSetSelectedCorpusSet = (): ((corpusSet: string) => void) => {
+export const useSetSelectedCorpusSet = (): ((
+  corpusSet: string,
+) => Promise<void>) => {
   const setState = useSetState();
+  const updateCorpusNamesToPreload = useUpdateCorpusNamesToPreload();
 
-  return (corpusSet: string) =>
+  return async (corpusSet: string) => {
     setState({
       selectedCorpusSet: corpusSet,
     });
+    await updateCorpusNamesToPreload();
+  };
 };
 
 export const useToggleCorpus = (): ((corpusName: string) => Promise<void>) => {
   const getCorporaQueryData = useGetCorporaQueryData();
   const setState = useSetState();
+  const updateCorpusNamesToPreload = useUpdateCorpusNamesToPreload();
 
   return async (corpusName: string) => {
     const { corpora } = await getCorporaQueryData();
 
-    return setState((state) => ({
+    setState((state) => ({
       selectedCorpusNames: corpora
         .filter(
           ({ name }) =>
@@ -667,12 +679,15 @@ export const useToggleCorpus = (): ((corpusName: string) => Promise<void>) => {
         )
         .map((c) => c.name),
     }));
+
+    await updateCorpusNamesToPreload();
   };
 };
 
 export const useToggleAllCorporaInSelectedSet = (): (() => Promise<void>) => {
   const getCorporaQueryData = useGetCorporaQueryData();
   const setState = useSetState();
+  const updateCorpusNamesToPreload = useUpdateCorpusNamesToPreload();
 
   return async () => {
     const { corpora } = await getCorporaQueryData();
@@ -701,6 +716,8 @@ export const useToggleAllCorporaInSelectedSet = (): (() => Promise<void>) => {
           .map((c) => c.name),
       };
     });
+
+    await updateCorpusNamesToPreload();
   };
 };
 
@@ -1027,13 +1044,26 @@ export {
   useAddCorporaToSetMutation as useAddCorporaToSet,
   useApplyAppUpdateMutation as useApplyAppUpdate,
   useCreateCorpusSetMutation as useCreateCorpusSet,
-  useDeleteCorpusMutation as useDeleteCorpus,
-  useDeleteCorpusSetMutation as useDeleteCorpusSet,
   useImportCorporaMutation as useImportCorpora,
   useIsExporting,
-  useRenameCorpusSetMutation as useRenameCorpusSet,
   useToggleCorpusInSetMutation as useToggleCorpusInSet,
 } from '@/lib/mutations';
+
+export const useDeleteCorpus = () => {
+  const updateCorpusNamesToPreload = useUpdateCorpusNamesToPreload();
+
+  return useDeleteCorpusMutation({
+    onSuccess: () => updateCorpusNamesToPreload(),
+  });
+};
+
+export const useDeleteCorpusSet = () => {
+  const updateCorpusNamesToPreload = useUpdateCorpusNamesToPreload();
+
+  return useDeleteCorpusSetMutation({
+    onSettled: () => updateCorpusNamesToPreload(),
+  });
+};
 
 export const useExportMatches = () => {
   const flushAqlQueryDebounce = useFlushAqlQueryDebounce();
@@ -1059,6 +1089,7 @@ type LoadProjectResult = {
 export const useLoadProject = () => {
   const getCorporaQueryData = useGetCorporaQueryData();
   const setState = useSetState();
+  const updateCorpusNamesToPreload = useUpdateCorpusNamesToPreload();
 
   return useLoadProjectMutation(
     async ({ project }): Promise<LoadProjectResult> => {
@@ -1106,6 +1137,8 @@ export const useLoadProject = () => {
         };
       });
 
+      await updateCorpusNamesToPreload();
+
       return {
         corpusSet: project.corpusSet,
         missingCorpusNames,
@@ -1135,6 +1168,21 @@ const sanitizeExportColumn = (exportColumn: ExportColumn): ExportColumn => {
   return exportColumn;
 };
 
+export const useRenameCorpusSet = () => {
+  const setState = useSetState();
+
+  return useRenameCorpusSetMutation({
+    onSuccess: async (args) => {
+      setState((state) => ({
+        selectedCorpusSet:
+          state.selectedCorpusSet === args.corpusSet
+            ? args.newCorpusSet
+            : state.selectedCorpusSet,
+      }));
+    },
+  });
+};
+
 export const useSaveProject = () => {
   const getSelectedCorpusSet = useGetSelectedCorpusSet({ wait: false });
   const getExportPreflight = useGetExportPreflight({ wait: false });
@@ -1147,4 +1195,15 @@ export const useSaveProject = () => {
       project: { corpusSet, spec },
     };
   });
+};
+
+const useUpdateCorpusNamesToPreload = () => {
+  const getSelectedCorpusNamesInSelectedSet =
+    useGetSelectedCorpusNamesInSelectedSet();
+  const { mutation } = useSetCorpusNamesToPreloadMutation();
+
+  return async () =>
+    mutation.mutate({
+      corpusNames: await getSelectedCorpusNamesInSelectedSet(),
+    });
 };

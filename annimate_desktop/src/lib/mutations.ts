@@ -11,6 +11,7 @@ import {
   relaunch,
   renameCorpusSet,
   saveProject,
+  setCorpusNamesToPreload,
   toggleCorpusInSet,
 } from '@/lib/api';
 import {
@@ -131,28 +132,34 @@ export const useCreateCorpusSetMutation = () => {
   return { mutation };
 };
 
-export const useDeleteCorpusMutation = () => {
+export const useDeleteCorpusMutation = ({
+  onSuccess,
+}: { onSuccess?: () => Promise<void> } = {}) => {
   const queryClient = useQueryClient();
 
   const mutation = useMutation({
     mutationFn: (args: { corpusName: string }) => deleteCorpus(args),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [QUERY_KEY_CORPORA] });
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: [QUERY_KEY_CORPORA] });
+      await onSuccess?.();
     },
   });
 
   return { mutation };
 };
 
-export const useDeleteCorpusSetMutation = () => {
+export const useDeleteCorpusSetMutation = ({
+  onSettled,
+}: { onSettled?: () => Promise<void> } = {}) => {
   const queryClient = useQueryClient();
 
   const mutation = useMutation({
     mutationFn: (args: { corpusSet: string; deleteCorpora: boolean }) =>
       deleteCorpusSet(args),
-    // Also invalide query on error because a subset of the corpora may have been deleted
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: [QUERY_KEY_CORPORA] });
+    // Also invalidate query on error because a subset of the corpora may have been deleted
+    onSettled: async () => {
+      await queryClient.invalidateQueries({ queryKey: [QUERY_KEY_CORPORA] });
+      await onSettled?.();
     },
   });
 
@@ -387,15 +394,32 @@ export const useLoadProjectMutation = <T>(
   return { mutation };
 };
 
-export const useRenameCorpusSetMutation = () => {
+export const useRenameCorpusSetMutation = ({
+  onSuccess,
+}: {
+  onSuccess?: (args: {
+    corpusSet: string;
+    newCorpusSet: string;
+  }) => Promise<void>;
+} = {}) => {
   const queryClient = useQueryClient();
 
   const mutation = useMutation({
     mutationFn: (args: { corpusSet: string; newCorpusSet: string }) =>
       renameCorpusSet(args),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [QUERY_KEY_CORPORA] });
+    onSuccess: async (_data, variables) => {
+      await queryClient.invalidateQueries({ queryKey: [QUERY_KEY_CORPORA] });
+      await onSuccess?.(variables);
     },
+  });
+
+  return { mutation };
+};
+
+export const useSetCorpusNamesToPreloadMutation = () => {
+  const mutation = useMutation({
+    mutationFn: (args: { corpusNames: string[] }) =>
+      setCorpusNamesToPreload(args),
   });
 
   return { mutation };
