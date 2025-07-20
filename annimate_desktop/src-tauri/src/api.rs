@@ -24,8 +24,7 @@ pub(crate) async fn add_corpora_to_set(
     corpus_set: String,
     corpus_names: Vec<String>,
 ) -> Result<(), Error> {
-    let mut subscription = state.storage_slot.subscribe();
-    let storage = subscription.wait().await.clone()?;
+    let storage = state.storage_slot.subscribe().wait().await.clone()?;
 
     tauri::async_runtime::spawn_blocking(move || {
         Ok(storage.add_corpora_to_set(corpus_set, &corpus_names)?)
@@ -38,9 +37,7 @@ pub(crate) async fn create_corpus_set(
     state: tauri::State<'_, AppState>,
     corpus_set: String,
 ) -> Result<(), Error> {
-    let mut subscription = state.storage_slot.subscribe();
-    let storage = subscription.wait().await.clone()?;
-
+    let storage = state.storage_slot.subscribe().wait().await.clone()?;
     tauri::async_runtime::spawn_blocking(move || Ok(storage.create_corpus_set(corpus_set)?)).await?
 }
 
@@ -49,9 +46,7 @@ pub(crate) async fn delete_corpus(
     state: tauri::State<'_, AppState>,
     corpus_name: String,
 ) -> Result<(), Error> {
-    let mut subscription = state.storage_slot.subscribe();
-    let storage = subscription.wait().await.clone()?;
-
+    let storage = state.storage_slot.subscribe().wait().await.clone()?;
     tauri::async_runtime::spawn_blocking(move || Ok(storage.delete_corpus(&corpus_name)?)).await?
 }
 
@@ -61,8 +56,7 @@ pub(crate) async fn delete_corpus_set(
     corpus_set: String,
     delete_corpora: bool,
 ) -> Result<(), Error> {
-    let mut subscription = state.storage_slot.subscribe();
-    let storage = subscription.wait().await.clone()?;
+    let storage = state.storage_slot.subscribe().wait().await.clone()?;
 
     tauri::async_runtime::spawn_blocking(move || {
         Ok(storage.delete_corpus_set(corpus_set, delete_corpora)?)
@@ -78,8 +72,11 @@ pub(crate) async fn export_matches(
     spec: ExportSpec,
     output_file: PathBuf,
 ) -> Result<(), Error> {
-    let mut subscription = state.storage_slot.subscribe();
-    let storage = subscription.wait().await.clone()?;
+    // Suspend preloading to avoid slowdown due to parallel loads
+    let preloader = state.preloader_slot.subscribe().wait().await.clone()?;
+    let _guard = preloader.suspend();
+
+    let storage = state.storage_slot.subscribe().wait().await.clone()?;
 
     tauri::async_runtime::spawn_blocking(move || {
         let cancel_requested = Arc::new(AtomicBool::new(false));
@@ -112,17 +109,13 @@ pub(crate) async fn export_matches(
 
 #[tauri::command]
 pub(crate) async fn get_corpora(state: tauri::State<'_, AppState>) -> Result<Corpora, Error> {
-    let mut subscription = state.storage_slot.subscribe();
-    let storage = subscription.wait().await.clone()?;
-
+    let storage = state.storage_slot.subscribe().wait().await.clone()?;
     tauri::async_runtime::spawn_blocking(move || Ok(storage.corpora()?)).await?
 }
 
 #[tauri::command]
 pub(crate) async fn get_db_dir(state: tauri::State<'_, AppState>) -> Result<PathBuf, Error> {
-    let mut subscription = state.db_dir_slot.subscribe();
-    let db_dir = subscription.wait().await.clone()?;
-
+    let db_dir = state.db_dir_slot.subscribe().wait().await.clone()?;
     Ok(db_dir)
 }
 
@@ -131,8 +124,11 @@ pub(crate) async fn get_exportable_anno_keys(
     state: tauri::State<'_, AppState>,
     corpus_names: Vec<String>,
 ) -> Result<ExportableAnnoKeys, Error> {
-    let mut subscription = state.storage_slot.subscribe();
-    let storage = subscription.wait().await.clone()?;
+    // Suspend preloading to avoid slowdown due to parallel loads (in case of cache miss)
+    let preloader = state.preloader_slot.subscribe().wait().await.clone()?;
+    let _guard = preloader.suspend();
+
+    let storage = state.storage_slot.subscribe().wait().await.clone()?;
 
     tauri::async_runtime::spawn_blocking(move || Ok(storage.exportable_anno_keys(&corpus_names)?))
         .await?
@@ -144,8 +140,7 @@ pub(crate) async fn get_query_nodes(
     aql_query: String,
     query_language: QueryLanguage,
 ) -> Result<QueryAnalysisResult<QueryNodes>, Error> {
-    let mut subscription = state.storage_slot.subscribe();
-    let storage = subscription.wait().await.clone()?;
+    let storage = state.storage_slot.subscribe().wait().await.clone()?;
 
     tauri::async_runtime::spawn_blocking(move || {
         Ok(storage.query_nodes(&aql_query, query_language)?)
@@ -158,8 +153,11 @@ pub(crate) async fn get_segmentations(
     state: tauri::State<'_, AppState>,
     corpus_names: Vec<String>,
 ) -> Result<Vec<String>, Error> {
-    let mut subscription = state.storage_slot.subscribe();
-    let storage = subscription.wait().await.clone()?;
+    // Suspend preloading to avoid slowdown due to parallel loads (in case of cache miss)
+    let preloader = state.preloader_slot.subscribe().wait().await.clone()?;
+    let _guard = preloader.suspend();
+
+    let storage = state.storage_slot.subscribe().wait().await.clone()?;
 
     tauri::async_runtime::spawn_blocking(move || {
         if corpus_names.is_empty() {
@@ -180,8 +178,11 @@ pub(crate) async fn import_corpora(
     window: Window,
     paths: Vec<PathBuf>,
 ) -> Result<Vec<String>, Error> {
-    let mut subscription = state.storage_slot.subscribe();
-    let storage = subscription.wait().await.clone()?;
+    // Suspend preloading to avoid slowdown due to parallel loads
+    let preloader = state.preloader_slot.subscribe().wait().await.clone()?;
+    let _guard = preloader.suspend();
+
+    let storage = state.storage_slot.subscribe().wait().await.clone()?;
 
     tauri::async_runtime::spawn_blocking(move || {
         let cancel_requested = Arc::new(AtomicBool::new(false));
@@ -220,8 +221,7 @@ pub(crate) async fn load_project(
         tauri::async_runtime::spawn_blocking(|| annimate_core::load_project(input_file)).await??;
 
     let query_nodes: Vec<Vec<QueryNode>> = {
-        let mut subscription = state.storage_slot.subscribe();
-        let storage = subscription.wait().await.clone()?;
+        let storage = state.storage_slot.subscribe().wait().await.clone()?;
 
         storage
             .query_nodes(&project.aql_query, project.query_language)?
@@ -323,8 +323,7 @@ pub(crate) async fn rename_corpus_set(
     corpus_set: String,
     new_corpus_set: String,
 ) -> Result<(), Error> {
-    let mut subscription = state.storage_slot.subscribe();
-    let storage = subscription.wait().await.clone()?;
+    let storage = state.storage_slot.subscribe().wait().await.clone()?;
 
     tauri::async_runtime::spawn_blocking(move || {
         Ok(storage.rename_corpus_set(&corpus_set, new_corpus_set)?)
@@ -396,13 +395,23 @@ pub(crate) async fn save_project(project: Project, output_file: PathBuf) -> Resu
 }
 
 #[tauri::command]
+pub(crate) async fn set_corpus_names_to_preload(
+    state: tauri::State<'_, AppState>,
+    corpus_names: Vec<String>,
+) -> Result<(), Error> {
+    let preloader = state.preloader_slot.subscribe().wait().await.clone()?;
+    preloader.set_corpus_names_to_preload(corpus_names).await;
+
+    Ok(())
+}
+
+#[tauri::command]
 pub(crate) async fn toggle_corpus_in_set(
     state: tauri::State<'_, AppState>,
     corpus_set: String,
     corpus_name: String,
 ) -> Result<(), Error> {
-    let mut subscription = state.storage_slot.subscribe();
-    let storage = subscription.wait().await.clone()?;
+    let storage = state.storage_slot.subscribe().wait().await.clone()?;
 
     tauri::async_runtime::spawn_blocking(move || {
         Ok(storage.toggle_corpus_in_set(&corpus_set, &corpus_name)?)
@@ -416,8 +425,7 @@ pub(crate) async fn validate_query(
     aql_query: String,
     query_language: QueryLanguage,
 ) -> Result<QueryAnalysisResult<()>, Error> {
-    let mut subscription = state.storage_slot.subscribe();
-    let storage = subscription.wait().await.clone()?;
+    let storage = state.storage_slot.subscribe().wait().await.clone()?;
 
     tauri::async_runtime::spawn_blocking(move || {
         Ok(storage.validate_query(&aql_query, query_language)?)

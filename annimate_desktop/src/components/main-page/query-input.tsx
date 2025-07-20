@@ -86,10 +86,7 @@ export const QueryInput: FC = () => {
         />
 
         {status !== undefined && (
-          <Tooltip
-            delayDuration={isValid ? undefined : 0}
-            open={disabled ? false : undefined}
-          >
+          <Tooltip delayDuration={isValid ? undefined : 0}>
             <TooltipTrigger
               asChild
               className="absolute top-2 right-2 disabled:cursor-not-allowed disabled:opacity-70"

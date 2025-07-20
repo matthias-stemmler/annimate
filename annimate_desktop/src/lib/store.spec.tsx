@@ -78,6 +78,7 @@ describe('store', () => {
 
   const exportMatchesSpy = vi.fn();
   const saveProjectSpy = vi.fn();
+  const setCorpusNamesToPreloadSpy = vi.fn();
 
   const commandHandler = async (
     cmd: string,
@@ -201,6 +202,11 @@ describe('store', () => {
         return;
       }
 
+      case 'set_corpus_names_to_preload': {
+        setCorpusNamesToPreloadSpy(payload);
+        return;
+      }
+
       case 'validate_query': {
         const { aqlQuery, queryLanguage } = payload as {
           aqlQuery: string;
@@ -268,32 +274,50 @@ describe('store', () => {
     await waitFor(() => {
       expect(result.current.selectedCorpusNames).toEqual(['c']);
     });
+    expect(setCorpusNamesToPreloadSpy).toHaveBeenLastCalledWith({
+      corpusNames: ['c'],
+    });
 
     result.current.setSelectedCorpusSet('set1');
     await waitFor(() => {
       expect(result.current.corpusNames.data).toEqual(['a', 'b']);
       expect(result.current.selectedCorpusNames).toEqual([]);
     });
+    expect(setCorpusNamesToPreloadSpy).toHaveBeenLastCalledWith({
+      corpusNames: [],
+    });
 
     result.current.toggleCorpus('b');
     await waitFor(() => {
       expect(result.current.selectedCorpusNames).toEqual(['b']);
+    });
+    expect(setCorpusNamesToPreloadSpy).toHaveBeenLastCalledWith({
+      corpusNames: ['b'],
     });
 
     result.current.toggleAllCorpora();
     await waitFor(() => {
       expect(result.current.selectedCorpusNames).toEqual(['a', 'b']);
     });
+    expect(setCorpusNamesToPreloadSpy).toHaveBeenLastCalledWith({
+      corpusNames: ['a', 'b'],
+    });
 
     result.current.toggleAllCorpora();
     await waitFor(() => {
       expect(result.current.selectedCorpusNames).toEqual([]);
+    });
+    expect(setCorpusNamesToPreloadSpy).toHaveBeenLastCalledWith({
+      corpusNames: [],
     });
 
     result.current.setSelectedCorpusSet('');
     await waitFor(() => {
       expect(result.current.corpusNames.data).toEqual(['a', 'b', 'c']);
       expect(result.current.selectedCorpusNames).toEqual(['c']);
+    });
+    expect(setCorpusNamesToPreloadSpy).toHaveBeenLastCalledWith({
+      corpusNames: ['c'],
     });
   });
 
@@ -1298,6 +1322,10 @@ describe('store', () => {
       ]);
       expect(result.current.exportFormat).toBe('xlsx');
       expect(result.current.canExport).toBe(true);
+    });
+
+    expect(setCorpusNamesToPreloadSpy).toHaveBeenLastCalledWith({
+      corpusNames: ['a'],
     });
   });
 

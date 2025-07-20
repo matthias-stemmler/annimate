@@ -2,6 +2,21 @@
 
 ## [Unreleased] - (release date)
 
+### Added
+
+- Added an icon next to the "Export to ..." button that shows whether the information needed to start the export is complete. If it isn't (so the button is disabled), a tooltip explains what is missing.
+
+### Changed
+
+- Improved performance of query validation: Checking whether a query is valid no longer needs to wait until all selected corpora are loaded.
+- Improved performance of loading the options under "Annotation", "Meta annotation" and "Segmentation": These will now load much faster due to caching.
+  - NOTE: For corpora that were already imported before the update, this improvement will only be visible from the _second time_ the options are loaded after installing the update.
+
+### Fixed
+
+- When the currently selected corpus set is renamed, the selection used to switch to "All corpora". It now correctly remains the same as before the renaming, just showing the set under its new name.
+- When the currently selected corpus set is deleted, the corpus selection under "All corpora" used to be ignored, i.e. Annimate use to behave as if no corpora were selected. It now correctly respects the selection under "All corpora".
+
 ## [1.4.0] - 2025-04-15
 
 ### Added

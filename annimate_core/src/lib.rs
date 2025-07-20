@@ -111,6 +111,12 @@ impl Storage {
         })
     }
 
+    /// Preloads a corpus.
+    pub fn preload_corpus(&self, corpus_name: &str) -> Result<(), AnnimateError> {
+        self.corpus_storage.preload(corpus_name)?;
+        Ok(())
+    }
+
     /// Deletes a corpus.
     pub fn delete_corpus(&self, corpus_name: &str) -> Result<(), AnnimateError> {
         self.corpus_storage.delete(corpus_name)?;
@@ -391,6 +397,14 @@ impl Storage {
     {
         on_status(ExportStatusEvent::Started);
         error::cancel_if(&cancel_requested)?;
+
+        // Preload corpora to enable cancellation between loads
+        // (in reverse order to reduce total number of loads in case not all corpora fit into
+        // memory)
+        for corpus_name in config.corpus_names.iter().rev() {
+            self.corpus_storage.preload(corpus_name)?;
+            error::cancel_if(&cancel_requested)?;
+        }
 
         let anno_keys = AnnoKeys::new(
             &self.corpus_storage,

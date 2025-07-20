@@ -30,6 +30,14 @@ export {
   save,
 };
 
+export const addCorporaToSet = (params: {
+  corpusSet: string;
+  corpusNames: string[];
+}): Promise<void> => invoke('add_corpora_to_set', params);
+
+export const createCorpusSet = (params: { corpusSet: string }): Promise<void> =>
+  invoke('create_corpus_set', params);
+
 export const deleteCorpus = (params: { corpusName: string }): Promise<void> =>
   invoke('delete_corpus', params);
 
@@ -59,14 +67,6 @@ export const exportMatches = async (
   }
   await invoke('export_matches', { eventChannel, ...params });
 };
-
-export const addCorporaToSet = (params: {
-  corpusSet: string;
-  corpusNames: string[];
-}): Promise<void> => invoke('add_corpora_to_set', params);
-
-export const createCorpusSet = (params: { corpusSet: string }): Promise<void> =>
-  invoke('create_corpus_set', params);
 
 export const getCorpora = (): Promise<Corpora> => invoke('get_corpora');
 
@@ -112,6 +112,10 @@ export const saveProject = (params: {
   project: Project;
   outputFile: string;
 }): Promise<void> => invoke('save_project', params);
+
+export const setCorpusNamesToPreload = (params: {
+  corpusNames: string[];
+}): Promise<void> => invoke('set_corpus_names_to_preload', params);
 
 export const toggleCorpusInSet = (params: {
   corpusSet: string;
