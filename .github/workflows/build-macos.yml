@@ -1,0 +1,64 @@
+name: Build for macOS
+
+on:
+  - workflow_dispatch
+
+env:
+  RUSTFLAGS: --deny warnings
+  # renovate: datasource=npm versioning=semver-coerced depName=corepack
+  VERSION_COREPACK: 0.33.0
+  TARGET: aarch64-apple-darwin
+
+jobs:
+  build:
+    name: Build
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install stable toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ env.TARGET }}
+
+      - name: Rust cache
+        uses: swatinem/rust-cache@v2
+
+      # Install a specific version of corepack to make sure we have the latest signing keys
+      - name: Install corepack
+        run: npm install --global --force corepack@${{ env.VERSION_COREPACK }}
+
+      - name: Enable corepack
+        run: corepack enable
+
+      - name: Set up node
+        uses: actions/setup-node@v4
+        with:
+          cache: pnpm
+          cache-dependency-path: annimate_desktop/pnpm-lock.yaml
+          node-version-file: annimate_desktop/.nvmrc
+
+      - name: Install (pnpm)
+        run: pnpm install
+        working-directory: annimate_desktop
+
+      - name: Build (pnpm)
+        run: pnpm tauri build --target ${{ env.TARGET }} --no-bundle
+        working-directory: annimate_desktop
+
+      - name: Upload artifact
+        id: upload-artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: annimate-macos-${{ github.sha }}
+          path: target/${{ env.TARGET }}/release/Annimate
+          if-no-files-found: error
+
+      - name: Print download command
+        env:
+          ARTIFACT_ID: ${{ steps.upload-artifact.outputs.artifact-id }}
+        run: |
+          echo 'To download, run the following command:'
+          echo "read -s \"TOKEN?Enter GitHub token: \" && curl -v -L -H \"Authorization: token \$TOKEN\" https://api.github.com/repos/matthias-stemmler/annimate/actions/artifacts/$ARTIFACT_ID/zip -o annimate.zip && unzip annimate.zip && rm annimate.zip"
