@@ -13,7 +13,7 @@ env:
   # renovate: datasource=crate versioning=semver-coerced depName=cargo-release
   VERSION_CARGO_RELEASE: 0.25.18
   # renovate: datasource=npm versioning=semver-coerced depName=corepack
-  VERSION_COREPACK: 0.33.0
+  VERSION_COREPACK: 0.34.0
   # renovate: datasource=crate versioning=semver-coerced depName=parse-changelog
   VERSION_PARSE_CHANGELOG: 0.6.12
 
