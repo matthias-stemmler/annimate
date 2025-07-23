@@ -1059,8 +1059,17 @@ export const useDeleteCorpus = () => {
 
 export const useDeleteCorpusSet = () => {
   const updateCorpusNamesToPreload = useUpdateCorpusNamesToPreload();
+  const setState = useSetState();
 
   return useDeleteCorpusSetMutation({
+    onSuccess: async (args) => {
+      setState((state) => ({
+        selectedCorpusSet:
+          state.selectedCorpusSet === args.corpusSet
+            ? ''
+            : state.selectedCorpusSet,
+      }));
+    },
     onSettled: () => updateCorpusNamesToPreload(),
   });
 };
