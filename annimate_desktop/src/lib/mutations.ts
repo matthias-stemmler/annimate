@@ -149,13 +149,23 @@ export const useDeleteCorpusMutation = ({
 };
 
 export const useDeleteCorpusSetMutation = ({
+  onSuccess,
   onSettled,
-}: { onSettled?: () => Promise<void> } = {}) => {
+}: {
+  onSuccess?: (args: {
+    corpusSet: string;
+    deleteCorpora: boolean;
+  }) => Promise<void>;
+  onSettled?: () => Promise<void>;
+} = {}) => {
   const queryClient = useQueryClient();
 
   const mutation = useMutation({
     mutationFn: (args: { corpusSet: string; deleteCorpora: boolean }) =>
       deleteCorpusSet(args),
+    onSuccess: async (_data, variables) => {
+      await onSuccess?.(variables);
+    },
     // Also invalidate query on error because a subset of the corpora may have been deleted
     onSettled: async () => {
       await queryClient.invalidateQueries({ queryKey: [QUERY_KEY_CORPORA] });
