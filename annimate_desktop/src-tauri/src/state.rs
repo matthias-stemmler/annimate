@@ -5,33 +5,33 @@ use std::sync::Arc;
 use annimate_core::Storage;
 use tauri::path::BaseDirectory;
 use tauri::{AppHandle, Manager};
+use tokio::sync::SetOnce;
 
-use crate::async_util::Slot;
 use crate::error::Error;
 use crate::preload::Preloader;
 
 #[derive(Default)]
 pub(crate) struct AppState {
-    pub(crate) db_dir_slot: Arc<Slot<Result<PathBuf, Error>>>,
-    pub(crate) preloader_slot: Arc<Slot<Result<Arc<Preloader>, Error>>>,
-    pub(crate) storage_slot: Arc<Slot<Result<Arc<Storage>, Error>>>,
+    pub(crate) db_dir: Arc<SetOnce<Result<PathBuf, Error>>>,
+    pub(crate) preloader: Arc<SetOnce<Result<Arc<Preloader>, Error>>>,
+    pub(crate) storage: Arc<SetOnce<Result<Arc<Storage>, Error>>>,
 }
 
 impl AppState {
     pub(crate) fn init(&self, app_handle: AppHandle) {
-        let db_dir_slot = Arc::clone(&self.db_dir_slot);
-        let preloader_slot = Arc::clone(&self.preloader_slot);
-        let storage_slot = Arc::clone(&self.storage_slot);
+        let db_dir_slot = Arc::clone(&self.db_dir);
+        let preloader_slot = Arc::clone(&self.preloader);
+        let storage_slot = Arc::clone(&self.storage);
 
         tauri::async_runtime::spawn_blocking(move || {
             let db_dir = get_db_dir(&app_handle);
-            db_dir_slot.set(db_dir.clone());
+            db_dir_slot.set(db_dir.clone()).unwrap();
 
             let storage = db_dir.and_then(create_storage).map(Arc::new);
-            storage_slot.set(storage.clone());
+            storage_slot.set(storage.clone()).map_err(|_| ()).unwrap();
 
             let preloader = storage.map(Preloader::new).map(Arc::new);
-            preloader_slot.set(preloader);
+            preloader_slot.set(preloader).map_err(|_| ()).unwrap();
         });
     }
 }

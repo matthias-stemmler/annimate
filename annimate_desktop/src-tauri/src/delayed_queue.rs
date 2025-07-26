@@ -1,68 +1,10 @@
 use std::cmp::Reverse;
 use std::collections::BinaryHeap;
-use std::ops::Deref;
 use std::sync::Mutex;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::Duration;
 
-use tokio::sync::{Notify, watch};
-
-/// A slot where tasks can wait asynchronously until a value is inserted.
-///
-/// This is basically a wrapper around tokio's watch channel where the inner value is an [Option].
-#[derive(Debug)]
-pub(crate) struct Slot<T> {
-    sender: watch::Sender<Option<T>>,
-}
-
-impl<T> Slot<T> {
-    pub(crate) fn set(&self, value: T) {
-        self.sender.send_replace(Some(value));
-    }
-
-    pub(crate) fn subscribe(&self) -> SlotSubscription<T> {
-        SlotSubscription {
-            receiver: self.sender.subscribe(),
-        }
-    }
-}
-
-impl<T> Default for Slot<T> {
-    fn default() -> Self {
-        Self {
-            sender: watch::Sender::new(None),
-        }
-    }
-}
-
-#[derive(Debug)]
-pub(crate) struct SlotSubscription<T> {
-    receiver: watch::Receiver<Option<T>>,
-}
-
-impl<T> SlotSubscription<T> {
-    pub(crate) async fn wait(&mut self) -> SlotRef<'_, T> {
-        SlotRef(
-            self.receiver
-                .wait_for(|v| v.is_some())
-                .await
-                .expect("channel should be open because there is a receiver"),
-        )
-    }
-}
-
-#[derive(Debug)]
-pub(crate) struct SlotRef<'a, T>(watch::Ref<'a, Option<T>>);
-
-impl<T> Deref for SlotRef<'_, T> {
-    type Target = T;
-
-    fn deref(&self) -> &Self::Target {
-        self.0
-            .as_ref()
-            .expect("content should be Some(_) because of wait condition")
-    }
-}
+use tokio::sync::Notify;
 
 /// A asynchronous queue that tracks for each item when it is ready to be processed.
 ///
@@ -128,7 +70,7 @@ where
                 Peek::NotReady(Some(duration)) => {
                     let _ = tokio::time::timeout(duration, self.notify.notified()).await;
                 }
-                Peek::NotReady(None) => {
+                Peek::NotReady(_) => {
                     self.notify.notified().await;
                 }
             }
@@ -159,17 +101,6 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[tokio::test]
-    async fn slot() {
-        let slot = Slot::default();
-
-        slot.set(1);
-
-        let mut subscription = slot.subscribe();
-        let value = subscription.wait().await;
-        assert_eq!(*value, 1);
-    }
 
     #[tokio::test(start_paused = true)]
     async fn delayed_queue() {

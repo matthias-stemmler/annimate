@@ -32,7 +32,13 @@ tempfile = { workspace = true }
 tokio = { workspace = true }
 
 [dev-dependencies]
-tokio = { workspace = true, features = ["macros", "test-util"] }
+tokio = { workspace = true, features = [
+    "macros",
+    "rt",
+    "sync",
+    "test-util",
+    "time",
+] }
 
 [features]
 custom-protocol = ["tauri/custom-protocol"]

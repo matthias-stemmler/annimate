@@ -4,7 +4,7 @@ use std::time::{Duration, Instant};
 
 use annimate_core::Storage;
 
-use crate::async_util::DelayedQueue;
+use crate::delayed_queue::DelayedQueue;
 
 const DELAY: Duration = Duration::from_secs(5);
 

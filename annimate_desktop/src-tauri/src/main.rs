@@ -4,7 +4,7 @@
 #![deny(missing_docs)]
 
 mod api;
-mod async_util;
+mod delayed_queue;
 mod error;
 mod preload;
 mod state;
