@@ -2,7 +2,7 @@ use std::collections::HashMap;
 use std::io::Write;
 use std::ops::Not;
 use std::path::{Path, PathBuf};
-use std::sync::RwLock;
+use std::sync::{Arc, RwLock};
 use std::{fs, io};
 
 use graphannis::graph::AnnoKey;
@@ -12,7 +12,7 @@ use crate::name;
 
 pub(crate) struct CacheStorage {
     db_dir: PathBuf,
-    cache: RwLock<HashMap<String, RwLock<CorpusCache>>>,
+    cache: RwLock<HashMap<String, Arc<RwLock<CorpusCache>>>>,
 }
 
 impl CacheStorage {
@@ -31,39 +31,46 @@ impl CacheStorage {
     where
         E: From<io::Error>,
     {
-        if let Some(corpus_cache) = self.cache.read().unwrap().get(corpus_name) {
-            if let Some(value) = corpus_cache.read().unwrap().anno_key_infos.clone() {
-                return Ok(value);
+        let corpus_cache = if let Some(corpus_cache) = self.cache.read().unwrap().get(corpus_name) {
+            Arc::clone(corpus_cache)
+        } else {
+            let mut cache_write = self.cache.write().unwrap();
+
+            // Check again in case another thread inserted the entry between releasing the read lock
+            // and acquiring the write lock
+            if let Some(corpus_cache) = cache_write.get(corpus_name) {
+                Arc::clone(corpus_cache)
+            } else {
+                let corpus_cache =
+                    CorpusCache::read_from_disk(&self.db_dir, corpus_name)?.unwrap_or_default();
+                let corpus_cache = Arc::new(RwLock::new(corpus_cache));
+                cache_write.insert(corpus_name.to_string(), Arc::clone(&corpus_cache));
+                corpus_cache
             }
+        };
 
-            let value = load()?;
+        let anno_key_infos =
+            if let Some(anno_key_infos) = &corpus_cache.read().unwrap().anno_key_infos {
+                anno_key_infos.clone()
+            } else {
+                let mut corpus_cache_write = corpus_cache.write().unwrap();
 
-            {
-                let mut corpus_cache = corpus_cache.write().unwrap();
-                corpus_cache.anno_key_infos = Some(value.clone());
-                corpus_cache.write_to_disk(&self.db_dir, corpus_name)?;
-            }
+                // Check again in case another thread inserted the `anno_key_infos` between
+                // releasing the read lock and acquiring the write lock
+                if let Some(anno_key_infos) = &corpus_cache_write.anno_key_infos {
+                    anno_key_infos.clone()
+                } else {
+                    // Load and write to disk while holding the write lock to avoid multiple loads
+                    // and to avoid concurrent writes to the file
+                    println!("LOAD {corpus_name}");
+                    let anno_key_infos = load()?;
+                    corpus_cache_write.anno_key_infos = Some(anno_key_infos.clone());
+                    corpus_cache_write.write_to_disk(&self.db_dir, corpus_name)?;
+                    anno_key_infos
+                }
+            };
 
-            return Ok(value);
-        }
-
-        let mut corpus_cache =
-            CorpusCache::read_from_disk(&self.db_dir, corpus_name)?.unwrap_or_default();
-
-        if let Some(value) = corpus_cache.anno_key_infos {
-            return Ok(value.clone());
-        }
-
-        let value = load()?;
-
-        corpus_cache.anno_key_infos = Some(value.clone());
-        corpus_cache.write_to_disk(&self.db_dir, corpus_name)?;
-        self.cache
-            .write()
-            .unwrap()
-            .insert(corpus_name.to_string(), RwLock::new(corpus_cache));
-
-        Ok(value)
+        Ok(anno_key_infos)
     }
 }
 
@@ -153,5 +160,47 @@ impl CorpusCache {
         toml::from_str::<CorpusCache>(s)
             .ok()
             .take_if(|cache| cache.cache_version.is_valid())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use std::sync::atomic::{AtomicUsize, Ordering};
+    use std::thread;
+
+    use super::*;
+
+    #[test]
+    fn get_anno_key_infos_when_called_concurrently_calls_load_only_once() {
+        const TEST_CORPUS: &str = "test_corpus";
+
+        let db_dir = tempfile::tempdir().unwrap();
+        fs::create_dir_all(db_dir.path().join(TEST_CORPUS)).unwrap();
+
+        let cache_storage = Arc::new(CacheStorage::from_db_dir(db_dir.path().into()));
+        let load_counter = Arc::new(AtomicUsize::new(0));
+
+        let mut handles = Vec::new();
+        for _ in 0..2 {
+            handles.push(thread::spawn({
+                let cache_storage = Arc::clone(&cache_storage);
+                let load_counter = Arc::clone(&load_counter);
+
+                move || {
+                    cache_storage
+                        .get_anno_key_infos(TEST_CORPUS, || {
+                            load_counter.fetch_add(1, Ordering::Relaxed);
+                            Ok::<_, io::Error>(Vec::new())
+                        })
+                        .unwrap();
+                }
+            }));
+        }
+
+        for handle in handles {
+            handle.join().unwrap();
+        }
+
+        assert_eq!(load_counter.load(Ordering::Relaxed), 1);
     }
 }
