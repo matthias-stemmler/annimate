@@ -8,7 +8,7 @@ use graphannis_core::graph::DEFAULT_NS;
 use itertools::Itertools;
 use serde::Deserialize;
 
-const DB_DIR: &str = concat!(env!("CARGO_TARGET_TMPDIR"), "/tests/caching/db");
+const DB_DIR: &str = concat!(env!("CARGO_TARGET_TMPDIR"), "/tests/cache/db");
 
 #[test]
 fn caching_exportable_anno_keys_and_segmentations() {
