@@ -51,6 +51,25 @@ fn caching_exportable_anno_keys_and_segmentations() {
 }
 
 #[test]
+fn deleted_corpus_is_evicted_from_memory_cache() {
+    let db_dir = Path::new(DB_DIR).join("deleted_corpus_is_evicted_from_memory_cache");
+    let _ = fs::remove_dir_all(&db_dir);
+
+    create_corpus(&db_dir, "test_corpus");
+    add_segmentation(&db_dir, "test_corpus", "test_segmentation_1");
+
+    let storage = Storage::from_db_dir(db_dir.clone()).unwrap();
+
+    // Fill cache
+    storage.exportable_anno_keys(&["test_corpus"]).unwrap();
+
+    storage.delete_corpus("test_corpus").unwrap();
+
+    // Corpus not found -> corpus has been evicted from in-memory cache
+    assert!(storage.exportable_anno_keys(&["test_corpus"]).is_err());
+}
+
+#[test]
 fn corpus_name_encoding() {
     let db_dir = Path::new(DB_DIR).join("corpus_name_encoding");
     let _ = fs::remove_dir_all(&db_dir);
@@ -109,6 +128,11 @@ fn create_corpus(db_dir: &Path, corpus_name: &str) {
         .unwrap();
 }
 
+fn delete_corpus(db_dir: &Path, corpus_name: &str) {
+    let corpus_storage = graphannis::CorpusStorage::with_auto_cache_size(db_dir, true).unwrap();
+    corpus_storage.delete(corpus_name).unwrap();
+}
+
 fn add_segmentation(db_dir: &Path, corpus_name: &str, segmentation: &str) {
     let corpus_storage = graphannis::CorpusStorage::with_auto_cache_size(db_dir, true).unwrap();
 
@@ -148,11 +172,6 @@ fn get_exportable_node_anno_keys(db_dir: &Path, corpus_name: &str) -> Vec<String
 fn get_segmentations(db_dir: &Path, corpus_name: &str) -> Vec<String> {
     let storage = Storage::from_db_dir(db_dir.into()).unwrap();
     storage.segmentations(&[corpus_name]).unwrap()
-}
-
-fn delete_corpus(db_dir: &Path, corpus_name: &str) {
-    let corpus_storage = graphannis::CorpusStorage::with_auto_cache_size(db_dir, true).unwrap();
-    corpus_storage.delete(corpus_name).unwrap();
 }
 
 #[derive(Deserialize)]

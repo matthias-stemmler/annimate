@@ -8,15 +8,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
-import { openPath, openUrl } from '@/lib/api';
-import { useDbDir } from '@/lib/store';
+import { openUrl } from '@/lib/api';
 import { URL_ANNIMATE, URL_GRAPHANNIS } from '@/lib/urls';
-import { Folder } from 'lucide-react';
 import { RefObject, useCallback, useEffect, useRef } from 'react';
 
 const ANIMATION_DURATION = 2000;
@@ -27,12 +20,6 @@ export const AboutDialog = () => {
   const closeButtonRef = useRef<HTMLButtonElement>(null);
   const logoRef = useRef<HTMLDivElement>(null);
   const triggerLogoAnimation = useLogoAnimation(logoRef);
-
-  const { data: dbDir, error: dbDirError } = useDbDir();
-
-  if (dbDirError !== null) {
-    throw new Error(`Failed to load data folder: ${dbDirError.message}`);
-  }
 
   return (
     <DialogContent
@@ -69,7 +56,7 @@ export const AboutDialog = () => {
           </Button>
         </div>
 
-        <div className="mb-8">
+        <div>
           <p className="mb-1">based on:</p>
 
           <Button
@@ -83,34 +70,6 @@ export const AboutDialog = () => {
             graphANNIS v{window.__ANNIMATE__.versionInfo.graphannisVersion} by
             Thomas Krause
           </Button>
-        </div>
-
-        <div>
-          <p className="mb-1">Data folder:</p>
-
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                className="flex h-5 w-full gap-2 p-0"
-                disabled={dbDir === undefined}
-                onClick={async () => {
-                  if (dbDir !== undefined) {
-                    await openPath(dbDir);
-                  }
-                }}
-                variant="link"
-              >
-                <Folder className="h-full w-4" />
-                <div className="w-0 grow truncate text-left">
-                  {dbDir ?? 'Loading ...'}
-                </div>
-              </Button>
-            </TooltipTrigger>
-
-            <TooltipContent align="start" className="max-w-[calc(50vw+14rem)]">
-              {dbDir}
-            </TooltipContent>
-          </Tooltip>
         </div>
       </div>
 

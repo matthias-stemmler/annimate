@@ -23,6 +23,14 @@ impl CacheStorage {
         }
     }
 
+    /// Evict a corpus from the in-memory cache.
+    ///
+    /// This will only evict the corpus from the in-memory cache, not from disk.
+    /// It is meant to be used when a corpus has already been deleted from disk.
+    pub(crate) fn evict_in_memory(&self, corpus_name: &str) {
+        self.cache.write().unwrap().remove(corpus_name);
+    }
+
     pub(crate) fn get_anno_key_infos<E>(
         &self,
         corpus_name: &str,
@@ -31,6 +39,43 @@ impl CacheStorage {
     where
         E: From<io::Error>,
     {
+        let corpus_cache = self.get_corpus_cache(corpus_name)?;
+
+        let anno_key_infos =
+            if let Some(anno_key_infos) = &corpus_cache.read().unwrap().anno_key_infos {
+                anno_key_infos.clone()
+            } else {
+                let mut corpus_cache_write = corpus_cache.write().unwrap();
+
+                // Check again in case another thread inserted the `anno_key_infos` between
+                // releasing the read lock and acquiring the write lock
+                if let Some(anno_key_infos) = &corpus_cache_write.anno_key_infos {
+                    anno_key_infos.clone()
+                } else {
+                    // Load and write to disk while holding the write lock to avoid multiple loads
+                    // and to avoid concurrent writes to the file
+                    let anno_key_infos = load()?;
+                    corpus_cache_write.anno_key_infos = Some(anno_key_infos.clone());
+                    corpus_cache_write.write_to_disk(&self.db_dir, corpus_name)?;
+                    anno_key_infos
+                }
+            };
+
+        Ok(anno_key_infos)
+    }
+
+    /// Clear the cache for the given corpus.
+    ///
+    /// This will clear the in-memory cache for the corpus and write this cleared cache to disk.
+    pub(crate) fn clear(&self, corpus_name: &str) -> Result<(), io::Error> {
+        let corpus_cache = self.get_corpus_cache(corpus_name)?;
+        let mut corpus_cache_write = corpus_cache.write().unwrap();
+        corpus_cache_write.anno_key_infos = None;
+        corpus_cache_write.write_to_disk(&self.db_dir, corpus_name)?;
+        Ok(())
+    }
+
+    fn get_corpus_cache(&self, corpus_name: &str) -> Result<Arc<RwLock<CorpusCache>>, io::Error> {
         let corpus_cache = if let Some(corpus_cache) = self.cache.read().unwrap().get(corpus_name) {
             Arc::clone(corpus_cache)
         } else {
@@ -49,28 +94,7 @@ impl CacheStorage {
             }
         };
 
-        let anno_key_infos =
-            if let Some(anno_key_infos) = &corpus_cache.read().unwrap().anno_key_infos {
-                anno_key_infos.clone()
-            } else {
-                let mut corpus_cache_write = corpus_cache.write().unwrap();
-
-                // Check again in case another thread inserted the `anno_key_infos` between
-                // releasing the read lock and acquiring the write lock
-                if let Some(anno_key_infos) = &corpus_cache_write.anno_key_infos {
-                    anno_key_infos.clone()
-                } else {
-                    // Load and write to disk while holding the write lock to avoid multiple loads
-                    // and to avoid concurrent writes to the file
-                    println!("LOAD {corpus_name}");
-                    let anno_key_infos = load()?;
-                    corpus_cache_write.anno_key_infos = Some(anno_key_infos.clone());
-                    corpus_cache_write.write_to_disk(&self.db_dir, corpus_name)?;
-                    anno_key_infos
-                }
-            };
-
-        Ok(anno_key_infos)
+        Ok(corpus_cache)
     }
 }
 

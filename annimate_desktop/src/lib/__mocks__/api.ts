@@ -438,6 +438,10 @@ export const addCorporaToSet = async (params: {
   corpusSets[params.corpusSet].corpusNames.push(...params.corpusNames);
 };
 
+export const clearCache = async (): Promise<void> => {
+  logAction('Clear cache', COLOR_CUSTOM_COMMAND);
+};
+
 export const createCorpusSet = async (params: {
   corpusSet: string;
 }): Promise<void> => {

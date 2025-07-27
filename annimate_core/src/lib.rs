@@ -119,12 +119,21 @@ impl Storage {
 
     /// Deletes a corpus.
     pub fn delete_corpus(&self, corpus_name: &str) -> Result<(), AnnimateError> {
-        self.corpus_storage.delete(corpus_name)?;
+        self.delete_corpus_with_cache(corpus_name)?;
         self.metadata_storage.update_corpus_sets(|corpus_sets| {
             for CorpusSet { corpus_names } in corpus_sets.values_mut() {
                 corpus_names.remove(corpus_name);
             }
         })?;
+
+        Ok(())
+    }
+
+    /// Clears the cache for all corpora
+    pub fn clear_cache(&self) -> Result<(), AnnimateError> {
+        for corpus_info in self.corpus_storage.list()? {
+            self.cache_storage.clear(&corpus_info.name)?;
+        }
 
         Ok(())
     }
@@ -232,7 +241,7 @@ impl Storage {
 
             if delete_corpora {
                 while let Some(corpus_name) = corpus_names.pop_first() {
-                    match self.corpus_storage.delete(&corpus_name) {
+                    match self.delete_corpus_with_cache(&corpus_name) {
                         Ok(_) => deleted_corpus_names.push(corpus_name),
                         Err(_) => {
                             failed_corpus_names.push(corpus_name);
@@ -467,6 +476,12 @@ impl Storage {
             }
         };
 
+        Ok(())
+    }
+
+    fn delete_corpus_with_cache(&self, corpus_name: &str) -> Result<(), AnnimateError> {
+        self.corpus_storage.delete(corpus_name)?;
+        self.cache_storage.evict_in_memory(corpus_name);
         Ok(())
     }
 }

@@ -31,6 +31,8 @@ impl Preloader {
                 loop {
                     let corpus_name = shared.queue.pop().await;
 
+                    // Ignore errors as preloading is not critical.
+                    // Also, there may be errors due to corpora having been deleted in the meantime.
                     let _ = tauri::async_runtime::spawn_blocking({
                         let storage = Arc::clone(&storage);
                         move || storage.preload_corpus(&corpus_name)
