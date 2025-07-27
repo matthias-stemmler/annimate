@@ -52,6 +52,7 @@ fn main() {
         .manage(AppState::default())
         .invoke_handler(tauri::generate_handler![
             api::add_corpora_to_set,
+            api::clear_cache,
             api::create_corpus_set,
             api::delete_corpus,
             api::delete_corpus_set,

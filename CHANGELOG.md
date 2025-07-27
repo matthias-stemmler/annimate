@@ -11,6 +11,7 @@
 - Improved performance of query validation: Checking whether a query is valid no longer needs to wait until all selected corpora are loaded.
 - Improved performance of loading the options under "Annotation", "Meta annotation" and "Segmentation": These will now load much faster due to caching.
   - NOTE: For corpora that were already imported before the update, this improvement will only be visible from the _second time_ the options are loaded after installing the update.
+- Moved the link to the data folder from the "About" dialog to the "Manage corpora" screen.
 
 ### Fixed
 

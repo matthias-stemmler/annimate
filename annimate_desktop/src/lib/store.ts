@@ -1043,6 +1043,7 @@ export const useExportableAnnoKeys =
 export {
   useAddCorporaToSetMutation as useAddCorporaToSet,
   useApplyAppUpdateMutation as useApplyAppUpdate,
+  useClearCacheMutation as useClearCache,
   useCreateCorpusSetMutation as useCreateCorpusSet,
   useImportCorporaMutation as useImportCorpora,
   useIsExporting,

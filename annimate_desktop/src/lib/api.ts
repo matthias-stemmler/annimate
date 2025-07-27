@@ -35,6 +35,8 @@ export const addCorporaToSet = (params: {
   corpusNames: string[];
 }): Promise<void> => invoke('add_corpora_to_set', params);
 
+export const clearCache = (): Promise<void> => invoke('clear_cache');
+
 export const createCorpusSet = (params: { corpusSet: string }): Promise<void> =>
   invoke('create_corpus_set', params);
 

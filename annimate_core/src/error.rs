@@ -23,6 +23,10 @@ pub enum AnnimateError {
     #[error("Corpus set already exists")]
     CorpusSetAlreadyExists,
 
+    /// Failed to clear cache.
+    #[error("Failed to clear cache")]
+    FailedToClearCache,
+
     /// Failed to delete corpora.
     #[error("Failed to delete corpora: {0}")]
     FailedToDeleteCorpora(AnnimateErrorCorpusNames),

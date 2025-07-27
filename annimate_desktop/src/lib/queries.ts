@@ -28,10 +28,10 @@ import {
 
 export const QUERY_KEY_CORPORA = 'corpora';
 export const QUERY_KEY_DB_DIR = 'db-dir';
+export const QUERY_KEY_EXPORTABLE_ANNO_KEYS = 'exportable-anno-keys';
 export const QUERY_KEY_QUERY_NODES = 'query-nodes';
 export const QUERY_KEY_QUERY_VALIDATION_RESULT = 'query-validation-result';
 export const QUERY_KEY_SEGMENTATIONS = 'segmentations';
-export const QUERY_KEY_EXPORTABLE_ANNO_KEYS = 'exportable-anno-keys';
 
 const SLOW_TRACKING_TIMEOUT = 500;
 

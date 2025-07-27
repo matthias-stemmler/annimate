@@ -33,6 +33,12 @@ pub(crate) async fn add_corpora_to_set(
 }
 
 #[tauri::command]
+pub(crate) async fn clear_cache(state: tauri::State<'_, AppState>) -> Result<(), Error> {
+    let storage = state.storage.wait().await.clone()?;
+    tauri::async_runtime::spawn_blocking(move || Ok(storage.clear_cache()?)).await?
+}
+
+#[tauri::command]
 pub(crate) async fn create_corpus_set(
     state: tauri::State<'_, AppState>,
     corpus_set: String,

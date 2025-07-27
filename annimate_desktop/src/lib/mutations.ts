@@ -1,5 +1,6 @@
 import {
   addCorporaToSet,
+  clearCache,
   createCorpusSet,
   deleteCorpus,
   deleteCorpusSet,
@@ -24,7 +25,11 @@ import {
   Project,
   Update,
 } from '@/lib/api-types';
-import { QUERY_KEY_CORPORA } from '@/lib/queries';
+import {
+  QUERY_KEY_CORPORA,
+  QUERY_KEY_EXPORTABLE_ANNO_KEYS,
+  QUERY_KEY_SEGMENTATIONS,
+} from '@/lib/queries';
 import {
   useIsMutating,
   useMutation,
@@ -117,6 +122,23 @@ export const useApplyAppUpdateMutation = () => {
   };
 
   return { mutation, progress, reset, stage };
+};
+
+export const useClearCacheMutation = () => {
+  const queryClient = useQueryClient();
+
+  const mutation = useMutation({
+    mutationFn: clearCache,
+    // Also invalidate queries on error because a subset of the corpus caches may have been invalidated
+    onSettled: () => {
+      queryClient.invalidateQueries({
+        queryKey: [QUERY_KEY_EXPORTABLE_ANNO_KEYS],
+      });
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEY_SEGMENTATIONS] });
+    },
+  });
+
+  return { mutation };
 };
 
 export const useCreateCorpusSetMutation = () => {

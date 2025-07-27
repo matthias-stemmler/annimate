@@ -1,3 +1,4 @@
+import { AdvancedSection } from '@/components/manage-page/advanced-section';
 import { CorporaSection } from '@/components/manage-page/corpora-section';
 import { ImportTrigger } from '@/components/manage-page/import-trigger';
 import { Button } from '@/components/ui/button';
@@ -49,6 +50,8 @@ export const ManagePage: FC = () => {
         onSelectCorpusSet={setSelectedCorpusSet}
         selectedCorpusSet={selectedCorpusSet}
       />
+
+      <AdvancedSection />
     </div>
   );
 };
