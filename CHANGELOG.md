@@ -16,7 +16,7 @@
 ### Fixed
 
 - When the currently selected corpus set is renamed, the selection used to switch to "All corpora". It now correctly remains the same as before the renaming, just showing the set under its new name.
-- When the currently selected corpus set is deleted, the corpus selection under "All corpora" used to be ignored, i.e. Annimate use to behave as if no corpora were selected. It now correctly respects the selection under "All corpora".
+- When the currently selected corpus set is deleted, the corpus selection under "All corpora" used to be ignored, i.e. Annimate used to behave as if no corpora were selected. It now correctly respects the selection under "All corpora".
 
 ## [1.4.0] - 2025-04-15
 
