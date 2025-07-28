@@ -21,7 +21,7 @@ struct Item<T> {
     value: T,
 }
 
-enum Peek<T> {
+enum MaybeReady<T> {
     Ready(T),
     NotReady(Option<Duration>),
 }
@@ -65,21 +65,21 @@ where
 
     pub(crate) async fn pop(&self) -> T {
         loop {
-            match self.peek() {
-                Peek::Ready(value) => return value,
-                Peek::NotReady(Some(duration)) => {
+            match self.pop_if_ready() {
+                MaybeReady::Ready(value) => return value,
+                MaybeReady::NotReady(Some(duration)) => {
                     let _ = tokio::time::timeout(duration, self.notify.notified()).await;
                 }
-                Peek::NotReady(_) => {
+                MaybeReady::NotReady(_) => {
                     self.notify.notified().await;
                 }
             }
         }
     }
 
-    fn peek(&self) -> Peek<T> {
+    fn pop_if_ready(&self) -> MaybeReady<T> {
         if self.suspended.load(Ordering::Relaxed) {
-            return Peek::NotReady(None);
+            return MaybeReady::NotReady(None);
         }
 
         let mut queue = self.queue.lock().unwrap();
@@ -88,12 +88,12 @@ where
         match queue.peek() {
             Some(item) => {
                 if item.0.ready_at > now {
-                    Peek::NotReady(Some(item.0.ready_at - now))
+                    MaybeReady::NotReady(Some(item.0.ready_at - now))
                 } else {
-                    Peek::Ready(queue.pop().unwrap().0.value)
+                    MaybeReady::Ready(queue.pop().unwrap().0.value)
                 }
             }
-            None => Peek::NotReady(None),
+            None => MaybeReady::NotReady(None),
         }
     }
 }
