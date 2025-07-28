@@ -15,8 +15,12 @@ fn caching_exportable_anno_keys_and_segmentations() {
     let db_dir = Path::new(DB_DIR).join("caching_exportable_anno_keys_and_segmentations");
     let _ = fs::remove_dir_all(&db_dir);
 
-    create_corpus(&db_dir, "test_corpus");
-    add_segmentation(&db_dir, "test_corpus", "test_segmentation_1");
+    create_corpus_with_ordering_components(
+        &db_dir,
+        "test_corpus",
+        ["test_segmentation_1", "test_segmentation_2"],
+    );
+    add_corpus_anno(&db_dir, "test_corpus", "test_segmentation_1");
 
     assert_eq!(
         get_exportable_node_anno_keys(&db_dir, "test_corpus"),
@@ -27,7 +31,7 @@ fn caching_exportable_anno_keys_and_segmentations() {
         ["test_segmentation_1"]
     );
 
-    add_segmentation(&db_dir, "test_corpus", "test_segmentation_2");
+    add_corpus_anno(&db_dir, "test_corpus", "test_segmentation_2");
 
     // `test_segmentation_2` not included -> data is served from cache
     assert_eq!(
@@ -40,7 +44,7 @@ fn caching_exportable_anno_keys_and_segmentations() {
     );
 
     delete_corpus(&db_dir, "test_corpus");
-    create_corpus(&db_dir, "test_corpus");
+    create_corpus_with_ordering_components(&db_dir, "test_corpus", []);
 
     // No custom data -> cache has been cleared
     assert_eq!(
@@ -55,8 +59,8 @@ fn deleted_corpus_is_evicted_from_memory_cache() {
     let db_dir = Path::new(DB_DIR).join("deleted_corpus_is_evicted_from_memory_cache");
     let _ = fs::remove_dir_all(&db_dir);
 
-    create_corpus(&db_dir, "test_corpus");
-    add_segmentation(&db_dir, "test_corpus", "test_segmentation_1");
+    create_corpus_with_ordering_components(&db_dir, "test_corpus", ["test_segmentation"]);
+    add_corpus_anno(&db_dir, "test_corpus", "test_segmentation");
 
     let storage = Storage::from_db_dir(db_dir.clone()).unwrap();
 
@@ -77,14 +81,14 @@ fn corpus_name_encoding() {
     // Generate corpus names with many special characters
     let corpus_names: Vec<String> = (0..0xFF)
         .filter_map(char::from_u32)
-        .chunks(32)
+        .chunks(16)
         .into_iter()
         .map(|chunk| chunk.collect())
         .collect();
 
     for corpus_name in corpus_names {
-        create_corpus(&db_dir, &corpus_name);
-        add_segmentation(&db_dir, &corpus_name, "test_segmentation");
+        create_corpus_with_ordering_components(&db_dir, &corpus_name, ["test_segmentation"]);
+        add_corpus_anno(&db_dir, &corpus_name, "test_segmentation");
 
         // No errors -> cache was created successfully
         assert_eq!(
@@ -97,7 +101,7 @@ fn corpus_name_encoding() {
         );
 
         delete_corpus(&db_dir, &corpus_name);
-        create_corpus(&db_dir, &corpus_name);
+        create_corpus_with_ordering_components(&db_dir, &corpus_name, []);
 
         // No custom data -> cache has been cleared, so it was created in the correct folder
         assert_eq!(
@@ -108,7 +112,11 @@ fn corpus_name_encoding() {
     }
 }
 
-fn create_corpus(db_dir: &Path, corpus_name: &str) {
+fn create_corpus_with_ordering_components(
+    db_dir: &Path,
+    corpus_name: &str,
+    component_names: impl IntoIterator<Item = &'static str>,
+) {
     let corpus_storage = graphannis::CorpusStorage::with_auto_cache_size(db_dir, true).unwrap();
 
     corpus_storage
@@ -122,7 +130,17 @@ fn create_corpus(db_dir: &Path, corpus_name: &str) {
             node_type: "corpus".into(),
         })
         .unwrap();
-
+    for component_name in component_names {
+        update
+            .add_event(UpdateEvent::AddEdge {
+                source_node: corpus_name.into(),
+                target_node: corpus_name.into(),
+                layer: DEFAULT_NS.into(),
+                component_type: AnnotationComponentType::Ordering.to_string(),
+                component_name: component_name.into(),
+            })
+            .unwrap();
+    }
     corpus_storage
         .apply_update(corpus_name, &mut update)
         .unwrap();
@@ -133,24 +151,15 @@ fn delete_corpus(db_dir: &Path, corpus_name: &str) {
     corpus_storage.delete(corpus_name).unwrap();
 }
 
-fn add_segmentation(db_dir: &Path, corpus_name: &str, segmentation: &str) {
+fn add_corpus_anno(db_dir: &Path, corpus_name: &str, anno_name: &str) {
     let corpus_storage = graphannis::CorpusStorage::with_auto_cache_size(db_dir, true).unwrap();
 
     let mut update = GraphUpdate::new();
     update
-        .add_event(UpdateEvent::AddEdge {
-            source_node: corpus_name.into(),
-            target_node: corpus_name.into(),
-            layer: DEFAULT_NS.into(),
-            component_type: AnnotationComponentType::Ordering.to_string(),
-            component_name: segmentation.into(),
-        })
-        .unwrap();
-    update
         .add_event(UpdateEvent::AddNodeLabel {
             node_name: corpus_name.into(),
             anno_ns: DEFAULT_NS.into(),
-            anno_name: segmentation.into(),
+            anno_name: anno_name.into(),
             anno_value: "".into(),
         })
         .unwrap();
