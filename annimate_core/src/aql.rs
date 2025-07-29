@@ -190,11 +190,21 @@ impl<T> QueryAnalysisResult<T> {
     ) -> Result<QueryAnalysisResult<T>, GraphAnnisError> {
         match result {
             Ok(x) => Ok(QueryAnalysisResult::Valid(x)),
-            Err(GraphAnnisError::AQLSyntaxError(err) | GraphAnnisError::AQLSemanticError(err)) => {
+            Err(
+                GraphAnnisError::AQLSyntaxError(mut err)
+                | GraphAnnisError::AQLSemanticError(mut err),
+            ) => {
+                shorten_aql_error(&mut err);
                 Ok(QueryAnalysisResult::Invalid(err))
             }
             Err(err) => Err(err),
         }
+    }
+}
+
+fn shorten_aql_error(err: &mut AQLError) {
+    if let Some(idx) = err.desc.find(" Expected one of: ") {
+        err.desc.truncate(idx);
     }
 }
 
