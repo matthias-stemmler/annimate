@@ -6,7 +6,7 @@ use std::time::Duration;
 
 use tokio::sync::Notify;
 
-/// A asynchronous queue that tracks for each item when it is ready to be processed.
+/// An asynchronous queue that tracks for each item when it is ready to be processed.
 ///
 /// Items that become ready at the same time are processed according to their [Ord] implementation.
 pub(crate) struct DelayedQueue<T> {
@@ -38,11 +38,11 @@ where
         }
     }
 
-    pub(crate) fn push(&self, value: T, ready_at: impl Into<tokio::time::Instant>) {
-        self.queue.lock().unwrap().push(Reverse(Item {
-            ready_at: ready_at.into(),
-            value,
-        }));
+    pub(crate) fn push(&self, value: T, ready_at: tokio::time::Instant) {
+        self.queue
+            .lock()
+            .unwrap()
+            .push(Reverse(Item { ready_at, value }));
 
         self.notify.notify_one();
     }

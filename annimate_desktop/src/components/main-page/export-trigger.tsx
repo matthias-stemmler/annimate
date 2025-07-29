@@ -118,7 +118,9 @@ export const ExportTrigger = () => {
                           <div className="flex gap-8">
                             <Button
                               className="px-0"
-                              onClick={async () => revealItemInDir(outputFile)}
+                              onClick={() => {
+                                revealItemInDir(outputFile);
+                              }}
                               variant="link"
                             >
                               <Folder className="mr-2 size-4" />
@@ -127,7 +129,9 @@ export const ExportTrigger = () => {
 
                             <Button
                               className="px-0"
-                              onClick={() => openPath(outputFile)}
+                              onClick={() => {
+                                openPath(outputFile);
+                              }}
                               variant="link"
                             >
                               <File className="mr-2 size-4" />

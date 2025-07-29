@@ -1,6 +1,6 @@
 use std::collections::HashSet;
 use std::sync::{Arc, Mutex};
-use std::time::{Duration, Instant};
+use std::time::Duration;
 
 use annimate_core::Storage;
 
@@ -52,7 +52,7 @@ impl Preloader {
             .retain(|corpus_name| corpus_names.contains(corpus_name));
 
         let mut corpus_names_to_preload = self.shared.corpus_names_to_preload.lock().unwrap();
-        let now = Instant::now();
+        let now = tokio::time::Instant::now();
 
         // Enqueue corpora that have been added to the list
         for corpus_name in &corpus_names {
