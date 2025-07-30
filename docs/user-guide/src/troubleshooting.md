@@ -42,7 +42,7 @@ To fix this, you may want to group your corpora differently, so that all corpora
 
 If the [Match in context](columns/match-in-context.md) columns in your CSV or Excel file are empty, this may be because you selected the _Tokens (default)_ segmentation, but your corpus uses _virtual tokens_. This means that the segmentation nodes on the token layer do not have any textual content (hence the empty columns), but just serve the purpose of aligning other segmentation layers.
 
-To fix this, try to choose an option different from _Tokens (default)_ under "Segmentation". If there is no other option, check out the [previous point](#match-in-context-desired-segmentation-is-not-listed).
+To fix this, try choosing an option different from _Tokens (default)_ under "Segmentation". If there is no other option, check out the [previous point](#match-in-context-desired-segmentation-is-not-listed).
 
 ### Match in context: Context window is smaller than expected
 
@@ -60,7 +60,7 @@ To fix this, add both a "Corpus metadata" and a "Document metadata" column for t
 
 If the "Export to ..." button is disabled (grayed out), this means that the information needed to start the export is still incomplete.
 
-To fix this, make sure that the following conditions are satisfied:
+To fix this, hover over the blue information icon next to the button with your mouse to see what's missing, and make sure that the following conditions are satisfied:
 
 - At least one corpus is selected.
 - A query has been entered and is valid (showing a green checkmark).
