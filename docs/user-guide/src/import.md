@@ -20,7 +20,7 @@ While one would commonly call the full ReA 1.2 a corpus, it's each individual pa
 
 ### Obtaining Corpus Data
 
-Corpora are distributed in many different data formats, two of which a related to ANNIS and are supported by Annimate:
+Corpora are distributed in many different data formats, two of which are related to ANNIS and are supported by Annimate:
 
 - **graphANNIS/GraphML**: This is the graph-based format used internally by ANNIS. In this format, each corpus comes as a single `.graphml` file.
 - **relANNIS**: This is the relational format that was previously used by ANNIS but is still used to distribute many corpora. In this format, each corpus comes as a folder containing multiple files with fixed names such as `corpus.tab` or `node.tab`.

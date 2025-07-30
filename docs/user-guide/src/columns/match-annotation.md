@@ -9,7 +9,7 @@ pos=/N.*/ &
 inflection=/.*GEN.*/ &
 pos=/N.*/ &
 #1_=_#2 &
-#3 . #2
+#1 . #3
 ```
 
 the query node `#1` is required to have a `pos` annotation with a value starting with `N`, but the exact value may vary. A "Match annotation" column helps you export this exact value. Under "Annotation", you can select which annotation to export (`pos` in the example), and under "Query node", you can select the query node for which you want to export the annotation (`#1 pos=/N.*/` in the example).
@@ -29,7 +29,7 @@ pos=/N.*/ &
 inflection=/.*GEN.*/ &
 pos=/N.*/ &
 #1_=_#2 &
-#3 . #2
+#1 . #3
 ```
 
 In a match for this query, the nodes matched by `#1` and `#2` are never the same, because ReA uses distinct nodes for the `pos` and `inflection` annotations. The condition `#1_=_#2` just requires the two nodes to cover the same tokens, as opposed to `#1 _ident_ #2`, which would require them to be exactly the same node (and hence would yield no matches). However, if you configure a "Match annotation" column to export the `inflection` annotation of `#1 pos=/N.*/`, you still get a value. This is because in case the selected node doesn't have the selected annotation, Annimate looks for the first node that satisfies these two conditions:

@@ -14,7 +14,7 @@ The next step is to enter a query in the _ANNIS Query Language (AQL)_ on the upp
 
 > **Note:** If there is an ANNIS installation available for your corpora, you may want to draft your query there, using ANNIS to visualize the results, and then copy-paste it into Annimate for the export. You can, of course, also type your query directly into Annimate.
 
-If the query is valid (in the context of the selected corpora), you see a green checkmark in the corner of the query area:
+If the query is valid, you see a green checkmark in the corner of the query area:
 ![Screenshot showing valid query](img/export-query-valid.png)
 
 If the query is invalid, you see a red "x" icon. Hover over the icon with your mouse to see the error message. You can also click on the icon to make Annimate select the part of the query that the error message refers to:
@@ -65,7 +65,11 @@ On the lower right of the Annimate main screen, you can choose between one of tw
 
 ![Screenshot showing export format selector](img/export-format.png)
 
-Finally, click on the "Export to ..." button and select a filename in order to start the export. If this button is disabled (grayed out), this means that the information needed to start the export is still incomplete. Make sure that the following conditions are satisfied:
+Finally, click on the "Export to ..." button and select a filename in order to start the export. In case the information needed to start the export is still incomplete, the button is disabled (grayed out) and you see a blue information icon next to it. Hover over the icon with your mouse to see what's missing:
+
+![Screenshot showing "Missing information" tooltip](img/export-missing-info.png)
+
+In general, make sure that the following conditions are satisfied:
 
 - At least one corpus is selected.
 - A query has been entered and is valid (showing a green checkmark).

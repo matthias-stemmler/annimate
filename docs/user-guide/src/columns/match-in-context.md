@@ -9,7 +9,7 @@ pos=/N.*/ &
 inflection=/.*GEN.*/ &
 pos=/N.*/ &
 #1_=_#2 &
-#3 . #2
+#1 . #3
 ```
 
 consists of three nodes referenced by the variables `#1`, `#2` and `#3`, so each match also consists of three nodes. As queries can be "or" queries with multiple alternatives, the number of nodes may vary from one match to another. The exact number of columns in the export depends on the maximal number of nodes contained in any match. In the simplest case, if the query contains only a single node (referred to as `#1`), every match also contains a single node and the export will contain three columns:
@@ -44,7 +44,7 @@ inflection=/.*GEN.*/ &
 pos=/N.*/ &
 clause=/.*_Int/ &
 #1_=_#2 &
-#3 . #2 &
+#1 . #3 &
 #4_i_#1 &
 #4_i_#3
 ```
