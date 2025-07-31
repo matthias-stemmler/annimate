@@ -85,7 +85,6 @@ const queryValidationResultQueryConfig = (params: {
 }) => ({
   queryKey: [QUERY_KEY_QUERY_VALIDATION_RESULT, params],
   queryFn: () => (params.aqlQuery === '' ? null : validateQuery(params)),
-  select: (result: QueryValidationResult | null) => result ?? undefined,
   slowTracking: {
     peerQueryKey: [QUERY_KEY_QUERY_VALIDATION_RESULT],
     timeout: SLOW_TRACKING_TIMEOUT,
@@ -95,7 +94,7 @@ const queryValidationResultQueryConfig = (params: {
 export const useQueryValidationResultQuery = (params: {
   aqlQuery: string;
   queryLanguage: QueryLanguage;
-}): UseSlowTrackingQueryResult<QueryValidationResult | undefined> =>
+}): UseSlowTrackingQueryResult<QueryValidationResult | null> =>
   useSlowTrackingQuery(queryValidationResultQueryConfig(params));
 
 export const useGetQueryValidationResultQueryData = <
@@ -105,8 +104,8 @@ export const useGetQueryValidationResultQueryData = <
 ): ((params: {
   aqlQuery: string;
   queryLanguage: QueryLanguage;
-}) => QueryData<QueryValidationResult | undefined, Wait>) => {
-  const getQueryData = useGetQueryData<QueryValidationResult | undefined, Wait>(
+}) => QueryData<QueryValidationResult | null, Wait>) => {
+  const getQueryData = useGetQueryData<QueryValidationResult | null, Wait>(
     options,
   );
   return (params: { aqlQuery: string; queryLanguage: QueryLanguage }) =>
