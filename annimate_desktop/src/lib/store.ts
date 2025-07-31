@@ -526,7 +526,7 @@ export const useExportPreflight = (): ExportPreflight => {
     corpusNames,
     aqlQuery,
     queryLanguage,
-    queryValidationResult,
+    queryValidationResult ?? undefined,
     exportColumns,
     exportFormat,
   );
@@ -559,7 +559,7 @@ const useGetExportPreflight = <Wait extends boolean = true>(
       corpusNames,
       aqlQuery,
       queryLanguage,
-      queryValidationResult,
+      queryValidationResult ?? undefined,
       exportColumns,
       exportFormat,
     );
@@ -1009,17 +1009,16 @@ export const useQueryNodes =
     });
   };
 
-export const useQueryValidationResult = (): UseSlowTrackingQueryResult<
-  QueryValidationResult | undefined
-> => {
-  const aqlQueryDebounced = useSelector((state) => state.aqlQueryDebounced);
-  const queryLanguage = useQueryLanguage();
+export const useQueryValidationResult =
+  (): UseSlowTrackingQueryResult<QueryValidationResult | null> => {
+    const aqlQueryDebounced = useSelector((state) => state.aqlQueryDebounced);
+    const queryLanguage = useQueryLanguage();
 
-  return useQueryValidationResultQuery({
-    aqlQuery: aqlQueryDebounced,
-    queryLanguage,
-  });
-};
+    return useQueryValidationResultQuery({
+      aqlQuery: aqlQueryDebounced,
+      queryLanguage,
+    });
+  };
 
 export const useSegmentations = (): UseSlowTrackingQueryResult<string[]> => {
   const selectedCorpusNames = useSelectedCorpusNamesInSelectedSet();

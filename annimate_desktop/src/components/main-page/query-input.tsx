@@ -129,7 +129,9 @@ export const QueryInput: FC = () => {
             </TooltipTrigger>
 
             <TooltipContent className="max-w-[80vw]">
-              <ValidationResultDisplay validationResult={validationResult} />
+              <ValidationResultDisplay
+                validationResult={validationResult ?? undefined}
+              />
             </TooltipContent>
           </Tooltip>
         )}
