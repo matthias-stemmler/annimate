@@ -2,6 +2,8 @@
 
 ## [Unreleased] - (release date)
 
+## [1.5.0] - 2025-08-05
+
 ### Added
 
 - Added an icon next to the "Export to ..." button that shows whether the information needed to start the export is complete. If it isn't (so the button is disabled), a tooltip explains what is missing.
@@ -130,7 +132,8 @@
 Initial version
 
 <!-- next-url -->
-[Unreleased]: https://github.com/matthias-stemmler/annimate/compare/v1.4.0...HEAD
+[Unreleased]: https://github.com/matthias-stemmler/annimate/compare/v1.5.0...HEAD
+[1.5.0]: https://github.com/matthias-stemmler/annimate/compare/v1.4.0...v1.5.0
 [1.4.0]: https://github.com/matthias-stemmler/annimate/compare/v1.3.4...v1.4.0
 [1.3.4]: https://github.com/matthias-stemmler/annimate/compare/v1.3.3...v1.3.4
 [1.3.3]: https://github.com/matthias-stemmler/annimate/compare/v1.3.2...v1.3.3
