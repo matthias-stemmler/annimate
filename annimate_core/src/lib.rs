@@ -432,7 +432,7 @@ impl Storage {
         error::cancel_if(&cancel_requested)?;
 
         on_status(ExportStatusEvent::Found {
-            count: matches.total_count(),
+            count: matches.len(),
         });
 
         let mut out = {
