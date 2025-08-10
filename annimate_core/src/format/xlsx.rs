@@ -35,7 +35,7 @@ impl Exporter for XlsxExporter {
 
     fn export<F, G, I, S, W>(
         config: &XlsxExportConfig,
-        matches: I,
+        matches_iter: I,
         query_info: QueryInfo<'_, S>,
         anno_key_format: &AnnoKeyFormat,
         out: W,
@@ -45,8 +45,7 @@ impl Exporter for XlsxExporter {
     where
         F: FnMut(f32),
         G: Fn() -> bool,
-        I: IntoIterator<Item = Result<Match, AnnimateError>> + Clone,
-        I::IntoIter: ExactSizeIterator,
+        I: Iterator<Item = Result<Match, AnnimateError>> + ExactSizeIterator,
         S: AsRef<str>,
         W: Write + Seek + Send,
     {
@@ -90,7 +89,7 @@ impl Exporter for XlsxExporter {
 
             table::export(
                 &config.columns,
-                matches,
+                matches_iter,
                 query_info.nodes,
                 anno_key_format,
                 &mut xlsx_table_writer,

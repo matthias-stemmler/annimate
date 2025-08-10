@@ -71,10 +71,6 @@ pub enum AnnimateError {
     #[error("Annotation corresponding to segmentation {0} not found")]
     MissingAnnotationForSegmentation(String),
 
-    /// Too many results.
-    #[error("Query produced too many results: {0}")]
-    TooManyResults(u64),
-
     /// Wrapper for [`GraphAnnisError`].
     #[error(transparent)]
     Annis(#[from] GraphAnnisError),
