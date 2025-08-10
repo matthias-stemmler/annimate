@@ -46,7 +46,7 @@ pub(crate) struct QueryInfo<'a, S> {
 
 pub(crate) fn export<F, G, I, S, W>(
     export_format: ExportFormat,
-    matches: I,
+    matches_iter: I,
     query_info: QueryInfo<'_, S>,
     anno_key_format: &AnnoKeyFormat,
     out: W,
@@ -56,15 +56,14 @@ pub(crate) fn export<F, G, I, S, W>(
 where
     F: FnMut(f32),
     G: Fn() -> bool,
-    I: IntoIterator<Item = Result<Match, AnnimateError>> + Clone,
-    I::IntoIter: ExactSizeIterator,
+    I: Iterator<Item = Result<Match, AnnimateError>> + ExactSizeIterator,
     S: AsRef<str>,
     W: Write + Seek + Send,
 {
     match export_format {
         ExportFormat::Csv(config) => CsvExporter::export(
             &config,
-            matches,
+            matches_iter,
             query_info,
             anno_key_format,
             out,
@@ -73,7 +72,7 @@ where
         ),
         ExportFormat::Xlsx(config) => XlsxExporter::export(
             &config,
-            matches,
+            matches_iter,
             query_info,
             anno_key_format,
             out,
@@ -90,7 +89,7 @@ trait Exporter {
 
     fn export<F, G, I, S, W>(
         config: &Self::Config,
-        matches: I,
+        matches_iter: I,
         query_info: QueryInfo<'_, S>,
         anno_key_format: &AnnoKeyFormat,
         out: W,
@@ -100,8 +99,7 @@ trait Exporter {
     where
         F: FnMut(f32),
         G: Fn() -> bool,
-        I: IntoIterator<Item = Result<Match, AnnimateError>> + Clone,
-        I::IntoIter: ExactSizeIterator,
+        I: Iterator<Item = Result<Match, AnnimateError>> + ExactSizeIterator,
         S: AsRef<str>,
         W: Write + Seek + Send;
 }

@@ -44,7 +44,7 @@ pub(super) trait TableWriter {
 
 pub(super) fn export<F, G, I, W>(
     columns: &[TableExportColumn],
-    matches: I,
+    matches_iter: I,
     query_nodes: &[Vec<QueryNode>],
     anno_key_format: &AnnoKeyFormat,
     out: &mut W,
@@ -54,11 +54,9 @@ pub(super) fn export<F, G, I, W>(
 where
     F: FnMut(f32),
     G: Fn() -> bool,
-    I: IntoIterator<Item = Result<Match, AnnimateError>> + Clone,
-    I::IntoIter: ExactSizeIterator,
+    I: Iterator<Item = Result<Match, AnnimateError>> + ExactSizeIterator,
     W: TableWriter,
 {
-    let matches_iter = matches.into_iter();
     let count = matches_iter.len();
     let mut matches = Vec::with_capacity(count);
 
@@ -349,7 +347,6 @@ impl Iterator for ColumnTypesIter {
 
 #[cfg(test)]
 mod tests {
-    use std::array;
     use std::collections::HashSet;
 
     use graphannis_core::graph::ANNIS_NS;
@@ -387,12 +384,12 @@ mod tests {
                         TableExportColumn::Data(ExportData::Anno(export_data_anno_doc.clone())),
                         TableExportColumn::Data(ExportData::Text(text.clone())),
                     ],
-                    TestMatches([
+                    [
                         $(Match {
                             annos: [(export_data_anno_doc.clone(), $doc_name.into())].into(),
                             texts: [(text.clone(), [ $(export_test!(@expand_part $part)),* ].into())].into(),
                         }),*
-                    ]),
+                    ].into_iter().map(Ok),
                     &[vec![]],
                     &AnnoKeyFormat::new(&HashSet::new()),
                     &mut writer,
@@ -524,18 +521,6 @@ mod tests {
             ["3"     ,"doc2"     , ""                  , "ghi"             , ""                  , "jkl"             , ""                  ],
             ["4"     ,"doc2"     ,"555 (...) 666"      , "mno"             , "777 (...) 888"     , "pqr"             , "999 (...) 000"     ],
         ]
-    }
-
-    #[derive(Debug, Clone)]
-    struct TestMatches<const N: usize>([Match; N]);
-
-    impl<const N: usize> IntoIterator for TestMatches<N> {
-        type Item = Result<Match, AnnimateError>;
-        type IntoIter = array::IntoIter<Self::Item, N>;
-
-        fn into_iter(self) -> Self::IntoIter {
-            self.0.map(Ok).into_iter()
-        }
     }
 
     #[derive(Default)]
