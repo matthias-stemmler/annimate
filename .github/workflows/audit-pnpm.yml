@@ -22,7 +22,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       # Install a specific version of corepack to make sure we have the latest signing keys
       - name: Install corepack
