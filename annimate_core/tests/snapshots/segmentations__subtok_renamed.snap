@@ -1,0 +1,12 @@
+---
+source: annimate_core/tests/segmentations.rs
+info:
+  corpus_paths:
+    - subtok.demo_renamed_graphml.zip
+  corpus_names:
+    - subtok.demo_renamed
+---
+[
+    "diplomatic",
+    "norm",
+]
