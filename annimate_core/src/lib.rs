@@ -427,7 +427,7 @@ impl Storage {
             &config.aql_query,
             config.query_language,
         )?;
-        let matches = query.find(config.format.get_export_data())?;
+        let matches = query.find(config.format.get_export_data(), &cancel_requested)?;
 
         error::cancel_if(&cancel_requested)?;
 

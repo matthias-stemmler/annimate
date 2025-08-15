@@ -28,7 +28,7 @@ impl Exporter for XlsxExporter {
         config
             .columns
             .iter()
-            .filter_map(TableExportColumn::unwrap_data)
+            .filter_map(TableExportColumn::data)
             .cloned()
             .collect()
     }

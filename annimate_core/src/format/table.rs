@@ -28,7 +28,7 @@ pub enum TableExportColumn {
 }
 
 impl TableExportColumn {
-    pub(super) fn unwrap_data(&self) -> Option<&ExportData> {
+    pub(super) fn data(&self) -> Option<&ExportData> {
         match self {
             TableExportColumn::Data(data) => Some(data),
             _ => None,

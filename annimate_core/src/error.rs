@@ -15,9 +15,9 @@ pub enum AnnimateError {
     #[error("Cancelled")]
     Cancelled,
 
-    /// Corpus name decodes to invalid UTF-8.
-    #[error("Corpus name decodes to invalid UTF-8: {0}")]
-    CorpusNameDecodesToInvalidUtf8(String),
+    /// Corpus node name decodes to invalid UTF-8.
+    #[error("Corpus node name decodes to invalid UTF-8: {0}")]
+    CorpusNodeNameDecodesToInvalidUtf8(String),
 
     /// Corpus set already exists.
     #[error("Corpus set already exists")]

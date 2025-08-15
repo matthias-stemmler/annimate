@@ -79,6 +79,10 @@ fn corpus_name_encoding() {
     let _ = fs::remove_dir_all(&db_dir);
 
     // Generate corpus names with many special characters
+    // Note that this will include whitespace.
+    // White space in _node names_, while technically valid, breaks node search,
+    // but since for the corpus root node, we use a fixed name rather than the corpus name,
+    // we're fine here.
     let corpus_names: Vec<String> = (0..0xFF)
         .filter_map(char::from_u32)
         .chunks(16)
@@ -112,6 +116,8 @@ fn corpus_name_encoding() {
     }
 }
 
+const CORPUS_NODE_NAME: &str = "corpus-node";
+
 fn create_corpus_with_ordering_components(
     db_dir: &Path,
     corpus_name: &str,
@@ -126,15 +132,15 @@ fn create_corpus_with_ordering_components(
     let mut update = GraphUpdate::new();
     update
         .add_event(UpdateEvent::AddNode {
-            node_name: corpus_name.into(),
+            node_name: CORPUS_NODE_NAME.into(),
             node_type: "corpus".into(),
         })
         .unwrap();
     for component_name in component_names {
         update
             .add_event(UpdateEvent::AddEdge {
-                source_node: corpus_name.into(),
-                target_node: corpus_name.into(),
+                source_node: CORPUS_NODE_NAME.into(),
+                target_node: CORPUS_NODE_NAME.into(),
                 layer: DEFAULT_NS.into(),
                 component_type: AnnotationComponentType::Ordering.to_string(),
                 component_name: component_name.into(),
@@ -157,7 +163,7 @@ fn add_corpus_anno(db_dir: &Path, corpus_name: &str, anno_name: &str) {
     let mut update = GraphUpdate::new();
     update
         .add_event(UpdateEvent::AddNodeLabel {
-            node_name: corpus_name.into(),
+            node_name: CORPUS_NODE_NAME.into(),
             anno_ns: DEFAULT_NS.into(),
             anno_name: anno_name.into(),
             anno_value: "".into(),
