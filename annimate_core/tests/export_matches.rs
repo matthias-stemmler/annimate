@@ -315,6 +315,27 @@ export_matches_test! {
             })),
         ],
     }
+    subtok_renamed: {
+        corpus_paths: ["subtok.demo_renamed_graphml.zip"],
+        corpus_names: ["subtok.demo_renamed"],
+        aql_query: "pos=\"DT\"",
+        query_language: AQL,
+        export_columns: [
+            Number,
+            Data(Anno(TestExportDataAnno::Corpus {
+                anno_key: ("", "language"),
+            })),
+            Data(Anno(TestExportDataAnno::Document {
+                anno_key: ("annis", "doc"),
+            })),
+            Data(Text(TestExportDataText {
+                left_context: 1,
+                right_context: 1,
+                segmentation: Some("diplomatic"),
+                primary_node_indices: None,
+            })),
+        ],
+    }
     pcc2_primary_node: {
         corpus_paths: ["pcc2_v7_relANNIS.zip"],
         corpus_names: ["pcc2"],

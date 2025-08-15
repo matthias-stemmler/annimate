@@ -28,3 +28,7 @@
   - Name: Subtoken Demo
   - Original source: <https://corpus-tools.org/corpora/subtok.demo_relANNIS.zip>
   - Adaptation: Converted to GraphML
+-  `subtok.demo_renamed_graphml.zip`
+  - Name: Subtoken Demo
+  - Original source: <https://corpus-tools.org/corpora/subtok.demo_relANNIS.zip>
+  - Adaptation: Converted to GraphML, renamed .graphml file (but didn't change node names)

@@ -18,7 +18,7 @@ pub(crate) fn get_corpus_path(db_dir: &Path, corpus_name: &str) -> PathBuf {
     )
 }
 
-/// Returns the name of the corpus/corpus node for a given node name.
+/// Returns the name of the corpus node (root node) for a given node name.
 ///
 /// This turns
 /// ```plain
@@ -29,15 +29,13 @@ pub(crate) fn get_corpus_path(db_dir: &Path, corpus_name: &str) -> PathBuf {
 /// corpus
 /// ```
 ///
-/// We assume that the name of a corpus always equals the node name of its corpus root node.
-///
-/// This URL-decodes the corpus name because the corpus name is usually URL-encoded in node names,
-/// but not URL-encoded as a corpus name or the name of the corpus root node.
-pub(crate) fn get_corpus_name(node_name: &str) -> Result<Cow<'_, str>, AnnimateError> {
+/// Note that the corpus node name is URL-encoded when it occurs as part of another node name,
+/// but *not* as the name of the corpus root node itself.
+pub(crate) fn get_corpus_node_name(node_name: &str) -> Result<Cow<'_, str>, AnnimateError> {
     match node_name.split_once('/') {
-        Some((corpus_name_encoded, _)) => percent_encoding::percent_decode_str(corpus_name_encoded)
+        Some((encoded, _)) => percent_encoding::percent_decode_str(encoded)
             .decode_utf8()
-            .map_err(|_| AnnimateError::CorpusNameDecodesToInvalidUtf8(corpus_name_encoded.into())),
+            .map_err(|_| AnnimateError::CorpusNodeNameDecodesToInvalidUtf8(encoded.into())),
         None => Ok(node_name.into()),
     }
 }
@@ -53,11 +51,11 @@ pub(crate) fn get_corpus_name(node_name: &str) -> Result<Cow<'_, str>, AnnimateE
 /// corpus/doc
 /// ```
 ///
-/// This does *not* URL-decode the document name because the document name is usually URL-encoded
-/// both in node names and in the name of the document node.
-pub(crate) fn get_doc_name(node_name: &str) -> &str {
+/// Note that document node names are URL-encoded both when they occur as part of another node name
+/// and as a document node name itself.
+pub(crate) fn get_doc_node_name(node_name: &str) -> &str {
     match node_name.rsplit_once('#') {
-        Some((doc_name, _)) => doc_name,
+        Some((doc_node_name, _)) => doc_node_name,
         None => node_name,
     }
 }
@@ -113,58 +111,61 @@ mod tests {
     }
 
     #[test]
-    fn get_corpus_name_no_slash() {
-        assert_eq!(get_corpus_name("corpus").unwrap(), "corpus");
+    fn get_corpus_node_name_no_slash() {
+        assert_eq!(get_corpus_node_name("corpus").unwrap(), "corpus");
     }
 
     #[test]
-    fn get_corpus_name_single_slash() {
-        assert_eq!(get_corpus_name("corpus/doc#node").unwrap(), "corpus");
+    fn get_corpus_node_name_single_slash() {
+        assert_eq!(get_corpus_node_name("corpus/doc#node").unwrap(), "corpus");
     }
 
     #[test]
-    fn get_corpus_name_multiple_slashes() {
+    fn get_corpus_node_name_multiple_slashes() {
         assert_eq!(
-            get_corpus_name("corpus/subcorpus/doc#node").unwrap(),
+            get_corpus_node_name("corpus/subcorpus/doc#node").unwrap(),
             "corpus"
         );
     }
 
     #[test]
-    fn get_corpus_name_encoded_no_slash() {
+    fn get_corpus_node_name_encoded_no_slash() {
         assert_eq!(
-            get_corpus_name("c%C3%B6rp%C3%BCs").unwrap(),
+            get_corpus_node_name("c%C3%B6rp%C3%BCs").unwrap(),
             "c%C3%B6rp%C3%BCs"
         );
     }
 
     #[test]
-    fn get_corpus_name_encoded_slash() {
+    fn get_corpus_node_name_encoded_slash() {
         assert_eq!(
-            get_corpus_name("c%C3%B6rp%C3%BCs/doc#node").unwrap(),
+            get_corpus_node_name("c%C3%B6rp%C3%BCs/doc#node").unwrap(),
             "cörpüs"
         );
     }
 
     #[test]
-    fn get_doc_name_no_hash() {
-        assert_eq!(get_doc_name("corpus/doc"), "corpus/doc");
+    fn get_doc_node_name_no_hash() {
+        assert_eq!(get_doc_node_name("corpus/doc"), "corpus/doc");
     }
 
     #[test]
-    fn get_doc_name_single_hash() {
-        assert_eq!(get_doc_name("corpus/doc#node"), "corpus/doc");
+    fn get_doc_node_name_single_hash() {
+        assert_eq!(get_doc_node_name("corpus/doc#node"), "corpus/doc");
     }
 
     #[test]
-    fn get_doc_name_multiple_hashes() {
-        assert_eq!(get_doc_name("corpus/doc#node#subnode"), "corpus/doc#node");
-    }
-
-    #[test]
-    fn get_doc_name_encoded() {
+    fn get_doc_node_name_multiple_hashes() {
         assert_eq!(
-            get_doc_name("c%C3%B6rp%C3%BCs/d%C3%B6c"),
+            get_doc_node_name("corpus/doc#node#subnode"),
+            "corpus/doc#node"
+        );
+    }
+
+    #[test]
+    fn get_doc_node_name_encoded() {
+        assert_eq!(
+            get_doc_node_name("c%C3%B6rp%C3%BCs/d%C3%B6c"),
             "c%C3%B6rp%C3%BCs/d%C3%B6c"
         );
     }
