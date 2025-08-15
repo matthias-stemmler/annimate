@@ -24,7 +24,7 @@ impl Exporter for CsvExporter {
         config
             .columns
             .iter()
-            .filter_map(TableExportColumn::unwrap_data)
+            .filter_map(TableExportColumn::data)
             .cloned()
             .collect()
     }

@@ -67,6 +67,10 @@ exportable_anno_keys_test! {
         corpus_paths: ["subtok.demo_relANNIS.zip"],
         corpus_names: ["subtok.demo"],
     }
+    subtok_renamed: {
+        corpus_paths: ["subtok.demo_renamed_graphml.zip"],
+        corpus_names: ["subtok.demo_renamed"],
+    }
     pcc2: {
         corpus_paths: ["pcc2_v7_relANNIS.zip"],
         corpus_names: ["pcc2"],

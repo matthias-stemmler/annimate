@@ -49,9 +49,13 @@ pub(crate) fn segmentations<S>(
 where
     S: AsRef<str>,
 {
-    let mut segmentations_by_corpus = corpus_names.iter().map(|name| {
+    let mut segmentations_by_corpus = corpus_names.iter().map(|corpus_name| {
         corpus_storage
-            .list_components(name.as_ref(), Some(AnnotationComponentType::Ordering), None)
+            .list_components(
+                corpus_name.as_ref(),
+                Some(AnnotationComponentType::Ordering),
+                None,
+            )
             .map(|components| {
                 components.into_iter().filter_map(|component| {
                     // This is the same filter that ANNIS applies to provide the list of
@@ -75,16 +79,16 @@ where
 
     segmentations_present_in_all_corpora
         .into_iter()
-        .map(|name| {
+        .map(|segmentation| {
             get_anno_key_for_segmentation_if_exists(
                 corpus_storage,
                 cache_storage,
                 corpus_names,
-                &name,
+                &segmentation,
             )
-            .map(|anno_key| (name, anno_key))
+            .map(|anno_key| (segmentation, anno_key))
         })
-        .filter_map_ok(|(name, anno_key)| anno_key.is_some().then_some(name))
+        .filter_map_ok(|(segmentation, anno_key)| anno_key.is_some().then_some(segmentation))
         .collect()
 }
 
@@ -265,50 +269,42 @@ fn get_anno_key_infos(
             .map(|anno| anno.key)
             .collect();
 
+        let mut corpus_anno_keys = HashSet::new();
+        let mut doc_anno_keys = HashSet::new();
+
+        let corpus_or_doc_match_ids = corpus_storage.find(
+            SearchQuery {
+                corpus_names: &[corpus_name],
+                // Matches both the corpus node and all document nodes
+                query: "annis:node_type=\"corpus\"",
+                query_language: QueryLanguage::AQL,
+                timeout: None,
+            },
+            0,
+            None,
+            ResultOrder::NotSorted,
+        )?;
+
         let graph = corpus_storage.corpus_graph(corpus_name)?;
 
-        let corpus_anno_keys = {
-            // We assume that the name of the corpus node is the same as the corpus name
-            let corpus_node_id = name::node_name_to_node_id(&graph, corpus_name)?;
-
-            graph
+        for corpus_or_doc_match_id in corpus_or_doc_match_ids {
+            let Some(node_name) = util::node_names_from_match(&corpus_or_doc_match_id)
+                .into_iter()
+                .next()
+            else {
+                continue;
+            };
+            let node_id = name::node_name_to_node_id(&graph, &node_name)?;
+            let anno_keys = graph
                 .get_node_annos()
-                .get_all_keys_for_item(&corpus_node_id, None, None)?
-        };
+                .get_all_keys_for_item(&node_id, None, None)?;
 
-        let doc_anno_keys = {
-            let doc_match_ids = corpus_storage.find(
-                SearchQuery {
-                    corpus_names: &[corpus_name],
-                    query: "annis:node_type=\"corpus\" _ident_ annis:doc",
-                    query_language: QueryLanguage::AQL,
-                    timeout: None,
-                },
-                0,
-                None,
-                ResultOrder::NotSorted,
-            )?;
-
-            let mut doc_anno_keys = HashSet::new();
-
-            for doc_match_id in doc_match_ids {
-                let Some(doc_node_name) = util::node_names_from_match(&doc_match_id)
-                    .into_iter()
-                    .next()
-                else {
-                    continue;
-                };
-
-                let doc_node_id = name::node_name_to_node_id(&graph, &doc_node_name)?;
-                doc_anno_keys.extend(graph.get_node_annos().get_all_keys_for_item(
-                    &doc_node_id,
-                    None,
-                    None,
-                )?);
+            if anno_keys.iter().any(|anno_key| is_doc_anno_key(anno_key)) {
+                doc_anno_keys.extend(anno_keys);
+            } else {
+                corpus_anno_keys.extend(anno_keys);
             }
-
-            doc_anno_keys
-        };
+        }
 
         let anno_key_infos = all_anno_keys
             .into_iter()
