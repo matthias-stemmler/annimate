@@ -342,7 +342,6 @@ where
     H: Fn() -> bool,
 {
     error::cancel_if(&cancel_requested)?;
-
     on_started();
 
     on_progress(&format!(

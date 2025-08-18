@@ -79,7 +79,7 @@ pub(crate) struct SuspendGuard<'a> {
     preloader: &'a Preloader,
 }
 
-impl<'a> Drop for SuspendGuard<'a> {
+impl Drop for SuspendGuard<'_> {
     fn drop(&mut self) {
         self.preloader.resume();
     }

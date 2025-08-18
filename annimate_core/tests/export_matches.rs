@@ -514,7 +514,9 @@ fn export_cancelled_after_matches_found() {
         },
         &output_file,
         |event| {
-            if let ExportStatusEvent::Found { .. } = event {
+            if let ExportStatusEvent::MatchesExported { count, .. } = event
+                && count == 0
+            {
                 cancel_requested.set(true);
             }
         },

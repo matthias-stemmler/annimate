@@ -498,30 +498,54 @@ export const exportMatches = async (
 ): Promise<void> => {
   logAction('Export', COLOR_CUSTOM_COMMAND, params);
 
+  const matchCount = params.spec.corpusNames.reduce(
+    (acc, c) => acc + getMatchCountForCorpus(c),
+    0,
+  );
+
   let cancelRequested = false;
 
   const unsubscribe = subscribeToExportCancelRequestedEvent(() => {
     cancelRequested = true;
   });
 
-  handlers.onEvent?.({ type: 'started' });
-
   try {
-    const matchCount = params.spec.corpusNames.reduce(
-      (acc, c) => acc + getMatchCountForCorpus(c),
-      0,
-    );
-
+    handlers.onEvent?.({ type: 'started' });
     if (cancelRequested) throw new CancelledError();
 
-    await sleep(500);
-    handlers.onEvent?.({ type: 'found', count: matchCount });
+    handlers.onEvent?.({
+      type: 'corpora_searched',
+      count: 0,
+      totalCount: params.spec.corpusNames.length,
+    });
+
+    for (let i = 0; i < params.spec.corpusNames.length; i++) {
+      if (cancelRequested) throw new CancelledError();
+      handlers.onEvent?.({
+        type: 'corpora_searched',
+        count: i,
+        totalCount: params.spec.corpusNames.length,
+      });
+
+      await sleep(1000);
+    }
+
+    if (cancelRequested) throw new CancelledError();
+    handlers.onEvent?.({
+      type: 'corpora_searched',
+      count: params.spec.corpusNames.length,
+      totalCount: params.spec.corpusNames.length,
+    });
 
     for (let i = 0; i <= matchCount; i++) {
       if (cancelRequested) throw new CancelledError();
+      handlers.onEvent?.({
+        type: 'matches_exported',
+        count: i,
+        totalCount: matchCount,
+      });
 
       await sleep(20);
-      handlers.onEvent?.({ type: 'exported', progress: i / matchCount });
 
       if (
         i >= matchCount / 2 &&
@@ -530,6 +554,13 @@ export const exportMatches = async (
         throw new Error('Export failed');
       }
     }
+
+    if (cancelRequested) throw new CancelledError();
+    handlers.onEvent?.({
+      type: 'matches_exported',
+      count: matchCount,
+      totalCount: matchCount,
+    });
   } finally {
     unsubscribe();
   }
@@ -673,9 +704,10 @@ export const importCorpora = async (
     cancelRequested = true;
   });
 
-  handlers.onEvent?.({ type: 'started' });
-
   try {
+    handlers.onEvent?.({ type: 'started' });
+    if (cancelRequested) throw new CancelledError();
+
     const delay = params.paths.includes('fast') ? 20 : 200;
 
     for (let j = 0; j < 9; j++) {
