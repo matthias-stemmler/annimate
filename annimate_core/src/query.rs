@@ -144,13 +144,15 @@ impl<'a, S> Query<'a, S> {
         &self.nodes
     }
 
-    pub(crate) fn find<F, I>(
+    pub(crate) fn find<F, G, I>(
         &self,
         export_data: I,
-        cancel_requested: F,
+        mut on_corpora_searched: F,
+        cancel_requested: G,
     ) -> Result<ExportableMatches<'a>, AnnimateError>
     where
-        F: Fn() -> bool,
+        F: FnMut(usize),
+        G: Fn() -> bool,
         I: IntoIterator<Item = ExportData>,
         S: AsRef<str>,
     {
@@ -200,11 +202,13 @@ impl<'a, S> Query<'a, S> {
             corpus_names
         };
 
+        let corpus_count = corpus_names.len();
         let mut count = 0;
-        let mut match_ids_by_corpus = Vec::with_capacity(corpus_names.len());
+        let mut match_ids_by_corpus = Vec::with_capacity(corpus_count);
 
-        for corpus_name in corpus_names {
+        for (corpus_index, corpus_name) in corpus_names.into_iter().enumerate() {
             error::cancel_if(&cancel_requested)?;
+            on_corpora_searched(corpus_index);
 
             let match_ids = self.corpus_storage.find(
                 SearchQuery {
@@ -224,6 +228,9 @@ impl<'a, S> Query<'a, S> {
                 match_ids: match_ids.into_iter(),
             });
         }
+
+        error::cancel_if(&cancel_requested)?;
+        on_corpora_searched(corpus_count);
 
         Ok(ExportableMatches {
             corpus_storage: self.corpus_storage,

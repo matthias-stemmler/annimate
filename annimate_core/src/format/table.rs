@@ -48,11 +48,11 @@ pub(super) fn export<F, G, I, W>(
     query_nodes: &[Vec<QueryNode>],
     anno_key_format: &AnnoKeyFormat,
     out: &mut W,
-    mut on_progress: F,
+    mut on_matches_exported: F,
     cancel_requested: G,
 ) -> Result<(), AnnimateError>
 where
-    F: FnMut(f32),
+    F: FnMut(usize),
     G: Fn() -> bool,
     I: Iterator<Item = Result<Match, AnnimateError>> + ExactSizeIterator,
     W: TableWriter,
@@ -65,6 +65,7 @@ where
 
         for (i, m) in matches_iter.enumerate() {
             error::cancel_if(&cancel_requested)?;
+            on_matches_exported(i);
 
             let m = m?;
 
@@ -77,8 +78,10 @@ where
             }
 
             matches.push(m);
-            on_progress((i + 1) as f32 / count as f32);
         }
+
+        error::cancel_if(&cancel_requested)?;
+        on_matches_exported(count);
 
         max_match_parts_by_text
     };
