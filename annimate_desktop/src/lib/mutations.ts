@@ -198,12 +198,22 @@ export const useDeleteCorpusSetMutation = ({
   return { mutation };
 };
 
+export type ExportState =
+  | {
+      type: 'searching';
+      corpusCount: number;
+      corpusTotalCount: number;
+    }
+  | {
+      type: 'exporting';
+      progress: number;
+      matchTotalCount: number;
+    };
+
 export const useExportMatchesMutation = (
   getParams: () => Promise<{ spec: ExportSpec }>,
 ) => {
-  const [matchCount, setMatchCount] = useState<number | undefined>();
-  const [progress, setProgress] = useState<number | undefined>();
-
+  const [state, setState] = useState<ExportState | undefined>(undefined);
   const startedRef = useRef(false);
   const cancelRequestedRef = useRef(false);
   const [cancelRequested, setCancelRequested] = useState(false);
@@ -231,10 +241,19 @@ export const useExportMatchesMutation = (
               if (cancelRequestedRef.current) {
                 emitExportCancelRequestedEvent();
               }
-            } else if (event.type === 'found') {
-              setMatchCount(event.count);
-            } else if (event.type === 'exported') {
-              setProgress(event.progress);
+            } else if (event.type === 'corpora_searched') {
+              setState({
+                type: 'searching',
+                corpusCount: event.count,
+                corpusTotalCount: event.totalCount,
+              });
+            } else if (event.type === 'matches_exported') {
+              setState({
+                type: 'exporting',
+                progress:
+                  event.totalCount === 0 ? 0 : event.count / event.totalCount,
+                matchTotalCount: event.totalCount,
+              });
             }
           },
         },
@@ -245,8 +264,7 @@ export const useExportMatchesMutation = (
       startedRef.current = false;
       cancelRequestedRef.current = false;
       setCancelRequested(false);
-      setMatchCount(undefined);
-      setProgress(undefined);
+      setState(undefined);
     },
   });
 
@@ -259,7 +277,12 @@ export const useExportMatchesMutation = (
     }
   }, []);
 
-  return { mutation, matchCount, progress, cancelRequested, requestCancel };
+  return {
+    mutation,
+    state,
+    cancelRequested,
+    requestCancel,
+  };
 };
 
 export const useIsExporting = (): boolean =>
