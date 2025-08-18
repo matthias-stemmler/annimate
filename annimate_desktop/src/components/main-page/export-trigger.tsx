@@ -27,8 +27,7 @@ export const ExportTrigger = () => {
   const getExportFormat = useGetExportFormat();
   const {
     mutation: { isPending: isExporting, mutate: exportMatches },
-    matchCount,
-    progress,
+    state,
     cancelRequested,
     requestCancel,
   } = useExportMatches();
@@ -41,19 +40,27 @@ export const ExportTrigger = () => {
           <div className="grow">
             <div className="mb-1 flex justify-between">
               <p>
-                {matchCount === undefined
-                  ? 'Searching ...'
-                  : `Exporting ${matchCount} match${matchCount === 1 ? '' : 'es'} ...`}
+                {state?.type === 'exporting'
+                  ? `Exporting ${state.matchTotalCount} match${state.matchTotalCount === 1 ? '' : 'es'} ...`
+                  : 'Searching ...'}
               </p>
 
-              {progress !== undefined && (
-                <p className="w-0 grow truncate text-right">
-                  {formatPercentage(progress)}
-                </p>
-              )}
+              <p className="w-0 grow truncate text-right">
+                {state === undefined
+                  ? ''
+                  : state.type === 'searching'
+                    ? state.corpusTotalCount <= 1
+                      ? ''
+                      : `${state.corpusCount} out of ${state.corpusTotalCount} corpora searched`
+                    : formatPercentage(state.progress)}
+              </p>
             </div>
 
-            <Progress value={Math.round((progress ?? 0) * 100)} />
+            <Progress
+              value={Math.round(
+                (state?.type === 'exporting' ? state.progress : 0) * 100,
+              )}
+            />
           </div>
 
           <Tooltip>

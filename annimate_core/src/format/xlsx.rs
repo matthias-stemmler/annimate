@@ -39,11 +39,11 @@ impl Exporter for XlsxExporter {
         query_info: QueryInfo<'_, S>,
         anno_key_format: &AnnoKeyFormat,
         out: W,
-        on_progress: F,
+        on_matches_exported: F,
         cancel_requested: G,
     ) -> Result<(), AnnimateError>
     where
-        F: FnMut(f32),
+        F: FnMut(usize),
         G: Fn() -> bool,
         I: Iterator<Item = Result<Match, AnnimateError>> + ExactSizeIterator,
         S: AsRef<str>,
@@ -93,7 +93,7 @@ impl Exporter for XlsxExporter {
                 query_info.nodes,
                 anno_key_format,
                 &mut xlsx_table_writer,
-                on_progress,
+                on_matches_exported,
                 cancel_requested,
             )?;
 

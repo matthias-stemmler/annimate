@@ -50,11 +50,11 @@ pub(crate) fn export<F, G, I, S, W>(
     query_info: QueryInfo<'_, S>,
     anno_key_format: &AnnoKeyFormat,
     out: W,
-    on_progress: F,
+    on_matches_exported: F,
     cancel_requested: G,
 ) -> Result<(), AnnimateError>
 where
-    F: FnMut(f32),
+    F: FnMut(usize),
     G: Fn() -> bool,
     I: Iterator<Item = Result<Match, AnnimateError>> + ExactSizeIterator,
     S: AsRef<str>,
@@ -67,7 +67,7 @@ where
             query_info,
             anno_key_format,
             out,
-            on_progress,
+            on_matches_exported,
             cancel_requested,
         ),
         ExportFormat::Xlsx(config) => XlsxExporter::export(
@@ -76,7 +76,7 @@ where
             query_info,
             anno_key_format,
             out,
-            on_progress,
+            on_matches_exported,
             cancel_requested,
         ),
     }
@@ -93,11 +93,11 @@ trait Exporter {
         query_info: QueryInfo<'_, S>,
         anno_key_format: &AnnoKeyFormat,
         out: W,
-        on_progress: F,
+        on_matches_exported: F,
         cancel_requested: G,
     ) -> Result<(), AnnimateError>
     where
-        F: FnMut(f32),
+        F: FnMut(usize),
         G: Fn() -> bool,
         I: Iterator<Item = Result<Match, AnnimateError>> + ExactSizeIterator,
         S: AsRef<str>,

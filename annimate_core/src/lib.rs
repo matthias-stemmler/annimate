@@ -407,14 +407,6 @@ impl Storage {
         on_status(ExportStatusEvent::Started);
         error::cancel_if(&cancel_requested)?;
 
-        // Preload corpora to enable cancellation between loads
-        // (in reverse order to reduce total number of loads in case not all corpora fit into
-        // memory)
-        for corpus_name in config.corpus_names.iter().rev() {
-            self.corpus_storage.preload(corpus_name)?;
-            error::cancel_if(&cancel_requested)?;
-        }
-
         let anno_keys = AnnoKeys::new(
             &self.corpus_storage,
             &self.cache_storage,
@@ -427,13 +419,19 @@ impl Storage {
             &config.aql_query,
             config.query_language,
         )?;
-        let matches = query.find(config.format.get_export_data(), &cancel_requested)?;
+
+        let matches = query.find(
+            config.format.get_export_data(),
+            |count| {
+                on_status(ExportStatusEvent::CorporaSearched {
+                    count,
+                    total_count: config.corpus_names.len(),
+                });
+            },
+            &cancel_requested,
+        )?;
 
         error::cancel_if(&cancel_requested)?;
-
-        on_status(ExportStatusEvent::Found {
-            count: matches.len(),
-        });
 
         let mut out = {
             let mut builder = tempfile::Builder::new();
@@ -452,17 +450,22 @@ impl Storage {
             nodes: query.nodes(),
         };
 
+        let match_count = matches.len();
+
         format::export(
             config.format,
             matches,
             query_info,
             anno_keys.format(),
             &mut out,
-            |progress| on_status(ExportStatusEvent::Exported { progress }),
+            |count| {
+                on_status(ExportStatusEvent::MatchesExported {
+                    count,
+                    total_count: match_count,
+                });
+            },
             &cancel_requested,
         )?;
-
-        error::cancel_if(cancel_requested)?;
 
         out.flush()?;
 
@@ -540,15 +543,19 @@ pub struct ExportConfig {
 pub enum ExportStatusEvent {
     /// Export was started.
     Started,
-    /// Corpora were found.
-    Found {
-        /// Number of corpora found.
+    /// Corpora were searched.
+    CorporaSearched {
+        /// Number of corpora searched.
         count: usize,
+        /// Total number of corpora to search.
+        total_count: usize,
     },
-    /// Corpora were exported.
-    Exported {
-        /// Progress of the export, in `0..=1`.
-        progress: f32,
+    /// Matches were exported.
+    MatchesExported {
+        /// Number of matches exported.
+        count: usize,
+        /// Total number of matches to export.
+        total_count: usize,
     },
 }
 /// Event describing the status of an ongoing import.
