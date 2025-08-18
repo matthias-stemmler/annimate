@@ -123,8 +123,8 @@ export type LineColumn = {
 
 export type ExportStatusEvent =
   | { type: 'started' }
-  | { type: 'found'; count: number }
-  | { type: 'exported'; progress: number };
+  | { type: 'corpora_searched'; count: number; totalCount: number }
+  | { type: 'matches_exported'; count: number; totalCount: number };
 
 export type ImportStatusEvent =
   | {
