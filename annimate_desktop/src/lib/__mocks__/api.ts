@@ -406,7 +406,9 @@ export const relaunch = async (): Promise<void> => {
   window.location.reload();
 };
 
-export const revealItemInDir = async (path: string): Promise<unknown> => {
+export const revealItemInDir = async (
+  path: string | string[],
+): Promise<void> => {
   logAction('Reveal Item in Dir', COLOR_BUILTIN_COMMAND, { path });
   alert(`Reveal Item in Dir\npath: ${path}`);
   return undefined;
