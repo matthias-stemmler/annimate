@@ -84,7 +84,7 @@ where
             )
             .map(|anno_key| (name, anno_key))
         })
-        .filter_map_ok(|(name, anno_key)| anno_key.map(|_| name.into()))
+        .filter_map_ok(|(name, anno_key)| anno_key.is_some().then_some(name))
         .collect()
 }
 

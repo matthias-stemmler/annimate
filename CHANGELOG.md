@@ -2,6 +2,10 @@
 
 ## [Unreleased] - (release date)
 
+### Changed
+
+- Improved search performance for some queries due to an improvement in the underlying graphANNIS library.
+
 ## [1.5.0] - 2025-08-05
 
 ### Added
