@@ -295,8 +295,8 @@ fn to_string_pretty(project_file: ProjectFile) -> String {
 fn anno_key_to_item(anno_key: AnnoKey) -> toml_edit::Item {
     let mut table = toml_edit::InlineTable::new();
 
-    table.insert("ns", String::from(anno_key.ns).into());
-    table.insert("name", String::from(anno_key.name).into());
+    table.insert("ns", anno_key.ns.into());
+    table.insert("name", anno_key.name.into());
 
     table.into()
 }
