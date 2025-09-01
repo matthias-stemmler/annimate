@@ -51,7 +51,7 @@ export const ExportTrigger = () => {
                   : state.type === 'searching'
                     ? state.corpusTotalCount <= 1
                       ? ''
-                      : `${state.corpusCount} out of ${state.corpusTotalCount} corpora searched`
+                      : `${state.corpusCount} of ${state.corpusTotalCount} corpora searched`
                     : formatPercentage(state.progress)}
               </p>
             </div>
