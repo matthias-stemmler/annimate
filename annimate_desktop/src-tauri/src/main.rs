@@ -9,7 +9,7 @@ mod error;
 mod preload;
 mod state;
 
-use std::env;
+use std::thread;
 
 use state::AppState;
 use tauri::{AppHandle, Manager};
@@ -18,6 +18,17 @@ use tauri_plugin_window_state::{StateFlags, WindowExt};
 const THREAD_STACK_SIZE_MB: usize = 4;
 
 fn main() {
+    // Initialize global Rayon thread pool. This matches Rayon's default behavior except that
+    // `num_threads` cannot be overridden by environment variables.
+    rayon::ThreadPoolBuilder::default()
+        .num_threads(
+            thread::available_parallelism()
+                .map(|n| n.get())
+                .unwrap_or(1),
+        )
+        .build_global()
+        .expect("Rayon thread pool should build successfully");
+
     // Use custom tokio runtime with larger stack size (default is 2 MB) to avoid stack overflows
     // when validating queries. 4 MB is enough for worst-case queries of the maximal length of
     // 400 characters.

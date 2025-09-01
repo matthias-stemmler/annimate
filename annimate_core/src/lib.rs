@@ -15,6 +15,7 @@ use import::{FilesystemEntity, ImportFormat, ImportableCorpus};
 use itertools::Itertools;
 use metadata::{CorpusSet, MetadataStorage};
 use query::Query;
+use rayon::prelude::*;
 use serde::Serialize;
 
 mod anno;
@@ -400,8 +401,8 @@ impl Storage {
         cancel_requested: G,
     ) -> Result<(), AnnimateError>
     where
-        F: Fn(ExportStatusEvent),
-        G: Fn() -> bool,
+        F: Fn(ExportStatusEvent) + Sync,
+        G: Fn() -> bool + Sync,
         P: AsRef<Path>,
     {
         on_status(ExportStatusEvent::Started);
@@ -450,7 +451,7 @@ impl Storage {
             nodes: query.nodes(),
         };
 
-        let match_count = matches.len();
+        let total_count = matches.len();
 
         format::export(
             config.format,
@@ -459,10 +460,7 @@ impl Storage {
             anno_keys.format(),
             &mut out,
             |count| {
-                on_status(ExportStatusEvent::MatchesExported {
-                    count,
-                    total_count: match_count,
-                });
+                on_status(ExportStatusEvent::MatchesExported { count, total_count });
             },
             &cancel_requested,
         )?;

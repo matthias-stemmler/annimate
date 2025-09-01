@@ -2,6 +2,7 @@ use std::io::{Seek, Write};
 
 use csv::CsvExporter;
 use graphannis::corpusstorage::QueryLanguage;
+use rayon::prelude::*;
 use xlsx::XlsxExporter;
 
 use crate::anno::AnnoKeyFormat;
@@ -54,9 +55,9 @@ pub(crate) fn export<F, G, I, S, W>(
     cancel_requested: G,
 ) -> Result<(), AnnimateError>
 where
-    F: FnMut(usize),
-    G: Fn() -> bool,
-    I: Iterator<Item = Result<Match, AnnimateError>> + ExactSizeIterator,
+    F: Fn(usize) + Sync,
+    G: Fn() -> bool + Sync,
+    I: IndexedParallelIterator<Item = Result<Match, AnnimateError>>,
     S: AsRef<str>,
     W: Write + Seek + Send,
 {
@@ -97,9 +98,9 @@ trait Exporter {
         cancel_requested: G,
     ) -> Result<(), AnnimateError>
     where
-        F: FnMut(usize),
-        G: Fn() -> bool,
-        I: Iterator<Item = Result<Match, AnnimateError>> + ExactSizeIterator,
+        F: Fn(usize) + Sync,
+        G: Fn() -> bool + Sync,
+        I: IndexedParallelIterator<Item = Result<Match, AnnimateError>>,
         S: AsRef<str>,
         W: Write + Seek + Send;
 }

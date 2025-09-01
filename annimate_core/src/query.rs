@@ -12,6 +12,7 @@ use graphannis_core::errors::GraphAnnisCoreError;
 use graphannis_core::graph::DEFAULT_NS;
 use graphannis_core::types::{AnnoKey, NodeID};
 use itertools::Itertools;
+use rayon::prelude::*;
 
 use crate::anno::{
     self, DEFAULT_ORDERING_COMPONENT, GAP_ORDERING_COMPONENT, TOKEN_ANNO_KEY,
@@ -149,12 +150,12 @@ impl<'a, S> Query<'a, S> {
         export_data: I,
         mut on_corpora_searched: F,
         cancel_requested: G,
-    ) -> Result<ExportableMatches<'a>, AnnimateError>
+    ) -> Result<impl IndexedParallelIterator<Item = Result<Match, AnnimateError>>, AnnimateError>
     where
         F: FnMut(usize),
         G: Fn() -> bool,
         I: IntoIterator<Item = ExportData>,
-        S: AsRef<str>,
+        S: AsRef<str> + Sync,
     {
         let export_data: HashSet<_> = export_data.into_iter().collect();
 
@@ -203,168 +204,106 @@ impl<'a, S> Query<'a, S> {
         };
 
         let corpus_count = corpus_names.len();
-        let mut count = 0;
-        let mut match_ids_by_corpus = Vec::with_capacity(corpus_count);
+        let mut match_ids = Vec::new();
 
         for (corpus_index, corpus_name) in corpus_names.into_iter().enumerate() {
             error::cancel_if(&cancel_requested)?;
             on_corpora_searched(corpus_index);
 
-            let match_ids = self.corpus_storage.find(
-                SearchQuery {
-                    corpus_names: &[corpus_name],
-                    query: self.aql_query,
-                    query_language: self.query_language,
-                    timeout: None,
-                },
-                0,
-                None,
-                ResultOrder::Normal,
-            )?;
-
-            count += match_ids.len();
-            match_ids_by_corpus.push(MatchIdsForCorpus {
-                corpus_name,
-                match_ids: match_ids.into_iter(),
-            });
+            match_ids.extend(
+                self.corpus_storage
+                    .find(
+                        SearchQuery {
+                            corpus_names: &[corpus_name],
+                            query: self.aql_query,
+                            query_language: self.query_language,
+                            timeout: None,
+                        },
+                        0,
+                        None,
+                        ResultOrder::Normal,
+                    )?
+                    .into_iter()
+                    .map(|match_id| (match_id, corpus_name)),
+            );
         }
 
         error::cancel_if(&cancel_requested)?;
         on_corpora_searched(corpus_count);
 
-        Ok(ExportableMatches {
-            corpus_storage: self.corpus_storage,
-            export_data,
-            segment_anno_keys,
-            match_ids_by_corpus: match_ids_by_corpus.into_iter(),
-            match_ids: None,
-            count_remaining: count,
-        })
-    }
-}
+        Ok(match_ids
+            .into_par_iter()
+            .map(move |(match_id, corpus_name)| {
+                let match_node_names = util::node_names_from_match(&match_id);
+                let first_match_node_name = match_node_names
+                    .first()
+                    .ok_or(AnnimateError::MatchWithoutNodes)?;
 
-pub(crate) struct ExportableMatches<'a> {
-    corpus_storage: &'a CorpusStorage,
-    export_data: HashSet<ExportData>,
-    segment_anno_keys: HashMap<Option<String>, AnnoKey>,
-    match_ids_by_corpus: vec::IntoIter<MatchIdsForCorpus<'a>>,
-    match_ids: Option<MatchIdsForCorpus<'a>>,
-    count_remaining: usize,
-}
+                let corpus_node_name = name::get_corpus_node_name(first_match_node_name)?;
+                let doc_node_name = name::get_doc_node_name(first_match_node_name);
 
-impl<'a> ExportableMatches<'a> {
-    fn match_id_to_match(&self, match_id: &str, corpus_name: &str) -> Result<Match, AnnimateError> {
-        let match_node_names = util::node_names_from_match(match_id);
-        let first_match_node_name = match_node_names
-            .first()
-            .ok_or(AnnimateError::MatchWithoutNodes)?;
+                let mut annos = HashMap::new();
+                let mut texts = HashMap::new();
 
-        let corpus_node_name = name::get_corpus_node_name(first_match_node_name)?;
-        let doc_node_name = name::get_doc_node_name(first_match_node_name);
-
-        let mut annos = HashMap::new();
-        let mut texts = HashMap::new();
-
-        for d in &self.export_data {
-            match d {
-                ExportData::Anno(anno) => match anno {
-                    ExportDataAnno::Corpus { anno_key } => {
-                        if let Some(value) = get_corpus_or_doc_anno(
-                            self.corpus_storage,
-                            corpus_name,
-                            &corpus_node_name,
-                            anno_key,
-                        )? {
-                            annos.insert(anno.clone(), value);
-                        }
-                    }
-                    ExportDataAnno::Document { anno_key } => {
-                        if let Some(value) = get_corpus_or_doc_anno(
-                            self.corpus_storage,
-                            corpus_name,
-                            doc_node_name,
-                            anno_key,
-                        )? {
-                            annos.insert(anno.clone(), value);
-                        }
-                    }
-                    ExportDataAnno::MatchNode { anno_key, index } => {
-                        if let Some(value) = match_node_names
-                            .get(*index)
-                            .map(|node_name| {
-                                get_anno_with_overlapping_coverage(
+                for d in &export_data {
+                    match d {
+                        ExportData::Anno(anno) => match anno {
+                            ExportDataAnno::Corpus { anno_key } => {
+                                if let Some(value) = get_corpus_or_doc_anno(
                                     self.corpus_storage,
                                     corpus_name,
-                                    node_name,
+                                    &corpus_node_name,
                                     anno_key,
-                                )
-                            })
-                            .transpose()?
-                            .flatten()
-                        {
-                            annos.insert(anno.clone(), value);
+                                )? {
+                                    annos.insert(anno.clone(), value);
+                                }
+                            }
+                            ExportDataAnno::Document { anno_key } => {
+                                if let Some(value) = get_corpus_or_doc_anno(
+                                    self.corpus_storage,
+                                    corpus_name,
+                                    doc_node_name,
+                                    anno_key,
+                                )? {
+                                    annos.insert(anno.clone(), value);
+                                }
+                            }
+                            ExportDataAnno::MatchNode { anno_key, index } => {
+                                if let Some(value) = match_node_names
+                                    .get(*index)
+                                    .map(|node_name| {
+                                        get_anno_with_overlapping_coverage(
+                                            self.corpus_storage,
+                                            corpus_name,
+                                            node_name,
+                                            anno_key,
+                                        )
+                                    })
+                                    .transpose()?
+                                    .flatten()
+                                {
+                                    annos.insert(anno.clone(), value);
+                                }
+                            }
+                        },
+                        ExportData::Text(text) => {
+                            texts.insert(
+                                text.clone(),
+                                get_parts(
+                                    self.corpus_storage,
+                                    corpus_name,
+                                    match_node_names.clone(),
+                                    text,
+                                    segment_anno_keys.get(&text.segmentation).unwrap(),
+                                )?,
+                            );
                         }
                     }
-                },
-                ExportData::Text(text) => {
-                    texts.insert(
-                        text.clone(),
-                        get_parts(
-                            self.corpus_storage,
-                            corpus_name,
-                            match_node_names.clone(),
-                            text,
-                            self.segment_anno_keys.get(&text.segmentation).unwrap(),
-                        )?,
-                    );
                 }
-            }
-        }
 
-        Ok(Match { annos, texts })
+                Ok(Match { annos, texts })
+            }))
     }
-}
-
-impl<'a> Iterator for ExportableMatches<'a> {
-    type Item = Result<Match, AnnimateError>;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        loop {
-            if self.match_ids.is_none() {
-                self.match_ids = self.match_ids_by_corpus.next();
-                if self.match_ids.is_none() {
-                    debug_assert!(self.count_remaining == 0);
-                    return None;
-                }
-            }
-
-            if let Some(current) = self.match_ids.as_mut() {
-                let corpus_name = current.corpus_name;
-                if let Some(match_id) = current.match_ids.next() {
-                    debug_assert!(self.count_remaining > 0);
-                    self.count_remaining -= 1;
-                    return Some(self.match_id_to_match(&match_id, corpus_name));
-                } else {
-                    self.match_ids = None;
-                }
-            }
-        }
-    }
-
-    fn size_hint(&self) -> (usize, Option<usize>) {
-        (self.count_remaining, Some(self.count_remaining))
-    }
-}
-
-impl<'a> ExactSizeIterator for ExportableMatches<'a> {
-    fn len(&self) -> usize {
-        self.count_remaining
-    }
-}
-
-struct MatchIdsForCorpus<'a> {
-    corpus_name: &'a str,
-    match_ids: vec::IntoIter<String>,
 }
 
 fn get_corpus_or_doc_anno(
