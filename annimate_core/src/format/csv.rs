@@ -1,5 +1,7 @@
 use std::io::{Seek, Write};
 
+use rayon::prelude::*;
+
 use super::table::{self, TableWriter};
 use super::{Exporter, QueryInfo};
 use crate::TableExportColumn;
@@ -39,9 +41,9 @@ impl Exporter for CsvExporter {
         cancel_requested: G,
     ) -> Result<(), AnnimateError>
     where
-        F: FnMut(usize),
-        G: Fn() -> bool,
-        I: Iterator<Item = Result<Match, AnnimateError>> + ExactSizeIterator,
+        F: Fn(usize) + Sync,
+        G: Fn() -> bool + Sync,
+        I: IndexedParallelIterator<Item = Result<Match, AnnimateError>>,
         S: AsRef<str>,
         W: Write + Seek + Send,
     {

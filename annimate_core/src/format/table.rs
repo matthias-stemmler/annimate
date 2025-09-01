@@ -1,8 +1,10 @@
 use std::collections::{BTreeSet, HashMap};
 use std::ops::Range;
+use std::sync::atomic::{AtomicUsize, Ordering};
 use std::vec;
 
 use itertools::{Itertools, PutBack};
+use rayon::prelude::*;
 
 use crate::anno::{self, AnnoKeyFormat};
 use crate::aql::QueryNode;
@@ -48,42 +50,49 @@ pub(super) fn export<F, G, I, W>(
     query_nodes: &[Vec<QueryNode>],
     anno_key_format: &AnnoKeyFormat,
     out: &mut W,
-    mut on_matches_exported: F,
+    on_matches_exported: F,
     cancel_requested: G,
 ) -> Result<(), AnnimateError>
 where
-    F: FnMut(usize),
-    G: Fn() -> bool,
-    I: Iterator<Item = Result<Match, AnnimateError>> + ExactSizeIterator,
+    F: Fn(usize) + Sync,
+    G: Fn() -> bool + Sync,
+    I: IndexedParallelIterator<Item = Result<Match, AnnimateError>>,
     W: TableWriter,
 {
-    let count = matches_iter.len();
-    let mut matches = Vec::with_capacity(count);
+    let (matches, mut max_match_parts_by_text) = {
+        let count = AtomicUsize::new(0);
 
-    let max_match_parts_by_text = {
-        let mut max_match_parts_by_text = HashMap::new();
+        let max_match_parts_by_text: HashMap<_, _> = columns
+            .iter()
+            .filter_map(|c| match c {
+                TableExportColumn::Data(ExportData::Text(text)) => Some(text),
+                _ => None,
+            })
+            .map(|text| (text, AtomicUsize::new(0)))
+            .collect();
 
-        for (i, m) in matches_iter.enumerate() {
-            error::cancel_if(&cancel_requested)?;
-            on_matches_exported(i);
+        let matches: Vec<_> = matches_iter
+            .map(|m| {
+                error::cancel_if(&cancel_requested)?;
+                on_matches_exported(count.fetch_add(1, Ordering::Relaxed));
 
-            let m = m?;
+                m.inspect(|m| {
+                    for (text, parts) in &m.texts {
+                        let match_parts = parts.iter().filter(|p| p.is_match()).count();
 
-            for (text, parts) in &m.texts {
-                let match_parts = parts.iter().filter(|p| p.is_match()).count();
-                let max_match_parts = max_match_parts_by_text.entry(text.clone()).or_insert(0);
-                if match_parts > *max_match_parts {
-                    *max_match_parts = match_parts;
-                }
-            }
-
-            matches.push(m);
-        }
+                        max_match_parts_by_text
+                            .get(text)
+                            .expect("max_match_parts_by_text should have an entry for each text")
+                            .fetch_max(match_parts, Ordering::Relaxed);
+                    }
+                })
+            })
+            .collect::<Result<_, AnnimateError>>()?;
 
         error::cancel_if(&cancel_requested)?;
-        on_matches_exported(count);
+        on_matches_exported(count.into_inner());
 
-        max_match_parts_by_text
+        (matches, max_match_parts_by_text)
     };
 
     error::cancel_if(&cancel_requested)?;
@@ -118,7 +127,10 @@ where
             )]
         }
         TableExportColumn::Data(ExportData::Text(text)) => {
-            let max_match_parts = *max_match_parts_by_text.get(text).unwrap_or(&0);
+            let max_match_parts = *max_match_parts_by_text
+                .get_mut(text)
+                .expect("max_match_parts_by_text should have an entry for each text")
+                .get_mut();
             let column_types = ColumnTypes::new(max_match_parts, query_nodes.len(), text);
 
             column_types
@@ -159,7 +171,10 @@ where
                 ]
             }
             TableExportColumn::Data(ExportData::Text(text)) => {
-                let max_match_parts = *max_match_parts_by_text.get(text).unwrap();
+                let max_match_parts = *max_match_parts_by_text
+                    .get_mut(text)
+                    .expect("max_match_parts_by_text should have an entry for each text")
+                    .get_mut();
                 let parts = texts.get(text).unwrap().clone();
                 let column_types = ColumnTypes::new(max_match_parts, query_nodes.len(), text);
                 TextColumnsAligned::new(parts, column_types).collect()
@@ -354,6 +369,7 @@ mod tests {
 
     use graphannis_core::graph::ANNIS_NS;
     use graphannis_core::types::AnnoKey;
+    use rayon::prelude::*;
 
     use super::*;
 
@@ -381,18 +397,20 @@ mod tests {
                     },
                 };
 
+                let matches = [
+                    $(Match {
+                        annos: [(export_data_anno_doc.clone(), $doc_name.into())].into(),
+                        texts: [(text.clone(), [ $(export_test!(@expand_part $part)),* ].into())].into(),
+                    }),*
+                ];
+
                 export(
                     &[
                         TableExportColumn::Number,
                         TableExportColumn::Data(ExportData::Anno(export_data_anno_doc.clone())),
                         TableExportColumn::Data(ExportData::Text(text.clone())),
                     ],
-                    [
-                        $(Match {
-                            annos: [(export_data_anno_doc.clone(), $doc_name.into())].into(),
-                            texts: [(text.clone(), [ $(export_test!(@expand_part $part)),* ].into())].into(),
-                        }),*
-                    ].into_iter().map(Ok),
+                    matches.into_par_iter().map(Ok),
                     &[vec![]],
                     &AnnoKeyFormat::new(&HashSet::new()),
                     &mut writer,

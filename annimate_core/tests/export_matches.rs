@@ -1,6 +1,6 @@
-use std::cell::Cell;
 use std::fs;
 use std::path::Path;
+use std::sync::atomic::{AtomicBool, Ordering};
 
 use annimate_core::{
     AnnimateError, AnnoKey, CsvExportConfig, ExportConfig, ExportData, ExportDataAnno,
@@ -501,7 +501,7 @@ fn export_cancelled_after_matches_found() {
         )
         .unwrap();
 
-    let cancel_requested = Cell::new(false);
+    let cancel_requested = AtomicBool::new(false);
 
     let result = storage.export_matches(
         ExportConfig {
@@ -517,10 +517,10 @@ fn export_cancelled_after_matches_found() {
             if let ExportStatusEvent::MatchesExported { count, .. } = event
                 && count == 0
             {
-                cancel_requested.set(true);
+                cancel_requested.store(true, Ordering::Relaxed);
             }
         },
-        || cancel_requested.get(),
+        || cancel_requested.load(Ordering::Relaxed),
     );
 
     assert!(matches!(result, Err(AnnimateError::Cancelled)));
