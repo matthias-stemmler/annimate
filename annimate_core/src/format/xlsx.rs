@@ -2,6 +2,7 @@ use std::io::{Seek, Write};
 
 use graphannis::corpusstorage::QueryLanguage;
 use itertools::Itertools;
+use rayon::prelude::*;
 use rust_xlsxwriter::{DocProperties, Table, Workbook, Worksheet};
 
 use super::table::{self, TableWriter};
@@ -43,9 +44,9 @@ impl Exporter for XlsxExporter {
         cancel_requested: G,
     ) -> Result<(), AnnimateError>
     where
-        F: FnMut(usize),
-        G: Fn() -> bool,
-        I: Iterator<Item = Result<Match, AnnimateError>> + ExactSizeIterator,
+        F: Fn(usize) + Sync,
+        G: Fn() -> bool + Sync,
+        I: IndexedParallelIterator<Item = Result<Match, AnnimateError>>,
         S: AsRef<str>,
         W: Write + Seek + Send,
     {
