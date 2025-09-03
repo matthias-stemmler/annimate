@@ -97,7 +97,7 @@ dependencies = [
  "thiserror 2.0.16",
  "toml 0.9.5",
  "toml_edit 0.23.4",
- "zip 4.5.0",
+ "zip 4.6.1",
 ]
 
 [[package]]
@@ -4126,7 +4126,7 @@ version = "0.90.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4fc4507df5e1c3ab599b1434c3e71ef14684d9b21cfbf1d3f1315cda74a47320"
 dependencies = [
- "zip 4.5.0",
+ "zip 4.6.1",
 ]
 
 [[package]]
@@ -5109,7 +5109,7 @@ dependencies = [
  "tokio",
  "url",
  "windows-sys 0.60.2",
- "zip 4.5.0",
+ "zip 4.6.1",
 ]
 
 [[package]]
@@ -6861,9 +6861,9 @@ dependencies = [
 
 [[package]]
 name = "zip"
-version = "4.5.0"
+version = "4.6.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8835eb39822904d39cb19465de1159e05d371973f0c6df3a365ad50565ddc8b9"
+checksum = "caa8cd6af31c3b31c6631b8f483848b91589021b28fffe50adada48d4f4d2ed1"
 dependencies = [
  "aes",
  "arbitrary",
