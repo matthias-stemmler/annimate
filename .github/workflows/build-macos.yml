@@ -34,7 +34,7 @@ jobs:
         run: corepack enable
 
       - name: Set up node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           cache: pnpm
           cache-dependency-path: annimate_desktop/pnpm-lock.yaml
