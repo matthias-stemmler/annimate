@@ -7,7 +7,7 @@ It is meant as a supplement to the ANNIS web interface and focuses on file expor
 > [!NOTE]
 > Annimate is being developed by [Matthias Stemmler](https://github.com/matthias-stemmler) in cooperation with the [Lehrstuhl für Deutsche Sprachwissenschaft](https://www.uni-augsburg.de/de/fakultaet/philhist/professuren/germanistik/deutsche-sprachwissenschaft/) at the University of Augsburg.
 >
-> It is based on the [graphANNIS](https://github.com/korpling/graphANNIS) library by Thomas Krause.
+> It is based on the [graphANNIS](https://corpus-tools.org/graphannis/) library by Thomas Krause.
 
 Annimate can produce a CSV or an Excel file with one row per match, showing the matched nodes in their context in a KWIC (Key Word in Context) format as well as additional annotations of the matched nodes and metadata on the corpus and document levels. It is similar in functionality to a combination of the ANNIS `TextColumnExporter` and `CSVExporter`, but provides a friendlier user interface.
 

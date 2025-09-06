@@ -6,4 +6,4 @@ export const URL_ANNIMATE_USER_GUIDE =
 export const URL_AQL_OPERATORS =
   'https://korpling.github.io/ANNIS/4.0/user-guide/aql/operators.html';
 
-export const URL_GRAPHANNIS = 'https://github.com/korpling/graphANNIS';
+export const URL_GRAPHANNIS = 'https://corpus-tools.org/graphannis/';

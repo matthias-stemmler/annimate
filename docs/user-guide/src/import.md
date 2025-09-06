@@ -30,9 +30,9 @@ Annimate can import corpora in both of these formats. It can also import (potent
 There are several ways to obtain corpus data:
 
 - Download the data from a public repository such as [LAUDATIO](https://www.laudatio-repository.org/): In the "Download" menu for each corpus (here in the sense of a corpus set such as ReA), you find a list of the formats in which the data are available. Select `graphannis` or `relannis` if available. The downloaded ZIP file can be imported directly into Annimate.
-- If the corpus is available in a linguistic format different from graphANNIS or relANNIS, you may be able to convert it into one of the two supported formats using a conversion tool such as [Pepper](https://corpus-tools.org/pepper/) or [Annatto](https://github.com/korpling/annatto):
-  - For Pepper, select the [`ANNISExporter`](https://github.com/korpling/pepperModules-ANNISModules/tree/master#usage) in the export step to convert the corpus into the relANNIS format.
+- If the corpus is available in a linguistic format different from graphANNIS or relANNIS, you may be able to convert it into one of the two supported formats using a conversion tool such as [Annatto](https://corpus-tools.org/annatto) or [Pepper](https://corpus-tools.org/legacy/):
   - For Annatto, use the [`graphml`](https://github.com/korpling/annatto/blob/main/docs/exporters/graphml.md) exporter to convert the corpus into the graphANNIS/GraphML format.
+  - For Pepper, select the [`ANNISExporter`](https://github.com/korpling/pepperModules-ANNISModules) in the export step to convert the corpus into the relANNIS format.
 - If the corpus is accessible through a public installation of ANNIS, ask the maintainers of the installation to provide the data.
 
 > **Note:** See the [Links](links.md#corpora) section for download links for some publicly available corpora.
