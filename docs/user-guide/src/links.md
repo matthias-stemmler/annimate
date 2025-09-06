@@ -13,9 +13,11 @@
 
 ## Other Software
 
-- [Pepper](https://corpus-tools.org/pepper/index.html): Platform for conversion and manipulation of linguistic data, supports the relANNIS format
-- [Annatto](https://github.com/korpling/annatto): Tool for conversion and manipulation of linguistic data, based on the graphANNIS representation
-- [graphANNIS](https://github.com/korpling/graphANNIS): The library underlying ANNIS, Annimate and Annatto
+For other ANNIS-related software, see [corpus-tools.org](https://corpus-tools.org/). There you will find these tools, among others:
+
+- [Annatto](https://corpus-tools.org/annatto/): Tool for conversion and manipulation of linguistic data, based on the graphANNIS representation
+- [graphANNIS](https://corpus-tools.org/graphannis/): The library underlying ANNIS, Annimate and Annatto
+- [Pepper](https://corpus-tools.org/legacy/) (Legacy): Platform for conversion and manipulation of linguistic data, supports the relANNIS format
 
 ## Corpora
 
