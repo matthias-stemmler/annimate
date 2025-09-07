@@ -1,6 +1,6 @@
 # ![Annimate logo](annimate_desktop/src-tauri/icons/32x32.png) Annimate - Your Friendly ANNIS Match Exporter
 
-This is a tool for the convenient export of query results (matches) from the ANNIS[^1] system for linguistic corpora.
+This is a tool for the convenient export of query results (matches) from the [ANNIS](https://corpus-tools.org/annis/)[^1] system for linguistic corpora.
 
 It is meant as a supplement to the ANNIS web interface and focuses on file export (as opposed to visualization) of the results of an ANNIS query.
 
