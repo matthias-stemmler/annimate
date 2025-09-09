@@ -89,7 +89,6 @@ dependencies = [
  "insta",
  "itertools 0.14.0",
  "percent-encoding",
- "rayon",
  "regex",
  "rust_xlsxwriter",
  "serde",
@@ -107,7 +106,6 @@ version = "1.5.0"
 dependencies = [
  "annimate_core",
  "itertools 0.14.0",
- "rayon",
  "serde",
  "serde_json",
  "tauri",

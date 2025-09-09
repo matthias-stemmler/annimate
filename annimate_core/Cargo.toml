@@ -22,7 +22,6 @@ graphannis = { workspace = true }
 graphannis-core = { workspace = true }
 itertools = { workspace = true }
 percent-encoding = { workspace = true }
-rayon = { workspace = true }
 regex = { workspace = true }
 rust_xlsxwriter = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
