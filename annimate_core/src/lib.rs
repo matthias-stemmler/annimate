@@ -15,7 +15,6 @@ use import::{FilesystemEntity, ImportFormat, ImportableCorpus};
 use itertools::Itertools;
 use metadata::{CorpusSet, MetadataStorage};
 use query::Query;
-use rayon::prelude::*;
 use serde::Serialize;
 
 mod anno;
