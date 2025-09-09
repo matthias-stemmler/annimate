@@ -1,10 +1,8 @@
 use std::collections::{BTreeSet, HashMap};
 use std::ops::Range;
-use std::sync::atomic::{AtomicUsize, Ordering};
 use std::vec;
 
 use itertools::{Itertools, PutBack};
-use rayon::prelude::*;
 
 use crate::anno::{self, AnnoKeyFormat};
 use crate::aql::QueryNode;
@@ -54,43 +52,33 @@ pub(super) fn export<F, G, I, W>(
     cancel_requested: G,
 ) -> Result<(), AnnimateError>
 where
-    F: Fn(usize) + Sync,
-    G: Fn() -> bool + Sync,
-    I: IndexedParallelIterator<Item = Result<Match, AnnimateError>>,
+    F: Fn(usize),
+    G: Fn() -> bool,
+    I: ExactSizeIterator<Item = Result<Match, AnnimateError>>,
     W: TableWriter,
 {
-    let (matches, mut max_match_parts_by_text) = {
-        let count = AtomicUsize::new(0);
-
-        let max_match_parts_by_text: HashMap<_, _> = columns
-            .iter()
-            .filter_map(|c| match c {
-                TableExportColumn::Data(ExportData::Text(text)) => Some(text),
-                _ => None,
-            })
-            .map(|text| (text, AtomicUsize::new(0)))
-            .collect();
+    let (matches, max_match_parts_by_text) = {
+        let mut max_match_parts_by_text = HashMap::new();
 
         let matches: Vec<_> = matches_iter
-            .map(|m| {
+            .enumerate()
+            .map(|(i, m)| {
                 error::cancel_if(&cancel_requested)?;
-                on_matches_exported(count.fetch_add(1, Ordering::Relaxed));
+                on_matches_exported(i);
 
                 m.inspect(|m| {
                     for (text, parts) in &m.texts {
                         let match_parts = parts.iter().filter(|p| p.is_match()).count();
-
-                        max_match_parts_by_text
-                            .get(text)
-                            .expect("max_match_parts_by_text should have an entry for each text")
-                            .fetch_max(match_parts, Ordering::Relaxed);
+                        let max_match_parts =
+                            max_match_parts_by_text.entry(text.clone()).or_insert(0);
+                        *max_match_parts = (*max_match_parts).max(match_parts);
                     }
                 })
             })
             .collect::<Result<_, AnnimateError>>()?;
 
         error::cancel_if(&cancel_requested)?;
-        on_matches_exported(count.into_inner());
+        on_matches_exported(matches.len());
 
         (matches, max_match_parts_by_text)
     };
@@ -127,10 +115,7 @@ where
             )]
         }
         TableExportColumn::Data(ExportData::Text(text)) => {
-            let max_match_parts = *max_match_parts_by_text
-                .get_mut(text)
-                .expect("max_match_parts_by_text should have an entry for each text")
-                .get_mut();
+            let max_match_parts = *max_match_parts_by_text.get(text).unwrap_or(&0);
             let column_types = ColumnTypes::new(max_match_parts, query_nodes.len(), text);
 
             column_types
@@ -171,10 +156,7 @@ where
                 ]
             }
             TableExportColumn::Data(ExportData::Text(text)) => {
-                let max_match_parts = *max_match_parts_by_text
-                    .get_mut(text)
-                    .expect("max_match_parts_by_text should have an entry for each text")
-                    .get_mut();
+                let max_match_parts = *max_match_parts_by_text.get(text).unwrap_or(&0);
                 let parts = texts.get(text).unwrap().clone();
                 let column_types = ColumnTypes::new(max_match_parts, query_nodes.len(), text);
                 TextColumnsAligned::new(parts, column_types).collect()
@@ -369,7 +351,6 @@ mod tests {
 
     use graphannis_core::graph::ANNIS_NS;
     use graphannis_core::types::AnnoKey;
-    use rayon::prelude::*;
 
     use super::*;
 
@@ -410,7 +391,7 @@ mod tests {
                         TableExportColumn::Data(ExportData::Anno(export_data_anno_doc.clone())),
                         TableExportColumn::Data(ExportData::Text(text.clone())),
                     ],
-                    matches.into_par_iter().map(Ok),
+                    matches.into_iter().map(Ok),
                     &[vec![]],
                     &AnnoKeyFormat::new(&HashSet::new()),
                     &mut writer,

@@ -12,7 +12,6 @@ use graphannis_core::errors::GraphAnnisCoreError;
 use graphannis_core::graph::DEFAULT_NS;
 use graphannis_core::types::{AnnoKey, NodeID};
 use itertools::Itertools;
-use rayon::prelude::*;
 
 use crate::anno::{
     self, DEFAULT_ORDERING_COMPONENT, GAP_ORDERING_COMPONENT, TOKEN_ANNO_KEY,
@@ -150,7 +149,7 @@ impl<'a, S> Query<'a, S> {
         export_data: I,
         mut on_corpora_searched: F,
         cancel_requested: G,
-    ) -> Result<impl IndexedParallelIterator<Item = Result<Match, AnnimateError>>, AnnimateError>
+    ) -> Result<impl ExactSizeIterator<Item = Result<Match, AnnimateError>>, AnnimateError>
     where
         F: FnMut(usize),
         G: Fn() -> bool,
@@ -231,78 +230,79 @@ impl<'a, S> Query<'a, S> {
         error::cancel_if(&cancel_requested)?;
         on_corpora_searched(corpus_count);
 
-        Ok(match_ids
-            .into_par_iter()
-            .map(move |(match_id, corpus_name)| {
-                let match_node_names = util::node_names_from_match(&match_id);
-                let first_match_node_name = match_node_names
-                    .first()
-                    .ok_or(AnnimateError::MatchWithoutNodes)?;
+        // This loop could be parallelized, but that leads to a massive slowdown on Windows
+        // due to high contention on the `RwLock` of the corpus cache used within graphANNIS.
+        // On Linux there's a significant speedup, though.
+        Ok(match_ids.into_iter().map(move |(match_id, corpus_name)| {
+            let match_node_names = util::node_names_from_match(&match_id);
+            let first_match_node_name = match_node_names
+                .first()
+                .ok_or(AnnimateError::MatchWithoutNodes)?;
 
-                let corpus_node_name = name::get_corpus_node_name(first_match_node_name)?;
-                let doc_node_name = name::get_doc_node_name(first_match_node_name);
+            let corpus_node_name = name::get_corpus_node_name(first_match_node_name)?;
+            let doc_node_name = name::get_doc_node_name(first_match_node_name);
 
-                let mut annos = HashMap::new();
-                let mut texts = HashMap::new();
+            let mut annos = HashMap::new();
+            let mut texts = HashMap::new();
 
-                for d in &export_data {
-                    match d {
-                        ExportData::Anno(anno) => match anno {
-                            ExportDataAnno::Corpus { anno_key } => {
-                                if let Some(value) = get_corpus_or_doc_anno(
-                                    self.corpus_storage,
-                                    corpus_name,
-                                    &corpus_node_name,
-                                    anno_key,
-                                )? {
-                                    annos.insert(anno.clone(), value);
-                                }
+            for d in &export_data {
+                match d {
+                    ExportData::Anno(anno) => match anno {
+                        ExportDataAnno::Corpus { anno_key } => {
+                            if let Some(value) = get_corpus_or_doc_anno(
+                                self.corpus_storage,
+                                corpus_name,
+                                &corpus_node_name,
+                                anno_key,
+                            )? {
+                                annos.insert(anno.clone(), value);
                             }
-                            ExportDataAnno::Document { anno_key } => {
-                                if let Some(value) = get_corpus_or_doc_anno(
-                                    self.corpus_storage,
-                                    corpus_name,
-                                    doc_node_name,
-                                    anno_key,
-                                )? {
-                                    annos.insert(anno.clone(), value);
-                                }
-                            }
-                            ExportDataAnno::MatchNode { anno_key, index } => {
-                                if let Some(value) = match_node_names
-                                    .get(*index)
-                                    .map(|node_name| {
-                                        get_anno_with_overlapping_coverage(
-                                            self.corpus_storage,
-                                            corpus_name,
-                                            node_name,
-                                            anno_key,
-                                        )
-                                    })
-                                    .transpose()?
-                                    .flatten()
-                                {
-                                    annos.insert(anno.clone(), value);
-                                }
-                            }
-                        },
-                        ExportData::Text(text) => {
-                            texts.insert(
-                                text.clone(),
-                                get_parts(
-                                    self.corpus_storage,
-                                    corpus_name,
-                                    match_node_names.clone(),
-                                    text,
-                                    segment_anno_keys.get(&text.segmentation).unwrap(),
-                                )?,
-                            );
                         }
+                        ExportDataAnno::Document { anno_key } => {
+                            if let Some(value) = get_corpus_or_doc_anno(
+                                self.corpus_storage,
+                                corpus_name,
+                                doc_node_name,
+                                anno_key,
+                            )? {
+                                annos.insert(anno.clone(), value);
+                            }
+                        }
+                        ExportDataAnno::MatchNode { anno_key, index } => {
+                            if let Some(value) = match_node_names
+                                .get(*index)
+                                .map(|node_name| {
+                                    get_anno_with_overlapping_coverage(
+                                        self.corpus_storage,
+                                        corpus_name,
+                                        node_name,
+                                        anno_key,
+                                    )
+                                })
+                                .transpose()?
+                                .flatten()
+                            {
+                                annos.insert(anno.clone(), value);
+                            }
+                        }
+                    },
+                    ExportData::Text(text) => {
+                        texts.insert(
+                            text.clone(),
+                            get_parts(
+                                self.corpus_storage,
+                                corpus_name,
+                                match_node_names.clone(),
+                                text,
+                                segment_anno_keys.get(&text.segmentation).unwrap(),
+                            )?,
+                        );
                     }
                 }
+            }
 
-                Ok(Match { annos, texts })
-            }))
+            Ok(Match { annos, texts })
+        }))
     }
 }
 
