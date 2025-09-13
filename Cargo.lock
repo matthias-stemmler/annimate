@@ -97,7 +97,7 @@ dependencies = [
  "thiserror 2.0.16",
  "toml 0.9.5",
  "toml_edit 0.23.4",
- "zip 5.0.0",
+ "zip 5.1.1",
 ]
 
 [[package]]
@@ -6865,9 +6865,9 @@ dependencies = [
 
 [[package]]
 name = "zip"
-version = "5.0.0"
+version = "5.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b9fdfa5f34b5980f2c21b3a2c68c09ade4debddc7be52c51056695effc73a08c"
+checksum = "2f852905151ac8d4d06fdca66520a661c09730a74c6d4e2b0f27b436b382e532"
 dependencies = [
  "aes",
  "arbitrary",
