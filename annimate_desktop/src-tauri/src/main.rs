@@ -15,6 +15,9 @@ use tauri_plugin_window_state::{StateFlags, WindowExt};
 
 const THREAD_STACK_SIZE_MB: usize = 4;
 
+#[global_allocator]
+static GLOBAL: mimalloc::MiMalloc = mimalloc::MiMalloc;
+
 fn main() {
     // Use custom tokio runtime with larger stack size (default is 2 MB) to avoid stack overflows
     // when validating queries. 4 MB is enough for worst-case queries of the maximal length of
