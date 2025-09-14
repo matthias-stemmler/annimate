@@ -6,6 +6,12 @@
   "rangeStrategy": "bump",
   "packageRules": [
     {
+      "matchDatasources": [
+        "npm"
+      ],
+      "minimumReleaseAge": "1440 minutes"
+    },
+    {
       "matchManagers": [
         "npm"
       ],
