@@ -400,8 +400,8 @@ impl Storage {
         cancel_requested: G,
     ) -> Result<(), AnnimateError>
     where
-        F: Fn(ExportStatusEvent) + Sync,
-        G: Fn() -> bool + Sync,
+        F: Fn(ExportStatusEvent),
+        G: Fn() -> bool,
         P: AsRef<Path>,
     {
         on_status(ExportStatusEvent::Started);

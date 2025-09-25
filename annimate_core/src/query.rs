@@ -154,7 +154,7 @@ impl<'a, S> Query<'a, S> {
         F: FnMut(usize),
         G: Fn() -> bool,
         I: IntoIterator<Item = ExportData>,
-        S: AsRef<str> + Sync,
+        S: AsRef<str>,
     {
         let export_data: HashSet<_> = export_data.into_iter().collect();
 
