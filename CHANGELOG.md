@@ -2,9 +2,18 @@
 
 ## [Unreleased] - (release date)
 
+### Added
+
+- Added a progress indicator during search telling how many corpora were already searched.
+
 ### Changed
 
 - Improved search performance for some queries due to an improvement in the underlying graphANNIS library.
+- Improved export performance.
+
+### Fixed
+
+- The export no longer fails when a corpus was imported from a renamed `.graphml` file.
 
 ## [1.5.0] - 2025-08-05
 
