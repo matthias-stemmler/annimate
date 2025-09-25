@@ -80,7 +80,7 @@ fn corpus_name_encoding() {
 
     // Generate corpus names with many special characters
     // Note that this will include whitespace.
-    // White space in _node names_, while technically valid, breaks node search,
+    // Whitespace in _node names_, while technically valid, breaks node search,
     // but since for the corpus root node, we use a fixed name rather than the corpus name,
     // we're fine here.
     let corpus_names: Vec<String> = (0..0xFF)
