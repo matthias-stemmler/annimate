@@ -19,6 +19,10 @@ Corpora {
             name: "subtok.demo3",
             included_in_sets: [],
         },
+        Corpus {
+            name: "subtok.demo4",
+            included_in_sets: [],
+        },
     ],
     sets: [],
 }

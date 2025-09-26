@@ -14,6 +14,7 @@
 ### Fixed
 
 - The export no longer fails when a corpus was imported from a renamed `.graphml` file.
+- When importing a relANNIS corpus from the root of a ZIP file, the filename is now displayed correctly in the dialog.
 
 ## [1.5.0] - 2025-08-05
 

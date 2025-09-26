@@ -24,6 +24,10 @@
   - Name: subtok.demo3 (Subtoken Demo 3)
   - Original source: <https://corpus-tools.org/corpora/subtok.demo_relANNIS.zip>
   - Adaptation: Renamed corpus, document and language
+- `subtok.demo4_relANNIS.zip`
+  - Name: subtok.demo4 (Subtoken Demo 4)
+  - Original source: <https://corpus-tools.org/corpora/subtok.demo_relANNIS.zip>
+  - Adaptation: Renamed corpus, document and language, moved files to ZIP root (no top-level folder)
 - `subtok.demo_graphml.zip`
   - Name: Subtoken Demo
   - Original source: <https://corpus-tools.org/corpora/subtok.demo_relANNIS.zip>

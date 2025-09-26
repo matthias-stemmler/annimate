@@ -18,6 +18,16 @@ source: annimate_core/tests/import.rs
             type: corpus
             format: RelANNIS
           path: "[path]"
+    - fileName: subtok.demo4_relANNIS.zip
+      format: RelANNIS
+      trace:
+        - kind:
+            type: archive
+          path: "[path]"
+        - kind:
+            type: corpus
+            format: RelANNIS
+          path: "[path]"
     - fileName: empty.graphml
       format: GraphML
       trace:
@@ -61,11 +71,18 @@ source: annimate_core/tests/import.rs
   index: 2
   result:
     type: imported
-    name: empty
+    name: subtok.demo4
 - type: corpus_import_started
   index: 3
 - type: corpus_import_finished
   index: 3
+  result:
+    type: imported
+    name: empty
+- type: corpus_import_started
+  index: 4
+- type: corpus_import_finished
+  index: 4
   result:
     type: imported
     name: subtok.demo3
