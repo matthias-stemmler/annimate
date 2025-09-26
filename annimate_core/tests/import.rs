@@ -50,15 +50,17 @@ fn import() {
 // Creates the following folder structure:
 //
 // <root_path>
-// ├── subtok.demo_relANNIS/                 # Corpus 1 subtok.demo (RelANNIS)
+// ├── subtok.demo_relANNIS/                 # Corpus 1 subtok.demo (relANNIS)
 // └── test_dir/                             # Directory
 //    ├── README.md                          # Non-corpus file (should be ignored)
-//    ├── subtok.demo2_relANNIS/             # Corpus 2 subtok.demo2 (RelANNIS)
+//    ├── subtok.demo2_relANNIS/             # Corpus 2 subtok.demo2 (relANNIS)
+//    ├── subtok.demo4_relANNIS.zip          # ZIP file with relANNIS corpus at root (no top-level folder)
+//    │   └── /                              # Corpus 3 subtok.demo4 (relANNIS)
 //    └── test_zip.zip                       # ZIP file
-//        ├── empty.graphml                  # Corpus 3 empty (GraphML)
+//        ├── empty.graphml                  # Corpus 4 empty (GraphML)
 //        └── test_dir_in_zip/               # Directory in ZIP file
 //            └── subtok.demo3_relANNIS.zip  # ZIP file in ZIP file
-//                └── subtok.demo3_relANNIS/ # Corpus 4 subtok.demo3 (RelANNIS)
+//                └── subtok.demo3_relANNIS/ # Corpus 5 subtok.demo3 (relANNIS)
 fn prepare_input_files<P>(root_path: P) -> Vec<PathBuf>
 where
     P: AsRef<Path>,
@@ -119,6 +121,12 @@ where
     io::copy(
         &mut File::open(Path::new(DATA_DIR).join("subtok.demo3_relANNIS.zip")).unwrap(),
         &mut zip_writer,
+    )
+    .unwrap();
+
+    fs::copy(
+        Path::new(DATA_DIR).join("subtok.demo4_relANNIS.zip"),
+        root_path.join("test_dir/subtok.demo4_relANNIS.zip"),
     )
     .unwrap();
 

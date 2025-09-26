@@ -1,9 +1,10 @@
 use std::cmp::Reverse;
 use std::collections::HashSet;
+use std::ffi::{OsStr, OsString};
 use std::fmt::{self, Debug, Display, Formatter};
 use std::fs::{self, File};
 use std::io;
-use std::path::{Path, PathBuf};
+use std::path::{MAIN_SEPARATOR_STR, Path, PathBuf};
 use std::rc::Rc;
 
 use graphannis::CorpusStorage;
@@ -39,7 +40,7 @@ where
     while let Some(location) = stack.pop() {
         error::cancel_if(&cancel_requested)?;
 
-        if !location.scoped_path.has_temp_dir()
+        if !location.scoped_path.is_in_archive()
             && !seen_paths.insert(location.scoped_path.path.clone())
         {
             continue;
@@ -54,18 +55,17 @@ where
                 ));
 
                 importable_corpora.push({
+                    let file_name = location
+                        .scoped_path
+                        .file_name()
+                        .to_string_lossy()
+                        .into_owned();
+
                     let relative_path = location
                         .scoped_path
                         .relative_path()
                         .to_string_lossy()
                         .into_owned();
-
-                    let file_name = location
-                        .scoped_path
-                        .as_ref()
-                        .file_name()
-                        .map(|f| f.to_string_lossy().into_owned())
-                        .unwrap_or_else(|| relative_path.clone());
 
                     let trace = location
                         .parents
@@ -110,15 +110,25 @@ where
             }
 
             Some(ImportPathType::Archive) => {
-                let temp_dir = TempDir::new()?;
+                let extracted_archive_path = ExtractedArchivePath::new(
+                    location
+                        .as_ref()
+                        .file_name()
+                        .unwrap_or_else(|| location.as_ref().as_os_str())
+                        .to_os_string(),
+                )?;
 
                 on_progress(&format!(
                     "found archive at {}, extracting into {}",
                     location.as_ref().display(),
-                    temp_dir.path().display(),
+                    extracted_archive_path.temp_dir.path().display(),
                 ));
 
-                extract_zip(&location, &temp_dir, &cancel_requested)?;
+                extract_zip(
+                    &location,
+                    &extracted_archive_path.temp_dir,
+                    &cancel_requested,
+                )?;
 
                 stack.push(Location {
                     parents: location
@@ -130,7 +140,7 @@ where
                             path: location.scoped_path.relative_path().to_path_buf(),
                         }])
                         .collect(),
-                    scoped_path: temp_dir.into(),
+                    scoped_path: extracted_archive_path.into(),
                 });
             }
 
@@ -213,24 +223,60 @@ impl AsRef<Path> for Location {
 #[derive(Debug)]
 pub(crate) struct ScopedPath {
     path: PathBuf,
-    temp_dir: Option<Rc<TempDir>>,
+    extracted_archive_path: Option<Rc<ExtractedArchivePath>>,
 }
 
 impl ScopedPath {
-    fn has_temp_dir(&self) -> bool {
-        self.temp_dir.is_some()
-    }
-
     fn in_scope(&self, path: PathBuf) -> ScopedPath {
         ScopedPath {
             path,
-            temp_dir: self.temp_dir.clone(),
+            extracted_archive_path: self.extracted_archive_path.clone(),
+        }
+    }
+
+    fn is_in_archive(&self) -> bool {
+        self.extracted_archive_path.is_some()
+    }
+
+    fn file_name(&self) -> &OsStr {
+        match &self.extracted_archive_path {
+            Some(extracted_archive_path) => {
+                let relative_path = self
+                    .path
+                    .strip_prefix(extracted_archive_path.temp_dir.path())
+                    .unwrap();
+
+                let file_name = relative_path
+                    .file_name()
+                    .unwrap_or(relative_path.as_os_str());
+
+                if file_name.is_empty() {
+                    extracted_archive_path.archive_filename.as_os_str()
+                } else {
+                    file_name
+                }
+            }
+            None => self
+                .path
+                .file_name()
+                .unwrap_or_else(|| self.path.as_os_str()),
         }
     }
 
     fn relative_path(&self) -> &Path {
-        match &self.temp_dir {
-            Some(temp_dir) => self.path.strip_prefix(temp_dir.path()).unwrap(),
+        match &self.extracted_archive_path {
+            Some(extracted_archive_path) => {
+                let relative_path = self
+                    .path
+                    .strip_prefix(extracted_archive_path.temp_dir.path())
+                    .unwrap();
+
+                if relative_path == Path::new("") {
+                    Path::new(MAIN_SEPARATOR_STR)
+                } else {
+                    relative_path
+                }
+            }
             None => &self.path,
         }
     }
@@ -246,17 +292,32 @@ impl From<PathBuf> for ScopedPath {
     fn from(path: PathBuf) -> ScopedPath {
         ScopedPath {
             path,
-            temp_dir: None,
+            extracted_archive_path: None,
         }
     }
 }
 
-impl From<TempDir> for ScopedPath {
-    fn from(temp_dir: TempDir) -> ScopedPath {
+impl From<ExtractedArchivePath> for ScopedPath {
+    fn from(extracted_archive_path: ExtractedArchivePath) -> ScopedPath {
         ScopedPath {
-            path: temp_dir.path().to_path_buf(),
-            temp_dir: Some(Rc::new(temp_dir)),
+            path: extracted_archive_path.temp_dir.path().to_path_buf(),
+            extracted_archive_path: Some(Rc::new(extracted_archive_path)),
         }
+    }
+}
+
+#[derive(Debug)]
+struct ExtractedArchivePath {
+    archive_filename: OsString,
+    temp_dir: TempDir,
+}
+
+impl ExtractedArchivePath {
+    fn new(archive_filename: OsString) -> io::Result<Self> {
+        Ok(Self {
+            archive_filename,
+            temp_dir: TempDir::new()?,
+        })
     }
 }
 
@@ -353,9 +414,9 @@ where
     let name = corpus_storage.import_from_fs(
         corpus.path.as_ref(),
         corpus.format.into(),
-        None,
-        false,
-        false,
+        None,  /* corpus_name */
+        false, /* disk_based */
+        false, /* overwrite_existing */
         &on_progress,
     )?;
 

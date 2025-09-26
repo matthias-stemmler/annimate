@@ -16,7 +16,7 @@ export const QueryNodesDisplay: FC<QueryNodesDisplayProps> = ({
       {nodesByQueryFragment.map(([queryFragment, nodesForQueryFragment]) => (
         <div
           key={queryFragment}
-          className="flex h-5 min-w-0 items-center gap-2 rounded-sm bg-gray-500 px-2 text-white"
+          className="flex h-5.5 min-w-0 items-center gap-2 rounded-sm bg-gray-500 px-2 text-white"
         >
           {uniq(nodesForQueryFragment.map((n) => n.variable)).map(
             (variable, i) => (
