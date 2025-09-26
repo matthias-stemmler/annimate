@@ -50,9 +50,9 @@ fn import() {
 // Creates the following folder structure:
 //
 // <root_path>
-// ├── README.md                             # Non-corpus file
 // ├── subtok.demo_relANNIS/                 # Corpus 1 subtok.demo (RelANNIS)
 // └── test_dir/                             # Directory
+//    ├── README.md                          # Non-corpus file (should be ignored)
 //    ├── subtok.demo2_relANNIS/             # Corpus 2 subtok.demo2 (RelANNIS)
 //    └── test_zip.zip                       # ZIP file
 //        ├── empty.graphml                  # Corpus 3 empty (GraphML)
@@ -68,18 +68,18 @@ where
     let _ = fs::remove_dir_all(root_path);
     fs::create_dir_all(root_path).unwrap();
 
-    fs::copy(
-        Path::new(DATA_DIR).join("README.md"),
-        root_path.join("README.md"),
-    )
-    .unwrap();
-
     extract_zip(
         Path::new(DATA_DIR).join("subtok.demo_relANNIS.zip"),
         root_path,
     );
 
     fs::create_dir(root_path.join("test_dir")).unwrap();
+
+    fs::copy(
+        Path::new(DATA_DIR).join("README.md"),
+        root_path.join("test_dir/README.md"),
+    )
+    .unwrap();
 
     extract_zip(
         Path::new(DATA_DIR).join("subtok.demo2_relANNIS.zip"),
