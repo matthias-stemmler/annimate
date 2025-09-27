@@ -83,7 +83,7 @@ export const CorpusSetList: FC<CorpusSetListProps> = ({
                   isSelected={isSelected}
                   onClick={() => onSelectCorpusSet?.(corpusSet)}
                 >
-                  <div className="flex items-center">
+                  <div className="flex items-center gap-1">
                     <Tooltip>
                       <TooltipTrigger tabIndex={-1}>
                         <Badge className="mx-4" variant="secondary">
