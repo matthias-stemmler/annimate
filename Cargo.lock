@@ -74,7 +74,7 @@ dependencies = [
 
 [[package]]
 name = "annimate_core"
-version = "1.5.0"
+version = "1.6.0"
 dependencies = [
  "cargo_metadata 0.22.0",
  "csv",
@@ -96,7 +96,7 @@ dependencies = [
 
 [[package]]
 name = "annimate_desktop"
-version = "1.5.0"
+version = "1.6.0"
 dependencies = [
  "annimate_core",
  "itertools 0.14.0",
