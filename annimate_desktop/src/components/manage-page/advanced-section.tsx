@@ -26,7 +26,7 @@ export const AdvancedSection: FC = () => {
       <Tooltip>
         <TooltipTrigger asChild>
           <Button
-            className="flex h-5 gap-2 p-0"
+            className="flex h-5 gap-2 px-2"
             disabled={dbDir === undefined}
             onClick={async () => {
               if (dbDir !== undefined) {
