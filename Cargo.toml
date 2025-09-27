@@ -3,7 +3,7 @@ members = ["annimate_core", "annimate_desktop/src-tauri"]
 resolver = "3"
 
 [workspace.package]
-version = "1.5.0"
+version = "1.6.0"
 authors = ["Matthias Stemmler <matthias.stemmler@gmail.com>"]
 edition = "2024"
 readme = "README.md"

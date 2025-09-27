@@ -2,6 +2,8 @@
 
 ## [Unreleased] - (release date)
 
+## [1.6.0] - 2025-09-27
+
 ### Added
 
 - Added a progress indicator during search telling how many corpora were already searched.
@@ -146,7 +148,8 @@
 Initial version
 
 <!-- next-url -->
-[Unreleased]: https://github.com/matthias-stemmler/annimate/compare/v1.5.0...HEAD
+[Unreleased]: https://github.com/matthias-stemmler/annimate/compare/v1.6.0...HEAD
+[1.6.0]: https://github.com/matthias-stemmler/annimate/compare/v1.5.0...v1.6.0
 [1.5.0]: https://github.com/matthias-stemmler/annimate/compare/v1.4.0...v1.5.0
 [1.4.0]: https://github.com/matthias-stemmler/annimate/compare/v1.3.4...v1.4.0
 [1.3.4]: https://github.com/matthias-stemmler/annimate/compare/v1.3.3...v1.3.4
