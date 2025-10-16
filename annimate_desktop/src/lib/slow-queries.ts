@@ -227,8 +227,7 @@ export const useSlowTrackingQuery = <
   });
 
   // Avoid spreading `result` to prevent react-query from observing all properties in `result`
-  (result as Partial<UseSlowTrackingQueryResult<TData, TError>>).isSlow =
-    isSlow;
+  Object.assign(result, { isSlow });
 
   return result as UseSlowTrackingQueryResult<TData, TError>;
 };

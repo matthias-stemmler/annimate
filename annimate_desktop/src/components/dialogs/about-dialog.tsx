@@ -10,7 +10,7 @@ import {
 } from '@/components/ui/dialog';
 import { openUrl } from '@/lib/api';
 import { URL_ANNIMATE, URL_GRAPHANNIS } from '@/lib/urls';
-import { RefObject, useCallback, useEffect, useRef } from 'react';
+import { RefObject, useEffect, useMemo, useRef } from 'react';
 
 const ANIMATION_DURATION = 2000;
 const ANIMATION_INITIAL_DELAY = 3000;
@@ -90,8 +90,8 @@ const useLogoAnimation = (logoRef: RefObject<HTMLElement | null>) => {
   const delayRef = useRef<number>(ANIMATION_INITIAL_DELAY);
   const startTimeRef = useRef<number>(null);
 
-  const animationFrame = useCallback(
-    (time: number) => {
+  const animationFrame = useMemo(() => {
+    const callback = (time: number) => {
       if (startTimeRef.current === null) {
         startTimeRef.current = time;
       }
@@ -109,13 +109,14 @@ const useLogoAnimation = (logoRef: RefObject<HTMLElement | null>) => {
       }
 
       if (timeDelta < delayRef.current + ANIMATION_DURATION) {
-        requestAnimationFrame(animationFrame);
+        requestAnimationFrame(callback);
       } else {
         startTimeRef.current = null;
       }
-    },
-    [delayRef, logoRef, startTimeRef],
-  );
+    };
+
+    return callback;
+  }, [delayRef, logoRef, startTimeRef]);
 
   useEffect(() => {
     animationFrameRef.current = requestAnimationFrame(animationFrame);

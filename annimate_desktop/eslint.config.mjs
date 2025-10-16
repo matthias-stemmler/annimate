@@ -4,6 +4,7 @@ import eslint from '@eslint/js';
 import pluginQuery from '@tanstack/eslint-plugin-query';
 import pluginReactHooks from 'eslint-plugin-react-hooks';
 import pluginReactRefresh from 'eslint-plugin-react-refresh';
+import { defineConfig } from 'eslint/config';
 import tseslint from 'typescript-eslint';
 
 const importRuleAt = {
@@ -16,7 +17,7 @@ const importRuleNoTauri = {
   message: 'Import from @tauri-apps/* only in api.ts and tests',
 };
 
-export default tseslint.config(
+export default defineConfig(
   /***** ESLint recommended *****/
   eslint.configs.recommended,
 
@@ -28,7 +29,7 @@ export default tseslint.config(
 
   /***** Plugins *****/
   ...pluginQuery.configs['flat/recommended'],
-  pluginReactHooks.configs['recommended-latest'],
+  pluginReactHooks.configs.flat['recommended-latest'],
   pluginReactRefresh.configs.vite,
 
   /***** Custom config *****/
