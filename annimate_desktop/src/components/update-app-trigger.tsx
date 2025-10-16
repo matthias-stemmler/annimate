@@ -9,13 +9,13 @@ import { useToast } from '@/components/ui/use-toast';
 import { checkForUpdate } from '@/lib/api';
 import { Update } from '@/lib/api-types';
 import { useApplyAppUpdate } from '@/lib/store';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 export const UpdateAppTrigger = () => {
   const checkedRef = useRef<boolean>(false);
   const updateRef = useRef<Update>(null);
   // Save update data for display separately, so we can close (drop) the update when the dialog is closed without breaking the fade-out animation
-  const updateDataRef = useRef<UpdateData>(null);
+  const [updateData, setUpdateData] = useState<UpdateData | null>(null);
 
   const { mutation, progress, reset, stage } = useApplyAppUpdate();
 
@@ -32,11 +32,11 @@ export const UpdateAppTrigger = () => {
       .then((update) => {
         if (update !== null) {
           updateRef.current = update;
-          updateDataRef.current = {
+          setUpdateData({
             currentVersion: update.currentVersion,
             notes: update.body ?? '',
             version: update.version,
-          };
+          });
           setDialogOpen(true);
         }
       })
@@ -53,7 +53,7 @@ export const UpdateAppTrigger = () => {
           });
         }
       });
-  }, [checkedRef, setDialogOpen, toast, updateDataRef, updateRef]);
+  }, [checkedRef, setDialogOpen, toast, updateData, updateRef]);
 
   const status: UpdateStatus = (() => {
     if (mutation.isError) {
@@ -71,7 +71,7 @@ export const UpdateAppTrigger = () => {
 
   return (
     <Dialog open={dialogOpen}>
-      {updateDataRef.current !== null && (
+      {updateData !== null && (
         <UpdateAppDialog
           key={dialogKey}
           onClose={() => {
@@ -86,7 +86,7 @@ export const UpdateAppTrigger = () => {
             }
           }}
           status={status}
-          update={updateDataRef.current}
+          update={updateData}
         />
       )}
     </Dialog>
