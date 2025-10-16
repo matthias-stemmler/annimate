@@ -78,5 +78,7 @@ graphannis.opt-level = 3
 graphannis-core.opt-level = 3
 
 [profile.dev.package]
+graphannis.opt-level = 3
+graphannis-core.opt-level = 3
 insta.opt-level = 3
 similar.opt-level = 3
