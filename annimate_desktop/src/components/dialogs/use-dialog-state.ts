@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useState } from 'react';
 
 type DialogState = [boolean, (open: boolean) => void, number];
 
@@ -11,13 +11,13 @@ export const useDialogState = (): DialogState => {
   const [open, setOpenInternal] = useState(false);
   const [key, setKey] = useState(0);
 
-  const setOpen = useCallback((open: boolean) => {
+  const setOpen = (open: boolean) => {
     if (open) {
       setKey((k) => k + 1);
     }
 
     setOpenInternal(open);
-  }, []);
+  };
 
   return [open, setOpen, key];
 };

@@ -41,7 +41,7 @@ import { findEligibleQueryNodeRefIndex } from '@/lib/query-node-utils';
 import { UseSlowTrackingQueryResult } from '@/lib/slow-queries';
 import { filterEligible } from '@/lib/utils';
 import { UseQueryResult } from '@tanstack/react-query';
-import { createContext, useCallback, useContext } from 'react';
+import { createContext, useContext } from 'react';
 import { StoreApi, createStore, useStore } from 'zustand';
 
 export const CONTEXT_MIN = 0;
@@ -794,21 +794,18 @@ export const useUpdateExportColumn = (): ((
   const setState = useSetState();
   const getQueryNodes = useGetQueryNodes();
 
-  const update = useCallback(
-    <T extends ExportColumnType>(
-      id: number,
-      type: T,
-      getUpdate: (c: ExportColumnData<T>) => Partial<ExportColumnData<T>>,
-    ) =>
-      setState((state) => ({
-        exportColumns: state.exportColumns.map((c) =>
-          c.id === id && c.type === type
-            ? { ...c, ...getUpdate(c as unknown as ExportColumnData<T>) }
-            : c,
-        ),
-      })),
-    [setState],
-  );
+  const update = <T extends ExportColumnType>(
+    id: number,
+    type: T,
+    getUpdate: (c: ExportColumnData<T>) => Partial<ExportColumnData<T>>,
+  ) =>
+    setState((state) => ({
+      exportColumns: state.exportColumns.map((c) =>
+        c.id === id && c.type === type
+          ? { ...c, ...getUpdate(c as unknown as ExportColumnData<T>) }
+          : c,
+      ),
+    }));
 
   return async (id: number, { type, payload }: ExportColumnUpdate) => {
     switch (payload.type) {

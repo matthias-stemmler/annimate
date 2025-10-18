@@ -1,6 +1,6 @@
 // Inspired by react-hot-toast library
 import type { ToastActionElement, ToastProps } from '@/components/ui/toast';
-import { ReactNode, useCallback, useEffect, useState } from 'react';
+import { ReactNode, useEffect, useState } from 'react';
 
 const TOAST_LIMIT = 3;
 const TOAST_REMOVE_DELAY = 1000000;
@@ -178,10 +178,8 @@ const useToast = () => {
     };
   }, [state]);
 
-  const dismiss = useCallback(
-    (toastId?: string) => dispatch({ type: 'DISMISS_TOAST', toastId }),
-    [],
-  );
+  const dismiss = (toastId?: string) =>
+    dispatch({ type: 'DISMISS_TOAST', toastId });
 
   return {
     ...state,
