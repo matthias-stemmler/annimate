@@ -19,7 +19,15 @@ export default defineConfig(async () => {
       chunkSizeWarningLimit: 1024,
     },
     clearScreen: false,
-    plugins: [react(), svgr(), tailwindcss()],
+    plugins: [
+      react({
+        babel: {
+          plugins: ['babel-plugin-react-compiler'],
+        },
+      }),
+      svgr(),
+      tailwindcss(),
+    ],
     resolve: {
       alias: {
         '@/lib/api': path.resolve(

@@ -35,7 +35,7 @@ import {
   useMutation,
   useQueryClient,
 } from '@tanstack/react-query';
-import { useCallback, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 
 export class CancellableOperationError extends Error {
   cancelled: boolean;
@@ -268,14 +268,14 @@ export const useExportMatchesMutation = (
     },
   });
 
-  const requestCancel = useCallback(() => {
+  const requestCancel = () => {
     setCancelRequested(true);
     cancelRequestedRef.current = true;
 
     if (startedRef.current) {
       emitExportCancelRequestedEvent();
     }
-  }, []);
+  };
 
   return {
     mutation,
@@ -417,14 +417,14 @@ export const useImportCorporaMutation = () => {
     },
   });
 
-  const requestCancel = useCallback(() => {
+  const requestCancel = () => {
     setCancelRequested(true);
     cancelRequestedRef.current = true;
 
     if (startedRef.current) {
       emitImportCancelRequestedEvent();
     }
-  }, []);
+  };
 
   return {
     mutation,
