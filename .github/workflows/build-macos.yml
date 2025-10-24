@@ -50,7 +50,7 @@ jobs:
 
       - name: Upload artifact
         id: upload-artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: annimate-macos-${{ github.sha }}
           path: target/${{ env.TARGET }}/release/Annimate
