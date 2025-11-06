@@ -7,7 +7,7 @@ on:
 env:
   RUSTFLAGS: --deny warnings
   # renovate: datasource=crate versioning=semver-coerced depName=cargo-udeps
-  VERSION_CARGO_UDEPS: 0.1.59
+  VERSION_CARGO_UDEPS: 0.1.60
 
 jobs:
   udeps:
