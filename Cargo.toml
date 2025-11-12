@@ -38,7 +38,7 @@ missing_crate_level_docs = "deny"
 private_intra_doc_links = "deny"
 
 [workspace.dependencies]
-cargo_metadata = "0.23.0"
+cargo_metadata = "0.23.1"
 csv = "1.4.0"
 graphannis = "4.0.1"
 graphannis-core = "4.0.1"
