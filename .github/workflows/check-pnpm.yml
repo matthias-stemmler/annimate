@@ -6,7 +6,7 @@ on:
 
 env:
   # renovate: datasource=npm versioning=semver-coerced depName=corepack
-  VERSION_COREPACK: 0.34.1
+  VERSION_COREPACK: 0.34.4
 
 jobs:
   check:
