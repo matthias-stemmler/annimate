@@ -2,7 +2,6 @@
 authors = ["Matthias Stemmler"]
 description = "User Guide for the Annimate corpus export tool"
 language = "en"
-multilingual = false
 src = "src"
 title = "Annimate User Guide"
 
