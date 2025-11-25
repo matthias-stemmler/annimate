@@ -6,7 +6,7 @@ on:
 env:
   RUSTFLAGS: --deny warnings
   # renovate: datasource=npm versioning=semver-coerced depName=corepack
-  VERSION_COREPACK: 0.34.4
+  VERSION_COREPACK: 0.34.5
   TARGET: aarch64-apple-darwin
 
 jobs:
