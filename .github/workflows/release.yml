@@ -117,7 +117,7 @@ jobs:
 
       - name: Create pull request
         if: steps.determine-version-bump.outputs.bump != 'none'
-        uses: peter-evans/create-pull-request@v7
+        uses: peter-evans/create-pull-request@v8
         with:
           # use PAT instead of GITHUB_TOKEN so created PR can trigger workflows
           # see https://github.com/peter-evans/create-pull-request/issues/48
