@@ -3,9 +3,9 @@ import { CorporaInSetList } from '@/components/manage-page/corpora-in-set-list';
 import { CorpusSetList } from '@/components/manage-page/corpus-set-list';
 import { Spinner } from '@/components/ui/custom/spinner';
 import {
-  ResizableHandle,
+  ResizableGroup,
   ResizablePanel,
-  ResizablePanelGroup,
+  ResizableSeparator,
 } from '@/components/ui/resizable';
 import { useCorpora } from '@/lib/store';
 import { FC } from 'react';
@@ -41,8 +41,8 @@ export const CorporaSection: FC<CorporaSectionProps> = (props) => {
   }));
 
   return (
-    <ResizablePanelGroup direction="horizontal">
-      <ResizablePanel className="p-3" defaultSize={50} minSize={30}>
+    <ResizableGroup orientation="horizontal">
+      <ResizablePanel className="p-3" defaultSize="50%" minSize="30%">
         <CorpusSetList
           corpusCount={corpora.length}
           corpusSetsWithCount={corpusSetsWithCount}
@@ -51,15 +51,15 @@ export const CorporaSection: FC<CorporaSectionProps> = (props) => {
         />
       </ResizablePanel>
 
-      <ResizableHandle withHandle />
+      <ResizableSeparator withHandle />
 
-      <ResizablePanel className="p-3" defaultSize={50} minSize={30}>
+      <ResizablePanel className="p-3" defaultSize="50%" minSize="30%">
         {selectedCorpusSet === undefined ? (
           <AllCorporaList corpusNames={corpusNames} />
         ) : (
           <CorporaInSetList corpora={corpora} corpusSet={selectedCorpusSet} />
         )}
       </ResizablePanel>
-    </ResizablePanelGroup>
+    </ResizableGroup>
   );
 };
