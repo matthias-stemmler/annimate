@@ -1,7 +1,8 @@
+allowBuilds:
+  '@tailwindcss/oxide': true
+  esbuild: true
 autoInstallPeers: false
+blockExoticSubdeps: true
 minimumReleaseAge: 1440
-onlyBuiltDependencies:
-  - '@tailwindcss/oxide'
-  - esbuild
 strictDepBuilds: true
 verifyDepsBeforeRun: prompt
