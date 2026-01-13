@@ -1767,9 +1767,9 @@ dependencies = [
 
 [[package]]
 name = "graphannis"
-version = "4.0.1"
+version = "4.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "eeaf8b9784c5a8ac78fa8fb944c663ee6bf46e8a26cb0e0af9d2a544d7bc5e25"
+checksum = "b2518536019d3b90da9b2fd148f66079e69cd8c3877250d637244364f012254b"
 dependencies = [
  "boolean_expression",
  "csv",
@@ -1801,6 +1801,7 @@ dependencies = [
  "sys-info",
  "tempfile",
  "thiserror 1.0.69",
+ "time",
  "toml 0.8.23",
  "transient-btree-index",
  "zip 0.6.6",
@@ -1808,9 +1809,9 @@ dependencies = [
 
 [[package]]
 name = "graphannis-core"
-version = "4.0.1"
+version = "4.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "57da680035c53f931968947a8ab1d61dfc03f112c14a082f17640978e74540d5"
+checksum = "7486220cdb17b0c9666d0026820c86e5c22af67d5cf08c7435a827d8b76bfac6"
 dependencies = [
  "binary-layout 4.0.2",
  "bincode",
