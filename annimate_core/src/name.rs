@@ -9,7 +9,7 @@ use percent_encoding::{AsciiSet, CONTROLS};
 use crate::AnnimateError;
 
 pub(crate) fn get_corpus_path(db_dir: &Path, corpus_name: &str) -> PathBuf {
-    db_dir.join(
+    db_dir.join::<&str>(
         Cow::from(percent_encoding::utf8_percent_encode(
             corpus_name,
             PATH_ENCODE_SET,
