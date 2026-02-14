@@ -94,7 +94,7 @@ export const useApplyAppUpdateMutation = () => {
         });
       } catch (err) {
         // Errors returned from `download` are usually strings
-        throw new Error(`Failed to download update: ${err}`);
+        throw new Error(`Failed to download update: ${err}`, { cause: err });
       }
 
       setProgress(1);
@@ -104,7 +104,7 @@ export const useApplyAppUpdateMutation = () => {
         await args.update.install();
       } catch (err) {
         // Errors returned from `install` are usually strings
-        throw new Error(`Failed to install update: ${err}`);
+        throw new Error(`Failed to install update: ${err}`, { cause: err });
       }
 
       await relaunch();
