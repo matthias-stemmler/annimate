@@ -4,7 +4,5 @@ allowBuilds:
 autoInstallPeers: false
 blockExoticSubdeps: true
 minimumReleaseAge: 1440
-overrides:
-  '@typescript-eslint/typescript-estree>minimatch': ^10.2.1
 strictDepBuilds: true
 verifyDepsBeforeRun: prompt
