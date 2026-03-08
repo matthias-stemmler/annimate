@@ -37,9 +37,10 @@ info:
             index: 1
     - Data:
         Text:
+          segmentation: ~
+          anno_key: Default
           left_context: 1
           right_context: 1
-          segmentation: ~
           primary_node_indices: ~
 ---
 Number,Corpus language,Document,#1 lemma,#2 lemma,Context 1 (tokens),Match 1 (tokens),Context 2 (tokens),Match 2 (tokens),Context 3 (tokens)

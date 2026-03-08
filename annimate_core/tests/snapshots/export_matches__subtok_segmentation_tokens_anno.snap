@@ -1,0 +1,45 @@
+---
+source: annimate_core/tests/export_matches.rs
+info:
+  corpus_paths:
+    - subtok.demo_relANNIS.zip
+  corpus_names:
+    - subtok.demo
+  aql_query: "pos=\"DT\""
+  query_language: AQL
+  export_columns:
+    - Number
+    - Data:
+        Anno:
+          Corpus:
+            anno_key:
+              - ""
+              - language
+    - Data:
+        Anno:
+          Document:
+            anno_key:
+              - annis
+              - doc
+    - Data:
+        Anno:
+          MatchNode:
+            anno_key:
+              - grammar
+              - lemma
+            index: 0
+    - Data:
+        Text:
+          segmentation: ~
+          anno_key:
+            AnnoKey:
+              - annis
+              - node_name
+          left_context: 4
+          right_context: 4
+          primary_node_indices: ~
+---
+Number,Corpus language,Document,#1 lemma,Left context node_name (tokens),Match node_name (tokens),Right context node_name (tokens)
+1,English,subtok.demo.doc01,This,,subtok.demo/subtok.demo.doc01#tok_1 subtok.demo/subtok.demo.doc01#tok_2,subtok.demo/subtok.demo.doc01#tok_3 subtok.demo/subtok.demo.doc01#tok_4 subtok.demo/subtok.demo.doc01#tok_5 subtok.demo/subtok.demo.doc01#tok_6
+2,English,subtok.demo.doc01,a,subtok.demo/subtok.demo.doc01#tok_1 subtok.demo/subtok.demo.doc01#tok_2 subtok.demo/subtok.demo.doc01#tok_3,subtok.demo/subtok.demo.doc01#tok_4,subtok.demo/subtok.demo.doc01#tok_5 subtok.demo/subtok.demo.doc01#tok_6 subtok.demo/subtok.demo.doc01#tok_7 subtok.demo/subtok.demo.doc01#tok_8
+3,English,subtok.demo.doc01,a,subtok.demo/subtok.demo.doc01#tok_3 subtok.demo/subtok.demo.doc01#tok_4 subtok.demo/subtok.demo.doc01#tok_5 subtok.demo/subtok.demo.doc01#tok_6,subtok.demo/subtok.demo.doc01#tok_7,subtok.demo/subtok.demo.doc01#tok_8 subtok.demo/subtok.demo.doc01#tok_9 subtok.demo/subtok.demo.doc01#tok_10 subtok.demo/subtok.demo.doc01#tok_11

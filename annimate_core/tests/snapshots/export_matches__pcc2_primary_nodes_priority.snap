@@ -30,9 +30,10 @@ info:
             index: 1
     - Data:
         Text:
+          segmentation: ~
+          anno_key: Default
           left_context: 10
           right_context: 10
-          segmentation: ~
           primary_node_indices:
             - 1
             - 0

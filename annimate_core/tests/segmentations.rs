@@ -54,6 +54,10 @@ macro_rules! segmentations_test {
 }
 
 segmentations_test! {
+    no_corpora: {
+        corpus_paths: [],
+        corpus_names: [],
+    }
     subtok: {
         corpus_paths: ["subtok.demo_relANNIS.zip"],
         corpus_names: ["subtok.demo"],

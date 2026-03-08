@@ -4,6 +4,10 @@ import {
 } from '@/components/main-page/columns/layout';
 import { ColumnProps } from '@/components/main-page/columns/props';
 import { QueryNodesDisplay } from '@/components/main-page/columns/query-nodes-display';
+import {
+  annoKeyToValue,
+  valueToAnnoKey,
+} from '@/components/main-page/columns/utils';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { AutoScroller } from '@/components/ui/custom/auto-scroller';
@@ -11,10 +15,11 @@ import { ReorderList } from '@/components/ui/custom/reorder-list';
 import { Select } from '@/components/ui/custom/select';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { QueryNode, QueryNodeRef } from '@/lib/api-types';
+import { AnnoKey, QueryNode, QueryNodeRef } from '@/lib/api-types';
 import {
   CONTEXT_MAX,
   CONTEXT_MIN,
+  useExportableAnnoKeys,
   useIsExporting,
   useQueryNodes,
   useSegmentations,
@@ -29,6 +34,7 @@ export const MatchInContextColumn: FC<ColumnProps<'match_in_context'>> = ({
   onChange,
 }) => {
   const segmentationSelectId = useId();
+  const annoSelectId = useId();
 
   return (
     <ColumnConfigGrid>
@@ -56,7 +62,18 @@ export const MatchInContextColumn: FC<ColumnProps<'match_in_context'>> = ({
         }
       />
 
-      <ColumnConfigItem wide>
+      <ColumnConfigItem>
+        <Label htmlFor={annoSelectId}>Annotation</Label>
+
+        <SegmentationAnnoSelect
+          annoKey={data.annoKey}
+          id={annoSelectId}
+          onChange={(annoKey) => onChange({ type: 'update_anno_key', annoKey })}
+          segmentation={data.segmentation}
+        />
+      </ColumnConfigItem>
+
+      <ColumnConfigItem>
         <Label>Query node filter</Label>
 
         <PrimaryNodesSelect
@@ -204,6 +221,85 @@ const ContextInput: FC<ContextInputProps> = ({
   );
 };
 
+export type SegmentationAnnoSelectProps = {
+  annoKey: AnnoKey | 'default' | undefined;
+  id?: string;
+  onChange?: (annoKey: AnnoKey | 'default') => void;
+  segmentation: string | undefined;
+};
+
+export const SegmentationAnnoSelect: FC<SegmentationAnnoSelectProps> = ({
+  annoKey,
+  id,
+  onChange,
+  segmentation,
+}) => {
+  const {
+    data: exportableAnnoKeys,
+    error,
+    isPending,
+  } = useExportableAnnoKeys();
+  const isExporting = useIsExporting();
+  const disabled = isExporting;
+
+  if (error !== null) {
+    throw new Error(`Failed to load exportable annotations: ${error.message}`);
+  }
+
+  const exportableNodeAnnoKeys = exportableAnnoKeys?.node ?? [];
+  const DEFAULT_VALUE = '-';
+
+  return (
+    <Select
+      className="h-8"
+      disabled={disabled}
+      id={id}
+      loading={isPending}
+      onChange={(value) =>
+        onChange?.(value === DEFAULT_VALUE ? 'default' : valueToAnnoKey(value))
+      }
+      options={[
+        {
+          groupKey: 'other',
+          groupItems: [
+            ...(segmentation === undefined
+              ? []
+              : [
+                  {
+                    caption: <span className="italic">Segmentation text</span>,
+                    value: DEFAULT_VALUE,
+                  },
+                ]),
+            ...exportableNodeAnnoKeys
+              .filter((e) => e.annoKey.ns !== 'annis')
+              .map(({ displayName, annoKey }) => ({
+                caption: <span className="font-mono">{displayName}</span>,
+                value: annoKeyToValue(annoKey),
+              })),
+          ],
+        },
+        {
+          groupKey: 'annis',
+          groupCaption: 'ANNIS',
+          groupItems: exportableNodeAnnoKeys
+            .filter((e) => e.annoKey.ns === 'annis')
+            .map(({ displayName, annoKey }) => ({
+              caption: <span className="font-mono">{displayName}</span>,
+              value: annoKeyToValue(annoKey),
+            })),
+        },
+      ]}
+      value={
+        annoKey === undefined
+          ? undefined
+          : annoKey === 'default'
+            ? DEFAULT_VALUE
+            : annoKeyToValue(annoKey)
+      }
+    />
+  );
+};
+
 type PrimaryNodesSelectProps = {
   autoScroller?: AutoScroller;
   onReorder?: (reorder: (nodeRefs: QueryNodeRef[]) => QueryNodeRef[]) => void;
@@ -232,7 +328,9 @@ const PrimaryNodesSelect: FC<PrimaryNodesSelectProps> = ({
 
   if (nodes.length === 0) {
     return (
-      <div className="h-7 text-sm text-gray-500">No query nodes available</div>
+      <div className="text-sm leading-8 text-gray-500">
+        No query nodes available
+      </div>
     );
   }
 

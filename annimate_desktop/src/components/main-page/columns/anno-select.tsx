@@ -2,12 +2,8 @@ import {
   annoKeyToValue,
   valueToAnnoKey,
 } from '@/components/main-page/columns/utils';
-import { Select, SelectOption } from '@/components/ui/custom/select';
-import {
-  AnnoKey,
-  ExportableAnnoKey,
-  ExportableAnnoKeyCategory,
-} from '@/lib/api-types';
+import { Select } from '@/components/ui/custom/select';
+import { AnnoKey, ExportableAnnoKeyCategory } from '@/lib/api-types';
 import { useExportableAnnoKeys, useIsExporting } from '@/lib/store';
 import { FC } from 'react';
 
@@ -47,28 +43,26 @@ export const AnnoSelect: FC<AnnoSelectProps> = ({
       onChange={(value) => onChange?.(valueToAnnoKey(value))}
       options={[
         {
-          groupKey: 'non-annis',
+          groupKey: 'other',
           groupItems: exportableAnnoKeysForCategory
             .filter((e) => e.annoKey.ns !== 'annis')
-            .map(toOption),
+            .map(({ displayName, annoKey }) => ({
+              caption: <span className="font-mono">{displayName}</span>,
+              value: annoKeyToValue(annoKey),
+            })),
         },
         {
           groupKey: 'annis',
           groupCaption: 'ANNIS',
           groupItems: exportableAnnoKeysForCategory
             .filter((e) => e.annoKey.ns === 'annis')
-            .map(toOption),
+            .map(({ displayName, annoKey }) => ({
+              caption: <span className="font-mono">{displayName}</span>,
+              value: annoKeyToValue(annoKey),
+            })),
         },
       ]}
       value={annoKey === undefined ? undefined : annoKeyToValue(annoKey)}
     />
   );
 };
-
-const toOption = ({
-  displayName,
-  annoKey,
-}: ExportableAnnoKey): SelectOption<string> => ({
-  caption: <span className="font-mono">{displayName}</span>,
-  value: annoKeyToValue(annoKey),
-});

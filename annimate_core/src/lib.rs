@@ -30,7 +30,7 @@ mod query;
 mod util;
 mod version;
 
-pub use anno::{ExportableAnnoKey, ExportableAnnoKeys};
+pub use anno::{AnnoKeyOrDefault, ExportableAnnoKey, ExportableAnnoKeys};
 pub use aql::{QueryAnalysisResult, QueryNode, QueryNodes};
 pub use error::AnnimateError;
 pub use format::{CsvExportConfig, ExportFormat, TableExportColumn, XlsxExportConfig};

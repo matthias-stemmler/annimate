@@ -1,3 +1,17 @@
+//! Annimate project file handling
+//!
+//! # Project file version changelog
+//!
+//! ## Version 1 (Annimate 1.4.0)
+//!
+//! - Initial version
+//!
+//! ## Version 2 (Annimate 1.7.0)
+//!
+//! - `"match-in-context"` column: Added `annotation` key
+//!
+//!   Migration from v1: Add `annotation = "default"`
+
 use std::fs;
 use std::path::Path;
 use std::str::FromStr;
@@ -7,6 +21,7 @@ use graphannis::graph::AnnoKey;
 use serde::Deserialize;
 
 use crate::AnnimateError;
+use crate::anno::AnnoKeyOrDefault;
 use crate::error::AnnimateReadFileError;
 
 const FILE_HEADER: &str =
@@ -67,6 +82,8 @@ pub enum ProjectExportColumn {
     #[serde(rename = "match-in-context")]
     MatchInContext {
         segmentation: Option<String>,
+        #[serde(rename = "annotation")]
+        anno_key: Option<AnnoKeyOrDefault>,
         context: ProjectContext,
         #[serde(default)]
         primary_node_indices: Vec<u32>,
@@ -107,16 +124,21 @@ struct FormatVersion {
     value: u32,
 }
 
-impl FormatVersion {
-    const CURRENT: Self = Self { value: 1 };
+enum ValidVersion {
+    V1,
+    V2,
+}
 
-    fn validate(self) -> Result<(), AnnimateReadFileError> {
-        if self.value == 0 || self.value > Self::CURRENT.value {
-            Err(AnnimateReadFileError::UnsupportedVersion {
+impl FormatVersion {
+    const CURRENT: Self = Self { value: 2 };
+
+    fn validate(self) -> Result<ValidVersion, AnnimateReadFileError> {
+        match self.value {
+            1 => Ok(ValidVersion::V1),
+            2 => Ok(ValidVersion::V2),
+            _ => Err(AnnimateReadFileError::UnsupportedVersion {
                 version: self.value,
-            })
-        } else {
-            Ok(())
+            }),
         }
     }
 }
@@ -133,8 +155,10 @@ impl FromStr for ProjectFile {
     type Err = AnnimateReadFileError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        toml::from_str::<FormatVersion>(s)?.validate()?;
-        Ok(toml::from_str(s)?)
+        match toml::from_str::<FormatVersion>(s)?.validate()? {
+            ValidVersion::V1 => Ok(toml::from_str::<v1::ProjectFile>(s)?.into()),
+            ValidVersion::V2 => Ok(toml::from_str(s)?),
+        }
     }
 }
 
@@ -245,14 +269,22 @@ fn to_string_pretty(project_file: ProjectFile) -> String {
                         }
                     }
                     ProjectExportColumn::MatchInContext {
+                        segmentation,
+                        anno_key,
                         context,
                         primary_node_indices,
-                        segmentation,
                     } => {
                         table["type"] = "match-in-context".into();
 
                         if let Some(segmentation) = segmentation {
                             table["segmentation"] = segmentation.into();
+                        }
+
+                        if let Some(anno_key) = anno_key {
+                            table["annotation"] = match anno_key {
+                                AnnoKeyOrDefault::AnnoKey(anno_key) => anno_key_to_item(anno_key),
+                                AnnoKeyOrDefault::Default => AnnoKeyOrDefault::TAG_DEFAULT.into(),
+                            };
                         }
 
                         table["context"] = match context {
@@ -335,6 +367,117 @@ mod query_language {
                 v if v == TAG_AQL => Ok(QueryLanguage::AQL),
                 v if v == TAG_AQL_QUIRKS_V3 => Ok(QueryLanguage::AQLQuirksV3),
                 _ => Err(E::invalid_value(Unexpected::Str(v), &self)),
+            }
+        }
+    }
+}
+
+mod v1 {
+    use graphannis::corpusstorage::QueryLanguage;
+    use graphannis::graph::AnnoKey;
+    use serde::Deserialize;
+
+    use super::{FormatVersion, ProjectContext, ProjectExportFormat};
+    use crate::anno::AnnoKeyOrDefault;
+
+    #[derive(Deserialize)]
+    #[serde(rename_all = "kebab-case")]
+    pub(super) struct ProjectFile {
+        #[serde(flatten)]
+        format_version: FormatVersion,
+        project: Project,
+    }
+
+    #[derive(Deserialize)]
+    #[serde(rename_all = "kebab-case")]
+    struct Project {
+        corpus_set: Option<String>,
+        #[serde(default, rename = "corpora")]
+        corpus_names: Vec<String>,
+        #[serde(default, rename = "query")]
+        aql_query: String,
+        #[serde(with = "super::query_language")]
+        query_language: QueryLanguage,
+        #[serde(default, rename = "columns")]
+        export_columns: Vec<ProjectExportColumn>,
+        export_format: ProjectExportFormat,
+    }
+
+    #[derive(Deserialize)]
+    #[serde(rename_all_fields = "kebab-case", tag = "type")]
+    pub enum ProjectExportColumn {
+        #[serde(rename = "number")]
+        Number,
+        #[serde(rename = "corpus-metadata")]
+        AnnoCorpus {
+            #[serde(rename = "annotation")]
+            anno_key: Option<AnnoKey>,
+        },
+        #[serde(rename = "document-metadata")]
+        AnnoDocument {
+            #[serde(rename = "annotation")]
+            anno_key: Option<AnnoKey>,
+        },
+        #[serde(rename = "match-annotation")]
+        AnnoMatch {
+            #[serde(rename = "annotation")]
+            anno_key: Option<AnnoKey>,
+            node_index: Option<u32>,
+        },
+        #[serde(rename = "match-in-context")]
+        MatchInContext {
+            segmentation: Option<String>,
+            // No anno_key - v1 didn't have this field
+            context: ProjectContext,
+            #[serde(default)]
+            primary_node_indices: Vec<u32>,
+        },
+    }
+
+    impl From<ProjectFile> for super::ProjectFile {
+        fn from(v1: ProjectFile) -> Self {
+            super::ProjectFile {
+                format_version: v1.format_version,
+                project: super::Project {
+                    corpus_set: v1.project.corpus_set,
+                    corpus_names: v1.project.corpus_names,
+                    aql_query: v1.project.aql_query,
+                    query_language: v1.project.query_language,
+                    export_columns: v1
+                        .project
+                        .export_columns
+                        .into_iter()
+                        .map(Into::into)
+                        .collect(),
+                    export_format: v1.project.export_format,
+                },
+            }
+        }
+    }
+
+    impl From<ProjectExportColumn> for super::ProjectExportColumn {
+        fn from(c: ProjectExportColumn) -> Self {
+            match c {
+                ProjectExportColumn::Number => Self::Number,
+                ProjectExportColumn::AnnoCorpus { anno_key } => Self::AnnoCorpus { anno_key },
+                ProjectExportColumn::AnnoDocument { anno_key } => Self::AnnoDocument { anno_key },
+                ProjectExportColumn::AnnoMatch {
+                    anno_key,
+                    node_index,
+                } => Self::AnnoMatch {
+                    anno_key,
+                    node_index,
+                },
+                ProjectExportColumn::MatchInContext {
+                    segmentation,
+                    context,
+                    primary_node_indices,
+                } => Self::MatchInContext {
+                    segmentation,
+                    anno_key: Some(AnnoKeyOrDefault::Default), // v1 -> v2 migration
+                    context,
+                    primary_node_indices,
+                },
             }
         }
     }

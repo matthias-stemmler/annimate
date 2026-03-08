@@ -11,9 +11,10 @@ info:
     - Number
     - Data:
         Text:
+          segmentation: norm
+          anno_key: Default
           left_context: 2
           right_context: 2
-          segmentation: norm
           primary_node_indices: ~
 ---
 Number,Left context (norm),Match (norm),Right context (norm)

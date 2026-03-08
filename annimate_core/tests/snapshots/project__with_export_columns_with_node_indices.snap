@@ -10,19 +10,20 @@ info:
         anno_key: ~
         node_index: 0
     - MatchInContext:
+        segmentation: ~
+        anno_key: ~
         context:
           Symmetric: 20
         primary_node_indices:
           - 1
           - 2
           - 3
-        segmentation: ~
   export_format: Csv
 ---
 # Annimate project file
 # https://github.com/matthias-stemmler/annimate
 
-format-version = 1
+format-version = 2
 
 [project]
 query-language = "aql"

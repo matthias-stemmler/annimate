@@ -85,6 +85,10 @@ export type ExportColumnUpdate =
       type: 'match_in_context';
       payload:
         | {
+            type: 'update_anno_key';
+            annoKey: AnnoKey | 'default';
+          }
+        | {
             type: 'update_context';
             context: number;
           }
@@ -140,6 +144,7 @@ export const createStoreForContext = (): StoreApi<State> =>
       {
         id: 2,
         type: 'match_in_context',
+        annoKey: 'default',
         context: 20,
         contextRightOverride: undefined,
         primaryNodeRefs: [],
@@ -178,6 +183,7 @@ const createExportColumn = (type: ExportColumnType): ExportColumn => {
     case 'match_in_context':
       return {
         type: 'match_in_context',
+        annoKey: 'default',
         context: 20,
         contextRightOverride: undefined,
         primaryNodeRefs: [],
@@ -405,15 +411,26 @@ const toExportColumns = (
               column.secondaryNodeRefs,
             );
 
+          const segmentation = filterEligible(
+            segmentations,
+            column.segmentation,
+            (a, b) => a === b,
+          );
+
           return {
             ...column,
+            annoKey:
+              column.annoKey === 'default'
+                ? segmentation === undefined
+                  ? undefined
+                  : 'default'
+                : filterEligibleAnnoKey(
+                    exportableAnnoKeys?.node,
+                    column.annoKey,
+                  ),
             primaryNodeRefs,
             secondaryNodeRefs,
-            segmentation: filterEligible(
-              segmentations,
-              column.segmentation,
-              (a, b) => a === b,
-            ),
+            segmentation,
           };
         }
 
@@ -641,6 +658,9 @@ const getExportColumnImpediments = (exportColumn: ExportColumn): string[] => {
       ) {
         impediments.push('No context selected');
       }
+      if (exportColumn.annoKey === undefined) {
+        impediments.push('No annotation selected');
+      }
       break;
   }
 
@@ -808,30 +828,32 @@ export const useUpdateExportColumn = (): ((
     }));
 
   return async (id: number, { type, payload }: ExportColumnUpdate) => {
-    switch (payload.type) {
-      case 'update_anno_key': {
+    switch (true) {
+      case payload.type === 'update_anno_key': {
         update(id, type, () => ({ annoKey: payload.annoKey }));
         return;
       }
 
-      case 'update_node_ref': {
+      case type === 'anno_match' && payload.type === 'update_node_ref': {
         update(id, type, () => ({ nodeRef: payload.nodeRef }));
         return;
       }
 
-      case 'update_context': {
+      case type === 'match_in_context' && payload.type === 'update_context': {
         update(id, type, () => ({ context: payload.context }));
         return;
       }
 
-      case 'update_context_right_override': {
+      case type === 'match_in_context' &&
+        payload.type === 'update_context_right_override': {
         update(id, type, () => ({
           contextRightOverride: payload.contextRightOverride,
         }));
         return;
       }
 
-      case 'toggle_primary_node_ref': {
+      case type === 'match_in_context' &&
+        payload.type === 'toggle_primary_node_ref': {
         if (type !== 'match_in_context') {
           return;
         }
@@ -870,7 +892,8 @@ export const useUpdateExportColumn = (): ((
         return;
       }
 
-      case 'reorder_primary_node_refs': {
+      case type === 'match_in_context' &&
+        payload.type === 'reorder_primary_node_refs': {
         if (type !== 'match_in_context') {
           return;
         }
@@ -894,7 +917,8 @@ export const useUpdateExportColumn = (): ((
         return;
       }
 
-      case 'update_segmentation': {
+      case type === 'match_in_context' &&
+        payload.type === 'update_segmentation': {
         update(id, type, () => ({
           segmentation: payload.segmentation,
         }));
