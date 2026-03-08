@@ -3,8 +3,9 @@ use std::fs;
 use std::path::Path;
 
 use annimate_core::{
-    AnnimateError, AnnoKey, CsvExportConfig, ExportConfig, ExportData, ExportDataAnno,
-    ExportDataText, ExportFormat, ExportStatusEvent, QueryLanguage, Storage, TableExportColumn,
+    AnnimateError, AnnoKey, AnnoKeyOrDefault, CsvExportConfig, ExportConfig, ExportData,
+    ExportDataAnno, ExportDataText, ExportFormat, ExportStatusEvent, QueryLanguage, Storage,
+    TableExportColumn,
 };
 use itertools::Itertools;
 use serde::Serialize;
@@ -38,6 +39,8 @@ macro_rules! export_matches_test {
                         use TestTableExportColumn::*;
                         #[allow(unused_imports)]
                         use TestExportData::*;
+                        #[allow(unused_imports)]
+                        use TestAnnoKeyOrDefault::*;
                         vec![$($export_columns,)*]
                     },
                 };
@@ -147,9 +150,36 @@ export_matches_test! {
                 index: 0,
             })),
             Data(Text(TestExportDataText {
+                segmentation: None,
+                anno_key: Default,
                 left_context: 4,
                 right_context: 4,
+                primary_node_indices: None,
+            })),
+        ],
+    }
+     subtok_segmentation_tokens_anno: {
+        corpus_paths: ["subtok.demo_relANNIS.zip"],
+        corpus_names: ["subtok.demo"],
+        aql_query: "pos=\"DT\"",
+        query_language: AQL,
+        export_columns: [
+            Number,
+            Data(Anno(TestExportDataAnno::Corpus {
+                anno_key: ("", "language"),
+            })),
+            Data(Anno(TestExportDataAnno::Document {
+                anno_key: ("annis", "doc"),
+            })),
+            Data(Anno(TestExportDataAnno::MatchNode {
+                anno_key: ("grammar", "lemma"),
+                index: 0,
+            })),
+            Data(Text(TestExportDataText {
                 segmentation: None,
+                anno_key: AnnoKey(("annis", "node_name")),
+                left_context: 4,
+                right_context: 4,
                 primary_node_indices: None,
             })),
         ],
@@ -172,9 +202,36 @@ export_matches_test! {
                 index: 0,
             })),
             Data(Text(TestExportDataText {
+                segmentation: Some("diplomatic"),
+                anno_key: Default,
                 left_context: 4,
                 right_context: 4,
+                primary_node_indices: None,
+            })),
+        ],
+    }
+    subtok_segmentation_diplomatic_anno: {
+        corpus_paths: ["subtok.demo_relANNIS.zip"],
+        corpus_names: ["subtok.demo"],
+        aql_query: "pos=\"DT\"",
+        query_language: AQL,
+        export_columns: [
+            Number,
+            Data(Anno(TestExportDataAnno::Corpus {
+                anno_key: ("", "language"),
+            })),
+            Data(Anno(TestExportDataAnno::Document {
+                anno_key: ("annis", "doc"),
+            })),
+            Data(Anno(TestExportDataAnno::MatchNode {
+                anno_key: ("grammar", "lemma"),
+                index: 0,
+            })),
+            Data(Text(TestExportDataText {
                 segmentation: Some("diplomatic"),
+                anno_key: AnnoKey(("annis", "node_name")),
+                left_context: 4,
+                right_context: 4,
                 primary_node_indices: None,
             })),
         ],
@@ -197,9 +254,10 @@ export_matches_test! {
                 index: 0,
             })),
             Data(Text(TestExportDataText {
+                segmentation: Some("norm"),
+                anno_key: Default,
                 left_context: 4,
                 right_context: 4,
-                segmentation: Some("norm"),
                 primary_node_indices: None,
             })),
         ],
@@ -226,9 +284,10 @@ export_matches_test! {
                 index: 1,
             })),
             Data(Text(TestExportDataText {
+                segmentation: None,
+                anno_key: Default,
                 left_context: 1,
                 right_context: 1,
-                segmentation: None,
                 primary_node_indices: None,
             })),
         ],
@@ -255,9 +314,10 @@ export_matches_test! {
                 index: 1,
             })),
             Data(Text(TestExportDataText {
+                segmentation: None,
+                anno_key: Default,
                 left_context: 1,
                 right_context: 1,
-                segmentation: None,
                 primary_node_indices: None,
             })),
         ],
@@ -269,9 +329,10 @@ export_matches_test! {
         query_language: AQL,
         export_columns: [
             Data(Text(TestExportDataText {
+                segmentation: None,
+                anno_key: Default,
                 left_context: 1,
                 right_context: 1,
-                segmentation: None,
                 primary_node_indices: Some(&[0, 1]),
             })),
         ],
@@ -287,9 +348,10 @@ export_matches_test! {
                 index: 0,
             })),
             Data(Text(TestExportDataText {
+                segmentation: Some("norm"),
+                anno_key: Default,
                 left_context: 1,
                 right_context: 1,
-                segmentation: Some("norm"),
                 primary_node_indices: None,
             })),
         ],
@@ -308,9 +370,10 @@ export_matches_test! {
                 anno_key: ("annis", "doc"),
             })),
             Data(Text(TestExportDataText {
+                segmentation: Some("diplomatic"),
+                anno_key: Default,
                 left_context: 1,
                 right_context: 1,
-                segmentation: Some("diplomatic"),
                 primary_node_indices: None,
             })),
         ],
@@ -329,9 +392,10 @@ export_matches_test! {
                 anno_key: ("annis", "doc"),
             })),
             Data(Text(TestExportDataText {
+                segmentation: Some("diplomatic"),
+                anno_key: Default,
                 left_context: 1,
                 right_context: 1,
-                segmentation: Some("diplomatic"),
                 primary_node_indices: None,
             })),
         ],
@@ -354,9 +418,10 @@ export_matches_test! {
                 index: 1,
             })),
             Data(Text(TestExportDataText {
+                segmentation: None,
+                anno_key: Default,
                 left_context: 10,
                 right_context: 10,
-                segmentation: None,
                 primary_node_indices: Some(&[1]),
             })),
         ],
@@ -379,9 +444,10 @@ export_matches_test! {
                 index: 1,
             })),
             Data(Text(TestExportDataText {
+                segmentation: None,
+                anno_key: Default,
                 left_context: 10,
                 right_context: 10,
-                segmentation: None,
                 primary_node_indices: Some(&[1, 0]),
             })),
         ],
@@ -394,21 +460,24 @@ export_matches_test! {
         export_columns: [
             Number,
             Data(Text(TestExportDataText {
+                segmentation: None,
+                anno_key: Default,
                 left_context: 0,
                 right_context: 0,
-                segmentation: None,
                 primary_node_indices: Some(&[]),
             })),
             Data(Text(TestExportDataText {
+                segmentation: None,
+                anno_key: Default,
                 left_context: 0,
                 right_context: 0,
-                segmentation: None,
                 primary_node_indices: Some(&[1]),
             })),
             Data(Text(TestExportDataText {
+                segmentation: None,
+                anno_key: Default,
                 left_context: 0,
                 right_context: 0,
-                segmentation: None,
                 primary_node_indices: Some(&[0, 1]),
             })),
         ],
@@ -421,9 +490,10 @@ export_matches_test! {
         export_columns: [
             Number,
             Data(Text(TestExportDataText {
+                segmentation: None,
+                anno_key: Default,
                 left_context: 2,
                 right_context: 2,
-                segmentation: None,
                 primary_node_indices: None,
             })),
         ],
@@ -436,9 +506,10 @@ export_matches_test! {
         export_columns: [
             Number,
             Data(Text(TestExportDataText {
+                segmentation: Some("norm"),
+                anno_key: Default,
                 left_context: 2,
                 right_context: 2,
-                segmentation: Some("norm"),
                 primary_node_indices: None,
             })),
         ],
@@ -564,10 +635,17 @@ enum TestExportDataAnno {
 
 #[derive(Clone, Serialize)]
 struct TestExportDataText {
+    segmentation: Option<&'static str>,
+    anno_key: TestAnnoKeyOrDefault,
     left_context: usize,
     right_context: usize,
-    segmentation: Option<&'static str>,
     primary_node_indices: Option<&'static [usize]>,
+}
+
+#[derive(Clone, Serialize)]
+enum TestAnnoKeyOrDefault {
+    AnnoKey((&'static str, &'static str)),
+    Default,
 }
 
 impl From<TestTableExportColumn> for TableExportColumn {
@@ -602,14 +680,24 @@ impl From<TestTableExportColumn> for TableExportColumn {
                     index,
                 }),
                 TestExportData::Text(TestExportDataText {
+                    segmentation,
+                    anno_key,
                     left_context,
                     right_context,
-                    segmentation,
                     primary_node_indices,
                 }) => ExportData::Text(ExportDataText {
+                    segmentation: segmentation.map(|s| s.into()),
                     left_context,
                     right_context,
-                    segmentation: segmentation.map(|s| s.to_string()),
+                    anno_key: match anno_key {
+                        TestAnnoKeyOrDefault::AnnoKey((ns, name)) => {
+                            AnnoKeyOrDefault::AnnoKey(AnnoKey {
+                                ns: ns.into(),
+                                name: name.into(),
+                            })
+                        }
+                        TestAnnoKeyOrDefault::Default => AnnoKeyOrDefault::Default,
+                    },
                     primary_node_indices: primary_node_indices.map(Into::into),
                 }),
             }),

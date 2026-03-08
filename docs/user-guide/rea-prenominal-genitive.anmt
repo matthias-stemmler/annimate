@@ -1,7 +1,7 @@
 # Annimate project file
 # https://github.com/matthias-stemmler/annimate
 
-format-version = 1
+format-version = 2
 
 [project]
 corpus-set = "ReA 1.2"
@@ -57,5 +57,6 @@ node-index = 0
 [[project.columns]]
 type = "match-in-context"
 segmentation = "edition"
+annotation = "default"
 context = 20
 primary-node-indices = [0, 1, 2]

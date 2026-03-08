@@ -1,42 +1,5 @@
 ---
 source: annimate_core/tests/project.rs
-info:
-  corpus_set: Test Corpus Set
-  corpus_names:
-    - Test Corpus 1
-    - Test Corpus 2
-  aql_query: Test AQL query
-  query_language: AQLQuirksV3
-  export_columns:
-    - Number
-    - AnnoCorpus:
-        anno_key:
-          - ns1
-          - anno1
-    - AnnoDocument:
-        anno_key:
-          - ns2
-          - anno2
-    - AnnoMatch:
-        anno_key:
-          - ns3
-          - anno3
-        node_index: 0
-    - MatchInContext:
-        segmentation: Test Segmentation
-        anno_key:
-          AnnoKey:
-            - ns4
-            - anno4
-        context:
-          Asymmetric:
-            left: 5
-            right: 10
-        primary_node_indices:
-          - 1
-          - 2
-          - 3
-  export_format: Xlsx
 ---
 # Annimate project file
 # https://github.com/matthias-stemmler/annimate
@@ -72,6 +35,6 @@ node-index = 0
 [[project.columns]]
 type = "match-in-context"
 segmentation = "Test Segmentation"
-annotation = { ns = "ns4", name = "anno4" }
+annotation = "default"
 context = { left = 5, right = 10 }
 primary-node-indices = [1, 2, 3]

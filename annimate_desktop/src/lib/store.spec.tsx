@@ -11,6 +11,7 @@ import {
 } from '@/lib/api-types';
 import { SlowTrackingQueryCache } from '@/lib/slow-queries';
 import {
+  ExportColumnItem,
   ExportColumnUpdate,
   ExportPreflight,
   useAddExportColumn,
@@ -175,6 +176,7 @@ describe('store', () => {
                 { type: 'number' },
                 {
                   type: 'match_in_context',
+                  annoKey: ANNO_KEY_NODE,
                   context: 5,
                   contextRightOverride: 1500,
                   primaryNodeRefs: [{ index: 1, variables: ['2'] }],
@@ -385,6 +387,7 @@ describe('store', () => {
         {
           id: 2,
           type: 'match_in_context',
+          annoKey: 'default',
           context: 20,
           contextRightOverride: undefined,
           primaryNodeRefs: [],
@@ -399,7 +402,7 @@ describe('store', () => {
           id: 4,
           type: 'anno_document',
         },
-      ]);
+      ] satisfies ExportColumnItem[]);
     });
 
     result.current.updateExportColumn(4, {
@@ -419,6 +422,7 @@ describe('store', () => {
         {
           id: 2,
           type: 'match_in_context',
+          annoKey: 'default',
           context: 20,
           contextRightOverride: undefined,
           primaryNodeRefs: [],
@@ -434,7 +438,7 @@ describe('store', () => {
           type: 'anno_document',
           annoKey: ANNO_KEY_DOCUMENT,
         },
-      ]);
+      ] satisfies ExportColumnItem[]);
     });
 
     result.current.removeExportColumn(2);
@@ -454,7 +458,7 @@ describe('store', () => {
           type: 'anno_document',
           annoKey: ANNO_KEY_DOCUMENT,
         },
-      ]);
+      ] satisfies ExportColumnItem[]);
     });
 
     result.current.addExportColumn('match_in_context');
@@ -477,13 +481,14 @@ describe('store', () => {
         {
           id: 5,
           type: 'match_in_context',
+          annoKey: 'default',
           context: 20,
           contextRightOverride: undefined,
           primaryNodeRefs: [],
           secondaryNodeRefs: [],
           segmentation: '',
         },
-      ]);
+      ] satisfies ExportColumnItem[]);
     });
 
     result.current.reorderExportColumn((cs) => {
@@ -510,13 +515,14 @@ describe('store', () => {
         {
           id: 5,
           type: 'match_in_context',
+          annoKey: 'default',
           context: 20,
           contextRightOverride: undefined,
           primaryNodeRefs: [],
           secondaryNodeRefs: [],
           segmentation: '',
         },
-      ]);
+      ] satisfies ExportColumnItem[]);
     });
 
     result.current.unremoveExportColumn(2);
@@ -526,6 +532,7 @@ describe('store', () => {
         {
           id: 2,
           type: 'match_in_context',
+          annoKey: 'default',
           context: 20,
           contextRightOverride: undefined,
           primaryNodeRefs: [],
@@ -548,13 +555,14 @@ describe('store', () => {
         {
           id: 5,
           type: 'match_in_context',
+          annoKey: 'default',
           context: 20,
           contextRightOverride: undefined,
           primaryNodeRefs: [],
           secondaryNodeRefs: [],
           segmentation: '',
         },
-      ]);
+      ] satisfies ExportColumnItem[]);
     });
   });
 
@@ -576,7 +584,7 @@ describe('store', () => {
       expect(result.current.exportColumns).toContainEqual({
         id: 3,
         type: 'anno_corpus',
-      });
+      } satisfies ExportColumnItem);
     });
 
     result.current.updateExportColumn(3, {
@@ -592,7 +600,7 @@ describe('store', () => {
         id: 3,
         type: 'anno_corpus',
         annoKey: ANNO_KEY_CORPUS,
-      });
+      } satisfies ExportColumnItem);
     });
 
     result.current.updateExportColumn(3, {
@@ -608,7 +616,7 @@ describe('store', () => {
         id: 3,
         type: 'anno_corpus',
         annoKey: undefined,
-      });
+      } satisfies ExportColumnItem);
     });
   });
 
@@ -630,7 +638,7 @@ describe('store', () => {
       expect(result.current.exportColumns).toContainEqual({
         id: 3,
         type: 'anno_document',
-      });
+      } satisfies ExportColumnItem);
     });
 
     result.current.updateExportColumn(3, {
@@ -646,7 +654,7 @@ describe('store', () => {
         id: 3,
         type: 'anno_document',
         annoKey: ANNO_KEY_DOCUMENT,
-      });
+      } satisfies ExportColumnItem);
     });
 
     result.current.updateExportColumn(3, {
@@ -662,7 +670,7 @@ describe('store', () => {
         id: 3,
         type: 'anno_document',
         annoKey: undefined,
-      });
+      } satisfies ExportColumnItem);
     });
   });
 
@@ -686,7 +694,7 @@ describe('store', () => {
       expect(result.current.exportColumns).toContainEqual({
         id: 3,
         type: 'anno_match',
-      });
+      } satisfies ExportColumnItem);
     });
 
     result.current.updateExportColumn(3, {
@@ -710,7 +718,7 @@ describe('store', () => {
         type: 'anno_match',
         annoKey: ANNO_KEY_NODE,
         nodeRef: { index: 0, variables: ['1'] },
-      });
+      } satisfies ExportColumnItem);
     });
 
     result.current.updateExportColumn(3, {
@@ -734,7 +742,7 @@ describe('store', () => {
         type: 'anno_match',
         annoKey: undefined,
         nodeRef: { index: 0, variables: ['1'] },
-      });
+      } satisfies ExportColumnItem);
     });
 
     result.current.updateExportColumn(3, {
@@ -758,7 +766,7 @@ describe('store', () => {
         type: 'anno_match',
         annoKey: ANNO_KEY_NODE,
         nodeRef: undefined,
-      });
+      } satisfies ExportColumnItem);
     });
   });
 
@@ -782,6 +790,7 @@ describe('store', () => {
       expect(result.current.exportColumns).toContainEqual({
         id: 3,
         type: 'match_in_context',
+        annoKey: 'default',
         context: 20,
         primaryNodeRefs: [
           { index: 0, variables: ['1'] },
@@ -789,7 +798,7 @@ describe('store', () => {
         ],
         secondaryNodeRefs: [],
         segmentation: '',
-      });
+      } satisfies ExportColumnItem);
     });
 
     result.current.updateExportColumn(3, {
@@ -804,6 +813,7 @@ describe('store', () => {
       expect(result.current.exportColumns).toContainEqual({
         id: 3,
         type: 'match_in_context',
+        annoKey: 'default',
         context: 20,
         primaryNodeRefs: [
           { index: 0, variables: ['1'] },
@@ -811,7 +821,22 @@ describe('store', () => {
         ],
         secondaryNodeRefs: [],
         segmentation: 'segmentation',
-      });
+      } satisfies ExportColumnItem);
+    });
+
+    await waitFor(() => {
+      expect(result.current.exportColumns).toContainEqual({
+        id: 3,
+        type: 'match_in_context',
+        annoKey: 'default',
+        context: 20,
+        primaryNodeRefs: [
+          { index: 0, variables: ['1'] },
+          { index: 1, variables: ['2'] },
+        ],
+        secondaryNodeRefs: [],
+        segmentation: 'segmentation',
+      } satisfies ExportColumnItem);
     });
 
     result.current.toggleCorpus('a');
@@ -820,6 +845,7 @@ describe('store', () => {
       expect(result.current.exportColumns).toContainEqual({
         id: 3,
         type: 'match_in_context',
+        annoKey: undefined,
         context: 20,
         primaryNodeRefs: [
           { index: 0, variables: ['1'] },
@@ -827,7 +853,7 @@ describe('store', () => {
         ],
         secondaryNodeRefs: [],
         segmentation: undefined,
-      });
+      } satisfies ExportColumnItem);
     });
 
     result.current.toggleCorpus('a');
@@ -836,6 +862,7 @@ describe('store', () => {
       expect(result.current.exportColumns).toContainEqual({
         id: 3,
         type: 'match_in_context',
+        annoKey: 'default',
         context: 20,
         primaryNodeRefs: [
           { index: 0, variables: ['1'] },
@@ -843,7 +870,7 @@ describe('store', () => {
         ],
         secondaryNodeRefs: [],
         segmentation: 'segmentation',
-      });
+      } satisfies ExportColumnItem);
     });
 
     result.current.updateExportColumn(3, {
@@ -866,6 +893,7 @@ describe('store', () => {
       expect(result.current.exportColumns).toContainEqual({
         id: 3,
         type: 'match_in_context',
+        annoKey: 'default',
         context: 42,
         contextRightOverride: 43,
         primaryNodeRefs: [
@@ -874,7 +902,31 @@ describe('store', () => {
         ],
         secondaryNodeRefs: [],
         segmentation: 'segmentation',
-      });
+      } satisfies ExportColumnItem);
+    });
+
+    result.current.updateExportColumn(3, {
+      type: 'match_in_context',
+      payload: {
+        type: 'update_anno_key',
+        annoKey: ANNO_KEY_NODE,
+      },
+    });
+
+    await waitFor(() => {
+      expect(result.current.exportColumns).toContainEqual({
+        id: 3,
+        type: 'match_in_context',
+        annoKey: ANNO_KEY_NODE,
+        context: 42,
+        contextRightOverride: 43,
+        primaryNodeRefs: [
+          { index: 0, variables: ['1'] },
+          { index: 1, variables: ['2'] },
+        ],
+        secondaryNodeRefs: [],
+        segmentation: 'segmentation',
+      } satisfies ExportColumnItem);
     });
 
     result.current.updateExportColumn(3, {
@@ -892,12 +944,13 @@ describe('store', () => {
       expect(result.current.exportColumns).toContainEqual({
         id: 3,
         type: 'match_in_context',
+        annoKey: ANNO_KEY_NODE,
         context: 42,
         contextRightOverride: 43,
         primaryNodeRefs: [{ index: 1, variables: ['2'] }],
         secondaryNodeRefs: [{ index: 0, variables: ['1'] }],
         segmentation: 'segmentation',
-      });
+      } satisfies ExportColumnItem);
     });
 
     result.current.updateExportColumn(3, {
@@ -915,6 +968,7 @@ describe('store', () => {
       expect(result.current.exportColumns).toContainEqual({
         id: 3,
         type: 'match_in_context',
+        annoKey: ANNO_KEY_NODE,
         context: 42,
         contextRightOverride: 43,
         primaryNodeRefs: [
@@ -923,7 +977,7 @@ describe('store', () => {
         ],
         secondaryNodeRefs: [],
         segmentation: 'segmentation',
-      });
+      } satisfies ExportColumnItem);
     });
 
     result.current.updateExportColumn(3, {
@@ -938,6 +992,7 @@ describe('store', () => {
       expect(result.current.exportColumns).toContainEqual({
         id: 3,
         type: 'match_in_context',
+        annoKey: ANNO_KEY_NODE,
         context: 42,
         contextRightOverride: 43,
         primaryNodeRefs: [
@@ -946,7 +1001,7 @@ describe('store', () => {
         ],
         secondaryNodeRefs: [],
         segmentation: 'segmentation',
-      });
+      } satisfies ExportColumnItem);
     });
   });
 
@@ -1000,6 +1055,7 @@ describe('store', () => {
         impediments: [
           'No corpus selected',
           'Column 2: No segmentation selected',
+          'Column 2: No annotation selected',
           'Column 3: No meta annotation selected',
           'Column 4: No meta annotation selected',
           'Column 5: No annotation selected',
@@ -1305,6 +1361,7 @@ describe('store', () => {
         {
           id: 4,
           type: 'match_in_context',
+          annoKey: ANNO_KEY_NODE,
           context: 5,
           contextRightOverride: 999,
           primaryNodeRefs: [{ index: 1, variables: ['2'] }],
@@ -1319,7 +1376,7 @@ describe('store', () => {
           annoKey: ANNO_KEY_NODE,
           nodeRef: { index: 1, variables: ['2'] },
         },
-      ]);
+      ] satisfies ExportColumnItem[]);
       expect(result.current.exportFormat).toBe('xlsx');
       expect(result.current.canExport).toBe(true);
     });

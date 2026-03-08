@@ -9,7 +9,7 @@ use graphannis::{AnnotationGraph, CorpusStorage, util};
 use graphannis_core::graph::{ANNIS_NS, DEFAULT_NS, NODE_NAME};
 use graphannis_core::types::{AnnoKey, Component, NodeID};
 use itertools::Itertools;
-use serde::Serialize;
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
 use crate::cache::{AnnoKeyInfo, CacheStorage};
 use crate::error::AnnimateError;
@@ -198,20 +198,22 @@ impl AnnoKeys {
         let mut doc_anno_keys = HashSet::new();
 
         for corpus_name in corpus_names {
-            let anno_key_infos =
-                get_anno_key_infos(corpus_storage, cache_storage, corpus_name.as_ref())?;
+            for AnnoKeyInfo {
+                anno_key,
+                is_corpus,
+                is_document,
+            } in get_anno_key_infos(corpus_storage, cache_storage, corpus_name.as_ref())?
+            {
+                if is_corpus {
+                    corpus_anno_keys.insert(anno_key.clone());
+                }
 
-            corpus_anno_keys.extend(
-                anno_key_infos
-                    .iter()
-                    .filter_map(|info| info.is_corpus.then_some(info.anno_key.clone())),
-            );
-            doc_anno_keys.extend(
-                anno_key_infos
-                    .iter()
-                    .filter_map(|info| info.is_document.then_some(info.anno_key.clone())),
-            );
-            all_anno_keys.extend(anno_key_infos.into_iter().map(|info| info.anno_key));
+                if is_document {
+                    doc_anno_keys.insert(anno_key.clone());
+                }
+
+                all_anno_keys.insert(anno_key);
+            }
         }
 
         let format = AnnoKeyFormat::new(&all_anno_keys);
@@ -395,6 +397,43 @@ pub struct ExportableAnnoKeys {
 pub struct ExportableAnnoKey {
     anno_key: AnnoKey,
     display_name: String,
+}
+
+/// The annotation key to use for a "Match in context" column.
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
+pub enum AnnoKeyOrDefault {
+    /// Use the given [`AnnoKey`].
+    AnnoKey(AnnoKey),
+    /// Use the default [`AnnoKey`] for the given segmentation.
+    Default,
+}
+
+impl Serialize for AnnoKeyOrDefault {
+    fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        match self {
+            Self::AnnoKey(anno_key) => anno_key.serialize(serializer),
+            Self::Default => "default".serialize(serializer),
+        }
+    }
+}
+
+impl<'de> Deserialize<'de> for AnnoKeyOrDefault {
+    fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+        #[derive(Deserialize)]
+        #[serde(untagged)]
+        enum Helper<'a> {
+            AnnoKey(AnnoKey),
+            Default(&'a str),
+        }
+
+        match Helper::deserialize(deserializer)? {
+            Helper::AnnoKey(anno_key) => Ok(Self::AnnoKey(anno_key)),
+            Helper::Default("default") => Ok(Self::Default),
+            Helper::Default(s) => Err(serde::de::Error::custom(format!(
+                "expected \"default\" or an annotation key, found {s:?}"
+            ))),
+        }
+    }
 }
 
 pub(crate) fn is_doc_anno_key(anno_key: &AnnoKey) -> bool {

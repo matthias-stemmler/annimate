@@ -1,0 +1,36 @@
+# Annimate project file
+# https://github.com/matthias-stemmler/annimate
+
+format-version = 1
+
+[project]
+corpus-set = "Test Corpus Set"
+corpora = [
+    "Test Corpus 1",
+    "Test Corpus 2",
+]
+query = "Test AQL query"
+query-language = "aql-compatibility"
+export-format = "xlsx"
+
+[[project.columns]]
+type = "number"
+
+[[project.columns]]
+type = "corpus-metadata"
+annotation = { ns = "ns1", name = "anno1" }
+
+[[project.columns]]
+type = "document-metadata"
+annotation = { ns = "ns2", name = "anno2" }
+
+[[project.columns]]
+type = "match-annotation"
+annotation = { ns = "ns3", name = "anno3" }
+node-index = 0
+
+[[project.columns]]
+type = "match-in-context"
+segmentation = "Test Segmentation"
+context = { left = 5, right = 10 }
+primary-node-indices = [1, 2, 3]
