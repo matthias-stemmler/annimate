@@ -10,13 +10,14 @@ info:
         anno_key: ~
         node_index: 0
     - MatchInContext:
+        segmentation: ~
         context:
           Symmetric: 20
+        anno_key: ~
         primary_node_indices:
           - 1
           - 2
           - 3
-        segmentation: ~
   export_format: Csv
 ---
 # Annimate project file

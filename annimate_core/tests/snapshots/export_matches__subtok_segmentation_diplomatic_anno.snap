@@ -1,0 +1,44 @@
+---
+source: annimate_core/tests/export_matches.rs
+info:
+  corpus_paths:
+    - subtok.demo_relANNIS.zip
+  corpus_names:
+    - subtok.demo
+  aql_query: "pos=\"DT\""
+  query_language: AQL
+  export_columns:
+    - Number
+    - Data:
+        Anno:
+          Corpus:
+            anno_key:
+              - ""
+              - language
+    - Data:
+        Anno:
+          Document:
+            anno_key:
+              - annis
+              - doc
+    - Data:
+        Anno:
+          MatchNode:
+            anno_key:
+              - grammar
+              - lemma
+            index: 0
+    - Data:
+        Text:
+          segmentation: diplomatic
+          left_context: 4
+          right_context: 4
+          anno_key:
+            - annis
+            - node_name
+          primary_node_indices: ~
+---
+Number,Corpus language,Document,#1 lemma,Left context node_name (diplomatic),Match node_name (diplomatic),Right context node_name (diplomatic)
+1,English,subtok.demo.doc01,This,,subtok.demo/subtok.demo.doc01#sSpan28 subtok.demo/subtok.demo.doc01#sSpan29,subtok.demo/subtok.demo.doc01#sSpan30 subtok.demo/subtok.demo.doc01#sSpan31 subtok.demo/subtok.demo.doc01#sSpan32 subtok.demo/subtok.demo.doc01#sSpan33
+2,English,subtok.demo.doc01,a,subtok.demo/subtok.demo.doc01#sSpan28 subtok.demo/subtok.demo.doc01#sSpan29 subtok.demo/subtok.demo.doc01#sSpan30,subtok.demo/subtok.demo.doc01#sSpan31,subtok.demo/subtok.demo.doc01#sSpan32 subtok.demo/subtok.demo.doc01#sSpan33 subtok.demo/subtok.demo.doc01#sSpan34 subtok.demo/subtok.demo.doc01#sSpan35
+3,English,subtok.demo.doc01,a,subtok.demo/subtok.demo.doc01#sSpan30 subtok.demo/subtok.demo.doc01#sSpan31 subtok.demo/subtok.demo.doc01#sSpan32 subtok.demo/subtok.demo.doc01#sSpan33,subtok.demo/subtok.demo.doc01#sSpan34,subtok.demo/subtok.demo.doc01#sSpan35 subtok.demo/subtok.demo.doc01#sSpan36 subtok.demo/subtok.demo.doc01#sSpan37 subtok.demo/subtok.demo.doc01#sSpan38

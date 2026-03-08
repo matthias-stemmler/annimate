@@ -71,14 +71,18 @@ pub enum ExportDataAnno {
 /// Configuration of the text of a match to be exported.
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct ExportDataText {
+    /// Segmentation to use, or [None] to use tokens.
+    pub segmentation: Option<String>,
+
     /// Size of the left context, in segmentation nodes.
     pub left_context: usize,
 
     /// Size of the right context, in segmentation nodes.
     pub right_context: usize,
 
-    /// Segmentation to use, or [None] to use tokens.
-    pub segmentation: Option<String>,
+    /// Key of the annotation of the segmentation nodes to be exported, or [None] to use
+    /// segmentation text.
+    pub anno_key: Option<AnnoKey>,
 
     /// Indices of primary query nodes, or [None] to treat all query nodes as primary.
     ///
@@ -368,9 +372,10 @@ fn get_parts(
     }
 
     let ExportDataText {
+        segmentation,
         left_context,
         right_context,
-        segmentation,
+        anno_key,
         primary_node_indices,
     } = export_data;
 
@@ -497,9 +502,11 @@ fn get_parts(
         for group in group_by(&chain.token_ids, get_segment_node_id) {
             let (segment_node_id, token_ids) = group?;
             let segment = node_annos
-                .get_value_for_item(&segment_node_id, segment_anno_key)?
-                .expect("value should be present by choice of segment_node_id")
-                .to_string();
+                .get_value_for_item(
+                    &segment_node_id,
+                    anno_key.as_ref().unwrap_or(segment_anno_key),
+                )?
+                .map(|s| s.into_owned());
 
             let match_node_index = primary_node_indices
                 .clone()
@@ -523,7 +530,7 @@ fn get_parts(
                 ) if index == match_node_index => TextPart::Match {
                     index,
                     segments: {
-                        segments.push(segment);
+                        segments.extend(segment);
                         segments
                     },
                 },
@@ -531,34 +538,34 @@ fn get_parts(
                     parts.push(TextPart::Match { index, segments });
                     TextPart::Match {
                         index: match_node_index,
-                        segments: vec![segment],
+                        segments: segment.into_iter().collect(),
                     }
                 }
                 (Some(TextPart::Match { index, segments }), None) => {
                     parts.push(TextPart::Match { index, segments });
                     TextPart::Context {
-                        segments: vec![segment],
+                        segments: segment.into_iter().collect(),
                     }
                 }
                 (Some(TextPart::Context { segments }), Some(match_node_index)) => {
                     parts.push(TextPart::Context { segments });
                     TextPart::Match {
                         index: match_node_index,
-                        segments: vec![segment],
+                        segments: segment.into_iter().collect(),
                     }
                 }
                 (Some(TextPart::Context { mut segments }), None) => TextPart::Context {
                     segments: {
-                        segments.push(segment);
+                        segments.extend(segment);
                         segments
                     },
                 },
                 (_, Some(index)) => TextPart::Match {
                     index,
-                    segments: vec![segment],
+                    segments: segment.into_iter().collect(),
                 },
                 (_, None) => TextPart::Context {
-                    segments: vec![segment],
+                    segments: segment.into_iter().collect(),
                 },
             });
         }

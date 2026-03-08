@@ -175,6 +175,7 @@ describe('store', () => {
                 { type: 'number' },
                 {
                   type: 'match_in_context',
+                  annoKey: ANNO_KEY_NODE,
                   context: 5,
                   contextRightOverride: 1500,
                   primaryNodeRefs: [{ index: 1, variables: ['2'] }],
@@ -385,6 +386,7 @@ describe('store', () => {
         {
           id: 2,
           type: 'match_in_context',
+          annoKey: null,
           context: 20,
           contextRightOverride: undefined,
           primaryNodeRefs: [],
@@ -419,6 +421,7 @@ describe('store', () => {
         {
           id: 2,
           type: 'match_in_context',
+          annoKey: null,
           context: 20,
           contextRightOverride: undefined,
           primaryNodeRefs: [],
@@ -477,6 +480,7 @@ describe('store', () => {
         {
           id: 5,
           type: 'match_in_context',
+          annoKey: null,
           context: 20,
           contextRightOverride: undefined,
           primaryNodeRefs: [],
@@ -510,6 +514,7 @@ describe('store', () => {
         {
           id: 5,
           type: 'match_in_context',
+          annoKey: null,
           context: 20,
           contextRightOverride: undefined,
           primaryNodeRefs: [],
@@ -526,6 +531,7 @@ describe('store', () => {
         {
           id: 2,
           type: 'match_in_context',
+          annoKey: null,
           context: 20,
           contextRightOverride: undefined,
           primaryNodeRefs: [],
@@ -548,6 +554,7 @@ describe('store', () => {
         {
           id: 5,
           type: 'match_in_context',
+          annoKey: null,
           context: 20,
           contextRightOverride: undefined,
           primaryNodeRefs: [],
@@ -782,6 +789,7 @@ describe('store', () => {
       expect(result.current.exportColumns).toContainEqual({
         id: 3,
         type: 'match_in_context',
+        annoKey: null,
         context: 20,
         primaryNodeRefs: [
           { index: 0, variables: ['1'] },
@@ -804,6 +812,22 @@ describe('store', () => {
       expect(result.current.exportColumns).toContainEqual({
         id: 3,
         type: 'match_in_context',
+        annoKey: null,
+        context: 20,
+        primaryNodeRefs: [
+          { index: 0, variables: ['1'] },
+          { index: 1, variables: ['2'] },
+        ],
+        secondaryNodeRefs: [],
+        segmentation: 'segmentation',
+      });
+    });
+
+    await waitFor(() => {
+      expect(result.current.exportColumns).toContainEqual({
+        id: 3,
+        type: 'match_in_context',
+        annoKey: null,
         context: 20,
         primaryNodeRefs: [
           { index: 0, variables: ['1'] },
@@ -820,6 +844,7 @@ describe('store', () => {
       expect(result.current.exportColumns).toContainEqual({
         id: 3,
         type: 'match_in_context',
+        annoKey: undefined,
         context: 20,
         primaryNodeRefs: [
           { index: 0, variables: ['1'] },
@@ -836,6 +861,7 @@ describe('store', () => {
       expect(result.current.exportColumns).toContainEqual({
         id: 3,
         type: 'match_in_context',
+        annoKey: null,
         context: 20,
         primaryNodeRefs: [
           { index: 0, variables: ['1'] },
@@ -866,6 +892,31 @@ describe('store', () => {
       expect(result.current.exportColumns).toContainEqual({
         id: 3,
         type: 'match_in_context',
+        annoKey: null,
+        context: 42,
+        contextRightOverride: 43,
+        primaryNodeRefs: [
+          { index: 0, variables: ['1'] },
+          { index: 1, variables: ['2'] },
+        ],
+        secondaryNodeRefs: [],
+        segmentation: 'segmentation',
+      });
+    });
+
+    result.current.updateExportColumn(3, {
+      type: 'match_in_context',
+      payload: {
+        type: 'update_anno_key',
+        annoKey: ANNO_KEY_NODE,
+      },
+    });
+
+    await waitFor(() => {
+      expect(result.current.exportColumns).toContainEqual({
+        id: 3,
+        type: 'match_in_context',
+        annoKey: ANNO_KEY_NODE,
         context: 42,
         contextRightOverride: 43,
         primaryNodeRefs: [
@@ -892,6 +943,7 @@ describe('store', () => {
       expect(result.current.exportColumns).toContainEqual({
         id: 3,
         type: 'match_in_context',
+        annoKey: ANNO_KEY_NODE,
         context: 42,
         contextRightOverride: 43,
         primaryNodeRefs: [{ index: 1, variables: ['2'] }],
@@ -915,6 +967,7 @@ describe('store', () => {
       expect(result.current.exportColumns).toContainEqual({
         id: 3,
         type: 'match_in_context',
+        annoKey: ANNO_KEY_NODE,
         context: 42,
         contextRightOverride: 43,
         primaryNodeRefs: [
@@ -938,6 +991,7 @@ describe('store', () => {
       expect(result.current.exportColumns).toContainEqual({
         id: 3,
         type: 'match_in_context',
+        annoKey: ANNO_KEY_NODE,
         context: 42,
         contextRightOverride: 43,
         primaryNodeRefs: [
@@ -1000,6 +1054,7 @@ describe('store', () => {
         impediments: [
           'No corpus selected',
           'Column 2: No segmentation selected',
+          'Column 2: No annotation selected',
           'Column 3: No meta annotation selected',
           'Column 4: No meta annotation selected',
           'Column 5: No annotation selected',
@@ -1305,6 +1360,7 @@ describe('store', () => {
         {
           id: 4,
           type: 'match_in_context',
+          annoKey: ANNO_KEY_NODE,
           context: 5,
           contextRightOverride: 999,
           primaryNodeRefs: [{ index: 1, variables: ['2'] }],

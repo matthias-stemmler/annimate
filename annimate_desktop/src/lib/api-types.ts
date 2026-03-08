@@ -71,6 +71,7 @@ export type ExportColumn =
     }
   | {
       type: 'match_in_context';
+      annoKey?: AnnoKey | null;
       context: number;
       contextRightOverride?: number;
       primaryNodeRefs: QueryNodeRef[];

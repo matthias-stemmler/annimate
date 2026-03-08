@@ -143,6 +143,7 @@ project_test! {
             MatchInContext {
                 segmentation: None,
                 context: Symmetric(20),
+                anno_key: None,
                 primary_node_indices: &[],
             },
         ],
@@ -164,6 +165,12 @@ project_test! {
                 anno_key: Some(("ns3", "anno3")),
                 node_index: None,
             },
+            MatchInContext {
+                segmentation: None,
+                context: Symmetric(20),
+                anno_key: Some(("ns4", "anno4")),
+                primary_node_indices: &[],
+            },
         ],
         export_format: Csv,
     }
@@ -180,6 +187,7 @@ project_test! {
             MatchInContext {
                 segmentation: None,
                 context: Symmetric(20),
+                anno_key: None,
                 primary_node_indices: &[1, 2, 3],
             },
         ],
@@ -194,6 +202,7 @@ project_test! {
             MatchInContext {
                 segmentation: None,
                 context: Asymmetric { left: 5, right: 10 },
+                anno_key: None,
                 primary_node_indices: &[],
             },
         ],
@@ -208,6 +217,7 @@ project_test! {
             MatchInContext {
                 segmentation: Some("Test Segmentation"),
                 context: Symmetric(20),
+                anno_key: None,
                 primary_node_indices: &[],
             },
         ],
@@ -241,6 +251,7 @@ project_test! {
             MatchInContext {
                 segmentation: Some("Test Segmentation"),
                 context: Asymmetric { left: 5, right: 10 },
+                anno_key: Some(("ns4", "anno4")),
                 primary_node_indices: &[1, 2, 3],
             },
         ],
@@ -274,6 +285,7 @@ enum TestProjectExportColumn {
     MatchInContext {
         segmentation: Option<&'static str>,
         context: TestProjectContext,
+        anno_key: Option<(&'static str, &'static str)>,
         primary_node_indices: &'static [u32],
     },
 }
@@ -342,10 +354,15 @@ impl From<TestProjectExportColumn> for ProjectExportColumn {
             TestProjectExportColumn::MatchInContext {
                 segmentation,
                 context,
+                anno_key,
                 primary_node_indices,
             } => ProjectExportColumn::MatchInContext {
                 segmentation: segmentation.map(|s| s.to_string()),
                 context: context.into(),
+                anno_key: anno_key.map(|(ns, name)| AnnoKey {
+                    ns: ns.into(),
+                    name: name.into(),
+                }),
                 primary_node_indices: primary_node_indices.into(),
             },
         }

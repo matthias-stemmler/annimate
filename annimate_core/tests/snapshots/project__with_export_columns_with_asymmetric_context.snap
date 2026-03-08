@@ -7,12 +7,13 @@ info:
   query_language: AQL
   export_columns:
     - MatchInContext:
+        segmentation: ~
         context:
           Asymmetric:
             left: 5
             right: 10
-        primary_node_indices: ~
-        segmentation: ~
+        anno_key: ~
+        primary_node_indices: []
   export_format: Csv
 ---
 # Annimate project file

@@ -23,15 +23,18 @@ info:
           - anno3
         node_index: 0
     - MatchInContext:
+        segmentation: Test Segmentation
         context:
           Asymmetric:
             left: 5
             right: 10
+        anno_key:
+          - ns4
+          - anno4
         primary_node_indices:
           - 1
           - 2
           - 3
-        segmentation: Test Segmentation
   export_format: Xlsx
 ---
 # Annimate project file
@@ -69,4 +72,5 @@ node-index = 0
 type = "match-in-context"
 segmentation = "Test Segmentation"
 context = { left = 5, right = 10 }
+annotation = { ns = "ns4", name = "anno4" }
 primary-node-indices = [1, 2, 3]

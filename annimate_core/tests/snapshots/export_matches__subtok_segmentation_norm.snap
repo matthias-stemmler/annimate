@@ -30,9 +30,10 @@ info:
             index: 0
     - Data:
         Text:
+          segmentation: norm
           left_context: 4
           right_context: 4
-          segmentation: norm
+          anno_key: ~
           primary_node_indices: ~
 ---
 Number,Corpus language,Document,#1 lemma,Left context (norm),Match (norm),Right context (norm)

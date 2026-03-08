@@ -19,6 +19,14 @@ info:
           - ns3
           - anno3
         node_index: ~
+    - MatchInContext:
+        segmentation: ~
+        context:
+          Symmetric: 20
+        anno_key:
+          - ns4
+          - anno4
+        primary_node_indices: []
   export_format: Csv
 ---
 # Annimate project file
@@ -41,3 +49,8 @@ annotation = { ns = "ns2", name = "anno2" }
 [[project.columns]]
 type = "match-annotation"
 annotation = { ns = "ns3", name = "anno3" }
+
+[[project.columns]]
+type = "match-in-context"
+context = 20
+annotation = { ns = "ns4", name = "anno4" }

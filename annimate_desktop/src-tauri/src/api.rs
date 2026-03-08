@@ -276,6 +276,7 @@ pub(crate) async fn load_project(
                                 .transpose()?,
                         },
                         annimate_core::ProjectExportColumn::MatchInContext {
+                            anno_key,
                             segmentation,
                             context,
                             primary_node_indices,
@@ -305,6 +306,7 @@ pub(crate) async fn load_project(
                                 .collect();
 
                             ExportColumn::MatchInContext {
+                                anno_key,
                                 segmentation,
                                 context,
                                 context_right_override,
@@ -366,12 +368,14 @@ pub(crate) async fn save_project(project: Project, output_file: PathBuf) -> Resu
                         }
                     }
                     ExportColumn::MatchInContext {
+                        anno_key,
                         context,
                         context_right_override,
                         primary_node_refs,
+                        secondary_node_refs: _,
                         segmentation,
-                        ..
                     } => annimate_core::ProjectExportColumn::MatchInContext {
+                        anno_key,
                         segmentation,
                         context: match context_right_override {
                             Some(context_right) => annimate_core::ProjectContext::Asymmetric {
@@ -507,6 +511,8 @@ pub(crate) enum ExportColumn {
         node_ref: Option<QueryNodeRef>,
     },
     MatchInContext {
+        #[serde(skip_serializing_if = "Option::is_none")]
+        anno_key: Option<AnnoKey>,
         context: usize,
         #[serde(skip_serializing_if = "Option::is_none")]
         context_right_override: Option<usize>,
@@ -547,18 +553,20 @@ impl TryFrom<ExportColumn> for TableExportColumn {
                 }))
             }
             ExportColumn::MatchInContext {
+                anno_key,
                 context,
                 context_right_override,
                 primary_node_refs,
+                secondary_node_refs: _,
                 segmentation,
-                ..
             } => TableExportColumn::Data(ExportData::Text(ExportDataText {
-                left_context: context,
-                right_context: context_right_override.unwrap_or(context),
                 segmentation: {
                     let segmentation = segmentation.ok_or(ConversionError)?;
                     (!segmentation.is_empty()).then_some(segmentation)
                 },
+                anno_key,
+                left_context: context,
+                right_context: context_right_override.unwrap_or(context),
                 primary_node_indices: Some(
                     primary_node_refs.into_iter().map(|n| n.index).collect(),
                 ),

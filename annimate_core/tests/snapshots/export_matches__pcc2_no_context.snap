@@ -11,22 +11,25 @@ info:
     - Number
     - Data:
         Text:
+          segmentation: ~
           left_context: 0
           right_context: 0
-          segmentation: ~
+          anno_key: ~
           primary_node_indices: []
     - Data:
         Text:
+          segmentation: ~
           left_context: 0
           right_context: 0
-          segmentation: ~
+          anno_key: ~
           primary_node_indices:
             - 1
     - Data:
         Text:
+          segmentation: ~
           left_context: 0
           right_context: 0
-          segmentation: ~
+          anno_key: ~
           primary_node_indices:
             - 0
             - 1

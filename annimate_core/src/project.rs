@@ -66,6 +66,8 @@ pub enum ProjectExportColumn {
     },
     #[serde(rename = "match-in-context")]
     MatchInContext {
+        #[serde(rename = "annotation")]
+        anno_key: Option<AnnoKey>,
         segmentation: Option<String>,
         context: ProjectContext,
         #[serde(default)]
@@ -245,6 +247,7 @@ fn to_string_pretty(project_file: ProjectFile) -> String {
                         }
                     }
                     ProjectExportColumn::MatchInContext {
+                        anno_key,
                         context,
                         primary_node_indices,
                         segmentation,
@@ -264,6 +267,10 @@ fn to_string_pretty(project_file: ProjectFile) -> String {
                                 table.into()
                             }
                         };
+
+                        if let Some(anno_key) = anno_key {
+                            table["annotation"] = anno_key_to_item(anno_key);
+                        }
 
                         if !primary_node_indices.is_empty() {
                             table["primary-node-indices"] = primary_node_indices

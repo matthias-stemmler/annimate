@@ -7,10 +7,11 @@ info:
   query_language: AQL
   export_columns:
     - MatchInContext:
+        segmentation: Test Segmentation
         context:
           Symmetric: 20
-        primary_node_indices: ~
-        segmentation: Test Segmentation
+        anno_key: ~
+        primary_node_indices: []
   export_format: Csv
 ---
 # Annimate project file
