@@ -201,15 +201,15 @@ const makeExportableAnnoKeys = (count: number): ExportableAnnoKeys => {
 
   for (let i = 0; i < count; i++) {
     corpus.push({
-      annoKey: { ns: 'corpus', name: `anno_${i}` },
+      annoKey: { ns: NS_CORPUS, name: `anno_${i}` },
       displayName: `${NS_CORPUS}:anno_${i}`,
     });
     doc.push({
-      annoKey: { ns: 'doc', name: `anno_${i}` },
+      annoKey: { ns: NS_DOCUMENT, name: `anno_${i}` },
       displayName: `${NS_DOCUMENT}:anno_${i}`,
     });
     node.push({
-      annoKey: { ns: 'node', name: `anno_${i}` },
+      annoKey: { ns: NS_NODE, name: `anno_${i}` },
       displayName: `${NS_NODE}:anno_${i}`,
     });
   }
@@ -875,11 +875,11 @@ export const loadProject = async (params: {
           },
           {
             type: 'match_in_context',
-            segmentation: SEGMENTATION1,
             context: 5,
             contextRightOverride: 10,
             primaryNodeRefs: [],
             secondaryNodeRefs: [],
+            segmentation: SEGMENTATION1,
           },
         ],
         exportFormat: 'xlsx',
@@ -909,7 +909,6 @@ export const loadProject = async (params: {
         },
         {
           type: 'match_in_context',
-          segmentation: SEGMENTATION1,
           context: 5,
           contextRightOverride: 10,
           primaryNodeRefs: [
@@ -919,6 +918,7 @@ export const loadProject = async (params: {
             },
           ],
           secondaryNodeRefs: [{ index: 0, variables: ['1'] }],
+          segmentation: SEGMENTATION1,
         },
       ],
       exportFormat: 'xlsx',

@@ -44,7 +44,7 @@ fn metadata() {
         )
         .unwrap();
 
-    snapshot!("00-default", storage);
+    snapshot!("00_default", storage);
 
     drop(storage);
     fs::write(Path::new(DB_DIR).join(METADATA_FILE), INITIAL_METADATA).unwrap();

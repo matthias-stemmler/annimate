@@ -11,7 +11,7 @@ info:
 # Annimate project file
 # https://github.com/matthias-stemmler/annimate
 
-format-version = 1
+format-version = 2
 
 [project]
 corpus-set = "Test Corpus Set"

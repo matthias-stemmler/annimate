@@ -19,12 +19,21 @@ info:
           - ns3
           - anno3
         node_index: ~
+    - MatchInContext:
+        segmentation: ~
+        anno_key:
+          AnnoKey:
+            - ns4
+            - anno4
+        context:
+          Symmetric: 20
+        primary_node_indices: []
   export_format: Csv
 ---
 # Annimate project file
 # https://github.com/matthias-stemmler/annimate
 
-format-version = 1
+format-version = 2
 
 [project]
 query-language = "aql"
@@ -41,3 +50,8 @@ annotation = { ns = "ns2", name = "anno2" }
 [[project.columns]]
 type = "match-annotation"
 annotation = { ns = "ns3", name = "anno3" }
+
+[[project.columns]]
+type = "match-in-context"
+annotation = { ns = "ns4", name = "anno4" }
+context = 20

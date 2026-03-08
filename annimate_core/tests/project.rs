@@ -2,7 +2,8 @@ use std::fs;
 use std::path::Path;
 
 use annimate_core::{
-    AnnoKey, Project, ProjectContext, ProjectExportColumn, ProjectExportFormat, QueryLanguage,
+    AnnoKey, AnnoKeyOrDefault, Project, ProjectContext, ProjectExportColumn, ProjectExportFormat,
+    QueryLanguage,
 };
 use serde::Serialize;
 
@@ -32,6 +33,8 @@ macro_rules! project_test {
                 export_columns: {
                     #[allow(unused_imports)]
                     use TestProjectExportColumn::*;
+                    #[allow(unused_imports)]
+                    use TestAnnoKeyOrDefault::*;
                     #[allow(unused_imports)]
                     use TestProjectContext::*;
                     vec![$($export_column,)*]
@@ -142,6 +145,7 @@ project_test! {
             },
             MatchInContext {
                 segmentation: None,
+                anno_key: None,
                 context: Symmetric(20),
                 primary_node_indices: &[],
             },
@@ -164,6 +168,57 @@ project_test! {
                 anno_key: Some(("ns3", "anno3")),
                 node_index: None,
             },
+            MatchInContext {
+                segmentation: None,
+                anno_key: Some(AnnoKey(("ns4", "anno4"))),
+                context: Symmetric(20),
+                primary_node_indices: &[],
+            },
+        ],
+        export_format: Csv,
+    }
+     with_export_columns_with_segmentation: {
+        corpus_set: None,
+        corpus_names: [],
+        aql_query: "",
+        query_language: AQL,
+        export_columns: [
+            MatchInContext {
+                segmentation: Some("Test Segmentation"),
+                anno_key: None,
+                context: Symmetric(20),
+                primary_node_indices: &[],
+            },
+        ],
+        export_format: Csv,
+    }
+    with_export_columns_with_default_anno: {
+        corpus_set: None,
+        corpus_names: [],
+        aql_query: "",
+        query_language: AQL,
+        export_columns: [
+            MatchInContext {
+                segmentation: None,
+                anno_key: Some(Default),
+                context: Symmetric(20),
+                primary_node_indices: &[],
+            },
+        ],
+        export_format: Csv,
+    }
+    with_export_columns_with_asymmetric_context: {
+        corpus_set: None,
+        corpus_names: [],
+        aql_query: "",
+        query_language: AQL,
+        export_columns: [
+            MatchInContext {
+                segmentation: None,
+                anno_key: None,
+                context: Asymmetric { left: 5, right: 10 },
+                primary_node_indices: &[],
+            },
         ],
         export_format: Csv,
     }
@@ -179,36 +234,9 @@ project_test! {
             },
             MatchInContext {
                 segmentation: None,
+                anno_key: None,
                 context: Symmetric(20),
                 primary_node_indices: &[1, 2, 3],
-            },
-        ],
-        export_format: Csv,
-    }
-    with_export_columns_with_asymmetric_context: {
-        corpus_set: None,
-        corpus_names: [],
-        aql_query: "",
-        query_language: AQL,
-        export_columns: [
-            MatchInContext {
-                segmentation: None,
-                context: Asymmetric { left: 5, right: 10 },
-                primary_node_indices: &[],
-            },
-        ],
-        export_format: Csv,
-    }
-    with_export_columns_with_segmentation: {
-        corpus_set: None,
-        corpus_names: [],
-        aql_query: "",
-        query_language: AQL,
-        export_columns: [
-            MatchInContext {
-                segmentation: Some("Test Segmentation"),
-                context: Symmetric(20),
-                primary_node_indices: &[],
             },
         ],
         export_format: Csv,
@@ -240,12 +268,37 @@ project_test! {
             },
             MatchInContext {
                 segmentation: Some("Test Segmentation"),
+                anno_key: Some(AnnoKey(("ns4", "anno4"))),
                 context: Asymmetric { left: 5, right: 10 },
                 primary_node_indices: &[1, 2, 3],
             },
         ],
         export_format: Xlsx,
     }
+}
+
+#[test]
+fn migrate_from_v1() {
+    // A v1 file has no `annotation` field on match-in-context columns.
+    // Loading it should migrate the absent field to `Some(AnnoKeyOrDefault::Default)`.
+    let v1_content = include_str!("data/project_v1.anmt");
+
+    fs::create_dir_all(Path::new(OUTPUT_DIR)).unwrap();
+    let project_file = Path::new(OUTPUT_DIR).join("migrate_from_v1.anmt");
+    fs::write(&project_file, v1_content).unwrap();
+
+    let project = annimate_core::load_project(&project_file).unwrap();
+
+    let output_file = Path::new(OUTPUT_DIR).join("migrate_from_v1_output.anmt");
+    annimate_core::save_project(project, &output_file).unwrap();
+
+    let output = fs::read_to_string(&output_file).unwrap();
+    insta::with_settings!(
+        {
+            omit_expression => true,
+        },
+        { insta::assert_snapshot!(output) }
+    );
 }
 
 #[derive(Clone, Serialize)]
@@ -273,9 +326,16 @@ enum TestProjectExportColumn {
     },
     MatchInContext {
         segmentation: Option<&'static str>,
+        anno_key: Option<TestAnnoKeyOrDefault>,
         context: TestProjectContext,
         primary_node_indices: &'static [u32],
     },
+}
+
+#[derive(Clone, Serialize)]
+enum TestAnnoKeyOrDefault {
+    AnnoKey((&'static str, &'static str)),
+    Default,
 }
 
 #[derive(Clone, Serialize)]
@@ -342,9 +402,19 @@ impl From<TestProjectExportColumn> for ProjectExportColumn {
             TestProjectExportColumn::MatchInContext {
                 segmentation,
                 context,
+                anno_key,
                 primary_node_indices,
             } => ProjectExportColumn::MatchInContext {
                 segmentation: segmentation.map(|s| s.to_string()),
+                anno_key: anno_key.map(|anno_key| match anno_key {
+                    TestAnnoKeyOrDefault::AnnoKey((ns, name)) => {
+                        AnnoKeyOrDefault::AnnoKey(AnnoKey {
+                            ns: ns.into(),
+                            name: name.into(),
+                        })
+                    }
+                    TestAnnoKeyOrDefault::Default => AnnoKeyOrDefault::Default,
+                }),
                 context: context.into(),
                 primary_node_indices: primary_node_indices.into(),
             },

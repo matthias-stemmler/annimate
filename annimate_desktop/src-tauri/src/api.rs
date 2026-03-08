@@ -6,9 +6,9 @@ use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
 
 use annimate_core::{
-    AnnoKey, Corpora, CsvExportConfig, ExportConfig, ExportData, ExportDataAnno, ExportDataText,
-    ExportStatusEvent, ExportableAnnoKeys, ImportStatusEvent, QueryAnalysisResult, QueryLanguage,
-    QueryNode, QueryNodes, TableExportColumn, XlsxExportConfig,
+    AnnoKey, AnnoKeyOrDefault, Corpora, CsvExportConfig, ExportConfig, ExportData, ExportDataAnno,
+    ExportDataText, ExportStatusEvent, ExportableAnnoKeys, ImportStatusEvent, QueryAnalysisResult,
+    QueryLanguage, QueryNode, QueryNodes, TableExportColumn, XlsxExportConfig,
 };
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
@@ -277,6 +277,7 @@ pub(crate) async fn load_project(
                         },
                         annimate_core::ProjectExportColumn::MatchInContext {
                             segmentation,
+                            anno_key,
                             context,
                             primary_node_indices,
                         } => {
@@ -305,11 +306,12 @@ pub(crate) async fn load_project(
                                 .collect();
 
                             ExportColumn::MatchInContext {
-                                segmentation,
+                                anno_key,
                                 context,
                                 context_right_override,
                                 primary_node_refs,
                                 secondary_node_refs,
+                                segmentation,
                             }
                         }
                     })
@@ -366,13 +368,15 @@ pub(crate) async fn save_project(project: Project, output_file: PathBuf) -> Resu
                         }
                     }
                     ExportColumn::MatchInContext {
+                        anno_key,
                         context,
                         context_right_override,
                         primary_node_refs,
+                        secondary_node_refs: _,
                         segmentation,
-                        ..
                     } => annimate_core::ProjectExportColumn::MatchInContext {
                         segmentation,
+                        anno_key,
                         context: match context_right_override {
                             Some(context_right) => annimate_core::ProjectContext::Asymmetric {
                                 left: context.try_into().map_err(|_| ConversionError)?,
@@ -507,6 +511,8 @@ pub(crate) enum ExportColumn {
         node_ref: Option<QueryNodeRef>,
     },
     MatchInContext {
+        #[serde(skip_serializing_if = "Option::is_none")]
+        anno_key: Option<AnnoKeyOrDefault>,
         context: usize,
         #[serde(skip_serializing_if = "Option::is_none")]
         context_right_override: Option<usize>,
@@ -547,18 +553,20 @@ impl TryFrom<ExportColumn> for TableExportColumn {
                 }))
             }
             ExportColumn::MatchInContext {
+                anno_key,
                 context,
                 context_right_override,
                 primary_node_refs,
+                secondary_node_refs: _,
                 segmentation,
-                ..
             } => TableExportColumn::Data(ExportData::Text(ExportDataText {
-                left_context: context,
-                right_context: context_right_override.unwrap_or(context),
                 segmentation: {
                     let segmentation = segmentation.ok_or(ConversionError)?;
                     (!segmentation.is_empty()).then_some(segmentation)
                 },
+                left_context: context,
+                right_context: context_right_override.unwrap_or(context),
+                anno_key: anno_key.ok_or(ConversionError)?,
                 primary_node_indices: Some(
                     primary_node_refs.into_iter().map(|n| n.index).collect(),
                 ),

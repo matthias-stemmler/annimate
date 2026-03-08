@@ -23,9 +23,10 @@ info:
               - doc
     - Data:
         Text:
+          segmentation: diplomatic
+          anno_key: Default
           left_context: 1
           right_context: 1
-          segmentation: diplomatic
           primary_node_indices: ~
 ---
 Number,Corpus language,Document,Left context (diplomatic),Match (diplomatic),Right context (diplomatic)

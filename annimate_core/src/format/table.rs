@@ -4,7 +4,7 @@ use std::vec;
 
 use itertools::{Itertools, PutBack};
 
-use crate::anno::{self, AnnoKeyFormat};
+use crate::anno::{self, AnnoKeyFormat, AnnoKeyOrDefault};
 use crate::aql::QueryNode;
 use crate::error::{self, AnnimateError};
 use crate::query::{ExportData, ExportDataAnno, ExportDataText, Match, TextPart};
@@ -122,7 +122,7 @@ where
                 .into_iter()
                 .map(|c| {
                     format!(
-                        "{} ({})",
+                        "{}{} ({})",
                         match c {
                             (Match, _) if max_match_parts <= 1 => "Match".into(),
                             (Match, i) => format!("Match {}", i + 1),
@@ -134,6 +134,11 @@ where
                             }
                             (Context, _) if max_match_parts == 1 => "Right context".into(),
                             (Context, i) => format!("Context {}", i + 1),
+                        },
+                        match &text.anno_key {
+                            AnnoKeyOrDefault::AnnoKey(anno_key) =>
+                                format!(" {}", anno_key_format.display(anno_key)),
+                            AnnoKeyOrDefault::Default => "".into(),
                         },
                         text.segmentation.as_deref().unwrap_or("tokens")
                     )
@@ -352,7 +357,11 @@ mod tests {
     use graphannis_core::graph::ANNIS_NS;
     use graphannis_core::types::AnnoKey;
 
-    use super::*;
+    // Cannot use `super::*` due to a bug in rust-analyzer
+    use super::{
+        AnnimateError, AnnoKeyFormat, AnnoKeyOrDefault, ExportData, ExportDataAnno, ExportDataText,
+        Match, TableExportColumn, TableWriter, TextPart, export,
+    };
 
     macro_rules! export_test {
         ($(
@@ -365,9 +374,10 @@ mod tests {
                 let mut writer = TestTableWriter::default();
 
                 let text = ExportDataText {
+                    segmentation: None,
+                    anno_key: AnnoKeyOrDefault::Default,
                     left_context: $left_context,
                     right_context: $right_context,
-                    segmentation: None,
                     primary_node_indices: None,
                 };
 

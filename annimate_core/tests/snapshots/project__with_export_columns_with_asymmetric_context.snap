@@ -7,18 +7,19 @@ info:
   query_language: AQL
   export_columns:
     - MatchInContext:
+        segmentation: ~
+        anno_key: ~
         context:
           Asymmetric:
             left: 5
             right: 10
-        primary_node_indices: ~
-        segmentation: ~
+        primary_node_indices: []
   export_format: Csv
 ---
 # Annimate project file
 # https://github.com/matthias-stemmler/annimate
 
-format-version = 1
+format-version = 2
 
 [project]
 query-language = "aql"

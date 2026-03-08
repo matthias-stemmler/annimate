@@ -17,9 +17,10 @@ info:
             index: 0
     - Data:
         Text:
+          segmentation: norm
+          anno_key: Default
           left_context: 1
           right_context: 1
-          segmentation: norm
           primary_node_indices: ~
 ---
 #2 lemma,Left context (norm),Match (norm),Right context (norm)

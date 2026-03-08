@@ -10,9 +10,10 @@ info:
   export_columns:
     - Data:
         Text:
+          segmentation: ~
+          anno_key: Default
           left_context: 1
           right_context: 1
-          segmentation: ~
           primary_node_indices:
             - 0
             - 1
