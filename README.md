@@ -44,6 +44,10 @@ See [CHANGELOG.md](CHANGELOG.md)
 
 ## Publication
 
+**Stemmler, M., & Zeman, S.** (2026). _Annimate: Ein Tool zum Datenexport aus den historischen Referenzkorpora._ Online-Only Publikationen Des Leibniz-Instituts für Deutsche Sprache, 16. <https://doi.org/10.21248/idsopen.16.2026.72>
+
+## Further Materials
+
 61\. Jahrestagung des Leibniz-Instituts für Deutsche Sprache "Deutsch im Wandel", [Methodenmesse](https://www.ids-mannheim.de/aktuell/veranstaltungen/tagungen/2025/methodenmesse/) am 12. März 2025, Congress Center Rosengarten Mannheim: [Poster](docs/readme/documents/2025-ids-methodenmesse-poster.pdf), [Abstract](https://www.ids-mannheim.de/fileadmin/aktuell/Jahrestagungen/2025/Methodenmesse/3_Annimate.pdf) (in German)
 
 ## License
