@@ -36,3 +36,8 @@ Reference corpora of historical German (see [Deutsch Diachron Digital](https://w
 | [Referenzkorpus Mittelniederdeutsch/Niederrheinisch (ReN)](https://www.slm.uni-hamburg.de/ren.html) | 1.1     | [ANNIS 3](https://annis.fdm.uni-hamburg.de/annis-gui-3.6.0/ren) | [relannis (Uni Hamburg)](https://www.fdr.uni-hamburg.de/record/9195/files/relANNIS-split_1.1.zip?download=1) |
 
 \* Note that the two versions of ReM cannot be kept imported in Annimate at the same time, because the corpora have identical names, see the Note in [Importing Corpus Data](import.md#importing-into-annimate).
+
+## References
+
+- **Krause, Thomas & Zeldes, Amir** (2016): _ANNIS3: A new architecture for generic corpus query and visualization._ in: Digital Scholarship in the Humanities 2016 (31). <https://dsh.oxfordjournals.org/content/31/1/118>
+- **Stemmler, M., & Zeman, S.** (2026). _Annimate: Ein Tool zum Datenexport aus den historischen Referenzkorpora._ Online-Only Publikationen Des Leibniz-Instituts für Deutsche Sprache, 16. <https://doi.org/10.21248/idsopen.16.2026.72>
