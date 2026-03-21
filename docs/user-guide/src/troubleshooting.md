@@ -38,11 +38,17 @@ If your desired segmentation layer is not listed under "Segmentation" in a [Matc
 
 To fix this, you may want to group your corpora differently, so that all corpora in a set contain the same segmentations. Alternatively, you can use different segmentations for different subsets of corpora by doing separate exports.
 
-### Match in context: Columns are empty
+### Match in context: Columns are empty when "Segmentation text" is selected
 
-If the [Match in context](columns/match-in-context.md) columns in your CSV or Excel file are empty, this may be because you selected the _Tokens (default)_ segmentation, but your corpus uses _virtual tokens_. This means that the segmentation nodes on the token layer do not have any textual content (hence the empty columns), but just serve the purpose of aligning other segmentation layers.
+If the [Match in context](columns/match-in-context.md) columns in your CSV or Excel file are empty and you selected _Segmentation text_ under "Annotation", this may be because you selected the _Tokens (default)_ segmentation, but your corpus uses _virtual tokens_. This means that the segmentation nodes on the token layer do not have any textual content (hence the empty columns), but just serve the purpose of aligning other segmentation layers.
 
 To fix this, try choosing an option different from _Tokens (default)_ under "Segmentation". If there is no other option, check out the [previous point](#match-in-context-desired-segmentation-is-not-listed).
+
+### Match in context: Columns are empty when an annotation is selected
+
+If the [Match in context](columns/match-in-context.md) columns in your CSV or Excel file are empty and you selected an annotation different from _Segmentation text_, this may be because the selected annotation is not available on the nodes of the selected segmentation.
+
+To fix this, try choosing a different option under "Segmentation".
 
 ### Match in context: Context window is smaller than expected
 
