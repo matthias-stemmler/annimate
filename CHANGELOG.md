@@ -2,6 +2,10 @@
 
 ## [Unreleased] - (release date)
 
+### Added
+
+- For "Match in context" columns, you can now select an annotation of the segmentation nodes to be exported instead of the default segmentation text. See the User Guide for details.
+
 ### Fixed
 
 - Fixed autoscrolling in "Messages" tab of import dialog.
