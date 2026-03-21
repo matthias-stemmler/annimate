@@ -2,6 +2,10 @@
 
 ## [Unreleased] - (release date)
 
+### Added
+
+- For "Match in context" columns, you can now select an annotation of the segmentation nodes to be exported instead of the default segmentation text. See the User Guide for details.
+
 ## [1.6.0] - 2025-09-27
 
 ### Added
