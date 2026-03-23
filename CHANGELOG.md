@@ -2,6 +2,10 @@
 
 ## [Unreleased] - (release date)
 
+### Fixed
+
+- Fixed autoscrolling in "Messages" tab of import dialog.
+
 ## [1.6.0] - 2025-09-27
 
 ### Added

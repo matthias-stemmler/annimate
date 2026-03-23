@@ -710,11 +710,12 @@ const MessagesDisplay: FC<MessagesDisplayProps> = ({ messages }) => {
   );
 };
 
+// Use a 1px tolerance to account for fractional scroll values from sub-pixel rendering
 const isScrolledToBottom = (viewportRef: RefObject<HTMLDivElement | null>) => {
   const viewport = viewportRef.current;
   return (
     viewport !== null &&
-    viewport.scrollTop + viewport.clientHeight >= viewport.scrollHeight
+    viewport.scrollHeight - viewport.scrollTop - viewport.clientHeight < 1
   );
 };
 
