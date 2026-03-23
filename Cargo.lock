@@ -87,7 +87,7 @@ dependencies = [
  "tempfile",
  "thiserror 2.0.18",
  "toml 1.1.0+spec-1.1.0",
- "toml_edit 0.25.7+spec-1.1.0",
+ "toml_edit 0.25.8+spec-1.1.0",
  "zip 8.4.0",
 ]
 
@@ -3694,7 +3694,7 @@ version = "3.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e67ba7e9b2b56446f1d419b1d807906278ffa1a658a8a5d8a39dcb1f5a78614f"
 dependencies = [
- "toml_edit 0.25.7+spec-1.1.0",
+ "toml_edit 0.25.8+spec-1.1.0",
 ]
 
 [[package]]
@@ -5561,9 +5561,9 @@ dependencies = [
 
 [[package]]
 name = "toml_edit"
-version = "0.25.7+spec-1.1.0"
+version = "0.25.8+spec-1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d15b06e6c39068c203e7c1d0bc3944796d867449e7668ef7fa5ea43727cb846e"
+checksum = "16bff38f1d86c47f9ff0647e6838d7bb362522bdf44006c7068c2b1e606f1f3c"
 dependencies = [
  "indexmap 2.13.0",
  "toml_datetime 1.1.0+spec-1.1.0",
