@@ -2,6 +2,8 @@
 
 ## [Unreleased] - (release date)
 
+## [1.7.0] - 2026-03-24
+
 ### Added
 
 - For "Match in context" columns, you can now select an annotation of the segmentation nodes to be exported instead of the default segmentation text. See the User Guide for details.
@@ -156,7 +158,8 @@
 Initial version
 
 <!-- next-url -->
-[Unreleased]: https://github.com/matthias-stemmler/annimate/compare/v1.6.0...HEAD
+[Unreleased]: https://github.com/matthias-stemmler/annimate/compare/v1.7.0...HEAD
+[1.7.0]: https://github.com/matthias-stemmler/annimate/compare/v1.6.0...v1.7.0
 [1.6.0]: https://github.com/matthias-stemmler/annimate/compare/v1.5.0...v1.6.0
 [1.5.0]: https://github.com/matthias-stemmler/annimate/compare/v1.4.0...v1.5.0
 [1.4.0]: https://github.com/matthias-stemmler/annimate/compare/v1.3.4...v1.4.0
