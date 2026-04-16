@@ -1,11 +1,22 @@
+packages:
+  - '.'
+  - 'webdriver'
+
 allowBuilds:
   '@tailwindcss/oxide': true
+  edgedriver: true
   esbuild: true
+  geckodriver: true
+
 autoInstallPeers: false
 blockExoticSubdeps: true
 minimumReleaseAge: 1440
-strictDepBuilds: true
-verifyDepsBeforeRun: prompt
 minimumReleaseAgeExclude:
   # Renovate security update: vite@8.0.5
   - vite@8.0.5
+
+overrides:
+  serialize-javascript@<7.0.5: '7.0.5'
+
+strictDepBuilds: true
+verifyDepsBeforeRun: prompt
