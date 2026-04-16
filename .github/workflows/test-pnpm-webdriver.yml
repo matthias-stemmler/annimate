@@ -1,0 +1,82 @@
+name: Test (pnpm, WebDriver)
+
+on:
+  - workflow_call
+  - workflow_dispatch
+
+env:
+  RUSTFLAGS: --deny warnings
+  # renovate: datasource=npm versioning=semver-coerced depName=corepack
+  VERSION_COREPACK: 0.34.6
+  # renovate: datasource=crate versioning=semver-coerced depName=tauri-driver
+  VERSION_TAURI_DRIVER: 2.0.5
+
+jobs:
+  test:
+    name: Test (WebDriver, on ${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        working-directory: annimate_desktop
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Install Tauri dependencies (Linux only)
+        if: runner.os == 'Linux'
+        run: >-
+          sudo apt-get update &&
+          sudo apt-get install -y
+          libgtk-3-dev
+          libwebkit2gtk-4.1-dev
+          webkit2gtk-driver
+          xvfb
+
+      - name: Install stable toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Rust cache
+        uses: swatinem/rust-cache@v2
+
+      - name: Install tauri-driver
+        run: cargo install tauri-driver@${{ env.VERSION_TAURI_DRIVER }}
+
+      - name: Install msedgedriver (Windows only)
+        if: runner.os == 'Windows'
+        run: |
+          cargo install --git https://github.com/chippers/msedgedriver-tool
+          & "$HOME/.cargo/bin/msedgedriver-tool.exe"
+          $PWD.Path >> $env:GITHUB_PATH
+
+      # Install a specific version of corepack to make sure we have the latest signing keys
+      - name: Install corepack
+        run: npm install --global --force corepack@${{ env.VERSION_COREPACK }}
+
+      - name: Enable corepack
+        run: corepack enable
+
+      - name: Set up node
+        uses: actions/setup-node@v6
+        with:
+          cache: pnpm
+          cache-dependency-path: annimate_desktop/pnpm-lock.yaml
+          node-version-file: annimate_desktop/.nvmrc
+
+      - name: Install
+        run: pnpm install
+
+      - name: Run test (Linux)
+        if: runner.os == 'Linux'
+        run: xvfb-run pnpm test
+        working-directory: annimate_desktop/webdriver
+
+      - name: Run test (Windows)
+        if: runner.os == 'Windows'
+        run: pnpm test
+        working-directory: annimate_desktop/webdriver

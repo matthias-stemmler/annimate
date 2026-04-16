@@ -108,12 +108,14 @@ fn main() {
         .expect("Tauri application should run successfully");
 }
 
-// This is exactly the same logic as used by the auto-update mechanism before Tauri v2
+// This is the same logic as used by the auto-update mechanism before Tauri v2
 // See https://github.com/tauri-apps/tauri/blob/tauri-v1.8.1/core/tauri/src/app.rs#L976
+//
+// Exception: We always enable updates in debug mode for use in WebDriver tests.
 
 #[cfg(target_os = "linux")]
 fn is_update_enabled(app_handle: &AppHandle) -> bool {
-    cfg!(dev) || app_handle.state::<tauri::Env>().appimage.is_some()
+    cfg!(debug_assertions) || cfg!(dev) || app_handle.state::<tauri::Env>().appimage.is_some()
 }
 
 #[cfg(not(target_os = "linux"))]

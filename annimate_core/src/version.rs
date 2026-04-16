@@ -10,8 +10,11 @@ pub const VERSION_INFO: VersionInfo = VersionInfo {
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct VersionInfo {
-    pub(crate) annimate_version: &'static str,
-    pub(crate) graphannis_version: &'static str,
+    /// Version of Annimate.
+    pub annimate_version: &'static str,
+
+    /// Version of [graphANNIS](https://docs.rs/graphannis).
+    pub graphannis_version: &'static str,
 }
 
 #[cfg(test)]

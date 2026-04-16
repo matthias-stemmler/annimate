@@ -30,6 +30,10 @@ jobs:
     name: Test (pnpm)
     uses: ./.github/workflows/test-pnpm.yml
 
+  test-pnpm-webdriver:
+    name: Test (pnpm, WebDriver)
+    uses: ./.github/workflows/test-pnpm-webdriver.yml
+
   udeps-cargo:
     name: Unused dependencies (Cargo)
     uses: ./.github/workflows/udeps-cargo.yml
