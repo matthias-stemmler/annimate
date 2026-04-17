@@ -2,6 +2,10 @@
 
 ## [Unreleased] - (release date)
 
+### Fixed
+
+- Exports of "Match in context" columns no longer fail when the query matches a token without segmentation coverage.
+
 ## [1.7.0] - 2026-03-24
 
 ### Added
