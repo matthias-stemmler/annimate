@@ -67,7 +67,7 @@ catalog:
   tailwind-merge: ^3.5.0
   tailwindcss: ^4.2.2
   tailwindcss-animate: ^1.0.7
-  tsx: ^4.19.3
+  tsx: ^4.21.0
   typescript: ^6.0.3
   typescript-eslint: ^8.58.2
   vite: ^8.0.8
