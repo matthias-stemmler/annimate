@@ -89,6 +89,7 @@ dependencies = [
  "mimalloc",
  "serde",
  "serde_json",
+ "serialize-to-javascript",
  "tauri",
  "tauri-build",
  "tauri-plugin-dialog",

@@ -40,7 +40,13 @@ validation_test! {
 
     valid_max_length: "a".repeat(400).as_str(), AQL => Ok(())
 
+     // add quotes because ä..ä would be an invalid token
+    valid_max_length_multibyte_char: &format!("\"{}\"", "ä".repeat(398)), AQL => Ok(())
+
     invalid_exceeding_max_length: "a".repeat(401).as_str(), AQL => Err("Query is too long (401 characters), must be at most 400 characters.")
+
+     // add quotes because ä..ä would be an invalid token
+    invalid_exceeding_max_length_multibyte_char: &format!("\"{}\"", "ä".repeat(399)), AQL => Err("Query is too long (401 characters), must be at most 400 characters.")
 
     invalid_syntax: "foo=", AQL => Err("Unexpected end of query.")
 

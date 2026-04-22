@@ -9,8 +9,10 @@ mod error;
 mod preload;
 mod state;
 
+use serde::Serialize;
+use serialize_to_javascript::{DefaultTemplate, Options, Template, default_template};
 use state::AppState;
-use tauri::{AppHandle, Manager};
+use tauri::{AppHandle, Manager, Webview};
 use tauri_plugin_window_state::{StateFlags, WindowExt};
 
 const THREAD_STACK_SIZE_MB: usize = 4;
@@ -21,12 +23,12 @@ static GLOBAL: mimalloc::MiMalloc = mimalloc::MiMalloc;
 fn main() {
     // Use custom tokio runtime with larger stack size (default is 2 MB) to avoid stack overflows
     // when validating queries. 4 MB is enough for worst-case queries of the maximal length of
-    // 400 characters.
+    // 400 bytes.
     let runtime = tokio::runtime::Builder::new_multi_thread()
         .thread_stack_size(THREAD_STACK_SIZE_MB * 1024 * 1024)
         .enable_all()
         .build()
-        .expect("runtime should build successfully");
+        .expect("runtime should build");
 
     // Note that `runtime` must stay live until the end of `main`, which is not guaranteed by just
     // having an existing handle.
@@ -89,36 +91,53 @@ fn main() {
                 .get_webview_window("main")
                 .expect("main window should exist");
             let _ = window.restore_state(StateFlags::all());
-            window.show().expect("main window should show successfully");
+            window.show().expect("main window should show");
 
             Ok(())
         })
-        .on_page_load(|window, _| {
-            window
-                .eval(format!(
-                    "window.__ANNIMATE__=JSON.parse('{}')",
-                    serde_json::json!({
-                        "updateEnabled": is_update_enabled(window.app_handle()),
-                        "versionInfo": annimate_core::VERSION_INFO,
-                    })
-                ))
-                .expect("global __ANNIMATE__ should be injected successfully");
-        })
+        .on_page_load(|webview, _| inject_static_data(webview))
         .run(tauri::generate_context!())
-        .expect("Tauri application should run successfully");
+        .expect("Tauri application should run");
+}
+
+fn inject_static_data(webview: &Webview) {
+    #[derive(Template)]
+    #[default_template("static_data.js")]
+    struct StaticData {
+        value: StaticDataValue,
+    }
+
+    #[derive(Serialize)]
+    #[serde(rename_all = "camelCase")]
+    struct StaticDataValue {
+        update_enabled: bool,
+        version_info: annimate_core::VersionInfo,
+    }
+
+    let static_data = StaticData {
+        value: StaticDataValue {
+            update_enabled: is_update_enabled(webview.app_handle()),
+            version_info: annimate_core::VERSION_INFO,
+        },
+    };
+
+    let static_data_js = static_data
+        .render_default(&Options::default())
+        .expect("static data should render as JavaScript")
+        .to_string();
+
+    webview
+        .eval(static_data_js)
+        .expect("static data should be injected");
 }
 
 // This is the same logic as used by the auto-update mechanism before Tauri v2
 // See https://github.com/tauri-apps/tauri/blob/tauri-v1.8.1/core/tauri/src/app.rs#L976
 //
 // Exception: We always enable updates in debug mode for use in WebDriver tests.
-
-#[cfg(target_os = "linux")]
 fn is_update_enabled(app_handle: &AppHandle) -> bool {
-    cfg!(debug_assertions) || cfg!(dev) || app_handle.state::<tauri::Env>().appimage.is_some()
-}
-
-#[cfg(not(target_os = "linux"))]
-fn is_update_enabled(_: &AppHandle) -> bool {
-    true
+    cfg_select! {
+        target_os = "linux" => cfg!(debug_assertions) || cfg!(dev) || app_handle.state::<tauri::Env>().appimage.is_some(),
+        _ => true,
+    }
 }

@@ -56,7 +56,7 @@ export const Window: FC = () => {
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
     };
-  });
+  }, []);
 
   return (
     <div className="flex h-full flex-col">

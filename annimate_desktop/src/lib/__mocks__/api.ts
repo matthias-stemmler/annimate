@@ -175,13 +175,15 @@ const IMPORT_CORPORA: MockImportCorpus[] = [
   },
 ];
 
-window.__ANNIMATE__ = {
+Object.defineProperty(window, '__ANNIMATE__', {
+  value: {
   updateEnabled: true,
   versionInfo: {
     annimateVersion: '<mock>',
     graphannisVersion: '<mock>',
   },
-};
+  },
+});
 
 const getMatchCountForCorpus = (corpusName: string): number => {
   switch (corpusName) {
