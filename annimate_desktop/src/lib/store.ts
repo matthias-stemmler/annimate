@@ -1118,6 +1118,7 @@ type LoadProjectResult = {
 
 export const useLoadProject = () => {
   const getCorporaQueryData = useGetCorporaQueryData();
+  const flushAqlQueryDebounce = useFlushAqlQueryDebounce();
   const setState = useSetState();
   const updateCorpusNamesToPreload = useUpdateCorpusNamesToPreload();
 
@@ -1138,6 +1139,9 @@ export const useLoadProject = () => {
         )
           ? project.corpusSet
           : '';
+
+      // Prevent pending AQL query debounce from overwriting the following `setState`
+      flushAqlQueryDebounce();
 
       setState((state) => {
         const [exportColumns, exportColumnsMaxId] =
@@ -1232,8 +1236,9 @@ const useUpdateCorpusNamesToPreload = () => {
     useGetSelectedCorpusNamesInSelectedSet();
   const { mutation } = useSetCorpusNamesToPreloadMutation();
 
-  return async () =>
-    mutation.mutate({
+  return async () => {
+    await mutation.mutateAsync({
       corpusNames: await getSelectedCorpusNamesInSelectedSet(),
     });
+  };
 };

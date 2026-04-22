@@ -449,12 +449,8 @@ const parseNumber = (
     return NaN;
   }
 
-  try {
-    const numericValue = parseInt(value);
-    return numericValue >= min && numericValue <= max
-      ? numericValue
-      : 'invalid';
-  } catch {
-    return 'invalid';
-  }
+  const numericValue = Number.parseInt(value, 10);
+  return Number.isNaN(numericValue) || numericValue < min || numericValue > max
+    ? 'invalid'
+    : numericValue;
 };

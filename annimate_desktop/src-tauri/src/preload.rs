@@ -46,13 +46,13 @@ impl Preloader {
     }
 
     pub(crate) async fn set_corpus_names_to_preload(&self, corpus_names: Vec<String>) {
+        let mut corpus_names_to_preload = self.shared.corpus_names_to_preload.lock().unwrap();
+        let now = tokio::time::Instant::now();
+
         // Remove corpora from queue that are no longer on the list
         self.shared
             .queue
             .retain(|corpus_name| corpus_names.contains(corpus_name));
-
-        let mut corpus_names_to_preload = self.shared.corpus_names_to_preload.lock().unwrap();
-        let now = tokio::time::Instant::now();
 
         // Enqueue corpora that have been added to the list
         for corpus_name in &corpus_names {

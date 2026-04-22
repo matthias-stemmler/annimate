@@ -9,7 +9,7 @@ fn main() {
 fn inject_graphannis_version() {
     let metadata = MetadataCommand::new()
         .exec()
-        .expect("`cargo metadata` should run successfully");
+        .expect("`cargo metadata` should run");
 
     let graphannis_version = metadata
         .packages

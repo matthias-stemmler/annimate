@@ -55,7 +55,7 @@ export const QueryInput: FC = () => {
         </Label>
 
         <Select
-          className="w-[220px]"
+          className="w-55"
           disabled={disabled}
           onChange={setQueryLanguage}
           options={[

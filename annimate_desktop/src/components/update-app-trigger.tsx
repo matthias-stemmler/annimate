@@ -53,7 +53,7 @@ export const UpdateAppTrigger = () => {
           });
         }
       });
-  }, [checkedRef, setDialogOpen, toast, updateData, updateRef]);
+  }, [checkedRef, setDialogOpen, toast, updateRef]);
 
   const status: UpdateStatus = (() => {
     if (mutation.isError) {

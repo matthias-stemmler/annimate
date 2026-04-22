@@ -12,7 +12,7 @@ use tempfile::TempDir;
 
 use crate::error::AnnimateError;
 
-const MAX_QUERY_LENGTH: usize = 400;
+const MAX_QUERY_LEN_CHARS: usize = 400;
 
 /// Storage for validating AQL queries.
 ///
@@ -146,13 +146,17 @@ pub(crate) fn query_nodes_valid(
         .into())
 }
 
+/// Asserts that the query does not exceed a certain maximal length, to prevent stack overflows when
+/// parsing. The length is counted in characters, not UTF-8 bytes, to account for multibyte
+/// characters, which do not pose a problem when parsing.
 fn validate_query_length(aql_query: &str) -> Result<(), GraphAnnisError> {
-    if aql_query.len() > MAX_QUERY_LENGTH {
+    let len_chars = aql_query.chars().count();
+
+    if len_chars > MAX_QUERY_LEN_CHARS {
         Err(GraphAnnisError::AQLSyntaxError(AQLError {
             desc: format!(
                 "Query is too long ({} characters), must be at most {} characters.",
-                aql_query.len(),
-                MAX_QUERY_LENGTH
+                len_chars, MAX_QUERY_LEN_CHARS
             ),
             location: None,
         }))

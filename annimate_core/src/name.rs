@@ -72,6 +72,7 @@ pub(crate) fn node_name_to_node_id(
 }
 
 // From https://github.com/korpling/graphANNIS/blob/2c656d5c79e15b7c29809132c467681fa473464f/graphannis/src/annis/db/corpusstorage.rs#L301
+// Exception: Duplicate b'"' removed
 const PATH_ENCODE_SET: &AsciiSet = &CONTROLS
     .add(b' ')
     .add(b'"')
@@ -85,7 +86,6 @@ const PATH_ENCODE_SET: &AsciiSet = &CONTROLS
     .add(b'%')
     .add(b'/')
     .add(b':')
-    .add(b'"')
     .add(b'|')
     .add(b'*')
     .add(b'\\');
