@@ -58,7 +58,7 @@ catalog:
   jsdom: ^29.0.2
   lucide-react: ^1.9.0
   prettier: ^3.8.3
-  prettier-plugin-tailwindcss: ^0.7.2
+  prettier-plugin-tailwindcss: ^0.7.3
   react: ^19.2.5
   react-dom: ^19.2.5
   react-markdown: ^10.1.0
