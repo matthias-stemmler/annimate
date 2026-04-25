@@ -5,6 +5,7 @@
 ### Fixed
 
 - Exports of "Match in context" columns no longer fail when the query matches a token without segmentation coverage.
+- Fixed display and on-click selection of query validation error locations for queries containing certain special characters.
 
 ## [1.7.0] - 2026-03-24
 

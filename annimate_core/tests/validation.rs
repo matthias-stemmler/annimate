@@ -22,7 +22,13 @@ macro_rules! validation_test {
 
                 let actual = match &result {
                     QueryAnalysisResult::Valid(_) => Ok(()),
-                    QueryAnalysisResult::Invalid(err) => Err(err.desc.as_str()),
+                    QueryAnalysisResult::Invalid(err) => Err((
+                        err.message.as_str(),
+                        err.location.as_ref().map(|range| (
+                            (range.start.line_index, range.start.column_index),
+                            range.end.as_ref().map(|end| (end.line_index, end.column_index)),
+                        )),
+                    )),
                 };
 
                 assert_eq!(actual, $expected);
@@ -43,16 +49,22 @@ validation_test! {
      // add quotes because ä..ä would be an invalid token
     valid_max_length_multibyte_char: &format!("\"{}\"", "ä".repeat(398)), AQL => Ok(())
 
-    invalid_exceeding_max_length: "a".repeat(401).as_str(), AQL => Err("Query is too long (401 characters), must be at most 400 characters.")
+    invalid_exceeding_max_length: "a".repeat(401).as_str(), AQL =>
+        Err(("Query is too long (401 characters), must be at most 400 characters.", None))
 
      // add quotes because ä..ä would be an invalid token
-    invalid_exceeding_max_length_multibyte_char: &format!("\"{}\"", "ä".repeat(399)), AQL => Err("Query is too long (401 characters), must be at most 400 characters.")
+    invalid_exceeding_max_length_multibyte_char: &format!("\"{}\"", "ä".repeat(399)), AQL =>
+        Err(("Query is too long (401 characters), must be at most 400 characters.", None))
 
-    invalid_syntax: "foo=", AQL => Err("Unexpected end of query.")
+    invalid_syntax: "foo=", AQL =>
+        Err(("Unexpected end of query.", Some(((0, 3), None))))
 
-    invalid_syntax_unexpected_token: "foo==", AQL => Err("Unexpected token in query.")
+    invalid_syntax_unexpected_token: "foo==", AQL =>
+        Err(("Unexpected token in query.", Some(((0, 3), Some((0, 4))))))
 
-    invalid_meta: "meta::doc=\"foo\"", AQL => Err("Legacy metadata search is no longer allowed. Use the @* operator and normal attribute search instead.")
+    invalid_meta: "meta::doc=\"foo\"", AQL =>
+        Err(("Legacy metadata search is no longer allowed. Use the @* operator and normal attribute search instead.", Some(((0, 0), Some((0, 5))))))
 
-    invalid_unbound_variable: "foo1=\"foo2\" & bar1=\"bar2\"", AQL => Err("Variable \"#2\" not bound (use linguistic operators)")
+    invalid_unbound_variable: "foo1=\"foo2\" & bar1=\"bar2\"", AQL =>
+        Err(("Variable \"#2\" not bound (use linguistic operators)", Some(((0, 14), Some((0, 25))))))
 }

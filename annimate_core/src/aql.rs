@@ -7,7 +7,7 @@ use graphannis::corpusstorage::{CacheStrategy, QueryLanguage};
 use graphannis::errors::{AQLError, GraphAnnisError};
 use itertools::{Itertools, Position};
 use regex::Regex;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use tempfile::TempDir;
 
 use crate::error::AnnimateError;
@@ -56,19 +56,26 @@ impl ValidationStorage {
         aql_query: &str,
         query_language: QueryLanguage,
     ) -> Result<QueryAnalysisResult<()>, GraphAnnisError> {
-        QueryAnalysisResult::from_result({
-            // Shortcut for empty query because CorpusStorage::validate_query overflows
-            if aql_query.is_empty() {
-                Ok(())
-            } else {
-                // Validate query length first to prevent stack overflow
-                validate_query_length(aql_query).and_then(|_| {
-                    self.corpus_storage
-                        .validate_query(&[Self::VALIDATION_CORPUS_NAME], aql_query, query_language)
-                        .map(|_| ())
-                })
-            }
-        })
+        QueryAnalysisResult::from_result(
+            {
+                // Shortcut for empty query because CorpusStorage::validate_query overflows
+                if aql_query.is_empty() {
+                    Ok(())
+                } else {
+                    // Validate query length first to prevent stack overflow
+                    validate_query_length(aql_query).and_then(|_| {
+                        self.corpus_storage
+                            .validate_query(
+                                &[Self::VALIDATION_CORPUS_NAME],
+                                aql_query,
+                                query_language,
+                            )
+                            .map(|_| ())
+                    })
+                }
+            },
+            aql_query,
+        )
     }
 }
 
@@ -77,7 +84,10 @@ pub(crate) fn query_nodes(
     aql_query: &str,
     query_language: QueryLanguage,
 ) -> Result<QueryAnalysisResult<QueryNodes>, GraphAnnisError> {
-    QueryAnalysisResult::from_result(query_nodes_valid(corpus_storage, aql_query, query_language))
+    QueryAnalysisResult::from_result(
+        query_nodes_valid(corpus_storage, aql_query, query_language),
+        aql_query,
+    )
 }
 
 pub(crate) fn query_nodes_valid(
@@ -177,7 +187,129 @@ pub enum QueryAnalysisResult<T = ()> {
     Valid(T),
 
     /// Query is invalid.
-    Invalid(AQLError),
+    Invalid(QueryValidationError),
+}
+
+/// Error when validating an AQL query.
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct QueryValidationError {
+    /// Location where the error occurred.
+    pub location: Option<LineColumnRange<LineColumnIndex>>,
+
+    /// Error message.
+    pub message: String,
+}
+
+/// Range of line-column coordinates within a string with optional end.
+///
+/// This mimics the non-exported `LineColumnRange` type from [graphANNIS](https://docs.rs/graphannis),
+/// except that it is generic over the coordinate type to allow for different coordinate
+/// representations.
+#[derive(Debug, Deserialize, Serialize, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct LineColumnRange<T> {
+    /// Start of the range.
+    pub start: T,
+
+    /// Optional end of the range.
+    pub end: Option<T>,
+}
+
+/// Line-column coordinates within a string as represented by [graphANNIS](https://docs.rs/graphannis).
+///
+/// This mimics the non-exported `LineColumn` type from graphANNIS, which has these properties:
+/// - `line` is 0-based, `column` is 1-based.
+/// - Coordinates are in UTF-8 bytes.
+#[derive(Clone, Copy, Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct LineColumn {
+    line: usize,
+    column: usize,
+}
+
+/// Line-column coordinates within a string.
+///
+/// This differs from [`LineColumn`] in the following ways:
+/// - Both `line` and `column` are 0-based, hence the name `*_index`.
+/// - Coordinates are in Unicode code points, not in UTF-8 bytes. Note that this is not the same as
+///   UTF-16 code units, which are used for string indexing in JavaScript.
+#[derive(Debug, Serialize, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct LineColumnIndex {
+    /// 0-based line index.
+    pub line_index: usize,
+
+    /// 0-based column index in Unicode code points.
+    pub column_index: usize,
+}
+
+impl LineColumnIndex {
+    fn from_line_column(line_column: LineColumn, value: &str) -> Self {
+        let target_line_index = line_column.line;
+        let target_column_index_bytes = line_column.column - 1;
+
+        let mut line_index = 0;
+        let mut column_index = 0;
+        let mut line_start_byte_index = 0;
+
+        for (byte_index, ch) in value.char_indices() {
+            if line_index == target_line_index
+                && (ch == '\n' || byte_index - line_start_byte_index >= target_column_index_bytes)
+            {
+                return Self {
+                    line_index,
+                    column_index,
+                };
+            }
+
+            if ch == '\n' {
+                line_index += 1;
+                column_index = 0;
+                line_start_byte_index = byte_index + 1;
+            } else {
+                column_index += 1;
+            }
+        }
+
+        Self {
+            line_index,
+            column_index,
+        }
+    }
+}
+
+impl QueryValidationError {
+    fn from_aql_error(aql_error: AQLError, aql_query: &str) -> Self {
+        let AQLError {
+            location,
+            desc: mut message,
+        } = aql_error;
+
+        // We need a round-trip through serde_json::Value because the fields of `LineColumnRange`
+        // are not public in graphANNIS.
+        let location: Option<LineColumnRange<LineColumn>> = location.map(|location| {
+            serde_json::from_value(
+                serde_json::to_value(location).expect("should serialize AQL error location"),
+            )
+            .expect("should deserialize AQL error location")
+        });
+
+        Self {
+            location: location.map(|location| LineColumnRange {
+                start: LineColumnIndex::from_line_column(location.start, aql_query),
+                end: location
+                    .end
+                    .map(|end| LineColumnIndex::from_line_column(end, aql_query)),
+            }),
+            message: {
+                if let Some(idx) = message.find(" Expected one of: ") {
+                    message.truncate(idx);
+                }
+                message
+            },
+        }
+    }
 }
 
 impl<T> QueryAnalysisResult<T> {
@@ -191,24 +323,17 @@ impl<T> QueryAnalysisResult<T> {
 
     fn from_result(
         result: Result<T, GraphAnnisError>,
+        aql_query: &str,
     ) -> Result<QueryAnalysisResult<T>, GraphAnnisError> {
         match result {
             Ok(x) => Ok(QueryAnalysisResult::Valid(x)),
-            Err(
-                GraphAnnisError::AQLSyntaxError(mut err)
-                | GraphAnnisError::AQLSemanticError(mut err),
-            ) => {
-                shorten_aql_error(&mut err);
-                Ok(QueryAnalysisResult::Invalid(err))
+            Err(GraphAnnisError::AQLSyntaxError(err) | GraphAnnisError::AQLSemanticError(err)) => {
+                Ok(QueryAnalysisResult::Invalid(
+                    QueryValidationError::from_aql_error(err, aql_query),
+                ))
             }
             Err(err) => Err(err),
         }
-    }
-}
-
-fn shorten_aql_error(err: &mut AQLError) {
-    if let Some(idx) = err.desc.find(" Expected one of: ") {
-        err.desc.truncate(idx);
     }
 }
 
@@ -265,3 +390,89 @@ static META_REGEX: LazyLock<Regex> = LazyLock::new(|| {
     Regex::new(r"meta::((?:[a-zA-Z_%](?:[a-zA-Z0-9_\-%])*:)?(?:[a-zA-Z_%](?:[a-zA-Z0-9_\-%])*))")
         .unwrap()
 });
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn line_column_index_from_line_column_ascii_single_line() {
+        assert_line_column_index("hello", (0, 1), (0, 0));
+        assert_line_column_index("hello", (0, 6), (0, 5));
+        assert_line_column_index("hello", (0, 7), (0, 5));
+    }
+
+    #[test]
+    fn line_column_index_from_line_column_ascii_multi_line() {
+        assert_line_column_index("foo\nbar\nbaz", (0, 1), (0, 0));
+        assert_line_column_index("foo\nbar\nbaz", (1, 4), (1, 3));
+        assert_line_column_index("foo\nbar\nbaz", (2, 5), (2, 3));
+    }
+
+    #[test]
+    fn line_column_index_from_line_column_empty_string() {
+        assert_line_column_index("", (0, 1), (0, 0));
+    }
+
+    #[test]
+    fn line_column_index_from_line_column_multibyte_at_boundary() {
+        // 'é' is 2 bytes (0xC3 0xA9): h(0) é(1..3) l(3) l(4) o(5)
+        assert_line_column_index("héllo", (0, 2), (0, 1));
+        assert_line_column_index("héllo", (0, 4), (0, 2));
+        assert_line_column_index("héllo", (0, 7), (0, 5));
+
+        // '€' is 3 bytes (0xE2 0x82 0xAC): h(0) €(1..4) l(4) l(5) o(6)
+        assert_line_column_index("h€llo", (0, 2), (0, 1));
+        assert_line_column_index("h€llo", (0, 5), (0, 2));
+        assert_line_column_index("h€llo", (0, 8), (0, 5));
+
+        // '🎉' is 4 bytes (0xF0 0x9F 0x8E 0x89): h(0) 🎉(1..5) l(5) l(6) o(7)
+        assert_line_column_index("h🎉llo", (0, 2), (0, 1));
+        assert_line_column_index("h🎉llo", (0, 6), (0, 2));
+        assert_line_column_index("h🎉llo", (0, 9), (0, 5));
+    }
+
+    #[test]
+    fn line_column_index_from_line_column_multibyte_not_at_boundary_rounds_up() {
+        // Byte column 3 falls inside 'é' (bytes 1..3) and should round up to start of 'l'.
+        assert_line_column_index("héllo", (0, 3), (0, 2));
+
+        // Byte columns 3 and 4 fall inside '€' (bytes 1..4) and should round up to start of 'l'.
+        assert_line_column_index("h€llo", (0, 3), (0, 2));
+        assert_line_column_index("h€llo", (0, 4), (0, 2));
+
+        // Byte columns 3, 4, 5 fall inside '🎉' (bytes 1..5) and should round up to start of 'l'.
+        assert_line_column_index("h🎉llo", (0, 3), (0, 2));
+        assert_line_column_index("h🎉llo", (0, 4), (0, 2));
+        assert_line_column_index("h🎉llo", (0, 5), (0, 2));
+    }
+
+    #[test]
+    fn line_column_index_from_line_column_line_out_of_range_returns_end_of_string() {
+        assert_line_column_index("foo\nbar\nbaz", (3, 1), (2, 3));
+        assert_line_column_index("héllo", (1, 1), (0, 5));
+        assert_line_column_index("", (1, 1), (0, 0));
+    }
+
+    #[test]
+    fn line_column_index_from_line_column_column_out_of_range_returns_end_of_line() {
+        assert_line_column_index("foo\nbar\nbaz", (1, 5), (1, 3));
+        assert_line_column_index("héllo", (0, 7), (0, 5));
+    }
+
+    #[test]
+    fn line_column_index_from_line_column_multibyte_on_earlier_line() {
+        // First line contains a 2-byte char, target is on second (ASCII) line - confirms
+        // multi-byte chars on earlier lines don't affect column counting on the target line.
+        assert_line_column_index("héllo\nfoo", (1, 2), (1, 1));
+    }
+
+    fn assert_line_column_index(
+        value: &str,
+        (line, column): (usize, usize),
+        expected: (usize, usize),
+    ) {
+        let index = LineColumnIndex::from_line_column(LineColumn { line, column }, value);
+        assert_eq!((index.line_index, index.column_index), expected);
+    }
+}
