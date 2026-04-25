@@ -123,12 +123,21 @@ export type State = {
   exportFormat: ExportFormat;
 };
 
-export const StoreContext = createContext<StoreApi<State> | undefined>(
+type StoreContextValue = {
+  store: StoreApi<State>;
+  // Non-reactive per-store-instance state. Lives outside the zustand state
+  // slice so that mutating it does not trigger rerenders, but is scoped to
+  // the store instance (rather than module-global) so tests / future
+  // multi-window setups don't share timers.
+  aqlQueryDebounceTimeoutRef: { current: number | undefined };
+};
+
+export const StoreContext = createContext<StoreContextValue | undefined>(
   undefined,
 );
 
-export const createStoreForContext = (): StoreApi<State> =>
-  createStore<State>()(() => ({
+export const createStoreContextValue = (): StoreContextValue => ({
+  store: createStore<State>()(() => ({
     selectedCorpusSet: '',
     selectedCorpusNames: [],
 
@@ -154,7 +163,9 @@ export const createStoreForContext = (): StoreApi<State> =>
     ],
     exportColumnsMaxId: 2,
     exportFormat: 'csv',
-  }));
+  })),
+  aqlQueryDebounceTimeoutRef: { current: undefined },
+});
 
 const createExportColumn = (type: ExportColumnType): ExportColumn => {
   switch (type) {
@@ -193,13 +204,18 @@ const createExportColumn = (type: ExportColumnType): ExportColumn => {
   }
 };
 
-const useStoreFromContext = (): StoreApi<State> => {
-  const store = useContext(StoreContext);
-  if (store === undefined) {
+const useStoreContext = (): StoreContextValue => {
+  const value = useContext(StoreContext);
+  if (value === undefined) {
     throw new Error('Missing store');
   }
-  return store;
+  return value;
 };
+
+const useStoreFromContext = (): StoreApi<State> => useStoreContext().store;
+
+const useAqlQueryDebounceTimeoutRef = (): { current: number | undefined } =>
+  useStoreContext().aqlQueryDebounceTimeoutRef;
 
 const useSelector = <U>(
   selector: Parameters<typeof useStore<StoreApi<State>, U>>[1],
@@ -741,18 +757,18 @@ export const useToggleAllCorporaInSelectedSet = (): (() => Promise<void>) => {
   };
 };
 
-let aqlQueryDebounceTimeout: number | undefined;
-
 export const useSetAqlQuery = (): ((aqlQuery: string) => void) => {
   const setState = useSetState();
+  const debounceTimeoutRef = useAqlQueryDebounceTimeoutRef();
 
   return (aqlQuery: string) => {
     setState(() => ({
       aqlQuery,
     }));
 
-    if (aqlQueryDebounceTimeout !== undefined) {
-      window.clearTimeout(aqlQueryDebounceTimeout);
+    if (debounceTimeoutRef.current !== undefined) {
+      window.clearTimeout(debounceTimeoutRef.current);
+      debounceTimeoutRef.current = undefined;
     }
 
     if (aqlQuery === '') {
@@ -760,7 +776,8 @@ export const useSetAqlQuery = (): ((aqlQuery: string) => void) => {
         aqlQueryDebounced: '',
       }));
     } else {
-      aqlQueryDebounceTimeout = window.setTimeout(() => {
+      debounceTimeoutRef.current = window.setTimeout(() => {
+        debounceTimeoutRef.current = undefined;
         setState(() => ({
           aqlQueryDebounced: aqlQuery,
         }));
@@ -771,10 +788,12 @@ export const useSetAqlQuery = (): ((aqlQuery: string) => void) => {
 
 export const useFlushAqlQueryDebounce = (): (() => void) => {
   const setState = useSetState();
+  const debounceTimeoutRef = useAqlQueryDebounceTimeoutRef();
 
   return () => {
-    if (aqlQueryDebounceTimeout !== undefined) {
-      window.clearTimeout(aqlQueryDebounceTimeout);
+    if (debounceTimeoutRef.current !== undefined) {
+      window.clearTimeout(debounceTimeoutRef.current);
+      debounceTimeoutRef.current = undefined;
     }
 
     setState((state) =>
