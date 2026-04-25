@@ -1,3 +1,9 @@
+use std::fs;
+use std::io::{self, ErrorKind, Write};
+use std::path::Path;
+
+use tempfile::{NamedTempFile, PersistError};
+
 /// Groups runs of items in a slice with the same optional key, calculated fallibly.
 ///
 /// Groups runs of successive elements in `items` for which `key_fn` returns the same non-`None`
@@ -62,84 +68,175 @@ where
     }
 }
 
+/// Atomically writes to `path` by writing to a temp file in the same directory and renaming.
+///
+/// The closure receives a [`NamedTempFile`] to write into. After it returns successfully, the temp
+/// file is flushed and persisted at `path`. If the rename would cross filesystems, falls back to
+/// copying.
+pub(crate) fn write_atomically<E, F, P>(path: P, write: F) -> Result<(), E>
+where
+    E: From<io::Error>,
+    F: FnOnce(&mut NamedTempFile) -> Result<(), E>,
+    P: AsRef<Path>,
+{
+    let path = path.as_ref();
+
+    let mut out = {
+        let mut builder = tempfile::Builder::new();
+        builder.prefix(".annimate_");
+        match path.parent() {
+            Some(parent) => builder.tempfile_in(parent)?,
+            None => builder.tempfile()?,
+        }
+    };
+
+    write(&mut out)?;
+
+    out.flush()?;
+
+    match out.persist(path) {
+        Err(PersistError { error, file }) if error.kind() == ErrorKind::CrossesDevices => {
+            // In case renaming would cross file systems, copy the file instead
+            fs::copy(file.path(), path)?;
+        }
+        result => {
+            result.map_err(io::Error::from)?;
+        }
+    }
+
+    Ok(())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
 
-    #[test]
-    fn empty() {
-        let items: [&str; 0] = [];
+    mod group_by {
+        use super::*;
 
-        let groups: Vec<_> = group_by(&items, key_fn).collect();
+        #[test]
+        fn empty() {
+            let items: [&str; 0] = [];
 
-        assert!(groups.is_empty());
+            let groups: Vec<_> = group_by(&items, key_fn).collect();
+
+            assert!(groups.is_empty());
+        }
+
+        #[test]
+        fn single_group() {
+            let items = ["abc", "def", "ghi"];
+
+            let groups: Vec<_> = group_by(&items, key_fn).collect();
+
+            assert_eq!(groups, [Ok((3, &["abc", "def", "ghi"][..]))]);
+        }
+
+        #[test]
+        fn multiple_groups() {
+            let items = ["abc", "def", "ghij", "klm", "nop"];
+
+            let groups: Vec<_> = group_by(&items, key_fn).collect();
+
+            assert_eq!(
+                groups,
+                [
+                    Ok((3, &["abc", "def"][..])),
+                    Ok((4, &["ghij"][..])),
+                    Ok((3, &["klm", "nop"][..])),
+                ]
+            );
+        }
+
+        #[test]
+        fn without_key() {
+            let items = ["", "", ""];
+
+            let groups: Vec<_> = group_by(&items, key_fn).collect();
+
+            assert!(groups.is_empty());
+        }
+
+        #[test]
+        fn partly_without_key() {
+            let items = ["", "abc", "", "def", "ghi", ""];
+
+            let groups: Vec<_> = group_by(&items, key_fn).collect();
+
+            assert_eq!(
+                groups,
+                [Ok((3, &["abc"][..])), Ok((3, &["def", "ghi"][..]))]
+            );
+        }
+
+        #[test]
+        fn failing() {
+            let items = ["abc", "def", "ghij", "FAIL", "klm"];
+
+            let groups: Vec<_> = group_by(&items, key_fn).collect();
+
+            assert_eq!(groups, [Ok((3, &["abc", "def"][..])), Err(KeyError)]);
+        }
+
+        fn key_fn(item: &&str) -> Result<Option<usize>, KeyError> {
+            if *item == "FAIL" {
+                Err(KeyError)
+            } else if item.is_empty() {
+                Ok(None)
+            } else {
+                Ok(Some(item.len()))
+            }
+        }
+
+        #[derive(Debug, PartialEq)]
+        struct KeyError;
     }
 
-    #[test]
-    fn single_group() {
-        let items = ["abc", "def", "ghi"];
+    mod write_atomically {
+        use super::*;
 
-        let groups: Vec<_> = group_by(&items, key_fn).collect();
+        #[test]
+        fn creates_file_with_content() {
+            let dir = tempfile::tempdir().unwrap();
+            let path = dir.path().join("file.txt");
 
-        assert_eq!(groups, [Ok((3, &["abc", "def", "ghi"][..]))]);
-    }
+            write_atomically(&path, |out| out.write_all(b"test")).unwrap();
 
-    #[test]
-    fn multiple_groups() {
-        let items = ["abc", "def", "ghij", "klm", "nop"];
+            assert_eq!(fs::read_to_string(&path).unwrap(), "test");
+        }
 
-        let groups: Vec<_> = group_by(&items, key_fn).collect();
+        #[test]
+        fn overwrites_existing_file() {
+            let dir = tempfile::tempdir().unwrap();
+            let path = dir.path().join("file.txt");
+            fs::write(&path, "old").unwrap();
 
-        assert_eq!(
-            groups,
-            [
-                Ok((3, &["abc", "def"][..])),
-                Ok((4, &["ghij"][..])),
-                Ok((3, &["klm", "nop"][..])),
-            ]
-        );
-    }
+            write_atomically(&path, |out| out.write_all(b"new")).unwrap();
 
-    #[test]
-    fn without_key() {
-        let items = ["", "", ""];
+            assert_eq!(fs::read_to_string(&path).unwrap(), "new");
+        }
 
-        let groups: Vec<_> = group_by(&items, key_fn).collect();
+        #[test]
+        fn closure_error_propagates_and_leaves_existing_file_untouched() {
+            let dir = tempfile::tempdir().unwrap();
+            let path = dir.path().join("file.txt");
+            fs::write(&path, "untouched").unwrap();
 
-        assert!(groups.is_empty());
-    }
+            let result = write_atomically(&path, |_| Err(io::Error::other("failed")));
 
-    #[test]
-    fn partly_without_key() {
-        let items = ["", "abc", "", "def", "ghi", ""];
+            assert!(result.is_err());
+            assert_eq!(fs::read_to_string(&path).unwrap(), "untouched");
+        }
 
-        let groups: Vec<_> = group_by(&items, key_fn).collect();
+        #[test]
+        fn closure_error_leaves_no_file_when_path_did_not_exist() {
+            let dir = tempfile::tempdir().unwrap();
+            let path = dir.path().join("file.txt");
 
-        assert_eq!(
-            groups,
-            [Ok((3, &["abc"][..])), Ok((3, &["def", "ghi"][..]))]
-        );
-    }
+            let result = write_atomically(&path, |_| Err(io::Error::other("failed")));
 
-    #[test]
-    fn failing() {
-        let items = ["abc", "def", "ghij", "FAIL", "klm"];
-
-        let groups: Vec<_> = group_by(&items, key_fn).collect();
-
-        assert_eq!(groups, [Ok((3, &["abc", "def"][..])), Err(KeyError)]);
-    }
-
-    fn key_fn(item: &&str) -> Result<Option<usize>, KeyError> {
-        if *item == "FAIL" {
-            Err(KeyError)
-        } else if item.is_empty() {
-            Ok(None)
-        } else {
-            Ok(Some(item.len()))
+            assert!(result.is_err());
+            assert!(!path.exists());
         }
     }
-
-    #[derive(Debug, PartialEq)]
-    struct KeyError;
 }

@@ -8,7 +8,7 @@ use std::{fs, io};
 use graphannis::graph::AnnoKey;
 use serde::{Deserialize, Serialize};
 
-use crate::name;
+use crate::{name, util};
 
 pub(crate) struct CacheStorage {
     db_dir: PathBuf,
@@ -163,23 +163,13 @@ impl CorpusCache {
     }
 
     fn write_to_disk(&self, db_dir: &Path, corpus_name: &str) -> Result<(), io::Error> {
-        // Persist atomically to avoid ending up with a partially written cache
-
-        let mut temp_file = tempfile::Builder::new()
-            .prefix(".annimate-cache")
-            .suffix(".toml")
-            .tempfile_in(name::get_corpus_path(db_dir, corpus_name))?;
-
-        temp_file.write_all(
-            toml::to_string_pretty(self)
-                .map_err(io::Error::other)?
-                .as_bytes(),
-        )?;
-
-        temp_file.flush()?;
-        temp_file.persist(Self::get_path(db_dir, corpus_name))?;
-
-        Ok(())
+        util::write_atomically(Self::get_path(db_dir, corpus_name), |out| {
+            write!(
+                out,
+                "{}",
+                toml::to_string_pretty(self).map_err(io::Error::other)?
+            )
+        })
     }
 
     fn get_path(db_dir: &Path, corpus_name: &str) -> PathBuf {
