@@ -98,8 +98,8 @@ export const QueryInput: FC = () => {
                   if (validationResult.location !== null) {
                     const { start, end } = validationResult.location;
                     const selectionStart = lineColumnToCharacterIndex(
-                      start.line,
-                      start.column,
+                      start.lineIndex,
+                      start.columnIndex,
                       aqlQuery,
                     );
 
@@ -108,10 +108,10 @@ export const QueryInput: FC = () => {
                       end === null
                         ? selectionStart
                         : lineColumnToCharacterIndex(
-                            end.line,
-                            end.column,
+                            end.lineIndex,
+                            end.columnIndex + 1,
                             aqlQuery,
-                          ) + 1,
+                          ),
                     );
                   }
 
@@ -178,7 +178,7 @@ const ValidationResultDisplay: FC<ValidationResultDisplayProps> = ({
         <LocationDisplay location={validationResult.location} />
       )}
 
-      {validationResult.desc}
+      {validationResult.message}
     </>
   );
 };
@@ -191,10 +191,10 @@ const LocationDisplay: FC<LocationDisplayProps> = ({
   location: { start, end },
 }) => (
   <p className="mr-4 font-mono italic">
-    {start.line}:{start.column}
+    {start.lineIndex + 1}:{start.columnIndex + 1}
     {end !== null && (
       <>
-        -{end.line}:{end.column}
+        -{end.lineIndex + 1}:{end.columnIndex + 1}
       </>
     )}
   </p>

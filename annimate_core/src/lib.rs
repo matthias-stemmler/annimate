@@ -31,7 +31,10 @@ mod util;
 mod version;
 
 pub use anno::{AnnoKeyOrDefault, ExportableAnnoKey, ExportableAnnoKeys};
-pub use aql::{QueryAnalysisResult, QueryNode, QueryNodes};
+pub use aql::{
+    LineColumnIndex, LineColumnRange, QueryAnalysisResult, QueryNode, QueryNodes,
+    QueryValidationError,
+};
 pub use error::AnnimateError;
 pub use format::{CsvExportConfig, ExportFormat, TableExportColumn, XlsxExportConfig};
 pub use graphannis::corpusstorage::CorpusInfo;

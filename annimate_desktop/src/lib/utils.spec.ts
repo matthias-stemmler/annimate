@@ -9,23 +9,51 @@ import { describe, expect, it } from 'vitest';
 describe('utils', () => {
   describe('lineColumnToCharacterIndex', () => {
     it.each([
-      ['123', 1, 1, '1'],
-      ['123', 1, 3, '3'],
-      ['123\n456\n789\n', 1, 1, '1'],
-      ['123\n456\n789\n', 1, 3, '3'],
-      ['123\n456\n789\n', 2, 1, '4'],
-      ['123\n456\n789\n', 3, 3, '9'],
+      ['123', 0, 0, '1'],
+      ['123', 0, 2, '3'],
+      ['123\n456\n789\n', 0, 0, '1'],
+      ['123\n456\n789\n', 0, 2, '3'],
+      ['123\n456\n789\n', 1, 0, '4'],
+      ['123\n456\n789\n', 2, 2, '9'],
+      ['héllo', 0, 1, 'é'],
+      ['héllo', 0, 2, 'l'],
+      ['h🎉llo', 0, 2, 'l'],
+      ['h🎉llo', 0, 3, 'l'],
+      ['h🎉llo', 0, 4, 'o'],
+      ['🎉\n🎉', 1, 0, '\uD83C'],
     ])(
-      'translates line/column to index correctly %#',
+      'translates lineIndex/columnIndex to index correctly %#',
       (
         value: string,
-        line: number,
-        column: number,
+        lineIndex: number,
+        columnIndex: number,
         expectedCharacter: string,
       ) => {
-        const index = lineColumnToCharacterIndex(line, column, value);
+        const index = lineColumnToCharacterIndex(lineIndex, columnIndex, value);
 
         expect(value[index]).toBe(expectedCharacter);
+      },
+    );
+
+    it.each([
+      ['h🎉llo', 0, 1, 'h🎉'],
+      ['h🎉llo', 0, 2, 'h🎉l'],
+      ['héllo', 0, 1, 'hé'],
+    ])(
+      'returns end index suitable for selecting through column %#',
+      (
+        value: string,
+        lineIndex: number,
+        columnIndex: number,
+        expectedSelection: string,
+      ) => {
+        const end = lineColumnToCharacterIndex(
+          lineIndex,
+          columnIndex + 1,
+          value,
+        );
+
+        expect(value.slice(0, end)).toBe(expectedSelection);
       },
     );
   });

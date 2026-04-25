@@ -25,6 +25,7 @@ percent-encoding = { workspace = true }
 regex = { workspace = true }
 rust_xlsxwriter = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
 tempfile = { workspace = true }
 thiserror = { workspace = true }
 toml = { workspace = true }

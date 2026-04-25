@@ -9,7 +9,7 @@
 // - `VITE_MOCK=update-fail-install`: Cannot install update
 
 import {
-  AQLError,
+  QueryValidationError,
   CheckOptions,
   Corpora,
   DownloadEvent,
@@ -177,11 +177,11 @@ const IMPORT_CORPORA: MockImportCorpus[] = [
 
 Object.defineProperty(window, '__ANNIMATE__', {
   value: {
-  updateEnabled: true,
-  versionInfo: {
-    annimateVersion: '<mock>',
-    graphannisVersion: '<mock>',
-  },
+    updateEnabled: true,
+    versionInfo: {
+      annimateVersion: '<mock>',
+      graphannisVersion: '<mock>',
+    },
   },
 });
 
@@ -991,32 +991,36 @@ const isQueryValid = (
 const getQueryValidationError = (
   aqlQuery: string,
   queryLanguage: QueryLanguage,
-): AQLError | undefined => {
+): QueryValidationError | undefined => {
   const failingString = queryLanguage === 'AQL' ? '!' : '!!';
   const lines = aqlQuery.split('\n');
 
-  const line = lines.findIndex((l) => l.includes(failingString));
-  if (line === -1) {
+  const lineIndex = lines.findIndex((l) => l.includes(failingString));
+  if (lineIndex === -1) {
     return undefined;
   }
 
-  const column = lines[line].indexOf(failingString);
-  if (column === -1) {
+  const codeUnitIndex = lines[lineIndex].indexOf(failingString);
+  if (codeUnitIndex === -1) {
     return undefined;
   }
+
+  // Mirror the backend contract: column indices are in Unicode code points,
+  // not UTF-16 code units.
+  const columnIndex = [...lines[lineIndex].slice(0, codeUnitIndex)].length;
 
   return {
-    desc: `Query must not contain '${failingString}'`,
     location: {
       start: {
-        line: line + 1,
-        column: column + 1,
+        lineIndex,
+        columnIndex,
       },
       end: {
-        line: line + 1,
-        column: column + failingString.length,
+        lineIndex,
+        columnIndex: columnIndex + failingString.length - 1,
       },
     },
+    message: `Query must not contain '${failingString}'`,
   };
 };
 

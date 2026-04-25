@@ -10,19 +10,23 @@ export const formatPercentage = (value: number): string =>
   PERCENTAGE_FORMAT.format(value);
 
 export const lineColumnToCharacterIndex = (
-  line: number,
-  column: number,
+  lineIndex: number,
+  columnIndex: number,
   value: string,
 ): number => {
-  const lineIndex = line - 1;
-  const columnIndex = column - 1;
-
-  const numCharsBeforeLine = value
-    .split('\n')
+  const lines = value.split('\n');
+  const numCharsBeforeLine = lines
     .slice(0, lineIndex)
     .reduce((acc, line) => acc + line.length + '\n'.length, 0);
 
-  return numCharsBeforeLine + columnIndex;
+  // `columnIndex` is in Unicode code points (per the Rust backend), but
+  // `setSelectionRange` expects UTF-16 code units. Spreading the line splits it
+  // into code points so non-BMP characters like emojis count as one column.
+  const columnOffset = [...(lines[lineIndex] ?? '')]
+    .slice(0, columnIndex)
+    .join('').length;
+
+  return numCharsBeforeLine + columnOffset;
 };
 
 export const filterEligible = <S, T>(

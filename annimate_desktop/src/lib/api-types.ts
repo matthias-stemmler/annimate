@@ -105,11 +105,11 @@ export type QueryNodeRef = {
 
 export type QueryValidationResult =
   | { type: 'valid' }
-  | ({ type: 'invalid' } & AQLError);
+  | ({ type: 'invalid' } & QueryValidationError);
 
-export type AQLError = {
-  desc: string;
+export type QueryValidationError = {
   location: LineColumnRange | null;
+  message: string;
 };
 
 export type LineColumnRange = {
@@ -118,8 +118,8 @@ export type LineColumnRange = {
 };
 
 export type LineColumn = {
-  line: number;
-  column: number;
+  lineIndex: number;
+  columnIndex: number;
 };
 
 export type ExportStatusEvent =

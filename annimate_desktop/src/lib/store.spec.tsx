@@ -223,8 +223,8 @@ describe('store', () => {
               }
             : {
                 type: 'invalid',
-                desc: '',
                 location: null,
+                message: '',
               }
         ) satisfies QueryValidationResult;
       }
