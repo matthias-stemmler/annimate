@@ -66,13 +66,19 @@ impl CacheStorage {
 
     /// Clear the cache for the given corpus.
     ///
-    /// This will clear the in-memory cache for the corpus and write this cleared cache to disk.
+    /// This evicts the in-memory cache for the corpus and deletes the on-disk
+    /// cache file if present.
     pub(crate) fn clear(&self, corpus_name: &str) -> Result<(), io::Error> {
-        let corpus_cache = self.get_corpus_cache(corpus_name)?;
-        let mut corpus_cache_write = corpus_cache.write().unwrap();
-        corpus_cache_write.anno_key_infos = None;
-        corpus_cache_write.write_to_disk(&self.db_dir, corpus_name)?;
-        Ok(())
+        let mut cache = self.cache.write().unwrap();
+        cache.remove(corpus_name);
+
+        // Remove the file while holding the write lock to avoid a concurrent
+        // load reading the still-present file and re-inserting a stale entry
+        match fs::remove_file(CorpusCache::get_path(&self.db_dir, corpus_name)) {
+            Ok(()) => Ok(()),
+            Err(err) if err.kind() == io::ErrorKind::NotFound => Ok(()),
+            Err(err) => Err(err),
+        }
     }
 
     fn get_corpus_cache(&self, corpus_name: &str) -> Result<Arc<RwLock<CorpusCache>>, io::Error> {
