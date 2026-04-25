@@ -44,27 +44,19 @@ export const groupBy = <K, T>(
   items: readonly T[],
   getKey: (x: T) => K,
 ): [K, T[]][] => {
-  const groups: [K, T[]][] = [];
+  const groups = new Map<K, T[]>();
 
   for (const item of items) {
     const key = getKey(item);
-    let members = groups.find(([k]) => k === key)?.[1];
+    const members = groups.get(key);
     if (members === undefined) {
-      members = [];
-      groups.push([key, members]);
-    }
-    members.push(item);
-  }
-
-  return groups;
-};
-
-export const uniq = <T>(items: readonly T[]): T[] => {
-  const result: T[] = [];
-  for (const item of items) {
-    if (!result.includes(item)) {
-      result.push(item);
+      groups.set(key, [item]);
+    } else {
+      members.push(item);
     }
   }
-  return result;
+
+  return [...groups];
 };
+
+export const uniq = <T>(items: readonly T[]): T[] => [...new Set(items)];

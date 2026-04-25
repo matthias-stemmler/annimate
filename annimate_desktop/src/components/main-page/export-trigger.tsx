@@ -15,7 +15,6 @@ import {
 } from '@/lib/store';
 import { cn, formatPercentage } from '@/lib/utils';
 import { CheckSquare2, File, Folder, Hourglass, Info, X } from 'lucide-react';
-import { Fragment } from 'react';
 
 const EXPORT_FORMAT_FILTERS = {
   csv: [{ name: 'Comma-separated values (*.csv)', extensions: ['csv'] }],
@@ -104,15 +103,8 @@ export const ExportTrigger = () => {
                     onError: (error: CancellableOperationError) => {
                       if (!error.cancelled) {
                         toast({
-                          className: 'break-all',
-                          description: error.message
-                            .split('\n')
-                            .map((line, index) => (
-                              <Fragment key={index}>
-                                {index > 0 && <br />}
-                                {line}
-                              </Fragment>
-                            )),
+                          className: 'whitespace-pre-wrap break-all',
+                          description: error.message,
                           duration: 15000,
                           title: 'Export failed',
                           variant: 'destructive',

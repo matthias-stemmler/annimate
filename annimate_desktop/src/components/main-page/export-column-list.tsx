@@ -210,7 +210,8 @@ const ExportColumnListItem: FC<ExportColumnListItemProps> = ({
               'cursor-grab': !reorderDisabled,
               'cursor-grabbing': isOverlay || isPlaceholder,
             })}
-            {...dragHandleAttributes}
+            // dragHandleAttributes are not applied here, because they contain ARIA attributes
+            // that should be applied only once and are already applied to the button below
             {...dragHandleListeners}
             tabIndex={-1}
           >

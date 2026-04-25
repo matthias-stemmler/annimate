@@ -132,7 +132,7 @@ impl XlsxTableWriter {
         self.worksheet.autofit();
 
         if self.rows > 0 && self.cols > 0 {
-            self.worksheet.autofit().add_table(
+            self.worksheet.add_table(
                 0,
                 0,
                 self.rows - 1,
