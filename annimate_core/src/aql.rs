@@ -157,8 +157,8 @@ pub(crate) fn query_nodes_valid(
 }
 
 /// Asserts that the query does not exceed a certain maximal length, to prevent stack overflows when
-/// parsing. The length is counted in characters, not UTF-8 bytes, to account for multibyte
-/// characters, which do not pose a problem when parsing.
+/// parsing. The length is counted in characters (Unicode code points), not UTF-8 bytes, to account
+/// for multibyte characters, which do not pose a problem when parsing.
 fn validate_query_length(aql_query: &str) -> Result<(), GraphAnnisError> {
     let len_chars = aql_query.chars().count();
 
@@ -206,7 +206,7 @@ pub struct QueryValidationError {
 /// This mimics the non-exported `LineColumnRange` type from [graphANNIS](https://docs.rs/graphannis),
 /// except that it is generic over the coordinate type to allow for different coordinate
 /// representations.
-#[derive(Debug, Deserialize, Serialize, PartialEq, Eq)]
+#[derive(Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LineColumnRange<T> {
     /// Start of the range.
@@ -234,7 +234,7 @@ struct LineColumn {
 /// - Both `line` and `column` are 0-based, hence the name `*_index`.
 /// - Coordinates are in Unicode code points, not in UTF-8 bytes. Note that this is not the same as
 ///   UTF-16 code units, which are used for string indexing in JavaScript.
-#[derive(Debug, Serialize, PartialEq, Eq)]
+#[derive(Debug, Eq, PartialEq, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LineColumnIndex {
     /// 0-based line index.

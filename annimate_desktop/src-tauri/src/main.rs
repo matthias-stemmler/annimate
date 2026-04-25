@@ -23,7 +23,7 @@ static GLOBAL: mimalloc::MiMalloc = mimalloc::MiMalloc;
 fn main() {
     // Use custom tokio runtime with larger stack size (default is 2 MB) to avoid stack overflows
     // when validating queries. 4 MB is enough for worst-case queries of the maximal length of
-    // 400 bytes.
+    // 400 characters.
     let runtime = tokio::runtime::Builder::new_multi_thread()
         .thread_stack_size(THREAD_STACK_SIZE_MB * 1024 * 1024)
         .enable_all()
@@ -134,7 +134,12 @@ fn inject_static_data(webview: &Webview) {
 // This is the same logic as used by the auto-update mechanism before Tauri v2
 // See https://github.com/tauri-apps/tauri/blob/tauri-v1.8.1/core/tauri/src/app.rs#L976
 //
-// Exception: We always enable updates in debug mode for use in WebDriver tests.
+// Exception: We always enable updates in dev-ish builds for testing. The two
+// cfg checks cover distinct cases and are both load-bearing:
+// - `cfg!(debug_assertions)` is true for `tauri build --debug` (WebDriver tests), where `cfg!(dev)`
+//   is false because `tauri build` enables `custom-protocol`.
+// - `cfg!(dev)` is true for `tauri dev --release` (manual update testing), where
+//   `cfg!(debug_assertions)` is false because of the release profile.
 fn is_update_enabled(app_handle: &AppHandle) -> bool {
     cfg_select! {
         target_os = "linux" => cfg!(debug_assertions) || cfg!(dev) || app_handle.state::<tauri::Env>().appimage.is_some(),

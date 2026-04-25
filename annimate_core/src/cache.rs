@@ -189,7 +189,7 @@ impl CorpusCache {
     fn parse(s: &str) -> Option<Self> {
         toml::from_str::<CorpusCache>(s)
             .ok()
-            .take_if(|cache| cache.cache_version.is_valid())
+            .filter(|cache| cache.cache_version.is_valid())
     }
 }
 
