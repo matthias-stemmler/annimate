@@ -1,4 +1,5 @@
 use std::collections::{BTreeMap, BTreeSet};
+use std::io::Write;
 use std::path::{Path, PathBuf};
 use std::str::FromStr;
 use std::sync::RwLock;
@@ -6,8 +7,8 @@ use std::{fs, io};
 
 use serde::{Deserialize, Serialize};
 
-use crate::AnnimateError;
 use crate::error::AnnimateReadFileError;
+use crate::{AnnimateError, util};
 
 pub(crate) struct MetadataStorage {
     path: PathBuf,
@@ -83,10 +84,13 @@ where
 }
 
 fn write_metadata(path: &Path, metadata: &Metadata) -> io::Result<()> {
-    fs::write(
-        path,
-        toml::to_string_pretty(metadata).map_err(io::Error::other)?,
-    )
+    util::write_atomically(path, |out| {
+        write!(
+            out,
+            "{}",
+            toml::to_string_pretty(metadata).map_err(io::Error::other)?
+        )
+    })
 }
 
 #[derive(Debug, Deserialize, Serialize)]

@@ -3,8 +3,6 @@
 #![deny(missing_docs)]
 
 use std::collections::btree_map::Entry;
-use std::fs;
-use std::io::{self, ErrorKind, Write};
 use std::path::{Path, PathBuf};
 
 use anno::AnnoKeys;
@@ -43,7 +41,6 @@ pub use project::{
     Project, ProjectContext, ProjectExportColumn, ProjectExportFormat, load_project, save_project,
 };
 pub use query::{ExportData, ExportDataAnno, ExportDataText, QueryLanguage};
-use tempfile::PersistError;
 pub use version::{VERSION_INFO, VersionInfo};
 
 use crate::aql::ValidationStorage;
@@ -436,16 +433,6 @@ impl Storage {
 
         error::cancel_if(&cancel_requested)?;
 
-        let mut out = {
-            let mut builder = tempfile::Builder::new();
-            builder.prefix(".annimate_");
-
-            match output_file.as_ref().parent() {
-                Some(parent) => builder.tempfile_in(parent)?,
-                None => builder.tempfile()?,
-            }
-        };
-
         let query_info = QueryInfo {
             corpus_names: &config.corpus_names,
             aql_query: &config.aql_query,
@@ -455,29 +442,19 @@ impl Storage {
 
         let total_count = matches.len();
 
-        format::export(
-            config.format,
-            matches,
-            query_info,
-            anno_keys.format(),
-            &mut out,
-            |count| {
-                on_status(ExportStatusEvent::MatchesExported { count, total_count });
-            },
-            &cancel_requested,
-        )?;
-
-        out.flush()?;
-
-        match out.persist(&output_file) {
-            Err(PersistError { error, file }) if error.kind() == ErrorKind::CrossesDevices => {
-                // In case renaming would cross file systems, copy the file instead
-                fs::copy(file.path(), output_file)?;
-            }
-            result => {
-                result.map_err(io::Error::from)?;
-            }
-        };
+        util::write_atomically(output_file, |out| {
+            format::export(
+                config.format,
+                matches,
+                query_info,
+                anno_keys.format(),
+                out,
+                |count| {
+                    on_status(ExportStatusEvent::MatchesExported { count, total_count });
+                },
+                &cancel_requested,
+            )
+        })?;
 
         Ok(())
     }

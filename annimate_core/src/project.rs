@@ -13,6 +13,7 @@
 //!   Migration from v1: Add `annotation = "default"`
 
 use std::fs;
+use std::io::Write;
 use std::path::Path;
 use std::str::FromStr;
 
@@ -20,9 +21,9 @@ use graphannis::corpusstorage::QueryLanguage;
 use graphannis::graph::AnnoKey;
 use serde::Deserialize;
 
-use crate::AnnimateError;
 use crate::anno::AnnoKeyOrDefault;
 use crate::error::AnnimateReadFileError;
+use crate::{AnnimateError, util};
 
 const FILE_HEADER: &str =
     "# Annimate project file\n# https://github.com/matthias-stemmler/annimate\n\n";
@@ -183,7 +184,11 @@ where
         format_version: FormatVersion::CURRENT,
         project,
     };
-    fs::write(path, to_string_pretty(project_file))?;
+
+    util::write_atomically(path, |out| {
+        write!(out, "{}", to_string_pretty(project_file))
+    })?;
+
     Ok(())
 }
 
