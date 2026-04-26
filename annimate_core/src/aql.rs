@@ -5,7 +5,7 @@ use std::vec;
 use graphannis::CorpusStorage;
 use graphannis::corpusstorage::{CacheStrategy, QueryLanguage};
 use graphannis::errors::{AQLError, GraphAnnisError};
-use itertools::{Itertools, Position};
+use itertools::Itertools;
 use regex::Regex;
 use serde::{Deserialize, Serialize};
 use tempfile::TempDir;
@@ -107,21 +107,23 @@ pub(crate) fn query_nodes_valid(
 
     // In quirks mode, remove artifically added nodes for meta queries
     if let QueryLanguage::AQLQuirksV3 = query_language {
-        for (position, capture) in META_REGEX.captures_iter(aql_query).with_position() {
-            if let Position::First | Position::Only = position
-                && let Some(i) = node_descriptions
-                    .iter()
-                    .rposition(|n| n.query_fragment == "annis:doc")
+        let mut captures = META_REGEX.captures_iter(aql_query).peekable();
+        if captures.peek().is_some() {
+            if let Some(i) = node_descriptions
+                .iter()
+                .rposition(|n| n.query_fragment == "annis:doc")
             {
                 node_descriptions.swap_remove(i);
             }
 
-            let anno_name = capture.get(1).unwrap().as_str();
-            if let Some(i) = node_descriptions
-                .iter()
-                .rposition(|n| n.anno_name.as_deref() == Some(anno_name))
-            {
-                node_descriptions.swap_remove(i);
+            for capture in captures {
+                let anno_name = capture.get(1).unwrap().as_str();
+                if let Some(i) = node_descriptions
+                    .iter()
+                    .rposition(|n| n.anno_name.as_deref() == Some(anno_name))
+                {
+                    node_descriptions.swap_remove(i);
+                }
             }
         }
     }
@@ -247,7 +249,8 @@ pub struct LineColumnIndex {
 impl LineColumnIndex {
     fn from_line_column(line_column: LineColumn, value: &str) -> Self {
         let target_line_index = line_column.line;
-        let target_column_index_bytes = line_column.column - 1;
+        // `column` is 1-based; treat `0` as "before the first character" instead of underflowing.
+        let target_column_index_bytes = line_column.column.saturating_sub(1);
 
         let mut line_index = 0;
         let mut column_index = 0;
@@ -458,6 +461,13 @@ mod tests {
     fn line_column_index_from_line_column_column_out_of_range_returns_end_of_line() {
         assert_line_column_index("foo\nbar\nbaz", (1, 5), (1, 3));
         assert_line_column_index("héllo", (0, 7), (0, 5));
+    }
+
+    #[test]
+    fn line_column_index_from_line_column_column_zero_treated_as_start_of_line() {
+        assert_line_column_index("hello", (0, 0), (0, 0));
+        assert_line_column_index("foo\nbar\nbaz", (1, 0), (1, 0));
+        assert_line_column_index("", (0, 0), (0, 0));
     }
 
     #[test]
