@@ -1,4 +1,5 @@
 import {
+  columnIndexCodePointsToGraphemes,
   filterEligible,
   groupBy,
   lineColumnToCharacterIndex,
@@ -54,6 +55,40 @@ describe('utils', () => {
         );
 
         expect(value.slice(0, end)).toBe(expectedSelection);
+      },
+    );
+  });
+
+  describe('columnIndexCodePointsToGraphemes', () => {
+    it.each([
+      ['', 0, 0],
+      ['abc', 0, 0],
+      ['abc', 1, 1],
+      ['abc', 3, 3],
+      // 'é': 1 code point, 1 grapheme
+      ['héllo', 1, 1],
+      ['héllo', 2, 2],
+      ['héllo', 3, 3],
+      // Non-BMP emoji: 1 code point, 1 grapheme
+      ['h🎉llo', 1, 1],
+      ['h🎉llo', 2, 2],
+      ['h🎉llo', 5, 5],
+      // Zero-width joiner (ZWJ) sequence (👨‍👩‍👧): 5 code points, 1 grapheme
+      ['a\u{1F468}‍\u{1F469}‍\u{1F467}b', 1, 1],
+      ['a\u{1F468}‍\u{1F469}‍\u{1F467}b', 6, 2],
+      ['a\u{1F468}‍\u{1F469}‍\u{1F467}b', 7, 3],
+      // Regional indicator pair (flag): 2 code points, 1 grapheme
+      ['\u{1F1E9}\u{1F1EA}x', 2, 1],
+      ['\u{1F1E9}\u{1F1EA}x', 3, 2],
+      // Base + combining mark: 2 code points, 1 grapheme
+      ['éx', 2, 1],
+      ['éx', 3, 2],
+    ])(
+      'converts code-point column %#',
+      (line: string, columnIndex: number, expectedGraphemeColumn: number) => {
+        expect(columnIndexCodePointsToGraphemes(line, columnIndex)).toBe(
+          expectedGraphemeColumn,
+        );
       },
     );
   });

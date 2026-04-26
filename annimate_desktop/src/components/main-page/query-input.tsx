@@ -17,7 +17,11 @@ import {
   useSetAqlQuery,
   useSetQueryLanguage,
 } from '@/lib/store';
-import { cn, lineColumnToCharacterIndex } from '@/lib/utils';
+import {
+  cn,
+  columnIndexCodePointsToGraphemes,
+  lineColumnToCharacterIndex,
+} from '@/lib/utils';
 import { CheckSquare2, XSquare } from 'lucide-react';
 import { FC, useId, useRef } from 'react';
 
@@ -130,6 +134,7 @@ export const QueryInput: FC = () => {
 
             <TooltipContent className="max-w-[80vw]">
               <ValidationResultDisplay
+                source={aqlQuery}
                 validationResult={validationResult ?? undefined}
               />
             </TooltipContent>
@@ -158,10 +163,12 @@ const StatusIcon: FC<StatusIconProps> = (props) => {
 };
 
 type ValidationResultDisplayProps = {
+  source: string;
   validationResult?: QueryValidationResult;
 };
 
 const ValidationResultDisplay: FC<ValidationResultDisplayProps> = ({
+  source,
   validationResult,
 }) => {
   if (validationResult === undefined) {
@@ -175,7 +182,10 @@ const ValidationResultDisplay: FC<ValidationResultDisplayProps> = ({
   return (
     <>
       {validationResult.location !== null && (
-        <LocationDisplay location={validationResult.location} />
+        <LocationDisplay
+          location={validationResult.location}
+          source={source}
+        />
       )}
 
       {validationResult.message}
@@ -185,17 +195,34 @@ const ValidationResultDisplay: FC<ValidationResultDisplayProps> = ({
 
 type LocationDisplayProps = {
   location: LineColumnRange;
+  source: string;
 };
 
 const LocationDisplay: FC<LocationDisplayProps> = ({
   location: { start, end },
-}) => (
-  <p className="mr-4 font-mono italic">
-    {start.lineIndex + 1}:{start.columnIndex + 1}
-    {end !== null && (
-      <>
-        -{end.lineIndex + 1}:{end.columnIndex + 1}
-      </>
-    )}
-  </p>
-);
+  source,
+}) => {
+  const lines = source.split('\n');
+  const startColumn = columnIndexCodePointsToGraphemes(
+    lines[start.lineIndex] ?? '',
+    start.columnIndex,
+  );
+  const endColumn =
+    end === null
+      ? null
+      : columnIndexCodePointsToGraphemes(
+          lines[end.lineIndex] ?? '',
+          end.columnIndex,
+        );
+
+  return (
+    <p className="mr-4 font-mono italic">
+      {start.lineIndex + 1}:{startColumn + 1}
+      {end !== null && endColumn !== null && (
+        <>
+          -{end.lineIndex + 1}:{endColumn + 1}
+        </>
+      )}
+    </p>
+  );
+};
