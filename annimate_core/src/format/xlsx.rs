@@ -168,4 +168,10 @@ impl TableWriter for XlsxTableWriter {
 
         Ok(())
     }
+
+    // Worksheet writes are buffered into in-memory state; the actual I/O happens later in
+    // `Workbook::save_to_writer`, which propagates errors directly.
+    fn flush(&mut self) -> Result<(), AnnimateError> {
+        Ok(())
+    }
 }

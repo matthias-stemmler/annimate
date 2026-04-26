@@ -80,6 +80,10 @@ where
     {
         Ok(self.0.write_record(record.into_iter().map(StrAsBytes))?)
     }
+
+    fn flush(&mut self) -> Result<(), AnnimateError> {
+        Ok(self.0.flush()?)
+    }
 }
 
 struct StrAsBytes<S>(S);
@@ -96,5 +100,36 @@ where
 impl From<csv::Error> for AnnimateError {
     fn from(err: csv::Error) -> AnnimateError {
         AnnimateError::Io(err.into())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use std::io;
+
+    use super::*;
+
+    /// `Write` impl that buffers everything and fails on `flush`. Models the disk-full-on-flush
+    /// case where the underlying writer accepts writes but rejects the flush at the end.
+    struct FailOnFlush;
+
+    impl Write for FailOnFlush {
+        fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
+            Ok(buf.len())
+        }
+
+        fn flush(&mut self) -> io::Result<()> {
+            Err(io::Error::other("flush failed"))
+        }
+    }
+
+    #[test]
+    fn csv_table_writer_flush_propagates_underlying_error() {
+        let mut writer = CsvTableWriter::new(FailOnFlush);
+        writer.write_record(["a", "b"]).unwrap();
+
+        let result = TableWriter::flush(&mut writer);
+
+        assert!(result.is_err(), "expected flush error to propagate");
     }
 }

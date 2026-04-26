@@ -1,5 +1,5 @@
 use std::fs;
-use std::io::{self, ErrorKind, Write};
+use std::io::{self, ErrorKind};
 use std::path::Path;
 
 use tempfile::{NamedTempFile, PersistError};
@@ -68,11 +68,16 @@ where
     }
 }
 
-/// Atomically writes to `path` by writing to a temp file in the same directory and renaming.
+/// Writes to `path` by writing to a temp file in the same directory and renaming.
 ///
 /// The closure receives a [`NamedTempFile`] to write into. After it returns successfully, the temp
-/// file is flushed and persisted at `path`. If the rename would cross filesystems, falls back to
-/// copying.
+/// file is flushed and persisted at `path`. The rename is atomic within a single filesystem.
+///
+/// If the rename would cross filesystems (e.g. when `path`'s parent involves bind/overlay mounts
+/// that route the temp file to a different filesystem than the final target), falls back to a
+/// plain `fs::copy`. **The fallback is not atomic**: a concurrent reader can observe a partial
+/// file, and a crash mid-copy leaves the destination truncated. Callers that require crash-safe
+/// updates should ensure `path` lives on a normal, non-overlayed filesystem.
 pub(crate) fn write_atomically<E, F, P>(path: P, write: F) -> Result<(), E>
 where
     E: From<io::Error>,
@@ -92,11 +97,14 @@ where
 
     write(&mut out)?;
 
-    out.flush()?;
+    // Force data blocks to disk before renaming so that a crash after `persist` cannot leave the
+    // destination visible at `path` but pointing to stale or zero contents.
+    out.as_file().sync_data()?;
 
     match out.persist(path) {
         Err(PersistError { error, file }) if error.kind() == ErrorKind::CrossesDevices => {
-            // In case renaming would cross file systems, copy the file instead
+            // In case renaming would cross file systems, copy the file instead.
+            // Note: this fallback is not atomic - see the function doc comment.
             fs::copy(file.path(), path)?;
         }
         result => {
@@ -193,6 +201,8 @@ mod tests {
     }
 
     mod write_atomically {
+        use std::io::Write;
+
         use super::*;
 
         #[test]
