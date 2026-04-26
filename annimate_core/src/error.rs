@@ -50,13 +50,10 @@ pub enum AnnimateError {
     FailedToWriteXlsxWorkbook(#[from] XlsxError),
 
     /// Match node index out of bounds.
-    #[error("Match node index {index} out of bounds, may be at most {max_index}")]
+    #[error("Match node index {index} out of bounds")]
     MatchNodeIndexOutOfBounds {
         /// Match node index.
         index: usize,
-
-        /// Maximal valid index.
-        max_index: usize,
     },
 
     /// Match has no nodes.

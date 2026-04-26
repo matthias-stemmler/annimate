@@ -167,9 +167,8 @@ impl<'a, S> Query<'a, S> {
             .iter()
             .flat_map(ExportData::node_indices)
             .map(|&index| {
-                let max_index = self.nodes.len() - 1;
-                if index > max_index {
-                    Err(AnnimateError::MatchNodeIndexOutOfBounds { index, max_index })
+                if index >= self.nodes.len() {
+                    Err(AnnimateError::MatchNodeIndexOutOfBounds { index })
                 } else {
                     Ok(())
                 }
