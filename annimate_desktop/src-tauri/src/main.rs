@@ -12,6 +12,7 @@ mod state;
 use serde::Serialize;
 use serialize_to_javascript::{DefaultTemplate, Options, Template, default_template};
 use state::AppState;
+use tauri::webview::PageLoadEvent;
 use tauri::{AppHandle, Manager, Webview};
 use tauri_plugin_window_state::{StateFlags, WindowExt};
 
@@ -95,7 +96,11 @@ fn main() {
 
             Ok(())
         })
-        .on_page_load(|webview, _| inject_static_data(webview))
+        .on_page_load(|webview, payload| {
+            if payload.event() == PageLoadEvent::Started {
+                inject_static_data(webview);
+            }
+        })
         .run(tauri::generate_context!())
         .expect("Tauri application should run");
 }
