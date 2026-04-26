@@ -40,11 +40,7 @@ export const columnIndexCodePointsToGraphemes = (
   columnIndex: number,
 ): number => {
   const prefix = [...line].slice(0, columnIndex).join('');
-  let count = 0;
-  for (const _ of GRAPHEME_SEGMENTER.segment(prefix)) {
-    count++;
-  }
-  return count;
+  return [...GRAPHEME_SEGMENTER.segment(prefix)].length;
 };
 
 export const filterEligible = <S, T>(

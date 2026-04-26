@@ -182,10 +182,7 @@ const ValidationResultDisplay: FC<ValidationResultDisplayProps> = ({
   return (
     <>
       {validationResult.location !== null && (
-        <LocationDisplay
-          location={validationResult.location}
-          source={source}
-        />
+        <LocationDisplay location={validationResult.location} source={source} />
       )}
 
       {validationResult.message}
