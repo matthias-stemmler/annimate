@@ -145,7 +145,7 @@ fn inject_static_data(webview: &Webview) {
 //   is false because `tauri build` enables `custom-protocol`.
 // - `cfg!(dev)` is true for `tauri dev --release` (manual update testing), where
 //   `cfg!(debug_assertions)` is false because of the release profile.
-fn is_update_enabled(app_handle: &AppHandle) -> bool {
+fn is_update_enabled(#[allow(unused)] app_handle: &AppHandle) -> bool {
     cfg_select! {
         target_os = "linux" => cfg!(debug_assertions) || cfg!(dev) || app_handle.state::<tauri::Env>().appimage.is_some(),
         _ => true,

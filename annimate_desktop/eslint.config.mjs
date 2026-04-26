@@ -35,7 +35,7 @@ export default defineConfig(
   /***** Custom config *****/
 
   {
-    ignores: ['src-tauri/**', 'dist/**'],
+    ignores: ['dist/**', 'src-tauri/**'],
   },
 
   // Disallow imports without '@/*' and from '@tauri-apps/*'
