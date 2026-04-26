@@ -40,6 +40,8 @@ pub(super) trait TableWriter {
     fn write_record<I>(&mut self, record: I) -> Result<(), AnnimateError>
     where
         I: IntoIterator<Item: AsRef<str>>;
+
+    fn flush(&mut self) -> Result<(), AnnimateError>;
 }
 
 pub(super) fn export<F, G, I, W>(
@@ -168,6 +170,8 @@ where
             }
         }))?;
     }
+
+    out.flush()?;
 
     Ok(())
 }
@@ -552,6 +556,10 @@ mod tests {
             self.0
                 .push(record.into_iter().map(|s| s.as_ref().into()).collect());
 
+            Ok(())
+        }
+
+        fn flush(&mut self) -> Result<(), AnnimateError> {
             Ok(())
         }
     }
