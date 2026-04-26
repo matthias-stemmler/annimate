@@ -1,7 +1,7 @@
 use std::cmp::Reverse;
 use std::collections::BinaryHeap;
 use std::sync::Mutex;
-use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::atomic::{AtomicUsize, Ordering};
 use std::time::Duration;
 
 use tokio::sync::Notify;
@@ -11,7 +11,7 @@ use tokio::sync::Notify;
 /// Items that become ready at the same time are processed according to their [Ord] implementation.
 pub(crate) struct DelayedQueue<T> {
     queue: Mutex<BinaryHeap<Reverse<Item<T>>>>,
-    suspended: AtomicBool,
+    suspend_count: AtomicUsize,
     notify: Notify,
 }
 
@@ -33,7 +33,7 @@ where
     pub(crate) fn new() -> Self {
         Self {
             queue: Mutex::new(BinaryHeap::new()),
-            suspended: AtomicBool::new(false),
+            suspend_count: AtomicUsize::new(0),
             notify: Notify::new(),
         }
     }
@@ -55,12 +55,13 @@ where
     }
 
     pub(crate) fn suspend(&self) {
-        self.suspended.store(true, Ordering::Relaxed);
+        self.suspend_count.fetch_add(1, Ordering::Relaxed);
     }
 
     pub(crate) fn resume(&self) {
-        self.suspended.store(false, Ordering::Relaxed);
-        self.notify.notify_one();
+        if self.suspend_count.fetch_sub(1, Ordering::Relaxed) == 1 {
+            self.notify.notify_one();
+        }
     }
 
     pub(crate) async fn pop(&self) -> T {
@@ -78,7 +79,7 @@ where
     }
 
     fn pop_if_ready(&self) -> MaybeReady<T> {
-        if self.suspended.load(Ordering::Relaxed) {
+        if self.suspend_count.load(Ordering::Relaxed) > 0 {
             return MaybeReady::NotReady(None);
         }
 
@@ -122,5 +123,37 @@ mod tests {
         let value = queue.pop().await;
         assert_eq!(value, 2);
         assert_eq!(now.elapsed(), Duration::from_secs(2));
+    }
+
+    #[tokio::test(start_paused = true)]
+    async fn delayed_queue_nested_suspend_keeps_queue_suspended() {
+        let queue = DelayedQueue::new();
+        let now = tokio::time::Instant::now();
+
+        queue.push(1, now);
+
+        queue.suspend();
+        queue.suspend();
+
+        // Both suspensions held: pop must not return.
+        assert!(
+            tokio::time::timeout(Duration::from_secs(60), queue.pop())
+                .await
+                .is_err()
+        );
+
+        queue.resume();
+
+        // Outer suspension still held: pop must still not return.
+        assert!(
+            tokio::time::timeout(Duration::from_secs(60), queue.pop())
+                .await
+                .is_err()
+        );
+
+        queue.resume();
+
+        // All suspensions released: pop returns immediately.
+        assert_eq!(queue.pop().await, 1);
     }
 }
