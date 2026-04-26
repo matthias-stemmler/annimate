@@ -162,7 +162,13 @@ export const useDeleteCorpusMutation = ({
   const mutation = useMutation({
     mutationFn: (args: { corpusName: string }) => deleteCorpus(args),
     onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: [QUERY_KEY_CORPORA] });
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: [QUERY_KEY_CORPORA] }),
+        queryClient.invalidateQueries({
+          queryKey: [QUERY_KEY_EXPORTABLE_ANNO_KEYS],
+        }),
+        queryClient.invalidateQueries({ queryKey: [QUERY_KEY_SEGMENTATIONS] }),
+      ]);
       await onSuccess?.();
     },
   });
@@ -189,8 +195,21 @@ export const useDeleteCorpusSetMutation = ({
       await onSuccess?.(variables);
     },
     // Also invalidate query on error because a subset of the corpora may have been deleted
-    onSettled: async () => {
-      await queryClient.invalidateQueries({ queryKey: [QUERY_KEY_CORPORA] });
+    onSettled: async (_data, _error, variables) => {
+      const invalidations = [
+        queryClient.invalidateQueries({ queryKey: [QUERY_KEY_CORPORA] }),
+      ];
+      if (variables.deleteCorpora) {
+        invalidations.push(
+          queryClient.invalidateQueries({
+            queryKey: [QUERY_KEY_EXPORTABLE_ANNO_KEYS],
+          }),
+          queryClient.invalidateQueries({
+            queryKey: [QUERY_KEY_SEGMENTATIONS],
+          }),
+        );
+      }
+      await Promise.all(invalidations);
       await onSettled?.();
     },
   });
