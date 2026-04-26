@@ -100,10 +100,14 @@ pub(crate) async fn export_matches(
         storage.export_matches(
             spec.try_into()?,
             output_file,
-            |status_event| {
-                event_channel
-                    .send(status_event)
-                    .expect("sending export status should succeed");
+            {
+                let cancel_requested = Arc::clone(&cancel_requested);
+                move |status_event| {
+                    if event_channel.send(status_event).is_err() {
+                        // Defensive: `send` shouldn't fail in practice, but cancel just in case
+                        cancel_requested.store(true, Ordering::Relaxed);
+                    }
+                }
             },
             || cancel_requested.load(Ordering::Relaxed),
         )?;
@@ -205,10 +209,14 @@ pub(crate) async fn import_corpora(
 
         let corpus_names = storage.import_corpora(
             paths,
-            |status_event| {
-                event_channel
-                    .send(status_event)
-                    .expect("sending import status should succeed");
+            {
+                let cancel_requested = Arc::clone(&cancel_requested);
+                move |status_event| {
+                    if event_channel.send(status_event).is_err() {
+                        // Defensive: `send` shouldn't fail in practice, but cancel just in case
+                        cancel_requested.store(true, Ordering::Relaxed);
+                    }
+                }
             },
             || cancel_requested.load(Ordering::Relaxed),
         )?;
