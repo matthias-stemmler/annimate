@@ -113,11 +113,11 @@ export type QueryValidationError = {
 };
 
 export type LineColumnRange = {
-  start: LineColumn;
-  end: LineColumn | null;
+  start: LineColumnIndex;
+  end: LineColumnIndex | null;
 };
 
-export type LineColumn = {
+export type LineColumnIndex = {
   lineIndex: number;
   columnIndex: number;
 };

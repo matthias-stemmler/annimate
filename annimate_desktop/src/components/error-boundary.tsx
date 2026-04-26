@@ -2,6 +2,12 @@ import { ErrorAlert } from '@/components/error-alert';
 import { Component, PropsWithChildren } from 'react';
 import { useRouteError } from 'react-router';
 
+// Error handling policy:
+// - Query (data-load) failures throw so this boundary renders ErrorAlert.
+//   Without the data, the surrounding UI cannot render meaningfully.
+// - Mutation (user-action) failures report via toast, leaving the
+//   existing UI usable so the user can retry or take a different path.
+
 type ErrorBoundaryState = {
   error?: Error;
 };
