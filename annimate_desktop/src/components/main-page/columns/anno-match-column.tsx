@@ -73,16 +73,19 @@ const QueryNodeSelect: FC<QueryNodeSelectProps> = ({
       loading={isPending}
       onChange={(value) => {
         const index = parseInt(value);
-        const variables = nodes[index].map((n) => n.variable);
+        const group = nodes[index];
+        if (group === undefined) {
+          return;
+        }
 
         onChange?.({
           index,
-          variables,
+          variables: group.map((n) => n.variable),
         });
       }}
       options={nodes.map(
-        (ns, i): SelectOption<`${number}`> => ({
-          caption: <QueryNodesDisplay queryNodes={ns} />,
+        (group, i): SelectOption<`${number}`> => ({
+          caption: <QueryNodesDisplay queryNodes={group} />,
           value: `${i}`,
         }),
       )}
