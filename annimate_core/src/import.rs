@@ -127,6 +127,7 @@ where
                 extract_zip(
                     &location,
                     &extracted_archive_path.temp_dir,
+                    &on_progress,
                     &cancel_requested,
                 )?;
 
@@ -356,13 +357,15 @@ enum ImportPathType {
     Directory,
 }
 
-fn extract_zip<F, P, Q>(
+fn extract_zip<F, G, P, Q>(
     zip_path: P,
     output_dir: Q,
-    cancel_requested: F,
+    on_progress: F,
+    cancel_requested: G,
 ) -> Result<(), AnnimateError>
 where
-    F: Fn() -> bool,
+    F: Fn(&str),
+    G: Fn() -> bool,
     P: AsRef<Path>,
     Q: AsRef<Path>,
 {
@@ -373,16 +376,22 @@ where
 
         let mut entry = archive.by_index(i)?;
 
-        if let Some(enclosed_path) = entry.enclosed_name() {
-            let output_path = output_dir.as_ref().join(enclosed_path);
+        match entry.enclosed_name() {
+            Some(enclosed_path) => {
+                let output_path = output_dir.as_ref().join(enclosed_path);
 
-            if entry.is_dir() {
-                fs::create_dir_all(output_path)?;
-            } else if let Some(parent) = output_path.parent() {
-                fs::create_dir_all(parent)?;
-                let mut output_file = File::create(&output_path)?;
-                io::copy(&mut entry, &mut output_file)?;
+                if entry.is_dir() {
+                    fs::create_dir_all(output_path)?;
+                } else if let Some(parent) = output_path.parent() {
+                    fs::create_dir_all(parent)?;
+                    let mut output_file = File::create(&output_path)?;
+                    io::copy(&mut entry, &mut output_file)?;
+                }
             }
+            None => on_progress(&format!(
+                "skipping zip entry with unsafe path: {}",
+                entry.name(),
+            )),
         }
     }
 
