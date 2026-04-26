@@ -119,12 +119,12 @@ impl Storage {
 
     /// Deletes a corpus.
     pub fn delete_corpus(&self, corpus_name: &str) -> Result<(), AnnimateError> {
-        self.delete_corpus_with_cache(corpus_name)?;
         self.metadata_storage.update_corpus_sets(|corpus_sets| {
             for CorpusSet { corpus_names } in corpus_sets.values_mut() {
                 corpus_names.remove(corpus_name);
             }
         })?;
+        self.delete_corpus_with_cache(corpus_name)?;
 
         Ok(())
     }
@@ -237,9 +237,9 @@ impl Storage {
             };
 
             let mut deleted_corpus_names = Vec::new();
-            let corpus_names = &mut entry.get_mut().corpus_names;
 
             if delete_corpora {
+                let corpus_names = &mut entry.get_mut().corpus_names;
                 while let Some(corpus_name) = corpus_names.pop_first() {
                     match self.delete_corpus_with_cache(&corpus_name) {
                         Ok(_) => deleted_corpus_names.push(corpus_name),
@@ -253,7 +253,10 @@ impl Storage {
             if failed_corpus_names.is_empty() {
                 entry.remove();
             } else {
-                corpus_names.extend(failed_corpus_names.clone());
+                entry
+                    .get_mut()
+                    .corpus_names
+                    .extend(failed_corpus_names.clone());
             }
 
             for corpus_name in deleted_corpus_names {
@@ -279,16 +282,18 @@ impl Storage {
         new_corpus_set_name: String,
     ) -> Result<(), AnnimateError> {
         self.metadata_storage.try_update_corpus_sets(|corpus_sets| {
-            match corpus_sets.remove(corpus_set_name) {
-                Some(corpus_set) => match corpus_sets.entry(new_corpus_set_name) {
-                    Entry::Vacant(entry) => {
-                        entry.insert(corpus_set);
-                        Ok(())
-                    }
-                    Entry::Occupied(_) => Err(AnnimateError::CorpusSetAlreadyExists),
-                },
-                None => Ok(()),
+            if !corpus_sets.contains_key(corpus_set_name) {
+                return Ok(());
             }
+            if corpus_set_name == new_corpus_set_name {
+                return Ok(());
+            }
+            if corpus_sets.contains_key(&new_corpus_set_name) {
+                return Err(AnnimateError::CorpusSetAlreadyExists);
+            }
+            let corpus_set = corpus_sets.remove(corpus_set_name).unwrap();
+            corpus_sets.insert(new_corpus_set_name, corpus_set);
+            Ok(())
         })
     }
 
