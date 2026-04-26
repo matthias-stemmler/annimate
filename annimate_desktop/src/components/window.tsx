@@ -173,7 +173,7 @@ export const Window: FC = () => {
               <MenubarSeparator />
 
               <MenubarItem
-                onClick={() => {
+                onSelect={() => {
                   exit(0);
                 }}
               >

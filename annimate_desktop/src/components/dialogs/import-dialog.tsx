@@ -636,13 +636,13 @@ const MessagesDisplay: FC<MessagesDisplayProps> = ({ messages }) => {
     if (autoscroll) {
       scrollToBottom(scrollAreaViewportRef);
     }
-  }, [autoscroll, messages, scrollAreaViewportRef]);
+  }, [autoscroll, messages]);
 
   useEffect(() => {
     if (!isScrolledToBottom(scrollAreaViewportRef)) {
       setHasUnreadMessages(true);
     }
-  }, [messages, scrollAreaViewportRef]);
+  }, [messages]);
 
   return (
     <div className="flex">
@@ -670,10 +670,7 @@ const MessagesDisplay: FC<MessagesDisplayProps> = ({ messages }) => {
                   if (index !== currentIndex) {
                     if (currentIndex !== undefined) {
                       yield (
-                        <Separator
-                          key={`separator-${index}`}
-                          className="my-2"
-                        />
+                        <Separator key={`separator-${id}`} className="my-2" />
                       );
                     }
 

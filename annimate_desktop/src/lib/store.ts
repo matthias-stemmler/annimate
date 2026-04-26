@@ -762,9 +762,7 @@ export const useSetAqlQuery = (): ((aqlQuery: string) => void) => {
   const debounceTimeoutRef = useAqlQueryDebounceTimeoutRef();
 
   return (aqlQuery: string) => {
-    setState(() => ({
-      aqlQuery,
-    }));
+    setState({ aqlQuery });
 
     if (debounceTimeoutRef.current !== undefined) {
       window.clearTimeout(debounceTimeoutRef.current);
@@ -772,15 +770,11 @@ export const useSetAqlQuery = (): ((aqlQuery: string) => void) => {
     }
 
     if (aqlQuery === '') {
-      setState(() => ({
-        aqlQueryDebounced: '',
-      }));
+      setState({ aqlQueryDebounced: '' });
     } else {
       debounceTimeoutRef.current = window.setTimeout(() => {
         debounceTimeoutRef.current = undefined;
-        setState(() => ({
-          aqlQueryDebounced: aqlQuery,
-        }));
+        setState({ aqlQueryDebounced: aqlQuery });
       }, 300);
     }
   };
@@ -847,6 +841,9 @@ export const useUpdateExportColumn = (): ((
     }));
 
   return async (id: number, { type, payload }: ExportColumnUpdate) => {
+    // `switch (true)` lets each case narrow `type` and `payload.type`
+    // together, which is needed because `update_anno_key` is shared across
+    // all column types while other payload types are specific to one.
     switch (true) {
       case payload.type === 'update_anno_key': {
         update(id, type, () => ({ annoKey: payload.annoKey }));
@@ -873,13 +870,9 @@ export const useUpdateExportColumn = (): ((
 
       case type === 'match_in_context' &&
         payload.type === 'toggle_primary_node_ref': {
-        if (type !== 'match_in_context') {
-          return;
-        }
-
         const queryNodes = await getQueryNodes();
 
-        update(id, type, (c: ExportColumnData<'match_in_context'>) => {
+        update(id, type, (c) => {
           const { primaryNodeRefs, secondaryNodeRefs } =
             distributeQueryNodeRefs(
               toNodeRefs(queryNodes),
@@ -913,13 +906,9 @@ export const useUpdateExportColumn = (): ((
 
       case type === 'match_in_context' &&
         payload.type === 'reorder_primary_node_refs': {
-        if (type !== 'match_in_context') {
-          return;
-        }
-
         const queryNodes = await getQueryNodes();
 
-        update(id, type, (c: ExportColumnData<'match_in_context'>) => {
+        update(id, type, (c) => {
           const { primaryNodeRefs, secondaryNodeRefs } =
             distributeQueryNodeRefs(
               toNodeRefs(queryNodes),

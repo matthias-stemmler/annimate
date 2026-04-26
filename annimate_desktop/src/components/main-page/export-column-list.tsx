@@ -169,7 +169,7 @@ const ExportColumnListItem: FC<ExportColumnListItemProps> = ({
       localRef.current?.scrollIntoView({ behavior: 'smooth' });
       scrolledIntoViewRef.current = true;
     }
-  }, [localRef, scrolledIntoViewRef]);
+  }, []);
 
   return (
     <Card
