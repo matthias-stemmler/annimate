@@ -1,6 +1,9 @@
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
+const GRAPHEME_SEGMENTER = new Intl.Segmenter(undefined, {
+  granularity: 'grapheme',
+});
 const LOCALE = 'en-US';
 const PERCENTAGE_FORMAT = new Intl.NumberFormat(LOCALE, { style: 'percent' });
 
@@ -27,6 +30,21 @@ export const lineColumnToCharacterIndex = (
     .join('').length;
 
   return numCharsBeforeLine + columnOffset;
+};
+
+// Converts a code-point-based column index (as produced by the Rust backend) to
+// a grapheme-cluster column index, so that displayed positions count the same
+// way the textarea moves the caret/selection on cursor keys.
+export const columnIndexCodePointsToGraphemes = (
+  line: string,
+  columnIndex: number,
+): number => {
+  const prefix = [...line].slice(0, columnIndex).join('');
+  let count = 0;
+  for (const _ of GRAPHEME_SEGMENTER.segment(prefix)) {
+    count++;
+  }
+  return count;
 };
 
 export const filterEligible = <S, T>(
