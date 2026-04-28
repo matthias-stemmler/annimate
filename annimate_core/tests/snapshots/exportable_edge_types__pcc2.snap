@@ -1,0 +1,38 @@
+---
+source: annimate_core/tests/exportable_edge_types.rs
+info:
+  corpus_paths:
+    - pcc2_v7_relANNIS.zip
+  corpus_names:
+    - pcc2
+---
+[
+    ExportableEdgeType {
+        ctype: Dominance,
+        name: "",
+    },
+    ExportableEdgeType {
+        ctype: Dominance,
+        name: "edge",
+    },
+    ExportableEdgeType {
+        ctype: Dominance,
+        name: "multinuc",
+    },
+    ExportableEdgeType {
+        ctype: Dominance,
+        name: "rst",
+    },
+    ExportableEdgeType {
+        ctype: Dominance,
+        name: "secedge",
+    },
+    ExportableEdgeType {
+        ctype: Pointing,
+        name: "anaphor_antecedent",
+    },
+    ExportableEdgeType {
+        ctype: Pointing,
+        name: "dep",
+    },
+]

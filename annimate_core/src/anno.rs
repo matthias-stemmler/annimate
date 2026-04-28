@@ -161,6 +161,37 @@ where
     Ok(fallback_anno_key)
 }
 
+pub(crate) fn exportable_edge_types<S>(
+    corpus_storage: &CorpusStorage,
+    corpus_names: &[S],
+) -> Result<Vec<ExportableEdgeType>, GraphAnnisError>
+where
+    S: AsRef<str>,
+{
+    let mut exportable_edge_types = BTreeSet::new();
+
+    for (corpus_name, ctype) in corpus_names.iter().cartesian_product([
+        AnnotationComponentType::Dominance,
+        AnnotationComponentType::Pointing,
+    ]) {
+        let components = corpus_storage.list_components(corpus_name.as_ref(), Some(ctype), None)?;
+
+        exportable_edge_types.extend(components.into_iter().map(|component| ExportableEdgeType {
+            ctype: component.get_type(),
+            name: component.name,
+        }));
+    }
+
+    Ok(exportable_edge_types.into_iter().collect())
+}
+
+/// Information about which edge types and annotations are available for export.
+#[derive(Debug, Eq, Ord, PartialEq, PartialOrd)]
+pub struct ExportableEdgeType {
+    ctype: AnnotationComponentType,
+    name: String,
+}
+
 pub(crate) fn get_anno(
     graph: &AnnotationGraph,
     node_id: NodeID,
@@ -452,6 +483,60 @@ pub(crate) fn is_node_name_anno_key(anno_key: &AnnoKey) -> bool {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn exportable_edge_type_ord_orders_dominance_before_pointing_then_by_name() {
+        let mut exportable_edge_types = vec![
+            ExportableEdgeType {
+                ctype: AnnotationComponentType::Pointing,
+                name: "b".into(),
+            },
+            ExportableEdgeType {
+                ctype: AnnotationComponentType::Dominance,
+                name: "b".into(),
+            },
+            ExportableEdgeType {
+                ctype: AnnotationComponentType::Dominance,
+                name: "".into(),
+            },
+            ExportableEdgeType {
+                ctype: AnnotationComponentType::Pointing,
+                name: "a".into(),
+            },
+            ExportableEdgeType {
+                ctype: AnnotationComponentType::Dominance,
+                name: "a".into(),
+            },
+        ];
+
+        exportable_edge_types.sort();
+
+        assert_eq!(
+            exportable_edge_types,
+            vec![
+                ExportableEdgeType {
+                    ctype: AnnotationComponentType::Dominance,
+                    name: "".into(),
+                },
+                ExportableEdgeType {
+                    ctype: AnnotationComponentType::Dominance,
+                    name: "a".into(),
+                },
+                ExportableEdgeType {
+                    ctype: AnnotationComponentType::Dominance,
+                    name: "b".into(),
+                },
+                ExportableEdgeType {
+                    ctype: AnnotationComponentType::Pointing,
+                    name: "a".into(),
+                },
+                ExportableEdgeType {
+                    ctype: AnnotationComponentType::Pointing,
+                    name: "b".into(),
+                },
+            ]
+        )
+    }
 
     #[test]
     fn anno_key_format() {
