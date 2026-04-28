@@ -28,7 +28,7 @@ mod query;
 mod util;
 mod version;
 
-pub use anno::{AnnoKeyOrDefault, ExportableAnnoKey, ExportableAnnoKeys};
+pub use anno::{AnnoKeyOrDefault, ExportableAnnoKey, ExportableAnnoKeys, ExportableEdgeType};
 pub use aql::{
     LineColumnIndex, LineColumnRange, QueryAnalysisResult, QueryNode, QueryNodes,
     QueryValidationError,
@@ -378,6 +378,22 @@ impl Storage {
                 .into_exportable();
 
         Ok(exportable_anno_keys)
+    }
+
+    /// Returns all exportable edge types for the given corpora together with their annotations.
+    ///
+    /// This collects all exportable edge types that appear in *at least one* of the given corpora.
+    pub fn exportable_edge_types<S>(
+        &self,
+        corpus_names: &[S],
+    ) -> Result<Vec<ExportableEdgeType>, AnnimateError>
+    where
+        S: AsRef<str>,
+    {
+        let exportable_edge_types =
+            anno::exportable_edge_types(&self.corpus_storage, corpus_names)?;
+
+        Ok(exportable_edge_types)
     }
 
     /// Returns all segmentations for the given corpora.
