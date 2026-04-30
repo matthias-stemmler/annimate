@@ -7,8 +7,8 @@ use std::sync::atomic::{AtomicBool, Ordering};
 
 use annimate_core::{
     AnnoKey, AnnoKeyOrDefault, Corpora, CsvExportConfig, ExportConfig, ExportData, ExportDataAnno,
-    ExportDataText, ExportStatusEvent, ExportableAnnoKeys, ImportStatusEvent, QueryAnalysisResult,
-    QueryLanguage, QueryNode, QueryNodes, TableExportColumn, XlsxExportConfig,
+    ExportDataText, ExportStatusEvent, ExportableNodeAnnoKeys, ImportStatusEvent,
+    QueryAnalysisResult, QueryLanguage, QueryNode, QueryNodes, TableExportColumn, XlsxExportConfig,
 };
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
@@ -130,18 +130,20 @@ pub(crate) async fn get_db_dir(state: tauri::State<'_, AppState>) -> Result<Path
 }
 
 #[tauri::command]
-pub(crate) async fn get_exportable_anno_keys(
+pub(crate) async fn get_exportable_node_anno_keys(
     state: tauri::State<'_, AppState>,
     corpus_names: Vec<String>,
-) -> Result<ExportableAnnoKeys, Error> {
+) -> Result<ExportableNodeAnnoKeys, Error> {
     // Suspend preloading to avoid slowdown due to parallel loads (in case of cache miss)
     let preloader = state.preloader.wait().await.clone()?;
     let _guard = preloader.suspend();
 
     let storage = state.storage.wait().await.clone()?;
 
-    tauri::async_runtime::spawn_blocking(move || Ok(storage.exportable_anno_keys(&corpus_names)?))
-        .await?
+    tauri::async_runtime::spawn_blocking(move || {
+        Ok(storage.exportable_node_anno_keys(&corpus_names)?)
+    })
+    .await?
 }
 
 #[tauri::command]

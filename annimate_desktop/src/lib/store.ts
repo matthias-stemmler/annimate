@@ -8,7 +8,7 @@ import {
   ExportFormat,
   ExportSpec,
   ExportableAnnoKey,
-  ExportableAnnoKeys,
+  ExportableNodeAnnoKeys,
   QueryLanguage,
   QueryNode,
   QueryNodeRef,
@@ -27,9 +27,9 @@ import {
 import {
   UseGetQueryDataOptions,
   useCorporaQuery,
-  useExportableAnnoKeysQuery,
+  useExportableNodeAnnoKeysQuery,
   useGetCorporaQueryData,
-  useGetExportableAnnoKeysQueryData,
+  useGetExportableNodeAnnoKeysQueryData,
   useGetQueryNodesQueryData,
   useGetQueryValidationResultQueryData,
   useGetSegmentationsQueryData,
@@ -321,13 +321,13 @@ const useGetQueryLanguage = (): (() => QueryLanguage) => {
 };
 
 export const useExportColumnItems = (): ExportColumnItem[] => {
-  const exportableAnnoKeys = useExportableAnnoKeys();
+  const exportableNodeAnnoKeys = useExportableNodeAnnoKeys();
   const queryNodes = useQueryNodes();
   const segmentations = useSegmentations();
   const exportColumns = useSelector((state) => state.exportColumns);
 
   return toExportColumns(
-    exportableAnnoKeys.data,
+    exportableNodeAnnoKeys.data,
     queryNodes.data,
     segmentations.data,
     exportColumns,
@@ -340,8 +340,8 @@ const useGetExportColumns = <Wait extends boolean = true>(
   const getSelectedCorpusNamesInSelectedSet =
     useGetSelectedCorpusNamesInSelectedSet(options);
 
-  const getExportableAnnoKeysQueryData =
-    useGetExportableAnnoKeysQueryData(options);
+  const getExportableNodeAnnoKeysQueryData =
+    useGetExportableNodeAnnoKeysQueryData(options);
   const getSegmentationsQueryData = useGetSegmentationsQueryData(options);
   const getQueryNodes = useGetQueryNodes(options);
 
@@ -349,14 +349,14 @@ const useGetExportColumns = <Wait extends boolean = true>(
 
   return async () => {
     const corpusNames = await getSelectedCorpusNamesInSelectedSet();
-    const exportableAnnoKeys = await getExportableAnnoKeysQueryData({
+    const exportableNodeAnnoKeys = await getExportableNodeAnnoKeysQueryData({
       corpusNames,
     });
     const queryNodes = await getQueryNodes();
     const segmentations = await getSegmentationsQueryData({ corpusNames });
     const { exportColumns } = getState();
     return toExportColumns(
-      exportableAnnoKeys,
+      exportableNodeAnnoKeys,
       queryNodes,
       segmentations,
       exportColumns,
@@ -379,7 +379,7 @@ const useGetQueryNodes = <Wait extends boolean = true>(
 };
 
 const toExportColumns = (
-  exportableAnnoKeys: ExportableAnnoKeys | undefined,
+  exportableNodeAnnoKeys: ExportableNodeAnnoKeys | undefined,
   queryNodes: QueryNodesResult | undefined,
   segmentations: string[] | undefined,
   exportColumns: ExportColumnItem[],
@@ -392,7 +392,7 @@ const toExportColumns = (
           return {
             ...column,
             annoKey: filterEligibleAnnoKey(
-              exportableAnnoKeys?.corpus,
+              exportableNodeAnnoKeys?.corpus,
               column.annoKey,
             ),
           };
@@ -401,7 +401,7 @@ const toExportColumns = (
           return {
             ...column,
             annoKey: filterEligibleAnnoKey(
-              exportableAnnoKeys?.doc,
+              exportableNodeAnnoKeys?.doc,
               column.annoKey,
             ),
           };
@@ -410,7 +410,7 @@ const toExportColumns = (
           return {
             ...column,
             annoKey: filterEligibleAnnoKey(
-              exportableAnnoKeys?.node,
+              exportableNodeAnnoKeys?.node,
               column.annoKey,
             ),
             nodeRef: findEligibleQueryNodeRef(
@@ -441,7 +441,7 @@ const toExportColumns = (
                   ? undefined
                   : 'default'
                 : filterEligibleAnnoKey(
-                    exportableAnnoKeys?.node,
+                    exportableNodeAnnoKeys?.node,
                     column.annoKey,
                   ),
             primaryNodeRefs,
@@ -1057,11 +1057,11 @@ export const useSegmentations = (): UseSlowTrackingQueryResult<string[]> => {
   });
 };
 
-export const useExportableAnnoKeys =
-  (): UseSlowTrackingQueryResult<ExportableAnnoKeys> => {
+export const useExportableNodeAnnoKeys =
+  (): UseSlowTrackingQueryResult<ExportableNodeAnnoKeys> => {
     const selectedCorpusNames = useSelectedCorpusNamesInSelectedSet();
 
-    return useExportableAnnoKeysQuery({
+    return useExportableNodeAnnoKeysQuery({
       corpusNames: selectedCorpusNames,
     });
   };

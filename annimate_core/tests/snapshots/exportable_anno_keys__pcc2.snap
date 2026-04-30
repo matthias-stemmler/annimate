@@ -6,7 +6,7 @@ info:
   corpus_names:
     - pcc2
 ---
-ExportableAnnoKeys {
+ExportableNodeAnnoKeys {
     corpus: [
         ExportableAnnoKey {
             anno_key: AnnoKey {

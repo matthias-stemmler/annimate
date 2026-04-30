@@ -19,7 +19,7 @@ import { AnnoKey, QueryNode, QueryNodeRef } from '@/lib/api-types';
 import {
   CONTEXT_MAX,
   CONTEXT_MIN,
-  useExportableAnnoKeys,
+  useExportableNodeAnnoKeys,
   useIsExporting,
   useQueryNodes,
   useSegmentations,
@@ -235,10 +235,10 @@ export const SegmentationAnnoSelect: FC<SegmentationAnnoSelectProps> = ({
   segmentation,
 }) => {
   const {
-    data: exportableAnnoKeys,
+    data: exportableNodeAnnoKeys,
     error,
     isPending,
-  } = useExportableAnnoKeys();
+  } = useExportableNodeAnnoKeys();
   const isExporting = useIsExporting();
   const disabled = isExporting;
 
@@ -246,7 +246,7 @@ export const SegmentationAnnoSelect: FC<SegmentationAnnoSelectProps> = ({
     throw new Error(`Failed to load exportable annotations: ${error.message}`);
   }
 
-  const exportableNodeAnnoKeys = exportableAnnoKeys?.node ?? [];
+  const exportableAnnoKeysForNode = exportableNodeAnnoKeys?.node ?? [];
   const DEFAULT_VALUE = '-';
 
   return (
@@ -270,7 +270,7 @@ export const SegmentationAnnoSelect: FC<SegmentationAnnoSelectProps> = ({
                     value: DEFAULT_VALUE,
                   },
                 ]),
-            ...exportableNodeAnnoKeys
+            ...exportableAnnoKeysForNode
               .filter((e) => e.annoKey.ns !== 'annis')
               .map(({ displayName, annoKey }) => ({
                 caption: <span className="font-mono">{displayName}</span>,
@@ -281,7 +281,7 @@ export const SegmentationAnnoSelect: FC<SegmentationAnnoSelectProps> = ({
         {
           groupKey: 'annis',
           groupCaption: 'ANNIS',
-          groupItems: exportableNodeAnnoKeys
+          groupItems: exportableAnnoKeysForNode
             .filter((e) => e.annoKey.ns === 'annis')
             .map(({ displayName, annoKey }) => ({
               caption: <span className="font-mono">{displayName}</span>,

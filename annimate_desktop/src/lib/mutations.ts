@@ -27,7 +27,7 @@ import {
 } from '@/lib/api-types';
 import {
   QUERY_KEY_CORPORA,
-  QUERY_KEY_EXPORTABLE_ANNO_KEYS,
+  QUERY_KEY_EXPORTABLE_NODE_ANNO_KEYS,
   QUERY_KEY_SEGMENTATIONS,
 } from '@/lib/queries';
 import {
@@ -132,7 +132,7 @@ export const useClearCacheMutation = () => {
     // Also invalidate queries on error because a subset of the corpus caches may have been invalidated
     onSettled: () => {
       queryClient.invalidateQueries({
-        queryKey: [QUERY_KEY_EXPORTABLE_ANNO_KEYS],
+        queryKey: [QUERY_KEY_EXPORTABLE_NODE_ANNO_KEYS],
       });
       queryClient.invalidateQueries({ queryKey: [QUERY_KEY_SEGMENTATIONS] });
     },
@@ -165,7 +165,7 @@ export const useDeleteCorpusMutation = ({
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: [QUERY_KEY_CORPORA] }),
         queryClient.invalidateQueries({
-          queryKey: [QUERY_KEY_EXPORTABLE_ANNO_KEYS],
+          queryKey: [QUERY_KEY_EXPORTABLE_NODE_ANNO_KEYS],
         }),
         queryClient.invalidateQueries({ queryKey: [QUERY_KEY_SEGMENTATIONS] }),
       ]);
@@ -202,7 +202,7 @@ export const useDeleteCorpusSetMutation = ({
       if (variables.deleteCorpora) {
         invalidations.push(
           queryClient.invalidateQueries({
-            queryKey: [QUERY_KEY_EXPORTABLE_ANNO_KEYS],
+            queryKey: [QUERY_KEY_EXPORTABLE_NODE_ANNO_KEYS],
           }),
           queryClient.invalidateQueries({
             queryKey: [QUERY_KEY_SEGMENTATIONS],
