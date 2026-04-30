@@ -2,7 +2,7 @@ import {
   Corpora,
   ExportSpec,
   ExportStatusEvent,
-  ExportableAnnoKeys,
+  ExportableNodeAnnoKeys,
   ImportStatusEvent,
   Project,
   QueryLanguage,
@@ -74,9 +74,10 @@ export const getCorpora = (): Promise<Corpora> => invoke('get_corpora');
 
 export const getDbDir = (): Promise<string> => invoke('get_db_dir');
 
-export const getExportableAnnoKeys = (params: {
+export const getExportableNodeAnnoKeys = (params: {
   corpusNames: string[];
-}): Promise<ExportableAnnoKeys> => invoke('get_exportable_anno_keys', params);
+}): Promise<ExportableNodeAnnoKeys> =>
+  invoke('get_exportable_node_anno_keys', params);
 
 export const getQueryNodes = (params: {
   aqlQuery: string;

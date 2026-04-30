@@ -11,8 +11,8 @@ use serde::Deserialize;
 const DB_DIR: &str = concat!(env!("CARGO_TARGET_TMPDIR"), "/tests/cache/db");
 
 #[test]
-fn caching_exportable_anno_keys_and_segmentations() {
-    let db_dir = Path::new(DB_DIR).join("caching_exportable_anno_keys_and_segmentations");
+fn caching_exportable_node_anno_keys_and_segmentations() {
+    let db_dir = Path::new(DB_DIR).join("caching_exportable_node_anno_keys_and_segmentations");
     let _ = fs::remove_dir_all(&db_dir);
 
     create_corpus_with_ordering_components(
@@ -65,12 +65,12 @@ fn deleted_corpus_is_evicted_from_memory_cache() {
     let storage = Storage::from_db_dir(db_dir.clone()).unwrap();
 
     // Fill cache
-    storage.exportable_anno_keys(&["test_corpus"]).unwrap();
+    storage.exportable_node_anno_keys(&["test_corpus"]).unwrap();
 
     storage.delete_corpus("test_corpus").unwrap();
 
     // Corpus not found -> corpus has been evicted from in-memory cache
-    assert!(storage.exportable_anno_keys(&["test_corpus"]).is_err());
+    assert!(storage.exportable_node_anno_keys(&["test_corpus"]).is_err());
 }
 
 #[test]
@@ -177,8 +177,9 @@ fn add_corpus_anno(db_dir: &Path, corpus_name: &str, anno_name: &str) {
 
 fn get_exportable_node_anno_keys(db_dir: &Path, corpus_name: &str) -> Vec<String> {
     let storage = Storage::from_db_dir(db_dir.into()).unwrap();
-    let ExportableAnnoKeys { node } = serde_json::from_str(
-        &serde_json::to_string(&storage.exportable_anno_keys(&[corpus_name]).unwrap()).unwrap(),
+    let ExportableNodeAnnoKeys { node } = serde_json::from_str(
+        &serde_json::to_string(&storage.exportable_node_anno_keys(&[corpus_name]).unwrap())
+            .unwrap(),
     )
     .unwrap();
     node.into_iter().map(|e| e.display_name).collect()
@@ -190,7 +191,7 @@ fn get_segmentations(db_dir: &Path, corpus_name: &str) -> Vec<String> {
 }
 
 #[derive(Deserialize)]
-struct ExportableAnnoKeys {
+struct ExportableNodeAnnoKeys {
     node: Vec<ExportableAnnoKey>,
 }
 

@@ -7,10 +7,10 @@ use serde::Serialize;
 const DATA_DIR: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/tests/data");
 const DB_DIR: &str = concat!(
     env!("CARGO_TARGET_TMPDIR"),
-    "/tests/exportable_anno_keys/db"
+    "/tests/exportable_node_anno_keys/db"
 );
 
-macro_rules! exportable_anno_keys_test {
+macro_rules! exportable_node_anno_keys_test {
     ($(
         $name:ident: {
             corpus_paths: $corpus_paths:expr,
@@ -42,8 +42,8 @@ macro_rules! exportable_anno_keys_test {
                     )
                     .unwrap();
 
-                let exportable_anno_keys = storage
-                    .exportable_anno_keys(test_data.corpus_names)
+                let exportable_node_anno_keys = storage
+                    .exportable_node_anno_keys(test_data.corpus_names)
                     .unwrap();
 
                 insta::with_settings!(
@@ -51,14 +51,14 @@ macro_rules! exportable_anno_keys_test {
                          info => &test_data,
                          omit_expression => true,
                     },
-                    { insta::assert_debug_snapshot!(exportable_anno_keys) }
+                    { insta::assert_debug_snapshot!(exportable_node_anno_keys) }
                 );
             }
         )*
     };
 }
 
-exportable_anno_keys_test! {
+exportable_node_anno_keys_test! {
     empty: {
         corpus_paths: ["empty_graphml.zip"],
         corpus_names: ["empty"],
