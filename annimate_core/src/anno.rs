@@ -11,7 +11,7 @@ use graphannis_core::types::{AnnoKey, Component, NodeID};
 use itertools::Itertools;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
-use crate::cache::{AnnoKeyInfo, CacheStorage};
+use crate::cache::{CacheStorage, NodeAnnoKeyInfo};
 use crate::error::AnnimateError;
 use crate::name;
 
@@ -129,11 +129,14 @@ where
     S: AsRef<str>,
 {
     let mut anno_keys_by_corpus = corpus_names.iter().map(|corpus_name| {
-        get_anno_key_infos(corpus_storage, cache_storage, corpus_name.as_ref()).map(
-            |anno_key_infos| {
-                anno_key_infos.into_iter().filter_map(|anno_key_info| {
-                    (anno_key_info.anno_key.name == *segmentation).then_some(anno_key_info.anno_key)
-                })
+        get_node_anno_key_infos(corpus_storage, cache_storage, corpus_name.as_ref()).map(
+            |node_anno_key_infos| {
+                node_anno_key_infos
+                    .into_iter()
+                    .filter_map(|node_anno_key_info| {
+                        (node_anno_key_info.anno_key.name == *segmentation)
+                            .then_some(node_anno_key_info.anno_key)
+                    })
             },
         )
     });
@@ -203,19 +206,19 @@ pub(crate) fn get_anno(
         .map(|s| s.into()))
 }
 
-/// Manages available [`AnnoKey`]s on different levels (corpus, document, node).
+/// Manages available node [`AnnoKey`]s on different levels (corpus, document, node).
 ///
 /// The combined annotations on the corpus and document levels are what ANNIS calls "meta
 /// annotations". On a node level, *all* annotations are included.
 #[derive(Debug)]
-pub(crate) struct AnnoKeys {
+pub(crate) struct NodeAnnoKeys {
     corpus_anno_keys: HashSet<AnnoKey>,
     doc_anno_keys: HashSet<AnnoKey>,
     node_anno_keys: HashSet<AnnoKey>,
     format: AnnoKeyFormat,
 }
 
-impl AnnoKeys {
+impl NodeAnnoKeys {
     pub(crate) fn new<S>(
         corpus_storage: &CorpusStorage,
         cache_storage: &CacheStorage,
@@ -229,11 +232,11 @@ impl AnnoKeys {
         let mut doc_anno_keys = HashSet::new();
 
         for corpus_name in corpus_names {
-            for AnnoKeyInfo {
+            for NodeAnnoKeyInfo {
                 anno_key,
                 is_corpus,
                 is_document,
-            } in get_anno_key_infos(corpus_storage, cache_storage, corpus_name.as_ref())?
+            } in get_node_anno_key_infos(corpus_storage, cache_storage, corpus_name.as_ref())?
             {
                 if is_corpus {
                     corpus_anno_keys.insert(anno_key.clone());
@@ -261,7 +264,7 @@ impl AnnoKeys {
         &self.format
     }
 
-    pub(crate) fn into_exportable(self) -> ExportableAnnoKeys {
+    pub(crate) fn into_exportable(self) -> ExportableNodeAnnoKeys {
         let map = |anno_keys: HashSet<AnnoKey>| {
             anno_keys
                 .into_iter()
@@ -273,7 +276,7 @@ impl AnnoKeys {
                 .collect()
         };
 
-        ExportableAnnoKeys {
+        ExportableNodeAnnoKeys {
             corpus: map(self.corpus_anno_keys),
             doc: map(self.doc_anno_keys),
             node: map(self.node_anno_keys),
@@ -286,16 +289,16 @@ pub(crate) fn prefill_cache(
     cache_storage: &CacheStorage,
     corpus_name: &str,
 ) -> Result<(), GraphAnnisError> {
-    get_anno_key_infos(corpus_storage, cache_storage, corpus_name)?;
+    get_node_anno_key_infos(corpus_storage, cache_storage, corpus_name)?;
     Ok(())
 }
 
-fn get_anno_key_infos(
+fn get_node_anno_key_infos(
     corpus_storage: &CorpusStorage,
     cache_storage: &CacheStorage,
     corpus_name: &str,
-) -> Result<Vec<AnnoKeyInfo>, GraphAnnisError> {
-    cache_storage.get_anno_key_infos(corpus_name, || {
+) -> Result<Vec<NodeAnnoKeyInfo>, GraphAnnisError> {
+    cache_storage.get_node_anno_key_infos(corpus_name, || {
         let all_anno_keys: BTreeSet<_> = corpus_storage
             .list_node_annotations(corpus_name, false, false)?
             .into_iter()
@@ -339,13 +342,13 @@ fn get_anno_key_infos(
             }
         }
 
-        let anno_key_infos = all_anno_keys
+        let node_anno_key_infos = all_anno_keys
             .into_iter()
             .map(|anno_key| {
                 let is_corpus = corpus_anno_keys.iter().any(|key| **key == anno_key);
                 let is_document = doc_anno_keys.iter().any(|key| **key == anno_key);
 
-                AnnoKeyInfo {
+                NodeAnnoKeyInfo {
                     anno_key,
                     is_corpus,
                     is_document,
@@ -353,7 +356,7 @@ fn get_anno_key_infos(
             })
             .collect();
 
-        Ok(anno_key_infos)
+        Ok(node_anno_key_infos)
     })
 }
 
@@ -413,10 +416,10 @@ impl Display for AnnoKeyDisplay<'_> {
     }
 }
 
-/// Information about which annotation keys are available for export.
+/// Information about which node annotation keys are available for export.
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
-pub struct ExportableAnnoKeys {
+pub struct ExportableNodeAnnoKeys {
     corpus: Vec<ExportableAnnoKey>,
     doc: Vec<ExportableAnnoKey>,
     node: Vec<ExportableAnnoKey>,

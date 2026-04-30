@@ -23,18 +23,18 @@ impl CacheStorage {
         }
     }
 
-    pub(crate) fn get_anno_key_infos<E>(
+    pub(crate) fn get_node_anno_key_infos<E>(
         &self,
         corpus_name: &str,
-        load: impl FnOnce() -> Result<Vec<AnnoKeyInfo>, E>,
-    ) -> Result<Vec<AnnoKeyInfo>, E>
+        load: impl FnOnce() -> Result<Vec<NodeAnnoKeyInfo>, E>,
+    ) -> Result<Vec<NodeAnnoKeyInfo>, E>
     where
         E: From<io::Error>,
     {
         self.get_or_load(
             corpus_name,
-            |c| &c.anno_key_infos,
-            |c| &mut c.anno_key_infos,
+            |c| &c.node_anno_key_infos,
+            |c| &mut c.node_anno_key_infos,
             load,
         )
     }
@@ -137,12 +137,13 @@ struct CorpusCache {
     #[serde(flatten)]
     cache_version: CacheVersion,
 
+    // on-disk key kept as "annotations" for backward compatibility with existing caches
     #[serde(rename = "annotations")]
-    anno_key_infos: Option<Vec<AnnoKeyInfo>>,
+    node_anno_key_infos: Option<Vec<NodeAnnoKeyInfo>>,
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
-pub(crate) struct AnnoKeyInfo {
+pub(crate) struct NodeAnnoKeyInfo {
     #[serde(flatten)]
     pub(crate) anno_key: AnnoKey,
 
@@ -157,7 +158,7 @@ impl Default for CorpusCache {
     fn default() -> Self {
         Self {
             cache_version: CacheVersion::CURRENT,
-            anno_key_infos: None,
+            node_anno_key_infos: None,
         }
     }
 }
@@ -205,7 +206,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn get_anno_key_infos_when_called_concurrently_calls_load_only_once() {
+    fn get_node_anno_key_infos_when_called_concurrently_calls_load_only_once() {
         const TEST_CORPUS: &str = "test_corpus";
 
         let db_dir = tempfile::tempdir().unwrap();
@@ -222,7 +223,7 @@ mod tests {
 
                 move || {
                     cache_storage
-                        .get_anno_key_infos(TEST_CORPUS, || {
+                        .get_node_anno_key_infos(TEST_CORPUS, || {
                             load_counter.fetch_add(1, Ordering::Relaxed);
                             Ok::<_, io::Error>(Vec::new())
                         })

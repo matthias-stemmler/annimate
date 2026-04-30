@@ -6,7 +6,7 @@ info:
   corpus_names:
     - empty
 ---
-ExportableAnnoKeys {
+ExportableNodeAnnoKeys {
     corpus: [
         ExportableAnnoKey {
             anno_key: AnnoKey {

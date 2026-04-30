@@ -1,14 +1,14 @@
 import {
   getCorpora,
   getDbDir,
-  getExportableAnnoKeys,
+  getExportableNodeAnnoKeys,
   getQueryNodes,
   getSegmentations,
   validateQuery,
 } from '@/lib/api';
 import {
   Corpora,
-  ExportableAnnoKeys,
+  ExportableNodeAnnoKeys,
   QueryLanguage,
   QueryNodesResult,
   QueryValidationResult,
@@ -28,7 +28,7 @@ import {
 
 export const QUERY_KEY_CORPORA = 'corpora';
 export const QUERY_KEY_DB_DIR = 'db-dir';
-export const QUERY_KEY_EXPORTABLE_ANNO_KEYS = 'exportable-anno-keys';
+export const QUERY_KEY_EXPORTABLE_NODE_ANNO_KEYS = 'exportable-node-anno-keys';
 export const QUERY_KEY_QUERY_NODES = 'query-nodes';
 export const QUERY_KEY_QUERY_VALIDATION_RESULT = 'query-validation-result';
 export const QUERY_KEY_SEGMENTATIONS = 'segmentations';
@@ -136,28 +136,32 @@ export const useGetSegmentationsQueryData = <Wait extends boolean = true>(
     getQueryData(segmentationsQueryConfig(params));
 };
 
-const exportableAnnoKeysQueryConfig = (params: { corpusNames: string[] }) => ({
-  queryKey: [QUERY_KEY_EXPORTABLE_ANNO_KEYS, params],
-  queryFn: () => getExportableAnnoKeys(params),
+const exportableNodeAnnoKeysQueryConfig = (params: {
+  corpusNames: string[];
+}) => ({
+  queryKey: [QUERY_KEY_EXPORTABLE_NODE_ANNO_KEYS, params],
+  queryFn: () => getExportableNodeAnnoKeys(params),
   slowTracking: {
-    peerQueryKey: [QUERY_KEY_EXPORTABLE_ANNO_KEYS],
+    peerQueryKey: [QUERY_KEY_EXPORTABLE_NODE_ANNO_KEYS],
     timeout: SLOW_TRACKING_TIMEOUT,
   },
 });
 
-export const useExportableAnnoKeysQuery = (params: {
+export const useExportableNodeAnnoKeysQuery = (params: {
   corpusNames: string[];
-}): UseSlowTrackingQueryResult<ExportableAnnoKeys> =>
-  useSlowTrackingQuery(exportableAnnoKeysQueryConfig(params));
+}): UseSlowTrackingQueryResult<ExportableNodeAnnoKeys> =>
+  useSlowTrackingQuery(exportableNodeAnnoKeysQueryConfig(params));
 
-export const useGetExportableAnnoKeysQueryData = <Wait extends boolean = true>(
+export const useGetExportableNodeAnnoKeysQueryData = <
+  Wait extends boolean = true,
+>(
   options: UseGetQueryDataOptions<Wait> = {},
 ): ((params: {
   corpusNames: string[];
-}) => QueryData<ExportableAnnoKeys, Wait>) => {
-  const getQueryData = useGetQueryData<ExportableAnnoKeys, Wait>(options);
+}) => QueryData<ExportableNodeAnnoKeys, Wait>) => {
+  const getQueryData = useGetQueryData<ExportableNodeAnnoKeys, Wait>(options);
   return (params: { corpusNames: string[] }) =>
-    getQueryData(exportableAnnoKeysQueryConfig(params));
+    getQueryData(exportableNodeAnnoKeysQueryConfig(params));
 };
 
 export const useGetQueryNodesQueryData = <Wait extends boolean = true>(

@@ -63,7 +63,7 @@ fn main() {
             api::export_matches,
             api::get_corpora,
             api::get_db_dir,
-            api::get_exportable_anno_keys,
+            api::get_exportable_node_anno_keys,
             api::get_query_nodes,
             api::get_segmentations,
             api::import_corpora,

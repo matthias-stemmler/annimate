@@ -21,13 +21,13 @@ export type Corpus = {
   includedInSets: string[];
 };
 
-export type ExportableAnnoKeys = {
+export type ExportableNodeAnnoKeys = {
   corpus: ExportableAnnoKey[];
   doc: ExportableAnnoKey[];
   node: ExportableAnnoKey[];
 };
 
-export type ExportableAnnoKeyCategory = keyof ExportableAnnoKeys;
+export type ExportableNodeAnnoKeyCategory = keyof ExportableNodeAnnoKeys;
 
 export type ExportableAnnoKey = {
   annoKey: AnnoKey;

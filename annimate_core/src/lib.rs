@@ -5,7 +5,7 @@
 use std::collections::btree_map::Entry;
 use std::path::{Path, PathBuf};
 
-use anno::AnnoKeys;
+use anno::NodeAnnoKeys;
 use format::QueryInfo;
 use graphannis::CorpusStorage;
 use graphannis::corpusstorage::CacheStrategy;
@@ -28,7 +28,7 @@ mod query;
 mod util;
 mod version;
 
-pub use anno::{AnnoKeyOrDefault, ExportableAnnoKey, ExportableAnnoKeys, ExportableEdgeType};
+pub use anno::{AnnoKeyOrDefault, ExportableAnnoKey, ExportableEdgeType, ExportableNodeAnnoKeys};
 pub use aql::{
     LineColumnIndex, LineColumnRange, QueryAnalysisResult, QueryNode, QueryNodes,
     QueryValidationError,
@@ -362,22 +362,22 @@ impl Storage {
         Ok(query_nodes)
     }
 
-    /// Returns all exportable annotation keys for the given corpora.
+    /// Returns all exportable node annotation keys for the given corpora.
     ///
     /// This collects all exportable annotation keys for corpora, documents and general nodes that
     /// appear in *at least one* of the given corpora.
-    pub fn exportable_anno_keys<S>(
+    pub fn exportable_node_anno_keys<S>(
         &self,
         corpus_names: &[S],
-    ) -> Result<ExportableAnnoKeys, AnnimateError>
+    ) -> Result<ExportableNodeAnnoKeys, AnnimateError>
     where
         S: AsRef<str>,
     {
-        let exportable_anno_keys =
-            AnnoKeys::new(&self.corpus_storage, &self.cache_storage, corpus_names)?
+        let exportable_node_anno_keys =
+            NodeAnnoKeys::new(&self.corpus_storage, &self.cache_storage, corpus_names)?
                 .into_exportable();
 
-        Ok(exportable_anno_keys)
+        Ok(exportable_node_anno_keys)
     }
 
     /// Returns all exportable edge types for the given corpora together with their annotations.
@@ -428,7 +428,7 @@ impl Storage {
         on_status(ExportStatusEvent::Started);
         error::cancel_if(&cancel_requested)?;
 
-        let anno_keys = AnnoKeys::new(
+        let anno_keys = NodeAnnoKeys::new(
             &self.corpus_storage,
             &self.cache_storage,
             &config.corpus_names,

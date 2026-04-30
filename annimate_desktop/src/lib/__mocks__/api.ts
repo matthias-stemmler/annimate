@@ -17,7 +17,7 @@ import {
   ExportSpec,
   ExportStatusEvent,
   ExportableAnnoKey,
-  ExportableAnnoKeys,
+  ExportableNodeAnnoKeys,
   ImportCorpus,
   ImportCorpusResult,
   ImportStatusEvent,
@@ -196,7 +196,7 @@ const getMatchCountForCorpus = (corpusName: string): number => {
   }
 };
 
-const makeExportableAnnoKeys = (count: number): ExportableAnnoKeys => {
+const makeExportableNodeAnnoKeys = (count: number): ExportableNodeAnnoKeys => {
   const corpus: ExportableAnnoKey[] = [];
   const doc: ExportableAnnoKey[] = [];
   const node: ExportableAnnoKey[] = [];
@@ -606,9 +606,9 @@ export const getCorpora = async (): Promise<Corpora> => {
 
 export const getDbDir = async (): Promise<string> => 'mock/db_dir';
 
-export const getExportableAnnoKeys = async (params: {
+export const getExportableNodeAnnoKeys = async (params: {
   corpusNames: string[];
-}): Promise<ExportableAnnoKeys> => {
+}): Promise<ExportableNodeAnnoKeys> => {
   if (params.corpusNames.includes(CORPUS_SLOW)) {
     await sleep(1500);
   }
@@ -618,14 +618,14 @@ export const getExportableAnnoKeys = async (params: {
   }
 
   if (params.corpusNames.includes(CORPUS_MANY_ANNO_KEYS)) {
-    return makeExportableAnnoKeys(20);
+    return makeExportableNodeAnnoKeys(20);
   }
 
   if (params.corpusNames.some((c) => c !== CORPUS_NO_ANNO_KEYS)) {
-    return makeExportableAnnoKeys(5);
+    return makeExportableNodeAnnoKeys(5);
   }
 
-  return makeExportableAnnoKeys(0);
+  return makeExportableNodeAnnoKeys(0);
 };
 
 export const getQueryNodes = async (params: {

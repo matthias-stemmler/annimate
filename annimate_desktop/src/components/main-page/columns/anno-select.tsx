@@ -3,13 +3,16 @@ import {
   valueToAnnoKey,
 } from '@/components/main-page/columns/utils';
 import { Select } from '@/components/ui/custom/select';
-import { AnnoKey, ExportableAnnoKeyCategory } from '@/lib/api-types';
-import { useExportableAnnoKeys, useIsExporting } from '@/lib/store';
+import { AnnoKey, ExportableNodeAnnoKeyCategory } from '@/lib/api-types';
+import {
+  useExportableNodeAnnoKeys as useExportableNodeAnnoKeys,
+  useIsExporting,
+} from '@/lib/store';
 import { FC } from 'react';
 
 export type AnnoSelectProps = {
   annoKey: AnnoKey | undefined;
-  category: ExportableAnnoKeyCategory;
+  category: ExportableNodeAnnoKeyCategory;
   id?: string;
   onChange?: (annoKey: AnnoKey) => void;
 };
@@ -21,10 +24,10 @@ export const AnnoSelect: FC<AnnoSelectProps> = ({
   onChange,
 }) => {
   const {
-    data: exportableAnnoKeys,
+    data: exportableNodeAnnoKeys,
     error,
     isPending,
-  } = useExportableAnnoKeys();
+  } = useExportableNodeAnnoKeys();
   const isExporting = useIsExporting();
   const disabled = isExporting;
 
@@ -32,7 +35,8 @@ export const AnnoSelect: FC<AnnoSelectProps> = ({
     throw new Error(`Failed to load exportable annotations: ${error.message}`);
   }
 
-  const exportableAnnoKeysForCategory = exportableAnnoKeys?.[category] ?? [];
+  const exportableAnnoKeysForCategory =
+    exportableNodeAnnoKeys?.[category] ?? [];
 
   return (
     <Select

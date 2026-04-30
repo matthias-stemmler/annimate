@@ -6,7 +6,7 @@ info:
   corpus_names:
     - subtok.demo
 ---
-ExportableAnnoKeys {
+ExportableNodeAnnoKeys {
     corpus: [
         ExportableAnnoKey {
             anno_key: AnnoKey {

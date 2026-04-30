@@ -2,7 +2,7 @@ import { StoreProvider } from '@/components/store-provider';
 import {
   AnnoKey,
   ExportColumnType,
-  ExportableAnnoKeys,
+  ExportableNodeAnnoKeys,
   InvokeArgs,
   Project,
   QueryLanguage,
@@ -105,7 +105,7 @@ describe('store', () => {
         };
       }
 
-      case 'get_exportable_anno_keys': {
+      case 'get_exportable_node_anno_keys': {
         const { corpusNames } = payload as { corpusNames: string[] };
         const hasCorpora = corpusNames.length > 0;
 
@@ -134,7 +134,7 @@ describe('store', () => {
                 },
               ]
             : [],
-        } satisfies ExportableAnnoKeys;
+        } satisfies ExportableNodeAnnoKeys;
       }
 
       case 'get_query_nodes': {
