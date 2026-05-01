@@ -1,17 +1,17 @@
-use std::collections::{BTreeSet, HashSet};
+use std::collections::{BTreeMap, BTreeSet, HashSet};
 use std::fmt::{self, Display, Formatter};
 use std::sync::LazyLock;
 
 use graphannis::corpusstorage::{QueryLanguage, ResultOrder, SearchQuery};
 use graphannis::errors::GraphAnnisError;
-use graphannis::model::AnnotationComponentType;
+use graphannis::model::{AnnotationComponent, AnnotationComponentType};
 use graphannis::{AnnotationGraph, CorpusStorage, util};
 use graphannis_core::graph::{ANNIS_NS, DEFAULT_NS, NODE_NAME};
 use graphannis_core::types::{AnnoKey, Component, NodeID};
 use itertools::Itertools;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
-use crate::cache::{CacheStorage, NodeAnnoKeyInfo};
+use crate::cache::{CacheStorage, EdgeAnnoKeyInfo, NodeAnnoKeyInfo};
 use crate::error::AnnimateError;
 use crate::name;
 
@@ -23,23 +23,26 @@ pub(crate) static TOKEN_ANNO_KEY: LazyLock<AnnoKey> = LazyLock::new(|| AnnoKey {
     name: TOK.into(),
 });
 
-pub(crate) static DEFAULT_ORDERING_COMPONENT: LazyLock<Component<AnnotationComponentType>> =
-    LazyLock::new(|| {
-        Component::new(
-            AnnotationComponentType::Ordering,
-            ANNIS_NS.into(),
-            "".into(),
-        )
-    });
+pub(crate) static DEFAULT_ORDERING_COMPONENT: LazyLock<AnnotationComponent> = LazyLock::new(|| {
+    Component::new(
+        AnnotationComponentType::Ordering,
+        ANNIS_NS.into(),
+        "".into(),
+    )
+});
 
-pub(crate) static GAP_ORDERING_COMPONENT: LazyLock<Component<AnnotationComponentType>> =
-    LazyLock::new(|| {
-        Component::new(
-            AnnotationComponentType::Ordering,
-            ANNIS_NS.into(),
-            "datasource-gap".into(),
-        )
-    });
+pub(crate) static GAP_ORDERING_COMPONENT: LazyLock<AnnotationComponent> = LazyLock::new(|| {
+    Component::new(
+        AnnotationComponentType::Ordering,
+        ANNIS_NS.into(),
+        "datasource-gap".into(),
+    )
+});
+
+const CTYPES_WITH_ANNOS: [AnnotationComponentType; 2] = [
+    AnnotationComponentType::Dominance,
+    AnnotationComponentType::Pointing,
+];
 
 pub(crate) fn segmentations<S>(
     corpus_storage: &CorpusStorage,
@@ -173,10 +176,7 @@ where
 {
     let mut exportable_edge_types = BTreeSet::new();
 
-    for (corpus_name, ctype) in corpus_names.iter().cartesian_product([
-        AnnotationComponentType::Dominance,
-        AnnotationComponentType::Pointing,
-    ]) {
+    for (corpus_name, ctype) in corpus_names.iter().cartesian_product(CTYPES_WITH_ANNOS) {
         let components = corpus_storage.list_components(corpus_name.as_ref(), Some(ctype), None)?;
 
         exportable_edge_types.extend(components.into_iter().map(|component| ExportableEdgeType {
@@ -290,6 +290,7 @@ pub(crate) fn prefill_cache(
     corpus_name: &str,
 ) -> Result<(), GraphAnnisError> {
     get_node_anno_key_infos(corpus_storage, cache_storage, corpus_name)?;
+    get_edge_anno_key_infos(corpus_storage, cache_storage, corpus_name)?;
     Ok(())
 }
 
@@ -357,6 +358,39 @@ fn get_node_anno_key_infos(
             .collect();
 
         Ok(node_anno_key_infos)
+    })
+}
+
+fn get_edge_anno_key_infos(
+    corpus_storage: &CorpusStorage,
+    cache_storage: &CacheStorage,
+    corpus_name: &str,
+) -> Result<Vec<EdgeAnnoKeyInfo>, GraphAnnisError> {
+    cache_storage.get_edge_anno_key_infos(corpus_name, || {
+        let mut anno_keys_with_components: BTreeMap<AnnoKey, BTreeSet<AnnotationComponent>> =
+            BTreeMap::new();
+
+        for ctype in CTYPES_WITH_ANNOS {
+            for component in corpus_storage.list_components(corpus_name, Some(ctype), None)? {
+                let annos =
+                    corpus_storage.list_edge_annotations(corpus_name, &component, false, false)?;
+
+                for anno in annos {
+                    anno_keys_with_components
+                        .entry(anno.key)
+                        .or_default()
+                        .insert(component.clone());
+                }
+            }
+        }
+
+        Ok(anno_keys_with_components
+            .into_iter()
+            .map(|(anno_key, components)| EdgeAnnoKeyInfo {
+                anno_key,
+                component_descriptions: components.into_iter().map(|c| c.to_string()).collect(),
+            })
+            .collect())
     })
 }
 
