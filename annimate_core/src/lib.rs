@@ -114,6 +114,10 @@ impl Storage {
     /// Preloads a corpus.
     pub fn preload_corpus(&self, corpus_name: &str) -> Result<(), AnnimateError> {
         self.corpus_storage.preload(corpus_name)?;
+
+        // Once the corpus is loaded, take the opportunity to prefill the annotation cache
+        anno::prefill_cache(&self.corpus_storage, &self.cache_storage, corpus_name)?;
+
         Ok(())
     }
 

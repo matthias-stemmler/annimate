@@ -39,6 +39,22 @@ impl CacheStorage {
         )
     }
 
+    pub(crate) fn get_edge_anno_key_infos<E>(
+        &self,
+        corpus_name: &str,
+        load: impl FnOnce() -> Result<Vec<EdgeAnnoKeyInfo>, E>,
+    ) -> Result<Vec<EdgeAnnoKeyInfo>, E>
+    where
+        E: From<io::Error>,
+    {
+        self.get_or_load(
+            corpus_name,
+            |c| &c.edge_anno_key_infos,
+            |c| &mut c.edge_anno_key_infos,
+            load,
+        )
+    }
+
     /// Evict a corpus from the in-memory cache.
     ///
     /// This will only evict the corpus from the in-memory cache, not from disk.
@@ -140,6 +156,9 @@ struct CorpusCache {
     // on-disk key kept as "annotations" for backward compatibility with existing caches
     #[serde(rename = "annotations")]
     node_anno_key_infos: Option<Vec<NodeAnnoKeyInfo>>,
+
+    #[serde(rename = "edge-annotations")]
+    edge_anno_key_infos: Option<Vec<EdgeAnnoKeyInfo>>,
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
@@ -154,11 +173,21 @@ pub(crate) struct NodeAnnoKeyInfo {
     pub(crate) is_document: bool,
 }
 
+#[derive(Clone, Debug, Deserialize, Serialize)]
+pub(crate) struct EdgeAnnoKeyInfo {
+    #[serde(flatten)]
+    pub(crate) anno_key: AnnoKey,
+
+    #[serde(rename = "components")]
+    pub(crate) component_descriptions: Vec<String>,
+}
+
 impl Default for CorpusCache {
     fn default() -> Self {
         Self {
             cache_version: CacheVersion::CURRENT,
             node_anno_key_infos: None,
+            edge_anno_key_infos: None,
         }
     }
 }
@@ -205,37 +234,48 @@ mod tests {
 
     use super::*;
 
-    #[test]
-    fn get_node_anno_key_infos_when_called_concurrently_calls_load_only_once() {
-        const TEST_CORPUS: &str = "test_corpus";
+    macro_rules! test_concurrency {
+        ($($method:ident),*$(,)?) => {
+            $(
+                mod $method {
+                    use super::*;
 
-        let db_dir = tempfile::tempdir().unwrap();
-        fs::create_dir_all(db_dir.path().join(TEST_CORPUS)).unwrap();
+                    #[test]
+                    fn when_called_concurrently_calls_load_only_once() {
+                        const TEST_CORPUS: &str = "test_corpus";
 
-        let cache_storage = Arc::new(CacheStorage::from_db_dir(db_dir.path().into()));
-        let load_counter = Arc::new(AtomicUsize::new(0));
+                        let db_dir = tempfile::tempdir().unwrap();
+                        fs::create_dir_all(db_dir.path().join(TEST_CORPUS)).unwrap();
 
-        let mut handles = Vec::new();
-        for _ in 0..2 {
-            handles.push(thread::spawn({
-                let cache_storage = Arc::clone(&cache_storage);
-                let load_counter = Arc::clone(&load_counter);
+                        let cache_storage = Arc::new(CacheStorage::from_db_dir(db_dir.path().into()));
+                        let load_counter = Arc::new(AtomicUsize::new(0));
 
-                move || {
-                    cache_storage
-                        .get_node_anno_key_infos(TEST_CORPUS, || {
-                            load_counter.fetch_add(1, Ordering::Relaxed);
-                            Ok::<_, io::Error>(Vec::new())
-                        })
-                        .unwrap();
+                        let mut handles = Vec::new();
+                        for _ in 0..2 {
+                            handles.push(thread::spawn({
+                                let cache_storage = Arc::clone(&cache_storage);
+                                let load_counter = Arc::clone(&load_counter);
+
+                                move || {
+                                    cache_storage.$method(TEST_CORPUS, || {
+                                        load_counter.fetch_add(1, Ordering::Relaxed);
+                                        Ok::<_, io::Error>(Vec::new())
+                                    })
+                                    .unwrap();
+                                }
+                            }));
+                        }
+
+                        for handle in handles {
+                            handle.join().unwrap();
+                        }
+
+                        assert_eq!(load_counter.load(Ordering::Relaxed), 1);
+                    }
                 }
-            }));
+            )*
         }
-
-        for handle in handles {
-            handle.join().unwrap();
-        }
-
-        assert_eq!(load_counter.load(Ordering::Relaxed), 1);
     }
+
+    test_concurrency![get_node_anno_key_infos, get_edge_anno_key_infos];
 }
