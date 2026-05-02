@@ -43,6 +43,7 @@ pub use project::{
 pub use query::{ExportData, ExportDataAnno, ExportDataText, QueryLanguage};
 pub use version::{VERSION_INFO, VersionInfo};
 
+use crate::anno::EdgeTypes;
 use crate::aql::ValidationStorage;
 use crate::cache::CacheStorage;
 
@@ -395,7 +396,8 @@ impl Storage {
         S: AsRef<str>,
     {
         let exportable_edge_types =
-            anno::exportable_edge_types(&self.corpus_storage, corpus_names)?;
+            EdgeTypes::new(&self.corpus_storage, &self.cache_storage, corpus_names)?
+                .into_exportable();
 
         Ok(exportable_edge_types)
     }
