@@ -8,19 +8,47 @@ info:
 ---
 [
     ExportableEdgeType {
-        ctype: Dominance,
-        name: "",
+        edge_type: EdgeType {
+            ctype: Dominance,
+            name: "",
+        },
+        anno_keys: [],
     },
     ExportableEdgeType {
-        ctype: Dominance,
-        name: "edge",
+        edge_type: EdgeType {
+            ctype: Dominance,
+            name: "edge",
+        },
+        anno_keys: [],
     },
     ExportableEdgeType {
-        ctype: Pointing,
-        name: "align_e-g",
+        edge_type: EdgeType {
+            ctype: Pointing,
+            name: "align_e-g",
+        },
+        anno_keys: [
+            ExportableAnnoKey {
+                anno_key: AnnoKey {
+                    name: "type",
+                    ns: "align",
+                },
+                display_name: "type",
+            },
+        ],
     },
     ExportableEdgeType {
-        ctype: Pointing,
-        name: "align_g-e",
+        edge_type: EdgeType {
+            ctype: Pointing,
+            name: "align_g-e",
+        },
+        anno_keys: [
+            ExportableAnnoKey {
+                anno_key: AnnoKey {
+                    name: "type",
+                    ns: "align",
+                },
+                display_name: "type",
+            },
+        ],
     },
 ]

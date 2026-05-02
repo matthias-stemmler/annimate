@@ -10,39 +10,144 @@ info:
 ---
 [
     ExportableEdgeType {
-        ctype: Dominance,
-        name: "",
+        edge_type: EdgeType {
+            ctype: Dominance,
+            name: "",
+        },
+        anno_keys: [
+            ExportableAnnoKey {
+                anno_key: AnnoKey {
+                    name: "func",
+                    ns: "tiger",
+                },
+                display_name: "func",
+            },
+            ExportableAnnoKey {
+                anno_key: AnnoKey {
+                    name: "relname",
+                    ns: "rst",
+                },
+                display_name: "relname",
+            },
+        ],
     },
     ExportableEdgeType {
-        ctype: Dominance,
-        name: "edge",
+        edge_type: EdgeType {
+            ctype: Dominance,
+            name: "edge",
+        },
+        anno_keys: [
+            ExportableAnnoKey {
+                anno_key: AnnoKey {
+                    name: "func",
+                    ns: "tiger",
+                },
+                display_name: "func",
+            },
+            ExportableAnnoKey {
+                anno_key: AnnoKey {
+                    name: "relname",
+                    ns: "rst",
+                },
+                display_name: "relname",
+            },
+        ],
     },
     ExportableEdgeType {
-        ctype: Dominance,
-        name: "multinuc",
+        edge_type: EdgeType {
+            ctype: Dominance,
+            name: "multinuc",
+        },
+        anno_keys: [
+            ExportableAnnoKey {
+                anno_key: AnnoKey {
+                    name: "relname",
+                    ns: "rst",
+                },
+                display_name: "relname",
+            },
+        ],
     },
     ExportableEdgeType {
-        ctype: Dominance,
-        name: "rst",
+        edge_type: EdgeType {
+            ctype: Dominance,
+            name: "rst",
+        },
+        anno_keys: [
+            ExportableAnnoKey {
+                anno_key: AnnoKey {
+                    name: "relname",
+                    ns: "rst",
+                },
+                display_name: "relname",
+            },
+        ],
     },
     ExportableEdgeType {
-        ctype: Dominance,
-        name: "secedge",
+        edge_type: EdgeType {
+            ctype: Dominance,
+            name: "secedge",
+        },
+        anno_keys: [
+            ExportableAnnoKey {
+                anno_key: AnnoKey {
+                    name: "func",
+                    ns: "tiger",
+                },
+                display_name: "func",
+            },
+        ],
     },
     ExportableEdgeType {
-        ctype: Pointing,
-        name: "align_e-g",
+        edge_type: EdgeType {
+            ctype: Pointing,
+            name: "align_e-g",
+        },
+        anno_keys: [
+            ExportableAnnoKey {
+                anno_key: AnnoKey {
+                    name: "type",
+                    ns: "align",
+                },
+                display_name: "type",
+            },
+        ],
     },
     ExportableEdgeType {
-        ctype: Pointing,
-        name: "align_g-e",
+        edge_type: EdgeType {
+            ctype: Pointing,
+            name: "align_g-e",
+        },
+        anno_keys: [
+            ExportableAnnoKey {
+                anno_key: AnnoKey {
+                    name: "type",
+                    ns: "align",
+                },
+                display_name: "type",
+            },
+        ],
     },
     ExportableEdgeType {
-        ctype: Pointing,
-        name: "anaphor_antecedent",
+        edge_type: EdgeType {
+            ctype: Pointing,
+            name: "anaphor_antecedent",
+        },
+        anno_keys: [],
     },
     ExportableEdgeType {
-        ctype: Pointing,
-        name: "dep",
+        edge_type: EdgeType {
+            ctype: Pointing,
+            name: "dep",
+        },
+        anno_keys: [
+            ExportableAnnoKey {
+                anno_key: AnnoKey {
+                    name: "func",
+                    ns: "dep",
+                },
+                display_name: "func",
+            },
+        ],
     },
 ]

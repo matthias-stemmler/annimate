@@ -1,4 +1,4 @@
-use std::collections::{BTreeMap, BTreeSet, HashSet};
+use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet};
 use std::fmt::{self, Display, Formatter};
 use std::sync::LazyLock;
 
@@ -60,12 +60,12 @@ where
                 None,
             )
             .map(|components| {
-                components.into_iter().filter_map(|component| {
+                components
+                    .into_iter()
                     // This is the same filter that ANNIS applies to provide the list of
                     // segmentations
-                    (component.layer != ANNIS_NS && !component.name.is_empty())
-                        .then_some(component.name)
-                })
+                    .filter(|component| component.layer != ANNIS_NS && !component.name.is_empty())
+                    .map(|component| component.name)
             })
     });
 
@@ -91,7 +91,8 @@ where
             )
             .map(|anno_key| (segmentation, anno_key))
         })
-        .filter_map_ok(|(segmentation, anno_key)| anno_key.is_some().then_some(segmentation))
+        .filter_ok(|(_, anno_key)| anno_key.is_some())
+        .map_ok(|(segmentation, _)| segmentation)
         .collect()
 }
 
@@ -136,10 +137,8 @@ where
             |node_anno_key_infos| {
                 node_anno_key_infos
                     .into_iter()
-                    .filter_map(|node_anno_key_info| {
-                        (node_anno_key_info.anno_key.name == *segmentation)
-                            .then_some(node_anno_key_info.anno_key)
-                    })
+                    .filter(|node_anno_key_info| node_anno_key_info.anno_key.name == *segmentation)
+                    .map(|node_anno_key_info| node_anno_key_info.anno_key)
             },
         )
     });
@@ -165,34 +164,6 @@ where
     }
 
     Ok(fallback_anno_key)
-}
-
-pub(crate) fn exportable_edge_types<S>(
-    corpus_storage: &CorpusStorage,
-    corpus_names: &[S],
-) -> Result<Vec<ExportableEdgeType>, GraphAnnisError>
-where
-    S: AsRef<str>,
-{
-    let mut exportable_edge_types = BTreeSet::new();
-
-    for (corpus_name, ctype) in corpus_names.iter().cartesian_product(CTYPES_WITH_ANNOS) {
-        let components = corpus_storage.list_components(corpus_name.as_ref(), Some(ctype), None)?;
-
-        exportable_edge_types.extend(components.into_iter().map(|component| ExportableEdgeType {
-            ctype: component.get_type(),
-            name: component.name,
-        }));
-    }
-
-    Ok(exportable_edge_types.into_iter().collect())
-}
-
-/// Information about which edge types and annotations are available for export.
-#[derive(Debug, Eq, Ord, PartialEq, PartialOrd)]
-pub struct ExportableEdgeType {
-    ctype: AnnotationComponentType,
-    name: String,
 }
 
 pub(crate) fn get_anno(
@@ -265,23 +236,117 @@ impl NodeAnnoKeys {
     }
 
     pub(crate) fn into_exportable(self) -> ExportableNodeAnnoKeys {
-        let map = |anno_keys: HashSet<AnnoKey>| {
-            anno_keys
-                .into_iter()
-                .map(|anno_key| ExportableAnnoKey {
-                    display_name: self.format.display(&anno_key).to_string(),
-                    anno_key,
-                })
-                .sorted_by(|a, b| a.display_name.cmp(&b.display_name))
-                .collect()
-        };
-
         ExportableNodeAnnoKeys {
-            corpus: map(self.corpus_anno_keys),
-            doc: map(self.doc_anno_keys),
-            node: map(self.node_anno_keys),
+            corpus: into_exportable_anno_keys(self.corpus_anno_keys, &self.format),
+            doc: into_exportable_anno_keys(self.doc_anno_keys, &self.format),
+            node: into_exportable_anno_keys(self.node_anno_keys, &self.format),
         }
     }
+}
+
+/// Manages available edge types and their corresponding [`AnnoKey`]s.
+#[derive(Debug)]
+pub(crate) struct EdgeTypes {
+    edge_types: HashMap<EdgeType, EdgeAnnoKeys>,
+}
+
+#[derive(Debug, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
+struct EdgeType {
+    ctype: AnnotationComponentType,
+    name: String,
+}
+
+#[derive(Debug)]
+struct EdgeAnnoKeys {
+    anno_keys: HashSet<AnnoKey>,
+    format: AnnoKeyFormat,
+}
+
+impl EdgeTypes {
+    pub(crate) fn new<S>(
+        corpus_storage: &CorpusStorage,
+        cache_storage: &CacheStorage,
+        corpus_names: &[S],
+    ) -> Result<Self, AnnimateError>
+    where
+        S: AsRef<str>,
+    {
+        let mut edge_types_with_anno_keys: HashMap<EdgeType, HashSet<AnnoKey>> = HashMap::new();
+
+        for corpus_name in corpus_names {
+            let corpus_name = corpus_name.as_ref();
+            let edge_anno_key_infos =
+                get_edge_anno_key_infos(corpus_storage, cache_storage, corpus_name)?;
+
+            for ctype in CTYPES_WITH_ANNOS {
+                let components = corpus_storage.list_components(corpus_name, Some(ctype), None)?;
+
+                for component in components {
+                    let component_description = component.to_string();
+
+                    let edge_type = EdgeType {
+                        ctype: component.get_type(),
+                        name: component.name,
+                    };
+
+                    edge_types_with_anno_keys
+                        .entry(edge_type)
+                        .or_default()
+                        .extend(
+                            edge_anno_key_infos
+                                .iter()
+                                .filter(|e| {
+                                    e.component_descriptions.contains(&component_description)
+                                })
+                                .map(|e| e.anno_key.clone()),
+                        );
+                }
+            }
+        }
+
+        let edge_types = edge_types_with_anno_keys
+            .into_iter()
+            .map(|(edge_type, anno_keys)| {
+                (
+                    edge_type,
+                    EdgeAnnoKeys {
+                        format: AnnoKeyFormat::new(&anno_keys),
+                        anno_keys,
+                    },
+                )
+            })
+            .collect();
+
+        Ok(Self { edge_types })
+    }
+
+    pub(crate) fn into_exportable(self) -> Vec<ExportableEdgeType> {
+        self.edge_types
+            .into_iter()
+            .sorted_by(|a, b| a.0.cmp(&b.0))
+            .map(|(edge_type, edge_anno_keys)| ExportableEdgeType {
+                edge_type,
+                anno_keys: into_exportable_anno_keys(
+                    edge_anno_keys.anno_keys,
+                    &edge_anno_keys.format,
+                ),
+            })
+            .collect()
+    }
+}
+
+fn into_exportable_anno_keys(
+    anno_keys: impl IntoIterator<Item = AnnoKey>,
+    format: &AnnoKeyFormat,
+) -> Vec<ExportableAnnoKey> {
+    anno_keys
+        .into_iter()
+        .map(|anno_key| ExportableAnnoKey {
+            display_name: format.display(&anno_key).to_string(),
+            anno_key,
+        })
+        .sorted_by(|a, b| a.display_name.cmp(&b.display_name))
+        .collect()
 }
 
 pub(crate) fn prefill_cache(
@@ -410,7 +475,7 @@ impl AnnoKeyFormat {
         }
     }
 
-    pub(crate) fn display<'a>(&'a self, anno_key: &'a AnnoKey) -> AnnoKeyDisplay<'a> {
+    pub(crate) fn display<'a>(&self, anno_key: &'a AnnoKey) -> AnnoKeyDisplay<'a> {
         if self.ambiguous_names.contains(&*anno_key.name) {
             AnnoKeyDisplay::fully_qualified(anno_key)
         } else {
@@ -457,6 +522,16 @@ pub struct ExportableNodeAnnoKeys {
     corpus: Vec<ExportableAnnoKey>,
     doc: Vec<ExportableAnnoKey>,
     node: Vec<ExportableAnnoKey>,
+}
+
+/// Information about which edge types and annotationk keys are available for export.
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ExportableEdgeType {
+    #[serde(flatten)]
+    edge_type: EdgeType,
+
+    anno_keys: Vec<ExportableAnnoKey>,
 }
 
 /// An annotation key that can be exported.
@@ -522,52 +597,52 @@ mod tests {
     use super::*;
 
     #[test]
-    fn exportable_edge_type_ord_orders_dominance_before_pointing_then_by_name() {
-        let mut exportable_edge_types = vec![
-            ExportableEdgeType {
+    fn edge_type_ord_orders_dominance_before_pointing_then_by_name() {
+        let mut edge_types = vec![
+            EdgeType {
                 ctype: AnnotationComponentType::Pointing,
                 name: "b".into(),
             },
-            ExportableEdgeType {
+            EdgeType {
                 ctype: AnnotationComponentType::Dominance,
                 name: "b".into(),
             },
-            ExportableEdgeType {
+            EdgeType {
                 ctype: AnnotationComponentType::Dominance,
                 name: "".into(),
             },
-            ExportableEdgeType {
+            EdgeType {
                 ctype: AnnotationComponentType::Pointing,
                 name: "a".into(),
             },
-            ExportableEdgeType {
+            EdgeType {
                 ctype: AnnotationComponentType::Dominance,
                 name: "a".into(),
             },
         ];
 
-        exportable_edge_types.sort();
+        edge_types.sort();
 
         assert_eq!(
-            exportable_edge_types,
+            edge_types,
             vec![
-                ExportableEdgeType {
+                EdgeType {
                     ctype: AnnotationComponentType::Dominance,
                     name: "".into(),
                 },
-                ExportableEdgeType {
+                EdgeType {
                     ctype: AnnotationComponentType::Dominance,
                     name: "a".into(),
                 },
-                ExportableEdgeType {
+                EdgeType {
                     ctype: AnnotationComponentType::Dominance,
                     name: "b".into(),
                 },
-                ExportableEdgeType {
+                EdgeType {
                     ctype: AnnotationComponentType::Pointing,
                     name: "a".into(),
                 },
-                ExportableEdgeType {
+                EdgeType {
                     ctype: AnnotationComponentType::Pointing,
                     name: "b".into(),
                 },
