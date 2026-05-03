@@ -79,11 +79,11 @@ catalogs:
       specifier: ^4.2.4
       version: 4.2.4
     '@tanstack/eslint-plugin-query':
-      specifier: ^5.100.4
-      version: 5.100.4
+      specifier: ^5.100.8
+      version: 5.100.8
     '@tanstack/react-query':
-      specifier: ^5.100.4
-      version: 5.100.4
+      specifier: ^5.100.8
+      version: 5.100.8
     '@tauri-apps/api':
       specifier: ^2.10.1
       version: 2.10.1
@@ -286,7 +286,7 @@ importers:
         version: 1.2.8(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
       '@tanstack/react-query':
         specifier: 'catalog:'
-        version: 5.100.4(react@19.2.5)
+        version: 5.100.8(react@19.2.5)
       '@tauri-apps/api':
         specifier: 'catalog:'
         version: 2.10.1
@@ -356,7 +356,7 @@ importers:
         version: 4.2.4(vite@8.0.10(@types/node@25.6.0)(esbuild@0.27.7)(jiti@2.6.1)(tsx@4.21.0))
       '@tanstack/eslint-plugin-query':
         specifier: 'catalog:'
-        version: 5.100.4(eslint@10.2.1(jiti@2.6.1))(typescript@6.0.3)
+        version: 5.100.8(eslint@10.2.1(jiti@2.6.1))(typescript@6.0.3)
       '@tauri-apps/cli':
         specifier: 'catalog:'
         version: 2.10.1
@@ -1851,8 +1851,8 @@ packages:
     peerDependencies:
       vite: ^5.2.0 || ^6 || ^7 || ^8
 
-  '@tanstack/eslint-plugin-query@5.100.4':
-    resolution: {integrity: sha512-RLMR5dOhp3CDKLApjipAK7ki2zvrxlZ32HhALXAovqW+GAnxS3s7Wfx6ym1SAX7A4u8HCJJFnwIyBjywrRizbw==}
+  '@tanstack/eslint-plugin-query@5.100.8':
+    resolution: {integrity: sha512-Hn2zEnjAPPBdHvFgSmcG8rUuskl2IS49LDjziF4CW8i8EmNT4/CkKudOckawOqzvDm/hjqZy0VFjyrQI1ZSw7Q==}
     peerDependencies:
       eslint: ^8.57.0 || ^9.0.0 || ^10.0.0
       typescript: ^5.4.0 || ^6.0.0
@@ -1860,11 +1860,11 @@ packages:
       typescript:
         optional: true
 
-  '@tanstack/query-core@5.100.4':
-    resolution: {integrity: sha512-LdW/DDImiw9g4ukyndlrifIXPFpoQjNybCAIDBcPvdYu9iUIhAKwhznfAATe2dJBonhm0O3ksoCMmVTUxN89uA==}
+  '@tanstack/query-core@5.100.8':
+    resolution: {integrity: sha512-ceYwSFOqjPwET5TA6IOYxzxlGc0ekyH/gfOtWkP0PX43rzX9bxW48Iuw8KAduKCToi4rJAQ6nRy2kAe8gszdmg==}
 
-  '@tanstack/react-query@5.100.4':
-    resolution: {integrity: sha512-L6n5UWBvnMuYaZTu6WgTbl2mJ7fob1NIdL2vIFo05R/mkr9XvP5PmesZOBiicxzhDAuUurYIG+ZFONbvarEFtQ==}
+  '@tanstack/react-query@5.100.8':
+    resolution: {integrity: sha512-iNNEekixXU5vtAGKKZX2lx3jTooG5yNY+kv0wSgEdEYG0Mj0JM5bcuQtC35ZAP3nDopT6jciUK3xeX65U7AnfA==}
     peerDependencies:
       react: ^18 || ^19
 
@@ -5954,7 +5954,7 @@ snapshots:
       tailwindcss: 4.2.4
       vite: 8.0.10(@types/node@25.6.0)(esbuild@0.27.7)(jiti@2.6.1)(tsx@4.21.0)
 
-  '@tanstack/eslint-plugin-query@5.100.4(eslint@10.2.1(jiti@2.6.1))(typescript@6.0.3)':
+  '@tanstack/eslint-plugin-query@5.100.8(eslint@10.2.1(jiti@2.6.1))(typescript@6.0.3)':
     dependencies:
       '@typescript-eslint/utils': 8.59.0(eslint@10.2.1(jiti@2.6.1))(typescript@6.0.3)
       eslint: 10.2.1(jiti@2.6.1)
@@ -5963,11 +5963,11 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@tanstack/query-core@5.100.4': {}
+  '@tanstack/query-core@5.100.8': {}
 
-  '@tanstack/react-query@5.100.4(react@19.2.5)':
+  '@tanstack/react-query@5.100.8(react@19.2.5)':
     dependencies:
-      '@tanstack/query-core': 5.100.4
+      '@tanstack/query-core': 5.100.8
       react: 19.2.5
 
   '@tauri-apps/api@2.10.1': {}
