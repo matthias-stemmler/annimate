@@ -434,7 +434,7 @@ impl Storage {
         on_status(ExportStatusEvent::Started);
         error::cancel_if(&cancel_requested)?;
 
-        let anno_keys = NodeAnnoKeys::new(
+        let node_anno_keys = NodeAnnoKeys::new(
             &self.corpus_storage,
             &self.cache_storage,
             &config.corpus_names,
@@ -474,7 +474,7 @@ impl Storage {
                 config.format,
                 matches,
                 query_info,
-                anno_keys.format(),
+                node_anno_keys.format(),
                 out,
                 |count| {
                     on_status(ExportStatusEvent::MatchesExported { count, total_count });
