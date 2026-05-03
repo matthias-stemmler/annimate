@@ -48,7 +48,7 @@ pub(super) fn export<F, G, I, W>(
     columns: &[TableExportColumn],
     matches_iter: I,
     query_nodes: &[Vec<QueryNode>],
-    anno_key_format: &AnnoKeyFormat,
+    node_anno_key_format: &AnnoKeyFormat,
     out: &mut W,
     on_matches_exported: F,
     cancel_requested: G,
@@ -90,13 +90,16 @@ where
     out.write_record(columns.iter().flat_map(|c| match c {
         TableExportColumn::Number => vec!["Number".into()],
         TableExportColumn::Data(ExportData::Anno(ExportDataAnno::Corpus { anno_key })) => {
-            vec![format!("Corpus {}", anno_key_format.display(anno_key))]
+            vec![format!("Corpus {}", node_anno_key_format.display(anno_key))]
         }
         TableExportColumn::Data(ExportData::Anno(ExportDataAnno::Document { anno_key })) => {
             if anno::is_doc_anno_key(anno_key) {
                 vec!["Document".into()]
             } else {
-                vec![format!("Document {}", anno_key_format.display(anno_key))]
+                vec![format!(
+                    "Document {}",
+                    node_anno_key_format.display(anno_key)
+                )]
             }
         }
         TableExportColumn::Data(ExportData::Anno(ExportDataAnno::MatchNode {
@@ -113,7 +116,7 @@ where
                     .collect::<BTreeSet<_>>()
                     .into_iter()
                     .format_with("|", |elt, f| f(&format_args!("#{elt}"))),
-                anno_key_format.display(anno_key)
+                node_anno_key_format.display(anno_key)
             )]
         }
         TableExportColumn::Data(ExportData::Text(text)) => {
@@ -139,7 +142,7 @@ where
                         },
                         match &text.anno_key {
                             AnnoKeyOrDefault::AnnoKey(anno_key) =>
-                                format!(" {}", anno_key_format.display(anno_key)),
+                                format!(" {}", node_anno_key_format.display(anno_key)),
                             AnnoKeyOrDefault::Default => "".into(),
                         },
                         text.segmentation.as_deref().unwrap_or("tokens")
