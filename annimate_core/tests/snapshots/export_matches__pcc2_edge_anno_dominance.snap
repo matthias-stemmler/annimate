@@ -1,0 +1,62 @@
+---
+source: annimate_core/tests/export_matches.rs
+info:
+  corpus_paths:
+    - pcc2_v7_relANNIS.zip
+  corpus_names:
+    - pcc2
+  aql_query: "cat=\"S\" > cat=\"NP\""
+  query_language: AQL
+  export_columns:
+    - Number
+    - Data:
+        Anno:
+          Edge:
+            edge_type:
+              - Dominance
+              - ""
+            anno_key:
+              - tiger
+              - func
+            source_node_index: 0
+            target_node_index: 1
+    - Data:
+        Anno:
+          Edge:
+            edge_type:
+              - Dominance
+              - edge
+            anno_key:
+              - tiger
+              - func
+            source_node_index: 0
+            target_node_index: 1
+---
+Number,#1 > #2 func,#1 >edge #2 func
+1,SB,SB
+2,OA,OA
+3,SB,SB
+4,OA,OA
+5,SB,SB
+6,SB,SB
+7,PD,PD
+8,SB,SB
+9,OG,OG
+10,SB,SB
+11,SB,SB
+12,SB,SB
+13,SB,SB
+14,SB,SB
+15,SB,SB
+16,OA,OA
+17,SB,SB
+18,SB,SB
+19,SB,SB
+20,PD,PD
+21,OA,OA
+22,OA,OA
+23,SB,SB
+24,SB,SB
+25,OA,OA
+26,SB,SB
+27,SB,SB

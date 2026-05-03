@@ -5,7 +5,7 @@ use std::{iter, slice, vec};
 pub use graphannis::corpusstorage::QueryLanguage;
 use graphannis::corpusstorage::{ResultOrder, SearchQuery};
 use graphannis::errors::GraphAnnisError;
-use graphannis::graph::GraphStorage;
+use graphannis::graph::{Edge, GraphStorage};
 use graphannis::model::AnnotationComponentType;
 use graphannis::{CorpusStorage, Graph, util};
 use graphannis_core::errors::GraphAnnisCoreError;
@@ -14,7 +14,7 @@ use graphannis_core::types::{AnnoKey, NodeID};
 use itertools::Itertools;
 
 use crate::anno::{
-    self, DEFAULT_ORDERING_COMPONENT, GAP_ORDERING_COMPONENT, TOKEN_ANNO_KEY,
+    self, DEFAULT_ORDERING_COMPONENT, EdgeType, GAP_ORDERING_COMPONENT, TOKEN_ANNO_KEY,
     get_anno_key_for_segmentation,
 };
 use crate::aql::{self, QueryNode};
@@ -66,6 +66,20 @@ pub enum ExportDataAnno {
         /// If the query matches multiple nodes, this specifies the index of the node for which to
         /// export the annotation.
         index: usize,
+    },
+    /// Annotation of an edge between two of the match nodes.
+    Edge {
+        /// Type (component type, component name) of the edge.
+        edge_type: EdgeType,
+
+        /// Key of the annotation.
+        anno_key: AnnoKey,
+
+        /// Index of the source node within the match.
+        source_node_index: usize,
+
+        /// Index of the target node within the match.
+        target_node_index: usize,
     },
 }
 
@@ -273,18 +287,34 @@ impl<'a, S> Query<'a, S> {
                             }
                         }
                         ExportDataAnno::MatchNode { anno_key, index } => {
-                            if let Some(value) = match_node_names
-                                .get(*index)
-                                .map(|node_name| {
-                                    get_anno_with_overlapping_coverage(
-                                        self.corpus_storage,
-                                        corpus_name,
-                                        node_name,
-                                        anno_key,
-                                    )
-                                })
-                                .transpose()?
-                                .flatten()
+                            if let Some(node_name) = match_node_names.get(*index)
+                                && let Some(value) = get_anno_with_overlapping_coverage(
+                                    self.corpus_storage,
+                                    corpus_name,
+                                    node_name,
+                                    anno_key,
+                                )?
+                            {
+                                annos.insert(anno.clone(), value);
+                            }
+                        }
+                        ExportDataAnno::Edge {
+                            edge_type,
+                            anno_key,
+                            source_node_index,
+                            target_node_index,
+                        } => {
+                            if let Some(source_node_name) = match_node_names.get(*source_node_index)
+                                && let Some(target_node_name) =
+                                    match_node_names.get(*target_node_index)
+                                && let Some(value) = get_edge_anno(
+                                    self.corpus_storage,
+                                    corpus_name,
+                                    source_node_name,
+                                    target_node_name,
+                                    edge_type,
+                                    anno_key,
+                                )?
                             {
                                 annos.insert(anno.clone(), value);
                             }
@@ -352,6 +382,38 @@ fn get_anno_with_overlapping_coverage(
             if let Some(anno) = anno::get_anno(&graph, node_id?, anno_key)? {
                 return Ok(Some(anno));
             }
+        }
+    }
+
+    Ok(None)
+}
+
+fn get_edge_anno(
+    corpus_storage: &CorpusStorage,
+    corpus_name: &str,
+    source_node_name: &str,
+    target_node_name: &str,
+    edge_type: &EdgeType,
+    anno_key: &AnnoKey,
+) -> Result<Option<String>, GraphAnnisError> {
+    let graph = corpus_storage.subgraph(
+        corpus_name,
+        vec![source_node_name.into(), target_node_name.into()],
+        0,
+        0,
+        None,
+    )?;
+    let source_node_id = name::node_name_to_node_id(&graph, source_node_name)?;
+    let target_node_id = name::node_name_to_node_id(&graph, target_node_name)?;
+    let edge: Edge = (source_node_id, target_node_id).into();
+
+    for component in graph.get_all_components(Some(edge_type.ctype.into()), Some(&edge_type.name)) {
+        if let Some(storage) = graph.get_graphstorage_as_ref(&component)
+            && let Some(value) = storage
+                .get_anno_storage()
+                .get_value_for_item(&edge, anno_key)?
+        {
+            return Ok(Some(value.into()));
         }
     }
 
