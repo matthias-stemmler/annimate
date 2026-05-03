@@ -232,7 +232,7 @@ struct LineColumn {
 
 /// Line-column coordinates within a string.
 ///
-/// This differs from [`LineColumn`] in the following ways:
+/// This differs from `LineColumn` (private) in the following ways:
 /// - Both `line` and `column` are 0-based, hence the name `*_index`.
 /// - Coordinates are in Unicode code points, not in UTF-8 bytes. Note that this is not the same as
 ///   UTF-16 code units, which are used for string indexing in JavaScript.

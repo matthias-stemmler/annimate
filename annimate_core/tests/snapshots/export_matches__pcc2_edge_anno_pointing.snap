@@ -1,0 +1,50 @@
+---
+source: annimate_core/tests/export_matches.rs
+info:
+  corpus_paths:
+    - pcc2_v7_relANNIS.zip
+  corpus_names:
+    - pcc2
+  aql_query: "NP _i_ tok & NP _i_ tok & #1 ^* #3 & #2 ->dep #4"
+  query_language: AQL
+  export_columns:
+    - Number
+    - Data:
+        Anno:
+          MatchNode:
+            anno_key:
+              - annis
+              - tok
+            index: 1
+    - Data:
+        Anno:
+          MatchNode:
+            anno_key:
+              - annis
+              - tok
+            index: 3
+    - Data:
+        Anno:
+          Edge:
+            edge_type:
+              - Pointing
+              - dep
+            anno_key:
+              - dep
+              - func
+            source_node_index: 1
+            target_node_index: 3
+---
+Number,#2 tok,#4 tok,#2 ->dep #4 func
+1,Politiker,Stadt,gmod
+2,Verständnis,dafür,pp
+3,Laufe,Abends,gmod
+4,Erwachsene,Karola,app
+5,Erwachsene,Susanne,kon
+6,Erwachsene,Joachim,app
+7,Andrae,(,punct
+8,Andrae,Bürgerbündnis/FDP,app
+9,Michler,(,punct
+10,Michler,CDU,app
+11,Zanow,(,punct
+12,Zanow,SPD,app

@@ -4,7 +4,7 @@ use csv::CsvExporter;
 use graphannis::corpusstorage::QueryLanguage;
 use xlsx::XlsxExporter;
 
-use crate::anno::AnnoKeyFormat;
+use crate::anno::{AnnoKeyFormat, EdgeType};
 use crate::error::AnnimateError;
 use crate::query::Match;
 use crate::{ExportData, QueryNode};
@@ -44,11 +44,17 @@ pub(crate) struct QueryInfo<'a, S> {
     pub(crate) nodes: &'a [Vec<QueryNode>],
 }
 
+#[derive(Clone, Copy)]
+pub(crate) struct AnnoKeyFormats<'a> {
+    pub(crate) node: &'a AnnoKeyFormat,
+    pub(crate) edge: &'a dyn Fn(&EdgeType) -> Option<&'a AnnoKeyFormat>,
+}
+
 pub(crate) fn export<F, G, I, S, W>(
     export_format: ExportFormat,
     matches_iter: I,
     query_info: QueryInfo<'_, S>,
-    node_anno_key_format: &AnnoKeyFormat,
+    anno_key_formats: AnnoKeyFormats<'_>,
     out: W,
     on_matches_exported: F,
     cancel_requested: G,
@@ -65,7 +71,7 @@ where
             &config,
             matches_iter,
             query_info,
-            node_anno_key_format,
+            anno_key_formats,
             out,
             on_matches_exported,
             cancel_requested,
@@ -74,7 +80,7 @@ where
             &config,
             matches_iter,
             query_info,
-            node_anno_key_format,
+            anno_key_formats,
             out,
             on_matches_exported,
             cancel_requested,
@@ -91,7 +97,7 @@ trait Exporter {
         config: &Self::Config,
         matches_iter: I,
         query_info: QueryInfo<'_, S>,
-        node_anno_key_format: &AnnoKeyFormat,
+        anno_key_formats: AnnoKeyFormats<'_>,
         out: W,
         on_matches_exported: F,
         cancel_requested: G,
