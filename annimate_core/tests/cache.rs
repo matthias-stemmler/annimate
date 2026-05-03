@@ -183,7 +183,7 @@ fn add_ordering_component(db_dir: &Path, corpus_name: &str, component_name: &str
     add_component(
         db_dir,
         corpus_name,
-        AnnotationComponentType::Ordering,
+        &AnnotationComponentType::Ordering,
         component_name,
     );
 }
@@ -192,7 +192,7 @@ fn add_dominance_component(db_dir: &Path, corpus_name: &str, component_name: &st
     add_component(
         db_dir,
         corpus_name,
-        AnnotationComponentType::Dominance,
+        &AnnotationComponentType::Dominance,
         component_name,
     );
 }
@@ -200,7 +200,7 @@ fn add_dominance_component(db_dir: &Path, corpus_name: &str, component_name: &st
 fn add_component(
     db_dir: &Path,
     corpus_name: &str,
-    ctype: AnnotationComponentType,
+    ctype: &AnnotationComponentType,
     component_name: &str,
 ) {
     let corpus_storage = graphannis::CorpusStorage::with_auto_cache_size(db_dir, true).unwrap();
@@ -296,7 +296,7 @@ fn get_exportable_edge_types(db_dir: &Path, corpus_name: &str) -> Vec<(String, V
         .into_iter()
         .map(|e| {
             (
-                e.name,
+                e.edge_type.name,
                 e.anno_keys.into_iter().map(|e| e.display_name).collect(),
             )
         })
@@ -312,8 +312,14 @@ struct ExportableNodeAnnoKeys {
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct ExportableEdgeType {
-    name: String,
+    edge_type: EdgeType,
     anno_keys: Vec<ExportableAnnoKey>,
+}
+
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct EdgeType {
+    name: String,
 }
 
 #[derive(Deserialize)]

@@ -39,11 +39,6 @@ pub(crate) static GAP_ORDERING_COMPONENT: LazyLock<AnnotationComponent> = LazyLo
     )
 });
 
-const CTYPES_WITH_ANNOS: [AnnotationComponentType; 2] = [
-    AnnotationComponentType::Dominance,
-    AnnotationComponentType::Pointing,
-];
-
 pub(crate) fn segmentations<S>(
     corpus_storage: &CorpusStorage,
     cache_storage: &CacheStorage,
@@ -250,10 +245,59 @@ pub(crate) struct EdgeTypes {
     edge_types: HashMap<EdgeType, EdgeAnnoKeys>,
 }
 
-#[derive(Debug, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
-struct EdgeType {
-    ctype: AnnotationComponentType,
-    name: String,
+/// Edge component type for which annotations can be exported.
+#[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
+pub enum ExportableEdgeComponentType {
+    /// See [`AnnotationComponentType::Dominance`].
+    Dominance,
+
+    /// See [`AnnotationComponentType::Pointing`].
+    Pointing,
+}
+
+impl ExportableEdgeComponentType {
+    const ALL: [Self; 2] = [Self::Dominance, Self::Pointing];
+}
+
+impl From<ExportableEdgeComponentType> for AnnotationComponentType {
+    fn from(value: ExportableEdgeComponentType) -> Self {
+        match value {
+            ExportableEdgeComponentType::Dominance => AnnotationComponentType::Dominance,
+            ExportableEdgeComponentType::Pointing => AnnotationComponentType::Pointing,
+        }
+    }
+}
+
+/// Type (component type, component name) of an edge for which to export an annotation.
+#[derive(Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
+pub struct EdgeType {
+    /// Component type.
+    pub ctype: ExportableEdgeComponentType,
+
+    /// Component name.
+    pub name: String,
+}
+
+impl EdgeType {
+    pub(crate) fn operator(&self) -> EdgeTypeOperator<'_> {
+        EdgeTypeOperator(self)
+    }
+}
+
+pub(crate) struct EdgeTypeOperator<'a>(&'a EdgeType);
+
+impl Display for EdgeTypeOperator<'_> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "{}{}",
+            match self.0.ctype {
+                ExportableEdgeComponentType::Dominance => ">",
+                ExportableEdgeComponentType::Pointing => "->",
+            },
+            self.0.name
+        )
+    }
 }
 
 #[derive(Debug)]
@@ -278,14 +322,15 @@ impl EdgeTypes {
             let edge_anno_key_infos =
                 get_edge_anno_key_infos(corpus_storage, cache_storage, corpus_name)?;
 
-            for ctype in CTYPES_WITH_ANNOS {
-                let components = corpus_storage.list_components(corpus_name, Some(ctype), None)?;
+            for ctype in ExportableEdgeComponentType::ALL {
+                let components =
+                    corpus_storage.list_components(corpus_name, Some(ctype.into()), None)?;
 
                 for component in components {
                     let component_description = component.to_string();
 
                     let edge_type = EdgeType {
-                        ctype: component.get_type(),
+                        ctype,
                         name: component.name,
                     };
 
@@ -318,6 +363,10 @@ impl EdgeTypes {
             .collect();
 
         Ok(Self { edge_types })
+    }
+
+    pub(crate) fn format(&self, edge_type: &EdgeType) -> Option<&AnnoKeyFormat> {
+        self.edge_types.get(edge_type).map(|e| &e.format)
     }
 
     pub(crate) fn into_exportable(self) -> Vec<ExportableEdgeType> {
@@ -435,8 +484,10 @@ fn get_edge_anno_key_infos(
         let mut anno_keys_with_components: BTreeMap<AnnoKey, BTreeSet<AnnotationComponent>> =
             BTreeMap::new();
 
-        for ctype in CTYPES_WITH_ANNOS {
-            for component in corpus_storage.list_components(corpus_name, Some(ctype), None)? {
+        for ctype in ExportableEdgeComponentType::ALL {
+            for component in
+                corpus_storage.list_components(corpus_name, Some(ctype.into()), None)?
+            {
                 let annos =
                     corpus_storage.list_edge_annotations(corpus_name, &component, false, false)?;
 
@@ -528,9 +579,7 @@ pub struct ExportableNodeAnnoKeys {
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ExportableEdgeType {
-    #[serde(flatten)]
     edge_type: EdgeType,
-
     anno_keys: Vec<ExportableAnnoKey>,
 }
 
@@ -600,23 +649,23 @@ mod tests {
     fn edge_type_ord_orders_dominance_before_pointing_then_by_name() {
         let mut edge_types = vec![
             EdgeType {
-                ctype: AnnotationComponentType::Pointing,
+                ctype: ExportableEdgeComponentType::Pointing,
                 name: "b".into(),
             },
             EdgeType {
-                ctype: AnnotationComponentType::Dominance,
+                ctype: ExportableEdgeComponentType::Dominance,
                 name: "b".into(),
             },
             EdgeType {
-                ctype: AnnotationComponentType::Dominance,
+                ctype: ExportableEdgeComponentType::Dominance,
                 name: "".into(),
             },
             EdgeType {
-                ctype: AnnotationComponentType::Pointing,
+                ctype: ExportableEdgeComponentType::Pointing,
                 name: "a".into(),
             },
             EdgeType {
-                ctype: AnnotationComponentType::Dominance,
+                ctype: ExportableEdgeComponentType::Dominance,
                 name: "a".into(),
             },
         ];
@@ -627,27 +676,27 @@ mod tests {
             edge_types,
             vec![
                 EdgeType {
-                    ctype: AnnotationComponentType::Dominance,
+                    ctype: ExportableEdgeComponentType::Dominance,
                     name: "".into(),
                 },
                 EdgeType {
-                    ctype: AnnotationComponentType::Dominance,
+                    ctype: ExportableEdgeComponentType::Dominance,
                     name: "a".into(),
                 },
                 EdgeType {
-                    ctype: AnnotationComponentType::Dominance,
+                    ctype: ExportableEdgeComponentType::Dominance,
                     name: "b".into(),
                 },
                 EdgeType {
-                    ctype: AnnotationComponentType::Pointing,
+                    ctype: ExportableEdgeComponentType::Pointing,
                     name: "a".into(),
                 },
                 EdgeType {
-                    ctype: AnnotationComponentType::Pointing,
+                    ctype: ExportableEdgeComponentType::Pointing,
                     name: "b".into(),
                 },
             ]
-        )
+        );
     }
 
     #[test]

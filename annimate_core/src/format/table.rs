@@ -1,10 +1,12 @@
 use std::collections::{BTreeSet, HashMap};
+use std::fmt::Display;
 use std::ops::Range;
 use std::vec;
 
 use itertools::{Itertools, PutBack};
 
-use crate::anno::{self, AnnoKeyFormat, AnnoKeyOrDefault};
+use super::AnnoKeyFormats;
+use crate::anno::{self, AnnoKeyOrDefault};
 use crate::aql::QueryNode;
 use crate::error::{self, AnnimateError};
 use crate::query::{ExportData, ExportDataAnno, ExportDataText, Match, TextPart};
@@ -48,7 +50,7 @@ pub(super) fn export<F, G, I, W>(
     columns: &[TableExportColumn],
     matches_iter: I,
     query_nodes: &[Vec<QueryNode>],
-    node_anno_key_format: &AnnoKeyFormat,
+    anno_key_formats: AnnoKeyFormats<'_>,
     out: &mut W,
     on_matches_exported: F,
     cancel_requested: G,
@@ -59,6 +61,11 @@ where
     I: ExactSizeIterator<Item = Result<Match, AnnimateError>>,
     W: TableWriter,
 {
+    let AnnoKeyFormats {
+        node: node_anno_key_format,
+        edge: edge_anno_key_format,
+    } = anno_key_formats;
+
     let (matches, max_match_parts_by_text) = {
         let mut max_match_parts_by_text = HashMap::new();
 
@@ -108,15 +115,36 @@ where
         })) => {
             vec![format!(
                 "{} {}",
-                query_nodes
-                    .get(*index)
-                    .expect("query node index should be valid")
-                    .iter()
-                    .map(|n| &n.variable)
-                    .collect::<BTreeSet<_>>()
-                    .into_iter()
-                    .format_with("|", |elt, f| f(&format_args!("#{elt}"))),
+                format_query_nodes(
+                    query_nodes
+                        .get(*index)
+                        .expect("query node index should be valid")
+                ),
                 node_anno_key_format.display(anno_key)
+            )]
+        }
+        TableExportColumn::Data(ExportData::Anno(ExportDataAnno::Edge {
+            edge_type,
+            anno_key,
+            source_node_index,
+            target_node_index,
+        })) => {
+            vec![format!(
+                "{} {} {} {}",
+                format_query_nodes(
+                    query_nodes
+                        .get(*source_node_index)
+                        .expect("query node index should be valid")
+                ),
+                edge_type.operator(),
+                format_query_nodes(
+                    query_nodes
+                        .get(*target_node_index)
+                        .expect("query node index should be valid")
+                ),
+                edge_anno_key_format(edge_type)
+                    .expect("edge type should be valid")
+                    .display(anno_key),
             )]
         }
         TableExportColumn::Data(ExportData::Text(text)) => {
@@ -177,6 +205,15 @@ where
     out.flush()?;
 
     Ok(())
+}
+
+fn format_query_nodes(query_nodes: &[QueryNode]) -> impl Display {
+    query_nodes
+        .iter()
+        .map(|n| &n.variable)
+        .collect::<BTreeSet<_>>()
+        .into_iter()
+        .format_with("|", |elt, f| f(&format_args!("#{elt}")))
 }
 
 #[derive(Debug)]
@@ -366,9 +403,10 @@ mod tests {
 
     // Cannot use `super::*` due to a bug in rust-analyzer
     use super::{
-        AnnimateError, AnnoKeyFormat, AnnoKeyOrDefault, ExportData, ExportDataAnno, ExportDataText,
-        Match, TableExportColumn, TableWriter, TextPart, export,
+        AnnimateError, AnnoKeyFormats, AnnoKeyOrDefault, ExportData, ExportDataAnno,
+        ExportDataText, Match, TableExportColumn, TableWriter, TextPart, export,
     };
+    use crate::anno::AnnoKeyFormat;
 
     macro_rules! export_test {
         ($(
@@ -402,6 +440,8 @@ mod tests {
                     }),*
                 ];
 
+                let anno_key_format = AnnoKeyFormat::new(&HashSet::new());
+
                 export(
                     &[
                         TableExportColumn::Number,
@@ -410,7 +450,10 @@ mod tests {
                     ],
                     matches.into_iter().map(Ok),
                     &[vec![]],
-                    &AnnoKeyFormat::new(&HashSet::new()),
+                    AnnoKeyFormats {
+                        node: &anno_key_format,
+                        edge: &|_| Some(&anno_key_format),
+                    },
                     &mut writer,
                     |_| (),
                     || false,

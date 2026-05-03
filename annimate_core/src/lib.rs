@@ -28,7 +28,10 @@ mod query;
 mod util;
 mod version;
 
-pub use anno::{AnnoKeyOrDefault, ExportableAnnoKey, ExportableEdgeType, ExportableNodeAnnoKeys};
+pub use anno::{
+    AnnoKeyOrDefault, EdgeType, ExportableAnnoKey, ExportableEdgeComponentType, ExportableEdgeType,
+    ExportableNodeAnnoKeys,
+};
 pub use aql::{
     LineColumnIndex, LineColumnRange, QueryAnalysisResult, QueryNode, QueryNodes,
     QueryValidationError,
@@ -439,6 +442,12 @@ impl Storage {
             &self.cache_storage,
             &config.corpus_names,
         )?;
+        let edge_types = EdgeTypes::new(
+            &self.corpus_storage,
+            &self.cache_storage,
+            &config.corpus_names,
+        )?;
+
         let query = Query::new(
             &self.corpus_storage,
             &self.cache_storage,
@@ -474,7 +483,10 @@ impl Storage {
                 config.format,
                 matches,
                 query_info,
-                node_anno_keys.format(),
+                format::AnnoKeyFormats {
+                    node: node_anno_keys.format(),
+                    edge: &|edge_type| edge_types.format(edge_type),
+                },
                 out,
                 |count| {
                     on_status(ExportStatusEvent::MatchesExported { count, total_count });

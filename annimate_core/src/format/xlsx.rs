@@ -5,8 +5,7 @@ use itertools::Itertools;
 use rust_xlsxwriter::{DocProperties, Table, Workbook, Worksheet};
 
 use super::table::{self, TableWriter};
-use super::{Exporter, QueryInfo};
-use crate::anno::AnnoKeyFormat;
+use super::{AnnoKeyFormats, Exporter, QueryInfo};
 use crate::error::AnnimateError;
 use crate::query::{ExportData, Match};
 use crate::{TableExportColumn, VERSION_INFO};
@@ -37,7 +36,7 @@ impl Exporter for XlsxExporter {
         config: &XlsxExportConfig,
         matches_iter: I,
         query_info: QueryInfo<'_, S>,
-        node_anno_key_format: &AnnoKeyFormat,
+        anno_key_formats: AnnoKeyFormats<'_>,
         out: W,
         on_matches_exported: F,
         cancel_requested: G,
@@ -91,7 +90,7 @@ impl Exporter for XlsxExporter {
                 &config.columns,
                 matches_iter,
                 query_info.nodes,
-                node_anno_key_format,
+                anno_key_formats,
                 &mut xlsx_table_writer,
                 on_matches_exported,
                 cancel_requested,

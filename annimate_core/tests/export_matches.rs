@@ -3,9 +3,9 @@ use std::fs;
 use std::path::Path;
 
 use annimate_core::{
-    AnnimateError, AnnoKey, AnnoKeyOrDefault, CsvExportConfig, ExportConfig, ExportData,
-    ExportDataAnno, ExportDataText, ExportFormat, ExportStatusEvent, QueryLanguage, Storage,
-    TableExportColumn,
+    AnnimateError, AnnoKey, AnnoKeyOrDefault, CsvExportConfig, EdgeType, ExportConfig, ExportData,
+    ExportDataAnno, ExportDataText, ExportFormat, ExportStatusEvent, ExportableEdgeComponentType,
+    QueryLanguage, Storage, TableExportColumn,
 };
 use itertools::Itertools;
 use serde::Serialize;
@@ -400,6 +400,50 @@ export_matches_test! {
             })),
         ],
     }
+    pcc2_edge_anno_dominance: {
+        corpus_paths: ["pcc2_v7_relANNIS.zip"],
+        corpus_names: ["pcc2"],
+        aql_query: "cat=\"S\" > cat=\"NP\"",
+        query_language: AQL,
+        export_columns: [
+            Number,
+            Data(Anno(TestExportDataAnno::Edge {
+                edge_type: (ExportableEdgeComponentType::Dominance, ""),
+                anno_key: ("tiger", "func"),
+                source_node_index: 0,
+                target_node_index: 1,
+            })),
+            Data(Anno(TestExportDataAnno::Edge {
+                edge_type: (ExportableEdgeComponentType::Dominance, "edge"),
+                anno_key: ("tiger", "func"),
+                source_node_index: 0,
+                target_node_index: 1,
+            })),
+        ],
+    }
+    pcc2_edge_anno_pointing: {
+        corpus_paths: ["pcc2_v7_relANNIS.zip"],
+        corpus_names: ["pcc2"],
+        aql_query: "NP _i_ tok & NP _i_ tok & #1 ^* #3 & #2 ->dep #4",
+        query_language: AQL,
+        export_columns: [
+            Number,
+            Data(Anno(TestExportDataAnno::MatchNode {
+                anno_key: ("annis", "tok"),
+                index: 1,
+            })),
+            Data(Anno(TestExportDataAnno::MatchNode {
+                anno_key: ("annis", "tok"),
+                index: 3,
+            })),
+            Data(Anno(TestExportDataAnno::Edge {
+                edge_type: (ExportableEdgeComponentType::Pointing, "dep"),
+                anno_key: ("dep", "func"),
+                source_node_index: 1,
+                target_node_index: 3,
+            })),
+        ],
+    }
     pcc2_primary_node: {
         corpus_paths: ["pcc2_v7_relANNIS.zip"],
         corpus_names: ["pcc2"],
@@ -631,6 +675,12 @@ enum TestExportDataAnno {
         anno_key: (&'static str, &'static str),
         index: usize,
     },
+    Edge {
+        edge_type: (ExportableEdgeComponentType, &'static str),
+        anno_key: (&'static str, &'static str),
+        source_node_index: usize,
+        target_node_index: usize,
+    },
 }
 
 #[derive(Clone, Serialize)]
@@ -678,6 +728,23 @@ impl From<TestTableExportColumn> for TableExportColumn {
                         name: name.into(),
                     },
                     index,
+                }),
+                TestExportData::Anno(TestExportDataAnno::Edge {
+                    edge_type: (ctype, component_name),
+                    anno_key: (ns, anno_name),
+                    source_node_index,
+                    target_node_index,
+                }) => ExportData::Anno(ExportDataAnno::Edge {
+                    edge_type: EdgeType {
+                        ctype,
+                        name: component_name.into(),
+                    },
+                    anno_key: AnnoKey {
+                        ns: ns.into(),
+                        name: anno_name.into(),
+                    },
+                    source_node_index,
+                    target_node_index,
                 }),
                 TestExportData::Text(TestExportDataText {
                     segmentation,
