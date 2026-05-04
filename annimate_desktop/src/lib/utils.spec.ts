@@ -95,7 +95,7 @@ describe('utils', () => {
 
   describe('filterEligible', () => {
     it.each([
-      ['eligible', ['a', 'b'], 'A', 'A'],
+      ['eligible', ['a', 'A', 'b'], 'A', 'a'],
       ['not eligible', ['a', 'b'], 'c', undefined],
       ['value undefined', ['a', 'b'], undefined, undefined],
       ['eligible values undefined', undefined, 'a', undefined],

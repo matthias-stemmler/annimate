@@ -31,6 +31,7 @@ import {
   SaveDialogOptions,
   UnlistenFn,
   Update,
+  ExportableEdgeType,
 } from '@/lib/api-types';
 import mockReleaseNotes from './mock-release-notes.md?raw';
 
@@ -43,11 +44,14 @@ const CORPUS_NO_MATCHES = 'Corpus without matches';
 const CORPUS_MANY_MATCHES = 'Corpus with many matches';
 const CORPUS_NO_ANNO_KEYS = 'Corpus without anno keys';
 const CORPUS_MANY_ANNO_KEYS = 'Corpus with many anno keys';
+const CORPUS_NO_EDGE_TYPES = 'Corpus without edge types';
+const CORPUS_MANY_EDGE_TYPES = 'Corpus with many edge types';
 const CORPUS_MULTIPLE_SEGMENTATIONS = 'Corpus with multiple segmentations';
 const CORPUS_SLOW = 'Corpus with slow segmentations/anno keys';
 
 const CORPUS_FAILING_EXPORT = 'Corpus with failing export';
 const CORPUS_FAILING_ANNO_KEYS = 'Corpus with failing anno keys';
+const CORPUS_FAILING_EDGE_TYPES = 'Corpus with failing edge types';
 const CORPUS_FAILING_TOGGLE = 'Corpus that fails to toggle';
 const CORPUS_FAILING_DELETE = 'Corpus that fails to delete';
 
@@ -58,6 +62,7 @@ const CORPUS_SET_FAILING = 'Failing';
 const NS_CORPUS = 'corpus';
 const NS_DOCUMENT = 'doc';
 const NS_NODE = 'node';
+const NS_EDGE = 'edge';
 
 const SEGMENTATION1 = 'segmentation1';
 const SEGMENTATION2 = 'segmentation2';
@@ -69,10 +74,13 @@ let corpusNames = [
   CORPUS_MANY_MATCHES,
   CORPUS_NO_ANNO_KEYS,
   CORPUS_MANY_ANNO_KEYS,
+  CORPUS_NO_EDGE_TYPES,
+  CORPUS_MANY_EDGE_TYPES,
   CORPUS_MULTIPLE_SEGMENTATIONS,
   CORPUS_SLOW,
   CORPUS_FAILING_EXPORT,
   CORPUS_FAILING_ANNO_KEYS,
+  CORPUS_FAILING_EDGE_TYPES,
   CORPUS_FAILING_TOGGLE,
   CORPUS_FAILING_DELETE,
 ];
@@ -88,6 +96,8 @@ const corpusSets: Record<string, { corpusNames: string[] }> = {
       CORPUS_MANY_MATCHES,
       CORPUS_NO_ANNO_KEYS,
       CORPUS_MANY_ANNO_KEYS,
+      CORPUS_NO_EDGE_TYPES,
+      CORPUS_MANY_EDGE_TYPES,
       CORPUS_MULTIPLE_SEGMENTATIONS,
       CORPUS_SLOW,
     ],
@@ -96,6 +106,7 @@ const corpusSets: Record<string, { corpusNames: string[] }> = {
     corpusNames: [
       CORPUS_FAILING_EXPORT,
       CORPUS_FAILING_ANNO_KEYS,
+      CORPUS_FAILING_EDGE_TYPES,
       CORPUS_FAILING_TOGGLE,
       CORPUS_FAILING_DELETE,
     ],
@@ -195,27 +206,60 @@ const getMatchCountForCorpus = (corpusName: string): number => {
   }
 };
 
-const makeExportableNodeAnnoKeys = (count: number): ExportableNodeAnnoKeys => {
-  const corpus: ExportableAnnoKey[] = [];
-  const doc: ExportableAnnoKey[] = [];
-  const node: ExportableAnnoKey[] = [];
+const makeExportableAnnoKeys = (
+  ns: string,
+  count: number,
+): ExportableAnnoKey[] => {
+  const exportableAnnoKeys: ExportableAnnoKey[] = [];
 
   for (let i = 0; i < count; i++) {
-    corpus.push({
-      annoKey: { ns: NS_CORPUS, name: `anno_${i}` },
-      displayName: `${NS_CORPUS}:anno_${i}`,
-    });
-    doc.push({
-      annoKey: { ns: NS_DOCUMENT, name: `anno_${i}` },
-      displayName: `${NS_DOCUMENT}:anno_${i}`,
-    });
-    node.push({
-      annoKey: { ns: NS_NODE, name: `anno_${i}` },
-      displayName: `${NS_NODE}:anno_${i}`,
+    exportableAnnoKeys.push({
+      annoKey: { ns, name: `anno_${i}` },
+      displayName: `${ns}:anno_${i}`,
     });
   }
 
-  return { corpus, doc, node };
+  return exportableAnnoKeys;
+};
+
+const makeExportableNodeAnnoKeys = (count: number): ExportableNodeAnnoKeys => ({
+  corpus: makeExportableAnnoKeys(NS_CORPUS, count),
+  doc: makeExportableAnnoKeys(NS_DOCUMENT, count),
+  node: makeExportableAnnoKeys(NS_NODE, count),
+});
+
+const makeExportableEdgeTypes = (count: number): ExportableEdgeType[] => {
+  const exportableEdgeTypes: ExportableEdgeType[] = [];
+
+  exportableEdgeTypes.push({
+    edgeType: {
+      ctype: 'Dominance',
+      name: '',
+    },
+    annoKeys: makeExportableAnnoKeys(`${NS_EDGE}_d`, count),
+  });
+
+  for (let i = 0; i < count; i++) {
+    exportableEdgeTypes.push({
+      edgeType: {
+        ctype: 'Dominance',
+        name: `component_${i}`,
+      },
+      annoKeys: makeExportableAnnoKeys(`${NS_EDGE}_d_${i}`, count),
+    });
+  }
+
+  for (let i = 0; i < count; i++) {
+    exportableEdgeTypes.push({
+      edgeType: {
+        ctype: 'Pointing',
+        name: `component_${i}`,
+      },
+      annoKeys: makeExportableAnnoKeys(`${NS_EDGE}_p_${i}`, count),
+    });
+  }
+
+  return exportableEdgeTypes;
 };
 
 const exportCancelRequestedListeners: Set<() => void> = new Set();
@@ -625,6 +669,28 @@ export const getExportableNodeAnnoKeys = async (params: {
   }
 
   return makeExportableNodeAnnoKeys(0);
+};
+
+export const getExportableEdgeTypes = async (params: {
+  corpusNames: string[];
+}): Promise<ExportableEdgeType[]> => {
+  if (params.corpusNames.includes(CORPUS_SLOW)) {
+    await sleep(1500);
+  }
+
+  if (params.corpusNames.includes(CORPUS_FAILING_EDGE_TYPES)) {
+    throw new Error('Failed to get edge types');
+  }
+
+  if (params.corpusNames.includes(CORPUS_MANY_EDGE_TYPES)) {
+    return makeExportableEdgeTypes(20);
+  }
+
+  if (params.corpusNames.some((c) => c !== CORPUS_NO_EDGE_TYPES)) {
+    return makeExportableEdgeTypes(5);
+  }
+
+  return makeExportableEdgeTypes(0);
 };
 
 export const getQueryNodes = async (params: {
