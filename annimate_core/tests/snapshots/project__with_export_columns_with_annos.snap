@@ -19,12 +19,19 @@ info:
           - ns3
           - anno3
         node_index: ~
+    - AnnoEdge:
+        edge_type: ~
+        anno_key:
+          - ns4
+          - anno4
+        source_node_index: ~
+        target_node_index: ~
     - MatchInContext:
         segmentation: ~
         anno_key:
           AnnoKey:
-            - ns4
-            - anno4
+            - ns5
+            - anno5
         context:
           Symmetric: 20
         primary_node_indices: []
@@ -52,6 +59,10 @@ type = "match-annotation"
 annotation = { ns = "ns3", name = "anno3" }
 
 [[project.columns]]
-type = "match-in-context"
+type = "edge-annotation"
 annotation = { ns = "ns4", name = "anno4" }
+
+[[project.columns]]
+type = "match-in-context"
+annotation = { ns = "ns5", name = "anno5" }
 context = 20

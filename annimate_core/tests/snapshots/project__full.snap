@@ -22,20 +22,29 @@ info:
           - ns3
           - anno3
         node_index: 0
+    - AnnoEdge:
+        edge_type:
+          - Dominance
+          - comp1
+        anno_key:
+          - ns4
+          - anno4
+        source_node_index: 1
+        target_node_index: 2
     - MatchInContext:
         segmentation: Test Segmentation
         anno_key:
           AnnoKey:
-            - ns4
-            - anno4
+            - ns5
+            - anno5
         context:
           Asymmetric:
             left: 5
             right: 10
         primary_node_indices:
-          - 1
-          - 2
           - 3
+          - 4
+          - 5
   export_format: Xlsx
 ---
 # Annimate project file
@@ -70,8 +79,15 @@ annotation = { ns = "ns3", name = "anno3" }
 node-index = 0
 
 [[project.columns]]
+type = "edge-annotation"
+edge-type = { ctype = "Dominance", name = "comp1" }
+annotation = { ns = "ns4", name = "anno4" }
+source-node-index = 1
+target-node-index = 2
+
+[[project.columns]]
 type = "match-in-context"
 segmentation = "Test Segmentation"
-annotation = { ns = "ns4", name = "anno4" }
+annotation = { ns = "ns5", name = "anno5" }
 context = { left = 5, right = 10 }
-primary-node-indices = [1, 2, 3]
+primary-node-indices = [3, 4, 5]

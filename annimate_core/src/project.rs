@@ -23,7 +23,7 @@ use serde::Deserialize;
 
 use crate::anno::AnnoKeyOrDefault;
 use crate::error::AnnimateReadFileError;
-use crate::{AnnimateError, util};
+use crate::{AnnimateError, EdgeType, ExportableEdgeComponentType, util};
 
 const FILE_HEADER: &str =
     "# Annimate project file\n# https://github.com/matthias-stemmler/annimate\n\n";
@@ -79,6 +79,14 @@ pub enum ProjectExportColumn {
         #[serde(rename = "annotation")]
         anno_key: Option<AnnoKey>,
         node_index: Option<u32>,
+    },
+    #[serde(rename = "edge-annotation")]
+    AnnoEdge {
+        edge_type: Option<EdgeType>,
+        #[serde(rename = "annotation")]
+        anno_key: Option<AnnoKey>,
+        source_node_index: Option<u32>,
+        target_node_index: Option<u32>,
     },
     #[serde(rename = "match-in-context")]
     MatchInContext {
@@ -251,12 +259,14 @@ fn to_string_pretty(project_file: ProjectFile) -> String {
                     }
                     ProjectExportColumn::AnnoCorpus { anno_key } => {
                         table["type"] = "corpus-metadata".into();
+
                         if let Some(anno_key) = anno_key {
                             table["annotation"] = anno_key_to_item(anno_key);
                         }
                     }
                     ProjectExportColumn::AnnoDocument { anno_key } => {
                         table["type"] = "document-metadata".into();
+
                         if let Some(anno_key) = anno_key {
                             table["annotation"] = anno_key_to_item(anno_key);
                         }
@@ -266,11 +276,50 @@ fn to_string_pretty(project_file: ProjectFile) -> String {
                         node_index,
                     } => {
                         table["type"] = "match-annotation".into();
+
                         if let Some(anno_key) = anno_key {
                             table["annotation"] = anno_key_to_item(anno_key);
                         }
+
                         if let Some(node_index) = node_index {
                             table["node-index"] = i64::from(node_index).into();
+                        }
+                    }
+                    ProjectExportColumn::AnnoEdge {
+                        edge_type,
+                        anno_key,
+                        source_node_index,
+                        target_node_index,
+                    } => {
+                        table["type"] = "edge-annotation".into();
+
+                        if let Some(EdgeType { ctype, name }) = edge_type {
+                            table["edge-type"] = {
+                                let mut table = toml_edit::InlineTable::new();
+                                table.insert(
+                                    "ctype",
+                                    match ctype {
+                                        ExportableEdgeComponentType::Dominance => {
+                                            "Dominance".into()
+                                        }
+                                        ExportableEdgeComponentType::Pointing => "Pointing".into(),
+                                    },
+                                );
+                                table.insert("name", name.into());
+                                table.into()
+                            };
+                        }
+
+                        if let Some(anno_key) = anno_key {
+                            table["annotation"] = anno_key_to_item(anno_key);
+                        }
+
+                        if let Some(source_node_index) = source_node_index {
+                            table["source-node-index"] = i64::from(source_node_index).into();
+                        }
+
+                        if let Some(target_node_index) = target_node_index {
+                            table["target-node-index"] = i64::from(target_node_index).into();
                         }
                     }
                     ProjectExportColumn::MatchInContext {

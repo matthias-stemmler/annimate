@@ -246,7 +246,7 @@ pub(crate) struct EdgeTypes {
 }
 
 /// Edge component type for which annotations can be exported.
-#[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
+#[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 pub enum ExportableEdgeComponentType {
     /// See [`AnnotationComponentType::Dominance`].
     Dominance,
@@ -269,7 +269,7 @@ impl From<ExportableEdgeComponentType> for AnnotationComponentType {
 }
 
 /// Type (component type, component name) of an edge for which to export an annotation.
-#[derive(Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 pub struct EdgeType {
     /// Component type.
     pub ctype: ExportableEdgeComponentType,

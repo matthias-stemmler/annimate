@@ -36,11 +36,15 @@ macro_rules! export_matches_test {
                         $query_language
                     },
                     export_columns: {
-                        use TestTableExportColumn::*;
+                        #[allow(unused_imports)]
+                        use ExportableEdgeComponentType::*;
+                        #[allow(unused_imports)]
+                        use TestAnnoKeyOrDefault::*;
                         #[allow(unused_imports)]
                         use TestExportData::*;
                         #[allow(unused_imports)]
-                        use TestAnnoKeyOrDefault::*;
+                        use TestTableExportColumn::*;
+
                         vec![$($export_columns,)*]
                     },
                 };
@@ -408,13 +412,13 @@ export_matches_test! {
         export_columns: [
             Number,
             Data(Anno(TestExportDataAnno::Edge {
-                edge_type: (ExportableEdgeComponentType::Dominance, ""),
+                edge_type: (Dominance, ""),
                 anno_key: ("tiger", "func"),
                 source_node_index: 0,
                 target_node_index: 1,
             })),
             Data(Anno(TestExportDataAnno::Edge {
-                edge_type: (ExportableEdgeComponentType::Dominance, "edge"),
+                edge_type: (Dominance, "edge"),
                 anno_key: ("tiger", "func"),
                 source_node_index: 0,
                 target_node_index: 1,
@@ -437,7 +441,7 @@ export_matches_test! {
                 index: 3,
             })),
             Data(Anno(TestExportDataAnno::Edge {
-                edge_type: (ExportableEdgeComponentType::Pointing, "dep"),
+                edge_type: (Pointing, "dep"),
                 anno_key: ("dep", "func"),
                 source_node_index: 1,
                 target_node_index: 3,
