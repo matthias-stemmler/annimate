@@ -9,15 +9,20 @@ info:
     - AnnoMatch:
         anno_key: ~
         node_index: 0
+    - AnnoEdge:
+        edge_type: ~
+        anno_key: ~
+        source_node_index: 1
+        target_node_index: 2
     - MatchInContext:
         segmentation: ~
         anno_key: ~
         context:
           Symmetric: 20
         primary_node_indices:
-          - 1
-          - 2
           - 3
+          - 4
+          - 5
   export_format: Csv
 ---
 # Annimate project file
@@ -34,6 +39,11 @@ type = "match-annotation"
 node-index = 0
 
 [[project.columns]]
+type = "edge-annotation"
+source-node-index = 1
+target-node-index = 2
+
+[[project.columns]]
 type = "match-in-context"
 context = 20
-primary-node-indices = [1, 2, 3]
+primary-node-indices = [3, 4, 5]

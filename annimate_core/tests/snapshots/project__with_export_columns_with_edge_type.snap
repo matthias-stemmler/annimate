@@ -6,25 +6,27 @@ info:
   aql_query: ""
   query_language: AQL
   export_columns:
-    - Number
-    - AnnoCorpus:
-        anno_key: ~
-    - AnnoDocument:
-        anno_key: ~
-    - AnnoMatch:
-        anno_key: ~
-        node_index: ~
     - AnnoEdge:
-        edge_type: ~
+        edge_type:
+          - Dominance
+          - ""
         anno_key: ~
         source_node_index: ~
         target_node_index: ~
-    - MatchInContext:
-        segmentation: ~
+    - AnnoEdge:
+        edge_type:
+          - Dominance
+          - comp1
         anno_key: ~
-        context:
-          Symmetric: 20
-        primary_node_indices: []
+        source_node_index: ~
+        target_node_index: ~
+    - AnnoEdge:
+        edge_type:
+          - Pointing
+          - comp2
+        anno_key: ~
+        source_node_index: ~
+        target_node_index: ~
   export_format: Csv
 ---
 # Annimate project file
@@ -37,20 +39,13 @@ query-language = "aql"
 export-format = "csv"
 
 [[project.columns]]
-type = "number"
-
-[[project.columns]]
-type = "corpus-metadata"
-
-[[project.columns]]
-type = "document-metadata"
-
-[[project.columns]]
-type = "match-annotation"
+type = "edge-annotation"
+edge-type = { ctype = "Dominance", name = "" }
 
 [[project.columns]]
 type = "edge-annotation"
+edge-type = { ctype = "Dominance", name = "comp1" }
 
 [[project.columns]]
-type = "match-in-context"
-context = 20
+type = "edge-annotation"
+edge-type = { ctype = "Pointing", name = "comp2" }

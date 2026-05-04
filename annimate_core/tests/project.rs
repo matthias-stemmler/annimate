@@ -2,8 +2,8 @@ use std::fs;
 use std::path::Path;
 
 use annimate_core::{
-    AnnoKey, AnnoKeyOrDefault, Project, ProjectContext, ProjectExportColumn, ProjectExportFormat,
-    QueryLanguage,
+    AnnoKey, AnnoKeyOrDefault, EdgeType, ExportableEdgeComponentType, Project, ProjectContext,
+    ProjectExportColumn, ProjectExportFormat, QueryLanguage,
 };
 use serde::Serialize;
 
@@ -32,11 +32,14 @@ macro_rules! project_test {
                 },
                 export_columns: {
                     #[allow(unused_imports)]
-                    use TestProjectExportColumn::*;
+                    use ExportableEdgeComponentType::*;
                     #[allow(unused_imports)]
                     use TestAnnoKeyOrDefault::*;
                     #[allow(unused_imports)]
                     use TestProjectContext::*;
+                    #[allow(unused_imports)]
+                    use TestProjectExportColumn::*;
+
                     vec![$($export_column,)*]
                 },
                 export_format: {
@@ -143,6 +146,12 @@ project_test! {
                 anno_key: None,
                 node_index: None,
             },
+            AnnoEdge {
+                edge_type: None,
+                anno_key: None,
+                source_node_index: None,
+                target_node_index: None,
+            },
             MatchInContext {
                 segmentation: None,
                 anno_key: None,
@@ -168,11 +177,44 @@ project_test! {
                 anno_key: Some(("ns3", "anno3")),
                 node_index: None,
             },
+            AnnoEdge {
+                edge_type: None,
+                anno_key: Some(("ns4", "anno4")),
+                source_node_index: None,
+                target_node_index: None,
+            },
             MatchInContext {
                 segmentation: None,
-                anno_key: Some(AnnoKey(("ns4", "anno4"))),
+                anno_key: Some(AnnoKey(("ns5", "anno5"))),
                 context: Symmetric(20),
                 primary_node_indices: &[],
+            },
+        ],
+        export_format: Csv,
+    }
+    with_export_columns_with_edge_type: {
+        corpus_set: None,
+        corpus_names: [],
+        aql_query: "",
+        query_language: AQL,
+        export_columns: [
+            AnnoEdge {
+                edge_type: Some((Dominance, "")),
+                anno_key: None,
+                source_node_index: None,
+                target_node_index: None,
+            },
+            AnnoEdge {
+                edge_type: Some((Dominance, "comp1")),
+                anno_key: None,
+                source_node_index: None,
+                target_node_index: None,
+            },
+            AnnoEdge {
+                edge_type: Some((Pointing, "comp2")),
+                anno_key: None,
+                source_node_index: None,
+                target_node_index: None,
             },
         ],
         export_format: Csv,
@@ -232,11 +274,17 @@ project_test! {
                 anno_key: None,
                 node_index: Some(0),
             },
+            AnnoEdge {
+                edge_type: None,
+                anno_key: None,
+                source_node_index: Some(1),
+                target_node_index: Some(2),
+            },
             MatchInContext {
                 segmentation: None,
                 anno_key: None,
                 context: Symmetric(20),
-                primary_node_indices: &[1, 2, 3],
+                primary_node_indices: &[3, 4, 5],
             },
         ],
         export_format: Csv,
@@ -266,11 +314,17 @@ project_test! {
                 anno_key: Some(("ns3", "anno3")),
                 node_index: Some(0),
             },
+            AnnoEdge {
+                edge_type: Some((Dominance, "comp1")),
+                anno_key: Some(("ns4", "anno4")),
+                source_node_index: Some(1),
+                target_node_index: Some(2),
+            },
             MatchInContext {
                 segmentation: Some("Test Segmentation"),
-                anno_key: Some(AnnoKey(("ns4", "anno4"))),
+                anno_key: Some(AnnoKey(("ns5", "anno5"))),
                 context: Asymmetric { left: 5, right: 10 },
-                primary_node_indices: &[1, 2, 3],
+                primary_node_indices: &[3, 4, 5],
             },
         ],
         export_format: Xlsx,
@@ -323,6 +377,12 @@ enum TestProjectExportColumn {
     AnnoMatch {
         anno_key: Option<(&'static str, &'static str)>,
         node_index: Option<u32>,
+    },
+    AnnoEdge {
+        edge_type: Option<(ExportableEdgeComponentType, &'static str)>,
+        anno_key: Option<(&'static str, &'static str)>,
+        source_node_index: Option<u32>,
+        target_node_index: Option<u32>,
     },
     MatchInContext {
         segmentation: Option<&'static str>,
@@ -398,6 +458,23 @@ impl From<TestProjectExportColumn> for ProjectExportColumn {
                     name: name.into(),
                 }),
                 node_index,
+            },
+            TestProjectExportColumn::AnnoEdge {
+                edge_type,
+                anno_key,
+                source_node_index,
+                target_node_index,
+            } => ProjectExportColumn::AnnoEdge {
+                edge_type: edge_type.map(|(ctype, name)| EdgeType {
+                    ctype,
+                    name: name.into(),
+                }),
+                anno_key: anno_key.map(|(ns, name)| AnnoKey {
+                    ns: ns.into(),
+                    name: name.into(),
+                }),
+                source_node_index,
+                target_node_index,
             },
             TestProjectExportColumn::MatchInContext {
                 segmentation,

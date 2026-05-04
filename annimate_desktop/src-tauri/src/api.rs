@@ -6,9 +6,10 @@ use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
 
 use annimate_core::{
-    AnnoKey, AnnoKeyOrDefault, Corpora, CsvExportConfig, ExportConfig, ExportData, ExportDataAnno,
-    ExportDataText, ExportStatusEvent, ExportableNodeAnnoKeys, ImportStatusEvent,
-    QueryAnalysisResult, QueryLanguage, QueryNode, QueryNodes, TableExportColumn, XlsxExportConfig,
+    AnnoKey, AnnoKeyOrDefault, Corpora, CsvExportConfig, EdgeType, ExportConfig, ExportData,
+    ExportDataAnno, ExportDataText, ExportStatusEvent, ExportableEdgeType, ExportableNodeAnnoKeys,
+    ImportStatusEvent, QueryAnalysisResult, QueryLanguage, QueryNode, QueryNodes,
+    TableExportColumn, XlsxExportConfig,
 };
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
@@ -127,6 +128,21 @@ pub(crate) async fn get_corpora(state: tauri::State<'_, AppState>) -> Result<Cor
 pub(crate) async fn get_db_dir(state: tauri::State<'_, AppState>) -> Result<PathBuf, Error> {
     let db_dir = state.db_dir.wait().await.clone()?;
     Ok(db_dir)
+}
+
+#[tauri::command]
+pub(crate) async fn get_exportable_edge_types(
+    state: tauri::State<'_, AppState>,
+    corpus_names: Vec<String>,
+) -> Result<Vec<ExportableEdgeType>, Error> {
+    // Suspend preloading to avoid slowdown due to parallel loads (in case of cache miss)
+    let preloader = state.preloader.wait().await.clone()?;
+    let _guard = preloader.suspend();
+
+    let storage = state.storage.wait().await.clone()?;
+
+    tauri::async_runtime::spawn_blocking(move || Ok(storage.exportable_edge_types(&corpus_names)?))
+        .await?
 }
 
 #[tauri::command]
@@ -285,6 +301,29 @@ pub(crate) async fn load_project(
                                 })
                                 .transpose()?,
                         },
+                        annimate_core::ProjectExportColumn::AnnoEdge {
+                            edge_type,
+                            anno_key,
+                            source_node_index,
+                            target_node_index,
+                        } => ExportColumn::AnnoEdge {
+                            edge_type,
+                            anno_key,
+                            source_node_ref: source_node_index
+                                .map(|index| {
+                                    Ok(get_query_node_ref(
+                                        index.try_into().map_err(|_| ConversionError)?,
+                                    ))
+                                })
+                                .transpose()?,
+                            target_node_ref: target_node_index
+                                .map(|index| {
+                                    Ok(get_query_node_ref(
+                                        index.try_into().map_err(|_| ConversionError)?,
+                                    ))
+                                })
+                                .transpose()?,
+                        },
                         annimate_core::ProjectExportColumn::MatchInContext {
                             segmentation,
                             anno_key,
@@ -377,6 +416,21 @@ pub(crate) async fn save_project(project: Project, output_file: PathBuf) -> Resu
                                 .transpose()?,
                         }
                     }
+                    ExportColumn::AnnoEdge {
+                        edge_type,
+                        anno_key,
+                        source_node_ref,
+                        target_node_ref,
+                    } => annimate_core::ProjectExportColumn::AnnoEdge {
+                        edge_type,
+                        anno_key,
+                        source_node_index: source_node_ref
+                            .map(|n| n.index.try_into().map_err(|_| ConversionError))
+                            .transpose()?,
+                        target_node_index: target_node_ref
+                            .map(|n| n.index.try_into().map_err(|_| ConversionError))
+                            .transpose()?,
+                    },
                     ExportColumn::MatchInContext {
                         anno_key,
                         context,
@@ -520,6 +574,16 @@ pub(crate) enum ExportColumn {
         #[serde(skip_serializing_if = "Option::is_none")]
         node_ref: Option<QueryNodeRef>,
     },
+    AnnoEdge {
+        #[serde(skip_serializing_if = "Option::is_none")]
+        edge_type: Option<EdgeType>,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        anno_key: Option<AnnoKey>,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        source_node_ref: Option<QueryNodeRef>,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        target_node_ref: Option<QueryNodeRef>,
+    },
     MatchInContext {
         #[serde(skip_serializing_if = "Option::is_none")]
         anno_key: Option<AnnoKeyOrDefault>,
@@ -562,6 +626,17 @@ impl TryFrom<ExportColumn> for TableExportColumn {
                     index: node_ref.ok_or(ConversionError)?.index,
                 }))
             }
+            ExportColumn::AnnoEdge {
+                edge_type,
+                anno_key,
+                source_node_ref,
+                target_node_ref,
+            } => TableExportColumn::Data(ExportData::Anno(ExportDataAnno::Edge {
+                edge_type: edge_type.ok_or(ConversionError)?,
+                anno_key: anno_key.ok_or(ConversionError)?,
+                source_node_index: source_node_ref.ok_or(ConversionError)?.index,
+                target_node_index: target_node_ref.ok_or(ConversionError)?.index,
+            })),
             ExportColumn::MatchInContext {
                 anno_key,
                 context,
