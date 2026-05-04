@@ -47,12 +47,10 @@ export const filterEligible = <S, T>(
   eligibleValues: S[] | undefined,
   value: T | undefined,
   compare: (a: S, b: T) => boolean,
-): T | undefined =>
-  eligibleValues !== undefined &&
-  value !== undefined &&
-  eligibleValues.some((v) => compare(v, value))
-    ? value
-    : undefined;
+): S | undefined =>
+  value === undefined
+    ? undefined
+    : eligibleValues?.find((v) => compare(v, value));
 
 export const groupBy = <K, T>(
   items: readonly T[],

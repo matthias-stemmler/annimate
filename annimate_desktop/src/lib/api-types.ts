@@ -29,6 +29,16 @@ export type ExportableNodeAnnoKeys = {
 
 export type ExportableNodeAnnoKeyCategory = keyof ExportableNodeAnnoKeys;
 
+export type ExportableEdgeType = {
+  edgeType: EdgeType;
+  annoKeys: ExportableAnnoKey[];
+};
+
+export type EdgeType = {
+  ctype: 'Dominance' | 'Pointing';
+  name: string;
+};
+
 export type ExportableAnnoKey = {
   annoKey: AnnoKey;
   displayName: string;
@@ -68,6 +78,13 @@ export type ExportColumn =
       type: 'anno_match';
       annoKey?: AnnoKey;
       nodeRef?: QueryNodeRef;
+    }
+  | {
+      type: 'anno_edge';
+      edgeType?: EdgeType;
+      annoKey?: AnnoKey;
+      sourceNodeRef?: QueryNodeRef;
+      targetNodeRef?: QueryNodeRef;
     }
   | {
       type: 'match_in_context';

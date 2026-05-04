@@ -2,12 +2,14 @@ import {
   AnnoKey,
   Corpora,
   Corpus,
+  EdgeType,
   ExportColumn,
   ExportColumnData,
   ExportColumnType,
   ExportFormat,
   ExportSpec,
   ExportableAnnoKey,
+  ExportableEdgeType,
   ExportableNodeAnnoKeys,
   QueryLanguage,
   QueryNode,
@@ -27,8 +29,10 @@ import {
 import {
   UseGetQueryDataOptions,
   useCorporaQuery,
+  useExportableEdgeTypesQuery,
   useExportableNodeAnnoKeysQuery,
   useGetCorporaQueryData,
+  useGetExportableEdgeTypesQueryData,
   useGetExportableNodeAnnoKeysQueryData,
   useGetQueryNodesQueryData,
   useGetQueryValidationResultQueryData,
@@ -79,6 +83,26 @@ export type ExportColumnUpdate =
         | {
             type: 'update_node_ref';
             nodeRef: QueryNodeRef;
+          };
+    }
+  | {
+      type: 'anno_edge';
+      payload:
+        | {
+            type: 'update_edge_type';
+            edgeType: EdgeType;
+          }
+        | {
+            type: 'update_anno_key';
+            annoKey: AnnoKey;
+          }
+        | {
+            type: 'update_source_node_ref';
+            sourceNodeRef: QueryNodeRef;
+          }
+        | {
+            type: 'update_target_node_ref';
+            targetNodeRef: QueryNodeRef;
           };
     }
   | {
@@ -189,6 +213,15 @@ const createExportColumn = (type: ExportColumnType): ExportColumn => {
         type: 'anno_match',
         annoKey: undefined,
         nodeRef: undefined,
+      };
+
+    case 'anno_edge':
+      return {
+        type: 'anno_edge',
+        edgeType: undefined,
+        annoKey: undefined,
+        sourceNodeRef: undefined,
+        targetNodeRef: undefined,
       };
 
     case 'match_in_context':
@@ -322,12 +355,14 @@ const useGetQueryLanguage = (): (() => QueryLanguage) => {
 
 export const useExportColumnItems = (): ExportColumnItem[] => {
   const exportableNodeAnnoKeys = useExportableNodeAnnoKeys();
+  const exportableEdgeTypes = useExportableEdgeTypes();
   const queryNodes = useQueryNodes();
   const segmentations = useSegmentations();
   const exportColumns = useSelector((state) => state.exportColumns);
 
   return toExportColumns(
     exportableNodeAnnoKeys.data,
+    exportableEdgeTypes.data,
     queryNodes.data,
     segmentations.data,
     exportColumns,
@@ -342,6 +377,8 @@ const useGetExportColumns = <Wait extends boolean = true>(
 
   const getExportableNodeAnnoKeysQueryData =
     useGetExportableNodeAnnoKeysQueryData(options);
+  const getExportableEdgeTypesQueryData =
+    useGetExportableEdgeTypesQueryData(options);
   const getSegmentationsQueryData = useGetSegmentationsQueryData(options);
   const getQueryNodes = useGetQueryNodes(options);
 
@@ -352,11 +389,15 @@ const useGetExportColumns = <Wait extends boolean = true>(
     const exportableNodeAnnoKeys = await getExportableNodeAnnoKeysQueryData({
       corpusNames,
     });
+    const exportableEdgeTypes = await getExportableEdgeTypesQueryData({
+      corpusNames,
+    });
     const queryNodes = await getQueryNodes();
     const segmentations = await getSegmentationsQueryData({ corpusNames });
     const { exportColumns } = getState();
     return toExportColumns(
       exportableNodeAnnoKeys,
+      exportableEdgeTypes,
       queryNodes,
       segmentations,
       exportColumns,
@@ -380,6 +421,7 @@ const useGetQueryNodes = <Wait extends boolean = true>(
 
 const toExportColumns = (
   exportableNodeAnnoKeys: ExportableNodeAnnoKeys | undefined,
+  exportableEdgeTypes: ExportableEdgeType[] | undefined,
   queryNodes: QueryNodesResult | undefined,
   segmentations: string[] | undefined,
   exportColumns: ExportColumnItem[],
@@ -419,6 +461,31 @@ const toExportColumns = (
             ),
           };
 
+        case 'anno_edge': {
+          const exportableEdgeType = filterEligibleEdgeType(
+            exportableEdgeTypes,
+            column.edgeType,
+          );
+          const nodeRefs = toNodeRefs(queryNodes);
+
+          return {
+            ...column,
+            edgeType: exportableEdgeType?.edgeType,
+            annoKey: filterEligibleAnnoKey(
+              exportableEdgeType?.annoKeys,
+              column.annoKey,
+            ),
+            sourceNodeRef: findEligibleQueryNodeRef(
+              nodeRefs,
+              column.sourceNodeRef,
+            ),
+            targetNodeRef: findEligibleQueryNodeRef(
+              nodeRefs,
+              column.targetNodeRef,
+            ),
+          };
+        }
+
         case 'match_in_context': {
           const { primaryNodeRefs, secondaryNodeRefs } =
             distributeQueryNodeRefs(
@@ -456,13 +523,23 @@ const toExportColumns = (
     });
 
 const filterEligibleAnnoKey = (
-  eligibleAnnoKeys: ExportableAnnoKey[] | undefined,
+  exportableAnnoKeys: ExportableAnnoKey[] | undefined,
   annoKey: AnnoKey | undefined,
 ): AnnoKey | undefined =>
   filterEligible(
-    eligibleAnnoKeys,
+    exportableAnnoKeys,
     annoKey,
     (e, a) => e.annoKey.ns === a.ns && e.annoKey.name === a.name,
+  )?.annoKey;
+
+const filterEligibleEdgeType = (
+  exportableEdgeTypes: ExportableEdgeType[] | undefined,
+  edgeType: EdgeType | undefined,
+): ExportableEdgeType | undefined =>
+  filterEligible(
+    exportableEdgeTypes,
+    edgeType,
+    (e, t) => e.edgeType.ctype === t.ctype && e.edgeType.name === t.name,
   );
 
 const findEligibleQueryNodeRef = (
@@ -663,6 +740,21 @@ const getExportColumnImpediments = (exportColumn: ExportColumn): string[] => {
       }
       break;
 
+    case 'anno_edge':
+      if (exportColumn.edgeType === undefined) {
+        impediments.push('No edge type selected');
+      }
+      if (exportColumn.annoKey === undefined) {
+        impediments.push('No annotation selected');
+      }
+      if (exportColumn.sourceNodeRef === undefined) {
+        impediments.push('No source query node selected');
+      }
+      if (exportColumn.targetNodeRef === undefined) {
+        impediments.push('No target query node selected');
+      }
+      break;
+
     case 'match_in_context':
       if (exportColumn.segmentation === undefined) {
         impediments.push('No segmentation selected');
@@ -852,6 +944,21 @@ export const useUpdateExportColumn = (): ((
 
       case type === 'anno_match' && payload.type === 'update_node_ref': {
         update(id, type, () => ({ nodeRef: payload.nodeRef }));
+        return;
+      }
+
+      case type === 'anno_edge' && payload.type === 'update_edge_type': {
+        update(id, type, () => ({ edgeType: payload.edgeType }));
+        return;
+      }
+
+      case type === 'anno_edge' && payload.type === 'update_source_node_ref': {
+        update(id, type, () => ({ sourceNodeRef: payload.sourceNodeRef }));
+        return;
+      }
+
+      case type === 'anno_edge' && payload.type === 'update_target_node_ref': {
+        update(id, type, () => ({ targetNodeRef: payload.targetNodeRef }));
         return;
       }
 
@@ -1065,6 +1172,16 @@ export const useExportableNodeAnnoKeys =
       corpusNames: selectedCorpusNames,
     });
   };
+
+export const useExportableEdgeTypes = (): UseSlowTrackingQueryResult<
+  ExportableEdgeType[]
+> => {
+  const selectedCorpusNames = useSelectedCorpusNamesInSelectedSet();
+
+  return useExportableEdgeTypesQuery({
+    corpusNames: selectedCorpusNames,
+  });
+};
 
 // MUTATIONS
 

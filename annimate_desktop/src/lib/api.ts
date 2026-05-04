@@ -2,6 +2,7 @@ import {
   Corpora,
   ExportSpec,
   ExportStatusEvent,
+  ExportableEdgeType,
   ExportableNodeAnnoKeys,
   ImportStatusEvent,
   Project,
@@ -73,6 +74,11 @@ export const exportMatches = async (
 export const getCorpora = (): Promise<Corpora> => invoke('get_corpora');
 
 export const getDbDir = (): Promise<string> => invoke('get_db_dir');
+
+export const getExportableEdgeTypes = (params: {
+  corpusNames: string[];
+}): Promise<ExportableEdgeType[]> =>
+  invoke('get_exportable_edge_types', params);
 
 export const getExportableNodeAnnoKeys = (params: {
   corpusNames: string[];

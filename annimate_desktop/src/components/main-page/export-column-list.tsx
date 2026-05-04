@@ -47,6 +47,7 @@ const COLUMN_TYPE_TO_NAME: Record<ExportColumnType, string> = {
   anno_corpus: 'Corpus metadata',
   anno_document: 'Document metadata',
   anno_match: 'Match annotation',
+  anno_edge: 'Edge annotation',
   match_in_context: 'Match in context',
 };
 

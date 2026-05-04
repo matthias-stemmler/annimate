@@ -1,6 +1,7 @@
 import {
   getCorpora,
   getDbDir,
+  getExportableEdgeTypes,
   getExportableNodeAnnoKeys,
   getQueryNodes,
   getSegmentations,
@@ -8,6 +9,7 @@ import {
 } from '@/lib/api';
 import {
   Corpora,
+  ExportableEdgeType,
   ExportableNodeAnnoKeys,
   QueryLanguage,
   QueryNodesResult,
@@ -29,6 +31,7 @@ import {
 export const QUERY_KEY_CORPORA = 'corpora';
 export const QUERY_KEY_DB_DIR = 'db-dir';
 export const QUERY_KEY_EXPORTABLE_NODE_ANNO_KEYS = 'exportable-node-anno-keys';
+export const QUERY_KEY_EXPORTABLE_EDGE_TYPES = 'exportable-edge-types';
 export const QUERY_KEY_QUERY_NODES = 'query-nodes';
 export const QUERY_KEY_QUERY_VALIDATION_RESULT = 'query-validation-result';
 export const QUERY_KEY_SEGMENTATIONS = 'segmentations';
@@ -162,6 +165,30 @@ export const useGetExportableNodeAnnoKeysQueryData = <
   const getQueryData = useGetQueryData<ExportableNodeAnnoKeys, Wait>(options);
   return (params: { corpusNames: string[] }) =>
     getQueryData(exportableNodeAnnoKeysQueryConfig(params));
+};
+
+const exportableEdgeTypesQueryConfig = (params: { corpusNames: string[] }) => ({
+  queryKey: [QUERY_KEY_EXPORTABLE_EDGE_TYPES, params],
+  queryFn: () => getExportableEdgeTypes(params),
+  slowTracking: {
+    peerQueryKey: [QUERY_KEY_EXPORTABLE_EDGE_TYPES],
+    timeout: SLOW_TRACKING_TIMEOUT,
+  },
+});
+
+export const useExportableEdgeTypesQuery = (params: {
+  corpusNames: string[];
+}): UseSlowTrackingQueryResult<ExportableEdgeType[]> =>
+  useSlowTrackingQuery(exportableEdgeTypesQueryConfig(params));
+
+export const useGetExportableEdgeTypesQueryData = <Wait extends boolean = true>(
+  options: UseGetQueryDataOptions<Wait> = {},
+): ((params: {
+  corpusNames: string[];
+}) => QueryData<ExportableEdgeType[], Wait>) => {
+  const getQueryData = useGetQueryData<ExportableEdgeType[], Wait>(options);
+  return (params: { corpusNames: string[] }) =>
+    getQueryData(exportableEdgeTypesQueryConfig(params));
 };
 
 export const useGetQueryNodesQueryData = <Wait extends boolean = true>(

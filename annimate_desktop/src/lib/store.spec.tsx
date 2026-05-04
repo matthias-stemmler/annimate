@@ -1,7 +1,9 @@
 import { StoreProvider } from '@/components/store-provider';
 import {
   AnnoKey,
+  EdgeType,
   ExportColumnType,
+  ExportableEdgeType,
   ExportableNodeAnnoKeys,
   InvokeArgs,
   Project,
@@ -59,8 +61,21 @@ describe('store', () => {
     ns: 'node_ns',
     name: 'node_name',
   };
+  const ANNO_KEY_EDGE: AnnoKey = {
+    ns: 'edge_ns',
+    name: 'edge_name',
+  };
   const ANNO_KEY_UNKNOWN: AnnoKey = {
     ns: 'unknown_ns',
+    name: 'unknown_name',
+  };
+
+  const EDGE_TYPE: EdgeType = {
+    ctype: 'Dominance',
+    name: '',
+  };
+  const EDGE_TYPE_UNKNOWN: EdgeType = {
+    ctype: 'Dominance',
     name: 'unknown_name',
   };
 
@@ -137,6 +152,27 @@ describe('store', () => {
         } satisfies ExportableNodeAnnoKeys;
       }
 
+      case 'get_exportable_edge_types': {
+        const { corpusNames } = payload as { corpusNames: string[] };
+        const hasCorpora = corpusNames.length > 0;
+
+        return (
+          hasCorpora
+            ? [
+                {
+                  edgeType: EDGE_TYPE,
+                  annoKeys: [
+                    {
+                      annoKey: ANNO_KEY_EDGE,
+                      displayName: 'edge_name',
+                    },
+                  ],
+                },
+              ]
+            : []
+        ) satisfies ExportableEdgeType[];
+      }
+
       case 'get_query_nodes': {
         const { aqlQuery, queryLanguage } = payload as {
           aqlQuery: string;
@@ -173,7 +209,9 @@ describe('store', () => {
               aqlQuery: 'valid',
               queryLanguage: 'AQLQuirksV3',
               exportColumns: [
-                { type: 'number' },
+                {
+                  type: 'number',
+                },
                 {
                   type: 'match_in_context',
                   annoKey: ANNO_KEY_NODE,
@@ -183,12 +221,25 @@ describe('store', () => {
                   secondaryNodeRefs: [{ index: 0, variables: ['1'] }],
                   segmentation: 'segmentation',
                 },
-                { type: 'anno_corpus', annoKey: ANNO_KEY_CORPUS },
-                { type: 'anno_document', annoKey: ANNO_KEY_DOCUMENT },
+                {
+                  type: 'anno_corpus',
+                  annoKey: ANNO_KEY_CORPUS,
+                },
+                {
+                  type: 'anno_document',
+                  annoKey: ANNO_KEY_DOCUMENT,
+                },
                 {
                   type: 'anno_match',
                   annoKey: ANNO_KEY_NODE,
                   nodeRef: { index: 1, variables: ['2'] },
+                },
+                {
+                  type: 'anno_edge',
+                  edgeType: EDGE_TYPE,
+                  annoKey: ANNO_KEY_EDGE,
+                  sourceNodeRef: { index: 1, variables: ['2'] },
+                  targetNodeRef: { index: 0, variables: ['1'] },
                 },
               ],
               exportFormat: 'xlsx',
@@ -770,6 +821,136 @@ describe('store', () => {
     });
   });
 
+  test('selecting anno_edge export column data', async () => {
+    const { result } = renderHook(
+      () => ({
+        addExportColumn: useAddExportColumn(),
+        exportColumns: useExportColumnItems(),
+        setAqlQuery: useSetAqlQuery(),
+        toggleCorpus: useToggleCorpus(),
+        updateExportColumn: useUpdateExportColumn(),
+      }),
+      { wrapper: Wrapper },
+    );
+
+    result.current.toggleCorpus('a');
+    result.current.setAqlQuery('valid');
+    result.current.addExportColumn('anno_edge');
+
+    await waitFor(() => {
+      expect(result.current.exportColumns).toContainEqual({
+        id: 3,
+        type: 'anno_edge',
+      } satisfies ExportColumnItem);
+    });
+
+    result.current.updateExportColumn(3, {
+      type: 'anno_edge',
+      payload: {
+        type: 'update_edge_type',
+        edgeType: EDGE_TYPE,
+      },
+    });
+    result.current.updateExportColumn(3, {
+      type: 'anno_edge',
+      payload: {
+        type: 'update_anno_key',
+        annoKey: ANNO_KEY_EDGE,
+      },
+    });
+    result.current.updateExportColumn(3, {
+      type: 'anno_edge',
+      payload: {
+        type: 'update_source_node_ref',
+        sourceNodeRef: { index: 0, variables: ['1'] },
+      },
+    });
+    result.current.updateExportColumn(3, {
+      type: 'anno_edge',
+      payload: {
+        type: 'update_target_node_ref',
+        targetNodeRef: { index: 1, variables: ['2'] },
+      },
+    });
+
+    await waitFor(() => {
+      expect(result.current.exportColumns).toContainEqual({
+        id: 3,
+        type: 'anno_edge',
+        edgeType: EDGE_TYPE,
+        annoKey: ANNO_KEY_EDGE,
+        sourceNodeRef: { index: 0, variables: ['1'] },
+        targetNodeRef: { index: 1, variables: ['2'] },
+      } satisfies ExportColumnItem);
+    });
+
+    result.current.updateExportColumn(3, {
+      type: 'anno_edge',
+      payload: {
+        type: 'update_edge_type',
+        edgeType: EDGE_TYPE_UNKNOWN,
+      },
+    });
+    result.current.updateExportColumn(3, {
+      type: 'anno_edge',
+      payload: {
+        type: 'update_source_node_ref',
+        sourceNodeRef: { index: 2, variables: ['1', '3'] },
+      },
+    });
+    result.current.updateExportColumn(3, {
+      type: 'anno_edge',
+      payload: {
+        type: 'update_target_node_ref',
+        targetNodeRef: { index: 3, variables: ['2', '4'] },
+      },
+    });
+
+    await waitFor(() => {
+      expect(result.current.exportColumns).toContainEqual({
+        id: 3,
+        type: 'anno_edge',
+        edgeType: undefined,
+        annoKey: undefined,
+        sourceNodeRef: { index: 0, variables: ['1'] },
+        targetNodeRef: { index: 1, variables: ['2'] },
+      } satisfies ExportColumnItem);
+    });
+
+    result.current.updateExportColumn(3, {
+      type: 'anno_edge',
+      payload: {
+        type: 'update_edge_type',
+        edgeType: EDGE_TYPE,
+      },
+    });
+    result.current.updateExportColumn(3, {
+      type: 'anno_edge',
+      payload: {
+        type: 'update_source_node_ref',
+        sourceNodeRef: { index: 0, variables: ['3'] },
+      },
+    });
+    result.current.updateExportColumn(3, {
+      type: 'anno_edge',
+      payload: {
+        type: 'update_target_node_ref',
+        targetNodeRef: { index: 0, variables: ['4'] },
+      },
+    });
+
+    await waitFor(() => {
+      expect(result.current.exportColumns).toContainEqual({
+        id: 3,
+        type: 'anno_edge',
+        edgeType: EDGE_TYPE,
+        annoKey: ANNO_KEY_EDGE,
+        sourceNodeRef: undefined,
+        targetNodeRef: undefined,
+      } satisfies ExportColumnItem);
+    });
+  });
+
   test('selecting match_in_context export column data', async () => {
     const { result } = renderHook(
       () => ({
@@ -1059,6 +1240,8 @@ describe('store', () => {
           'Column 3: No meta annotation selected',
           'Column 4: No meta annotation selected',
           'Column 5: No annotation selected',
+          'Column 6: No edge type selected',
+          'Column 6: No annotation selected',
         ],
       },
     },
@@ -1067,7 +1250,12 @@ describe('store', () => {
       change: (c) => c.setAqlQuery(''),
       expectedPreflight: {
         canExport: false,
-        impediments: ['Query is empty', 'Column 5: No query node selected'],
+        impediments: [
+          'Query is empty',
+          'Column 5: No query node selected',
+          'Column 6: No source query node selected',
+          'Column 6: No target query node selected',
+        ],
       },
     },
     {
@@ -1075,7 +1263,12 @@ describe('store', () => {
       change: (c) => c.setAqlQuery('invalid'),
       expectedPreflight: {
         canExport: false,
-        impediments: ['Query is invalid', 'Column 5: No query node selected'],
+        impediments: [
+          'Query is invalid',
+          'Column 5: No query node selected',
+          'Column 6: No source query node selected',
+          'Column 6: No target query node selected',
+        ],
       },
     },
     {
@@ -1086,6 +1279,7 @@ describe('store', () => {
         c.removeExportColumn(3);
         c.removeExportColumn(4);
         c.removeExportColumn(5);
+        c.removeExportColumn(6);
       },
       expectedPreflight: {
         canExport: false,
@@ -1188,6 +1382,35 @@ describe('store', () => {
           nodeRef: { index: 0, variables: ['1'] },
         },
       });
+      result.current.addExportColumn('anno_edge');
+      result.current.updateExportColumn(6, {
+        type: 'anno_edge',
+        payload: {
+          type: 'update_edge_type',
+          edgeType: EDGE_TYPE,
+        },
+      });
+      result.current.updateExportColumn(6, {
+        type: 'anno_edge',
+        payload: {
+          type: 'update_anno_key',
+          annoKey: ANNO_KEY_EDGE,
+        },
+      });
+      result.current.updateExportColumn(6, {
+        type: 'anno_edge',
+        payload: {
+          type: 'update_source_node_ref',
+          sourceNodeRef: { index: 0, variables: ['1'] },
+        },
+      });
+      result.current.updateExportColumn(6, {
+        type: 'anno_edge',
+        payload: {
+          type: 'update_target_node_ref',
+          targetNodeRef: { index: 1, variables: ['2'] },
+        },
+      });
 
       change(result.current);
 
@@ -1269,6 +1492,36 @@ describe('store', () => {
       },
     });
 
+    result.current.addExportColumn('anno_edge');
+    result.current.updateExportColumn(6, {
+      type: 'anno_edge',
+      payload: {
+        type: 'update_edge_type',
+        edgeType: EDGE_TYPE,
+      },
+    });
+    result.current.updateExportColumn(6, {
+      type: 'anno_edge',
+      payload: {
+        type: 'update_anno_key',
+        annoKey: ANNO_KEY_EDGE,
+      },
+    });
+    result.current.updateExportColumn(6, {
+      type: 'anno_edge',
+      payload: {
+        type: 'update_source_node_ref',
+        sourceNodeRef: { index: 0, variables: ['1'] },
+      },
+    });
+    result.current.updateExportColumn(6, {
+      type: 'anno_edge',
+      payload: {
+        type: 'update_target_node_ref',
+        targetNodeRef: { index: 1, variables: ['2'] },
+      },
+    });
+
     await waitFor(() => {
       expect(result.current.canExport).toBe(true);
     });
@@ -1293,6 +1546,7 @@ describe('store', () => {
           }),
           expect.objectContaining({
             type: 'match_in_context',
+            annoKey: 'default',
             context: 20,
             contextRightOverride: undefined,
             primaryNodeRefs: [
@@ -1313,6 +1567,14 @@ describe('store', () => {
           expect.objectContaining({
             type: 'anno_match',
             annoKey: ANNO_KEY_NODE,
+            nodeRef: { index: 0, variables: ['1'] },
+          }),
+          expect.objectContaining({
+            type: 'anno_edge',
+            edgeType: EDGE_TYPE,
+            annoKey: ANNO_KEY_EDGE,
+            sourceNodeRef: { index: 0, variables: ['1'] },
+            targetNodeRef: { index: 1, variables: ['2'] },
           }),
         ],
         exportFormat: 'xlsx',
@@ -1375,6 +1637,14 @@ describe('store', () => {
           type: 'anno_match',
           annoKey: ANNO_KEY_NODE,
           nodeRef: { index: 1, variables: ['2'] },
+        },
+        {
+          id: 8,
+          type: 'anno_edge',
+          edgeType: EDGE_TYPE,
+          annoKey: ANNO_KEY_EDGE,
+          sourceNodeRef: { index: 1, variables: ['2'] },
+          targetNodeRef: { index: 0, variables: ['1'] },
         },
       ] satisfies ExportColumnItem[]);
       expect(result.current.exportFormat).toBe('xlsx');
@@ -1478,6 +1748,36 @@ describe('store', () => {
       },
     });
 
+    result.current.addExportColumn('anno_edge');
+    result.current.updateExportColumn(6, {
+      type: 'anno_edge',
+      payload: {
+        type: 'update_edge_type',
+        edgeType: EDGE_TYPE,
+      },
+    });
+    result.current.updateExportColumn(6, {
+      type: 'anno_edge',
+      payload: {
+        type: 'update_anno_key',
+        annoKey: ANNO_KEY_EDGE,
+      },
+    });
+    result.current.updateExportColumn(6, {
+      type: 'anno_edge',
+      payload: {
+        type: 'update_source_node_ref',
+        sourceNodeRef: { index: 1, variables: ['2'] },
+      },
+    });
+    result.current.updateExportColumn(6, {
+      type: 'anno_edge',
+      payload: {
+        type: 'update_target_node_ref',
+        targetNodeRef: { index: 0, variables: ['1'] },
+      },
+    });
+
     result.current.setExportFormat('xlsx');
 
     await waitFor(() => {
@@ -1500,6 +1800,7 @@ describe('store', () => {
             expect.objectContaining({ type: 'number' }),
             expect.objectContaining({
               type: 'match_in_context',
+              annoKey: 'default',
               context: 5,
               contextRightOverride: 999,
               primaryNodeRefs: [{ index: 1, variables: ['2'] }],
@@ -1518,6 +1819,13 @@ describe('store', () => {
               type: 'anno_match',
               annoKey: ANNO_KEY_NODE,
               nodeRef: { index: 1, variables: ['2'] },
+            }),
+            expect.objectContaining({
+              type: 'anno_edge',
+              edgeType: EDGE_TYPE,
+              annoKey: ANNO_KEY_EDGE,
+              sourceNodeRef: { index: 1, variables: ['2'] },
+              targetNodeRef: { index: 0, variables: ['1'] },
             }),
           ],
           exportFormat: 'xlsx',
