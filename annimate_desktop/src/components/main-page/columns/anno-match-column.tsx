@@ -4,11 +4,8 @@ import {
   ColumnConfigItem,
 } from '@/components/main-page/columns/layout';
 import { ColumnProps } from '@/components/main-page/columns/props';
-import { QueryNodesDisplay } from '@/components/main-page/columns/query-nodes-display';
-import { Select, SelectOption } from '@/components/ui/custom/select';
+import { QueryNodeSelect } from '@/components/main-page/columns/query-node-select';
 import { Label } from '@/components/ui/label';
-import { QueryNodeRef } from '@/lib/api-types';
-import { useIsExporting, useQueryNodes } from '@/lib/store';
 import { FC, useId } from 'react';
 
 export const AnnoMatchColumn: FC<ColumnProps<'anno_match'>> = ({
@@ -41,55 +38,5 @@ export const AnnoMatchColumn: FC<ColumnProps<'anno_match'>> = ({
         />
       </ColumnConfigItem>
     </ColumnConfigGrid>
-  );
-};
-
-type QueryNodeSelectProps = {
-  id?: string;
-  nodeRef: QueryNodeRef | undefined;
-  onChange?: (nodeRef: QueryNodeRef) => void;
-};
-
-const QueryNodeSelect: FC<QueryNodeSelectProps> = ({
-  id,
-  nodeRef,
-  onChange,
-}) => {
-  const { data: queryNodes, error, isPending } = useQueryNodes();
-  const isExporting = useIsExporting();
-  const disabled = isExporting;
-
-  if (error !== null) {
-    throw new Error(`Failed to determine query nodes: ${error.message}`);
-  }
-
-  const nodes = queryNodes?.type === 'valid' ? queryNodes.nodes : [];
-
-  return (
-    <Select
-      className="h-8"
-      disabled={disabled}
-      id={id}
-      loading={isPending}
-      onChange={(value) => {
-        const index = parseInt(value);
-        const group = nodes[index];
-        if (group === undefined) {
-          return;
-        }
-
-        onChange?.({
-          index,
-          variables: group.map((n) => n.variable),
-        });
-      }}
-      options={nodes.map(
-        (group, i): SelectOption<`${number}`> => ({
-          caption: <QueryNodesDisplay queryNodes={group} />,
-          value: `${i}`,
-        }),
-      )}
-      value={nodeRef === undefined ? undefined : `${nodeRef.index}`}
-    />
   );
 };
