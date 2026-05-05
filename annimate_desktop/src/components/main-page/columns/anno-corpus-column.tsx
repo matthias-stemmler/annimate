@@ -1,4 +1,4 @@
-import { AnnoSelect } from '@/components/main-page/columns/anno-select';
+import { NodeAnnoSelect } from '@/components/main-page/columns/anno-select';
 import {
   ColumnConfigGrid,
   ColumnConfigItem,
@@ -18,7 +18,7 @@ export const AnnoCorpusColumn: FC<ColumnProps<'anno_corpus'>> = ({
       <ColumnConfigItem>
         <Label htmlFor={annoSelectId}>Meta annotation</Label>
 
-        <AnnoSelect
+        <NodeAnnoSelect
           annoKey={data.annoKey}
           category="corpus"
           id={annoSelectId}

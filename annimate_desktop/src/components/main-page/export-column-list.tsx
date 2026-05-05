@@ -1,5 +1,6 @@
 import { AnnoCorpusColumn } from '@/components/main-page/columns/anno-corpus-column';
 import { AnnoDocumentColumn } from '@/components/main-page/columns/anno-document-column';
+import { AnnoEdgeColumn } from '@/components/main-page/columns/anno-edge-column';
 import { AnnoMatchColumn } from '@/components/main-page/columns/anno-match-column';
 import { MatchInContextColumn } from '@/components/main-page/columns/match-in-context-column';
 import { Button } from '@/components/ui/button';
@@ -81,6 +82,7 @@ export const ExportColumnList: FC = () => {
                 'anno_document',
                 'anno_match',
                 'match_in_context',
+                'anno_edge',
                 'number',
               ] as const
             ).map((columnType: ExportColumnType) => (
@@ -183,6 +185,8 @@ const ExportColumnListItem: FC<ExportColumnListItemProps> = ({
           item.type === 'anno_document',
         'border-column-anno-match-600 ring-column-anno-match-600':
           item.type === 'anno_match',
+        'border-column-anno-edge-600 ring-column-anno-edge-600':
+          item.type === 'anno_edge',
         'border-column-match-in-context-600 ring-column-match-in-context-600':
           item.type === 'match_in_context',
         'opacity-30': isPlaceholder,
@@ -206,6 +210,8 @@ const ExportColumnListItem: FC<ExportColumnListItemProps> = ({
                 item.type === 'anno_document',
               'text-column-anno-match-800 dark:text-column-anno-match-600':
                 item.type === 'anno_match',
+              'text-column-anno-edge-800 dark:text-column-anno-edge-600':
+                item.type === 'anno_edge',
               'text-column-match-in-context-800 dark:text-column-match-in-context-600':
                 item.type === 'match_in_context',
               'cursor-grab': !reorderDisabled,
@@ -242,6 +248,17 @@ const ExportColumnListItem: FC<ExportColumnListItemProps> = ({
           )}
           {item.type === 'anno_match' && (
             <AnnoMatchColumn
+              data={item}
+              onChange={(payload) =>
+                updateExportColumn(item.id, {
+                  type: item.type,
+                  payload,
+                })
+              }
+            />
+          )}
+          {item.type === 'anno_edge' && (
+            <AnnoEdgeColumn
               data={item}
               onChange={(payload) =>
                 updateExportColumn(item.id, {
@@ -327,6 +344,7 @@ const CardMenuItem: FC<CardMenuItemProps> = ({
         'border-column-anno-corpus-600': columnType === 'anno_corpus',
         'border-column-anno-document-600': columnType === 'anno_document',
         'border-column-anno-match-600': columnType === 'anno_match',
+        'border-column-anno-edge-600': columnType === 'anno_edge',
         'border-column-match-in-context-600': columnType === 'match_in_context',
       })}
     >

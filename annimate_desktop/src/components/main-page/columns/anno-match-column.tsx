@@ -1,4 +1,4 @@
-import { AnnoSelect } from '@/components/main-page/columns/anno-select';
+import { NodeAnnoSelect } from '@/components/main-page/columns/anno-select';
 import {
   ColumnConfigGrid,
   ColumnConfigItem,
@@ -20,7 +20,7 @@ export const AnnoMatchColumn: FC<ColumnProps<'anno_match'>> = ({
       <ColumnConfigItem>
         <Label htmlFor={annoSelectId}>Annotation</Label>
 
-        <AnnoSelect
+        <NodeAnnoSelect
           annoKey={data.annoKey}
           category="node"
           id={annoSelectId}
