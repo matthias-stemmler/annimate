@@ -690,7 +690,7 @@ export const getExportableEdgeTypes = async (params: {
     return makeExportableEdgeTypes(5);
   }
 
-  return makeExportableEdgeTypes(0);
+  return [];
 };
 
 export const getQueryNodes = async (params: {

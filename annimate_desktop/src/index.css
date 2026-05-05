@@ -143,6 +143,18 @@
   --color-column-anno-match-900: var(--color-yellow-900);
   --color-column-anno-match-950: var(--color-yellow-950);
 
+  --color-column-anno-edge-50: var(--color-pink-50);
+  --color-column-anno-edge-100: var(--color-pink-100);
+  --color-column-anno-edge-200: var(--color-pink-200);
+  --color-column-anno-edge-300: var(--color-pink-300);
+  --color-column-anno-edge-400: var(--color-pink-400);
+  --color-column-anno-edge-500: var(--color-pink-500);
+  --color-column-anno-edge-600: var(--color-pink-600);
+  --color-column-anno-edge-700: var(--color-pink-700);
+  --color-column-anno-edge-800: var(--color-pink-800);
+  --color-column-anno-edge-900: var(--color-pink-900);
+  --color-column-anno-edge-950: var(--color-pink-950);
+
   --color-column-match-in-context-50: var(--color-orange-50);
   --color-column-match-in-context-100: var(--color-orange-100);
   --color-column-match-in-context-200: var(--color-orange-200);

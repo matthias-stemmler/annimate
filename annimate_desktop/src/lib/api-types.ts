@@ -34,8 +34,10 @@ export type ExportableEdgeType = {
   annoKeys: ExportableAnnoKey[];
 };
 
+export type EdgeComponentType = 'Dominance' | 'Pointing';
+
 export type EdgeType = {
-  ctype: 'Dominance' | 'Pointing';
+  ctype: EdgeComponentType;
   name: string;
 };
 

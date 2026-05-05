@@ -3,21 +3,27 @@ import {
   valueToAnnoKey,
 } from '@/components/main-page/columns/utils';
 import { Select } from '@/components/ui/custom/select';
-import { AnnoKey, ExportableNodeAnnoKeyCategory } from '@/lib/api-types';
 import {
+  AnnoKey,
+  EdgeType,
+  ExportableAnnoKey,
+  ExportableNodeAnnoKeyCategory,
+} from '@/lib/api-types';
+import {
+  useExportableEdgeTypes,
   useExportableNodeAnnoKeys as useExportableNodeAnnoKeys,
   useIsExporting,
 } from '@/lib/store';
 import { FC } from 'react';
 
-export type AnnoSelectProps = {
+export type NodeAnnoSelectProps = {
   annoKey: AnnoKey | undefined;
   category: ExportableNodeAnnoKeyCategory;
   id?: string;
   onChange?: (annoKey: AnnoKey) => void;
 };
 
-export const AnnoSelect: FC<AnnoSelectProps> = ({
+export const NodeAnnoSelect: FC<NodeAnnoSelectProps> = ({
   annoKey,
   category,
   id,
@@ -35,9 +41,80 @@ export const AnnoSelect: FC<AnnoSelectProps> = ({
     throw new Error(`Failed to load exportable annotations: ${error.message}`);
   }
 
-  const exportableAnnoKeysForCategory =
-    exportableNodeAnnoKeys?.[category] ?? [];
+  return (
+    <AnnoSelect
+      annoKey={annoKey}
+      disabled={disabled}
+      exportableAnnoKeys={exportableNodeAnnoKeys?.[category] ?? []}
+      id={id}
+      isPending={isPending}
+      onChange={onChange}
+    />
+  );
+};
 
+export type EdgeAnnoSelectProps = {
+  annoKey: AnnoKey | undefined;
+  edgeType: EdgeType | undefined;
+  id?: string;
+  onChange?: (annoKey: AnnoKey) => void;
+};
+
+export const EdgeAnnoSelect: FC<EdgeAnnoSelectProps> = ({
+  annoKey,
+  edgeType,
+  id,
+  onChange,
+}) => {
+  const {
+    data: exportableEdgeTypes,
+    error,
+    isPending,
+  } = useExportableEdgeTypes();
+  const isExporting = useIsExporting();
+  const disabled = isExporting;
+
+  if (error !== null) {
+    throw new Error(`Failed to load exportable edge types: ${error.message}`);
+  }
+
+  return (
+    <AnnoSelect
+      annoKey={annoKey}
+      disabled={disabled}
+      exportableAnnoKeys={
+        edgeType === undefined
+          ? []
+          : (exportableEdgeTypes?.find(
+              (e) =>
+                e.edgeType.ctype === edgeType.ctype &&
+                e.edgeType.name === edgeType.name,
+            )?.annoKeys ?? [])
+      }
+      id={id}
+      isPending={isPending}
+      onChange={onChange}
+    />
+  );
+};
+
+type AnnoSelectProps = {
+  annoKey: AnnoKey | undefined;
+  disabled: boolean;
+  exportableAnnoKeys: ExportableAnnoKey[];
+  id?: string;
+  isPending: boolean;
+  onChange?: (annoKey: AnnoKey) => void;
+};
+
+const AnnoSelect: FC<AnnoSelectProps> = ({
+  annoKey,
+  disabled,
+  exportableAnnoKeys,
+  id,
+  isPending,
+  onChange,
+}) => {
   return (
     <Select
       className="h-8"
@@ -48,7 +125,7 @@ export const AnnoSelect: FC<AnnoSelectProps> = ({
       options={[
         {
           groupKey: 'other',
-          groupItems: exportableAnnoKeysForCategory
+          groupItems: exportableAnnoKeys
             .filter((e) => e.annoKey.ns !== 'annis')
             .map(({ displayName, annoKey }) => ({
               caption: <span className="font-mono">{displayName}</span>,
@@ -58,7 +135,7 @@ export const AnnoSelect: FC<AnnoSelectProps> = ({
         {
           groupKey: 'annis',
           groupCaption: 'ANNIS',
-          groupItems: exportableAnnoKeysForCategory
+          groupItems: exportableAnnoKeys
             .filter((e) => e.annoKey.ns === 'annis')
             .map(({ displayName, annoKey }) => ({
               caption: <span className="font-mono">{displayName}</span>,
