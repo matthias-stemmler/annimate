@@ -13,7 +13,7 @@ use serde::Serialize;
 use serialize_to_javascript::{DefaultTemplate, Options, Template, default_template};
 use state::AppState;
 use tauri::webview::PageLoadEvent;
-use tauri::{AppHandle, Manager, Webview};
+use tauri::{Manager, Webview};
 use tauri_plugin_window_state::{StateFlags, WindowExt};
 
 const THREAD_STACK_SIZE_MB: usize = 4;
@@ -115,13 +115,11 @@ fn inject_static_data(webview: &Webview) {
     #[derive(Serialize)]
     #[serde(rename_all = "camelCase")]
     struct StaticDataValue {
-        update_enabled: bool,
         version_info: annimate_core::VersionInfo,
     }
 
     let static_data = StaticData {
         value: StaticDataValue {
-            update_enabled: is_update_enabled(webview.app_handle()),
             version_info: annimate_core::VERSION_INFO,
         },
     };
@@ -134,20 +132,4 @@ fn inject_static_data(webview: &Webview) {
     webview
         .eval(static_data_js)
         .expect("static data should be injected");
-}
-
-// This is the same logic as used by the auto-update mechanism before Tauri v2
-// See https://github.com/tauri-apps/tauri/blob/tauri-v1.8.1/core/tauri/src/app.rs#L976
-//
-// Exception: We always enable updates in dev-ish builds for testing. The two
-// cfg checks cover distinct cases and are both load-bearing:
-// - `cfg!(debug_assertions)` is true for `tauri build --debug` (WebDriver tests), where `cfg!(dev)`
-//   is false because `tauri build` enables `custom-protocol`.
-// - `cfg!(dev)` is true for `tauri dev --release` (manual update testing), where
-//   `cfg!(debug_assertions)` is false because of the release profile.
-fn is_update_enabled(#[allow(unused)] app_handle: &AppHandle) -> bool {
-    cfg_select! {
-        target_os = "linux" => cfg!(debug_assertions) || cfg!(dev) || app_handle.state::<tauri::Env>().appimage.is_some(),
-        _ => true,
-    }
 }
