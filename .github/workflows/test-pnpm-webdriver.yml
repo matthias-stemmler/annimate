@@ -9,7 +9,7 @@ env:
   # renovate: datasource=npm versioning=semver-coerced depName=corepack
   VERSION_COREPACK: 0.34.7
   # renovate: datasource=crate versioning=semver-coerced depName=tauri-driver
-  VERSION_TAURI_DRIVER: 2.0.5
+  VERSION_TAURI_DRIVER: 2.0.6
 
 jobs:
   test:
