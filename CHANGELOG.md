@@ -2,6 +2,10 @@
 
 ## [Unreleased] - (release date)
 
+### Added
+
+- The Annimate Debian package now supports automatic updates.
+
 ### Fixed
 
 - Exports of "Match in context" columns no longer fail when the query matches a token without segmentation coverage.

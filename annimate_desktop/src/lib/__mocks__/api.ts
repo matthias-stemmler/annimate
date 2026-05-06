@@ -177,7 +177,6 @@ const IMPORT_CORPORA: MockImportCorpus[] = [
 
 Object.defineProperty(window, '__ANNIMATE__', {
   value: {
-    updateEnabled: true,
     versionInfo: {
       annimateVersion: '<mock>',
       graphannisVersion: '<mock>',
