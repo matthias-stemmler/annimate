@@ -45,7 +45,9 @@
       "nsis": {
         "headerImage": "nsis-media/header.bmp",
         "installerIcon": "icons/icon.ico",
-        "languages": ["English"]
+        "languages": ["English"],
+        "uninstallerHeaderImage": "nsis-media/header.bmp",
+        "uninstallerIcon": "icons/icon.ico"
       }
     }
   },
