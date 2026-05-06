@@ -73,7 +73,7 @@ catalog:
   vite: ^8.0.10
   vite-plugin-svgr: ^5.2.0
   vitest: ^4.1.5
-  zustand: ^5.0.12
+  zustand: ^5.0.13
 
 allowBuilds:
   '@tailwindcss/oxide': true
