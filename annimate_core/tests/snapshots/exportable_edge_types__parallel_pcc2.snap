@@ -131,13 +131,6 @@ info:
     ExportableEdgeType {
         edge_type: EdgeType {
             ctype: Pointing,
-            name: "anaphor_antecedent",
-        },
-        anno_keys: [],
-    },
-    ExportableEdgeType {
-        edge_type: EdgeType {
-            ctype: Pointing,
             name: "dep",
         },
         anno_keys: [

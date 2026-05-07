@@ -58,26 +58,20 @@ fn caching_exportable_edge_types() {
     let _ = fs::remove_dir_all(&db_dir);
 
     create_corpus(&db_dir, "test_corpus");
-    add_dominance_component(&db_dir, "test_corpus", "test_dominance_1");
-    add_dominance_edge_anno(&db_dir, "test_corpus", "test_dominance_1", "test_anno_1_a");
+    add_dominance_component(&db_dir, "test_corpus", "test_dominance");
+    add_dominance_edge_anno(&db_dir, "test_corpus", "test_dominance", "test_anno_1");
 
     assert_eq!(
         get_exportable_edge_types(&db_dir, "test_corpus"),
-        [("test_dominance_1".into(), vec!["test_anno_1_a".into()])]
+        [("test_dominance".into(), vec!["test_anno_1".into()])]
     );
 
-    add_dominance_component(&db_dir, "test_corpus", "test_dominance_2");
-    add_dominance_edge_anno(&db_dir, "test_corpus", "test_dominance_1", "test_anno_1_b");
-    add_dominance_edge_anno(&db_dir, "test_corpus", "test_dominance_2", "test_anno_2_a");
+    add_dominance_edge_anno(&db_dir, "test_corpus", "test_dominance_1", "test_anno_2");
 
-    // `test_dominance_2` included -> components are not served from cache
-    // `test_anno_1_b`, `test_anno_2_a` not included -> annotations are served from cache
+    // `test_anno_2` not included -> annotations are served from cache
     assert_eq!(
         get_exportable_edge_types(&db_dir, "test_corpus"),
-        [
-            ("test_dominance_1".into(), vec!["test_anno_1_a".into()]),
-            ("test_dominance_2".into(), vec![])
-        ]
+        [("test_dominance".into(), vec!["test_anno_1".into()]),]
     );
 
     delete_corpus(&db_dir, "test_corpus");

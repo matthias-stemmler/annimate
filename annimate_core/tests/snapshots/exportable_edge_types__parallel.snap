@@ -9,20 +9,6 @@ info:
 [
     ExportableEdgeType {
         edge_type: EdgeType {
-            ctype: Dominance,
-            name: "",
-        },
-        anno_keys: [],
-    },
-    ExportableEdgeType {
-        edge_type: EdgeType {
-            ctype: Dominance,
-            name: "edge",
-        },
-        anno_keys: [],
-    },
-    ExportableEdgeType {
-        edge_type: EdgeType {
             ctype: Pointing,
             name: "align_e-g",
         },

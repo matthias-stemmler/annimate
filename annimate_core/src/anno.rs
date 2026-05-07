@@ -334,17 +334,18 @@ impl EdgeTypes {
                         name: component.name,
                     };
 
-                    edge_types_with_anno_keys
-                        .entry(edge_type)
-                        .or_default()
-                        .extend(
-                            edge_anno_key_infos
-                                .iter()
-                                .filter(|e| {
-                                    e.component_descriptions.contains(&component_description)
-                                })
-                                .map(|e| e.anno_key.clone()),
-                        );
+                    let mut anno_keys = edge_anno_key_infos
+                        .iter()
+                        .filter(|e| e.component_descriptions.contains(&component_description))
+                        .map(|e| e.anno_key.clone())
+                        .peekable();
+
+                    if anno_keys.peek().is_some() {
+                        edge_types_with_anno_keys
+                            .entry(edge_type)
+                            .or_default()
+                            .extend(anno_keys);
+                    }
                 }
             }
         }
