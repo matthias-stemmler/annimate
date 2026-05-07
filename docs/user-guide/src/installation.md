@@ -62,7 +62,7 @@ Since there is no dedicated installation step, updating in this case just means 
 
 ### Debian Package
 
-On Debian and its derivatives (such as Ubuntu), you can alternatively install Annimate from a Debian package. Note that this requires `sudo` privileges and does _not_ support automatic updates.
+On Debian and its derivatives (such as Ubuntu), you can alternatively install Annimate from a Debian package. Note that this requires `sudo` privileges.
 
 In order to install the Debian package, go through the following steps:
 
@@ -72,9 +72,21 @@ In order to install the Debian package, go through the following steps:
    sudo dpkg -i ./Annimate_*_amd64.deb
    ```
 3. Start Annimate:
+
    ```shell
    Annimate
    ```
+
+#### Automatic updates
+
+Every time Annimate is started, it automatically checks for updates in the background. If there is an update, you are presented with a dialog telling you that an update is available and listing the most important changes. You can then choose to either
+
+- apply the update, or
+- skip the update for now.
+
+If you choose to apply the update, the application will restart itself afterwards. If you choose to skip the update, you will be reminded again the next time you start the application.
+
+> **Note:** We strongly recommend that you install updates in order to keep up with new features and bugfixes.
 
 ## macOS
 
@@ -102,7 +114,6 @@ In order to install Annimate, go through the following steps:
    ![Screenshot of macOS extracted archive file](img/macos-extracted.png)
 
 3. Move the `Annimate` Application Bundle to one of the following folders:
-
    - To install it only for the current user (does _not_ require administrator permissions): Move it to a subfolder of your home directory such as `~/Applications`. You may have to create this folder first in case it does not exist yet.
    - To install it system-wide (requires administrator permissions): Move it to the system-wide `/Applications` folder.
 

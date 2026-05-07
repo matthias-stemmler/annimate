@@ -24,13 +24,13 @@ Annimate is available as a desktop application for Windows, Linux and macOS. The
 > [!IMPORTANT]
 > Please read the [Installation](https://matthias-stemmler.github.io/annimate/user-guide/installation.html) section of the User Guide before installing, especially on macOS.
 
-| Operating system | Format         | Installation required? | Automatic updates | Download link                      |
-| ---------------- | -------------- | ---------------------- | ----------------- | ---------------------------------- |
-| Windows          | Installer      | ✅                     | ✅                | [Annimate_1.8.0_x64-setup.exe][1]  |
-| Linux            | AppImage       | ❌                     | ✅                | [Annimate_1.8.0_amd64.AppImage][2] |
-| Linux            | Debian package | ✅                     | ❌                | [Annimate_1.8.0_amd64.deb][3]      |
-| macOS (silicon)  | App Bundle     | ✅                     | ✅                | [Annimate_aarch64.app.tar.gz][4]   |
-| macOS (Intel)    | App Bundle     | ✅                     | ✅                | [Annimate_x64.app.tar.gz][5]       |
+| Operating system | Format         | Installation required? | Auto-updates supported? | Download link                      |
+| ---------------- | -------------- | ---------------------- | ----------------------- | ---------------------------------- |
+| Windows          | Installer      | ➕                     | ✅                      | [Annimate_1.8.0_x64-setup.exe][1]  |
+| Linux            | AppImage       | ➖                     | ✅                      | [Annimate_1.8.0_amd64.AppImage][2] |
+| Linux            | Debian package | ➕                     | ✅                      | [Annimate_1.8.0_amd64.deb][3]      |
+| macOS (silicon)  | App Bundle     | ➕                     | ✅                      | [Annimate_aarch64.app.tar.gz][4]   |
+| macOS (Intel)    | App Bundle     | ➕                     | ✅                      | [Annimate_x64.app.tar.gz][5]       |
 
 For a list of previous releases, see the [releases page](https://github.com/matthias-stemmler/annimate/releases).
 
