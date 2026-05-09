@@ -58,7 +58,7 @@ export const Select = <T extends string>({
       value={value ?? ''}
     >
       <SelectTrigger
-        className={cn(className, {
+        className={cn('@container', className, {
           'disabled:cursor-wait': loading,
         })}
         id={id}
