@@ -13,6 +13,7 @@ import { Select } from '@/components/ui/custom/select';
 import { Label } from '@/components/ui/label';
 import { EdgeType } from '@/lib/api-types';
 import { useExportableEdgeTypes, useIsExporting } from '@/lib/store';
+import { cn } from '@/lib/utils';
 import { FC, useId } from 'react';
 
 export const AnnoEdgeColumn: FC<ColumnProps<'anno_edge'>> = ({
@@ -107,7 +108,25 @@ const EdgeTypeSelect: FC<EdgeTypeSelectProps> = ({
       loading={isPending}
       onChange={(value) => onChange?.(valueToEdgeType(value))}
       options={(exportableEdgeTypes ?? []).map(({ edgeType }) => ({
-        caption: `${edgeType.ctype}/${edgeType.name}`, // TODO
+        caption: (
+          <div className="flex items-center gap-2">
+            <span
+              className={cn(
+                'inline-flex h-5 shrink-0 items-center justify-center rounded-sm text-[10px] font-semibold tracking-wide uppercase',
+                'data-[value=Dominance]:bg-indigo-100 data-[value=Dominance]:text-indigo-800 data-[value=Pointing]:bg-emerald-100 data-[value=Pointing]:text-emerald-800',
+                'dark:data-[value=Dominance]:bg-indigo-800 dark:data-[value=Dominance]:text-indigo-100 dark:data-[value=Pointing]:bg-emerald-800 dark:data-[value=Pointing]:text-emerald-100',
+                'w-20 before:content-[attr(data-value)]',
+                edgeType.name !== '' &&
+                  '@max-3xs:w-8 @max-3xs:before:content-[attr(data-value-short)]',
+              )}
+              data-value={edgeType.ctype}
+              data-value-short={edgeType.ctype === 'Dominance' ? 'D' : 'P'}
+            />{' '}
+            {edgeType.name !== '' && (
+              <span className="truncate font-mono">{edgeType.name}</span>
+            )}
+          </div>
+        ),
         value: edgeTypeToValue(edgeType),
       }))}
       value={edgeType === undefined ? undefined : edgeTypeToValue(edgeType)}
