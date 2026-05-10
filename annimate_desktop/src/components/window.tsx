@@ -128,6 +128,7 @@ export const Window: FC = () => {
                         },
                         onError: (error: Error) => {
                           toast({
+                            className: 'whitespace-pre-wrap',
                             description: error.message,
                             duration: 15000,
                             title: 'Failed to load project',
