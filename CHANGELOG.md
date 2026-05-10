@@ -4,6 +4,8 @@
 
 ### Added
 
+- Added a new column type "Edge annotation" for exporting annotations of edges between match nodes. See the User Guide for details.
+  - NOTE: When using this for the first time for corpora that were already imported before the update, it may take some time until the available options are loaded. Afterwards, they will load faster due to caching.
 - The Annimate Debian package now supports automatic updates.
 
 ### Fixed
