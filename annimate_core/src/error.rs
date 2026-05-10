@@ -93,7 +93,7 @@ pub enum AnnimateReadFileError {
     #[error("Invalid format")]
     InvalidFormat(#[from] toml::de::Error),
 
-    #[error("Unsupported version: {version}")]
+    #[error("Unsupported version: {version}\nPlease update Annimate to the latest version.")]
     UnsupportedVersion { version: u32 },
 }
 
