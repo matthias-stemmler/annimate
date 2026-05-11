@@ -166,6 +166,30 @@
   --color-column-match-in-context-800: var(--color-orange-800);
   --color-column-match-in-context-900: var(--color-orange-900);
   --color-column-match-in-context-950: var(--color-orange-950);
+
+  --color-ctype-dominance-50: var(--color-indigo-50);
+  --color-ctype-dominance-100: var(--color-indigo-100);
+  --color-ctype-dominance-200: var(--color-indigo-200);
+  --color-ctype-dominance-300: var(--color-indigo-300);
+  --color-ctype-dominance-400: var(--color-indigo-400);
+  --color-ctype-dominance-500: var(--color-indigo-500);
+  --color-ctype-dominance-600: var(--color-indigo-600);
+  --color-ctype-dominance-700: var(--color-indigo-700);
+  --color-ctype-dominance-800: var(--color-indigo-800);
+  --color-ctype-dominance-900: var(--color-indigo-900);
+  --color-ctype-dominance-950: var(--color-indigo-950);
+
+  --color-ctype-pointing-50: var(--color-emerald-50);
+  --color-ctype-pointing-100: var(--color-emerald-100);
+  --color-ctype-pointing-200: var(--color-emerald-200);
+  --color-ctype-pointing-300: var(--color-emerald-300);
+  --color-ctype-pointing-400: var(--color-emerald-400);
+  --color-ctype-pointing-500: var(--color-emerald-500);
+  --color-ctype-pointing-600: var(--color-emerald-600);
+  --color-ctype-pointing-700: var(--color-emerald-700);
+  --color-ctype-pointing-800: var(--color-emerald-800);
+  --color-ctype-pointing-900: var(--color-emerald-900);
+  --color-ctype-pointing-950: var(--color-emerald-950);
 }
 
 @layer base {
