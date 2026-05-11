@@ -8,10 +8,14 @@ ANNIS represents linguistic corpora as annotation graphs. **Nodes** and **edges*
 
 The component types relevant to Annimate are:
 
-| Type       | Description                                                          |
-| ---------- | -------------------------------------------------------------------- |
-| `Coverage` | Edges from span or structural nodes to the tokens they cover         |
-| `Ordering` | Sequential edges defining document order within a tokenization layer |
+| Type        | Description                                                                                               |
+| ----------- | --------------------------------------------------------------------------------------------------------- |
+| `Coverage`  | Edges from span or structural nodes to the tokens they cover                                              |
+| `Dominance` | Hierarchical edges defining structural relationships (e.g. constituent or dependency parents to children) |
+| `Ordering`  | Sequential edges defining document order within a tokenization layer                                      |
+| `Pointing`  | Non-hierarchical typed relations between nodes (e.g. coreference, alignment)                              |
+
+Of these, only `Dominance` and `Pointing` edges carry annotations. By convention, a `Dominance` component with an empty name is usually the union of all `Dominance` components of the same namespace/layer; `Pointing` components always have a non-empty name.
 
 ### Node Names
 
@@ -34,12 +38,16 @@ The `annis` namespace is reserved. Annimate uses the following annotations from 
 
 | Component                       | Description                                                                                                        |
 | ------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
-| `Ordering/annis/""`             | Default token ordering (document order of the base tokenization)                                                   |
+| `Ordering/annis/`               | Default token ordering (document order of the base tokenization)                                                   |
 | `Ordering/annis/datasource-gap` | Artificially added by `CorpusStorage::subgraph` to mark gaps between non-adjacent tokens in the extracted subgraph |
 
 ### Segmentations
 
 A _segmentation_ is an alternative tokenization layer. It is identified by an `Ordering` component whose namespace is **not** `annis` and whose name is **not** empty. Segmentation nodes carry a corresponding annotation; by convention this is `default_ns:<segmentation-name>`, but exceptions exist (e.g. ReM 2.x uses a different namespace).
+
+### Edge Types
+
+An _edge type_ is the pair `(component type, component name)` of a `Dominance` or `Pointing` component. Multiple components may share the same `(ctype, name)` across different namespaces; Annimate treats them as one edge type and unions their annotation keys. As noted above, the component name may be empty for `Dominance`, but not for `Pointing`.
 
 ## AQL
 
@@ -47,18 +55,26 @@ ANNIS Query Language (AQL) searches annotation graphs. Points relevant to Annima
 
 - Annotation references can be fully qualified (`ns:name`) or name-only (`name`, matches any namespace). There is no syntax for matching annotations with an explicitly empty namespace.
 - `tok` is a keyword that matches `annis:tok`; it cannot be written as `annis:tok`.
+- Edge components are referenced by operators: `>name` for `Dominance` and `->name` for `Pointing`. The component name may be empty for `Dominance` (written `>`), but not for `Pointing`. The component namespace is not expressible in AQL.
 
 ## Design Decisions
 
 ### Annotation Key Lists
 
 - **Node annotations**: all annotation keys found in _any_ of the selected corpora.
-- **Corpus and document meta-annotations**: annotation keys on nodes where `annis:node_type = "corpus"` (covers both corpus nodes and document nodes).
+- **Corpus meta-annotations**: annotation keys on nodes where `annis:node_type = "corpus"` and `annis:doc` is **not** present (i.e. the corpus root node, not document nodes).
+- **Document meta-annotations**: annotation keys on nodes where `annis:node_type = "corpus"` and `annis:doc` is present (i.e. document nodes).
 
 Unlike ANNIS itself, Annimate does not exclude meta-annotations from the node annotation list, for two reasons:
 
 1. A meta node can also be a match node.
 2. The same annotation key may appear on both meta nodes and ordinary nodes. Filtering out keys that _only_ appear on meta nodes would require an AQL query per key to check whether it also occurs on non-meta nodes. This is too slow in general, and outright impossible for keys with an empty namespace - because AQL name-only references match any namespace, there is no way to query specifically for an annotation with an empty namespace.
+
+### Edge Annotation Key Lists
+
+As with node annotations, edge annotation keys are unioned across all selected corpora. For each edge type (see [Edge Types](#edge-types)), Annimate collects all annotation keys that appear on any edge of a `Dominance` or `Pointing` component matching that `(ctype, name)` in any selected corpus.
+
+Edge types with no annotation keys at all are filtered out, since the user could not pick any annotation to export for them.
 
 ### Segmentation List
 
@@ -81,6 +97,12 @@ Annimate derives the corpus name for a match from the list of imported corpora r
 ### Annotation Lookup via Coverage
 
 When exporting a match node annotation, if the annotation is not directly on the match node, Annimate also searches the tokens covered by that node and any nodes covering those tokens. This handles corpora where the annotation lives on an overlapping span rather than on the match node itself. This fallback does not apply to "Match in context" export, where only the annotation directly on the match node is used.
+
+### Edge Annotation Lookup
+
+When exporting an edge annotation, Annimate reads it from an edge directly between the two selected match nodes. Unlike the node annotation case (see [Annotation Lookup via Coverage](#annotation-lookup-via-coverage)), there is no fallback through `Coverage`: only edges between the match nodes themselves are considered, not edges between tokens they cover or spans that overlap them.
+
+If multiple components match the requested edge type (i.e. share the same `(ctype, name)` but differ in namespace/layer), the annotation value is taken from the first component that has a value for the requested annotation key, ordered alphabetically by namespace/layer with the empty namespace first.
 
 ### Query Validation
 
