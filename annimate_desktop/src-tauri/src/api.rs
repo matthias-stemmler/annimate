@@ -270,6 +270,12 @@ pub(crate) async fn load_project(
             .unwrap_or_default(),
     };
 
+    let try_get_query_node_ref = |index: u32| -> Result<QueryNodeRef, ConversionError> {
+        Ok(get_query_node_ref(
+            index.try_into().map_err(|_| ConversionError)?,
+        ))
+    };
+
     Ok(Project {
         corpus_set: project.corpus_set.unwrap_or_default(),
         spec: ExportSpec {
@@ -293,13 +299,7 @@ pub(crate) async fn load_project(
                             node_index,
                         } => ExportColumn::AnnoMatch {
                             anno_key,
-                            node_ref: node_index
-                                .map(|index| {
-                                    Ok(get_query_node_ref(
-                                        index.try_into().map_err(|_| ConversionError)?,
-                                    ))
-                                })
-                                .transpose()?,
+                            node_ref: node_index.map(try_get_query_node_ref).transpose()?,
                         },
                         annimate_core::ProjectExportColumn::AnnoEdge {
                             edge_type,
@@ -310,18 +310,10 @@ pub(crate) async fn load_project(
                             edge_type,
                             anno_key,
                             source_node_ref: source_node_index
-                                .map(|index| {
-                                    Ok(get_query_node_ref(
-                                        index.try_into().map_err(|_| ConversionError)?,
-                                    ))
-                                })
+                                .map(try_get_query_node_ref)
                                 .transpose()?,
                             target_node_ref: target_node_index
-                                .map(|index| {
-                                    Ok(get_query_node_ref(
-                                        index.try_into().map_err(|_| ConversionError)?,
-                                    ))
-                                })
+                                .map(try_get_query_node_ref)
                                 .transpose()?,
                         },
                         annimate_core::ProjectExportColumn::MatchInContext {
@@ -342,11 +334,7 @@ pub(crate) async fn load_project(
 
                             let primary_node_refs: Vec<QueryNodeRef> = primary_node_indices
                                 .into_iter()
-                                .map(|index| {
-                                    Ok(get_query_node_ref(
-                                        index.try_into().map_err(|_| ConversionError)?,
-                                    ))
-                                })
+                                .map(try_get_query_node_ref)
                                 .try_collect()?;
 
                             let secondary_node_refs = (0..query_nodes.len())
@@ -390,6 +378,10 @@ pub(crate) async fn rename_corpus_set(
 
 #[tauri::command]
 pub(crate) async fn save_project(project: Project, output_file: PathBuf) -> Result<(), Error> {
+    let to_node_index = |n: QueryNodeRef| -> Result<u32, ConversionError> {
+        n.index.try_into().map_err(|_| ConversionError)
+    };
+
     let project = annimate_core::Project {
         corpus_set: (!project.corpus_set.is_empty()).then_some(project.corpus_set),
         corpus_names: project.spec.corpus_names,
@@ -411,9 +403,7 @@ pub(crate) async fn save_project(project: Project, output_file: PathBuf) -> Resu
                     ExportColumn::AnnoMatch { anno_key, node_ref } => {
                         annimate_core::ProjectExportColumn::AnnoMatch {
                             anno_key,
-                            node_index: node_ref
-                                .map(|n| n.index.try_into().map_err(|_| ConversionError))
-                                .transpose()?,
+                            node_index: node_ref.map(to_node_index).transpose()?,
                         }
                     }
                     ExportColumn::AnnoEdge {
@@ -424,12 +414,8 @@ pub(crate) async fn save_project(project: Project, output_file: PathBuf) -> Resu
                     } => annimate_core::ProjectExportColumn::AnnoEdge {
                         edge_type,
                         anno_key,
-                        source_node_index: source_node_ref
-                            .map(|n| n.index.try_into().map_err(|_| ConversionError))
-                            .transpose()?,
-                        target_node_index: target_node_ref
-                            .map(|n| n.index.try_into().map_err(|_| ConversionError))
-                            .transpose()?,
+                        source_node_index: source_node_ref.map(to_node_index).transpose()?,
+                        target_node_index: target_node_ref.map(to_node_index).transpose()?,
                     },
                     ExportColumn::MatchInContext {
                         anno_key,
@@ -452,7 +438,7 @@ pub(crate) async fn save_project(project: Project, output_file: PathBuf) -> Resu
                         },
                         primary_node_indices: primary_node_refs
                             .into_iter()
-                            .map(|n| n.index.try_into().map_err(|_| ConversionError))
+                            .map(to_node_index)
                             .try_collect()?,
                     },
                 })

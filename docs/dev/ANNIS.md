@@ -102,6 +102,8 @@ When exporting a match node annotation, if the annotation is not directly on the
 
 When exporting an edge annotation, Annimate reads it from an edge directly between the two selected match nodes. Unlike the node annotation case (see [Annotation Lookup via Coverage](#annotation-lookup-via-coverage)), there is no fallback through `Coverage`: only edges between the match nodes themselves are considered, not edges between tokens they cover or spans that overlap them.
 
+This means that if the query connects the source and target match nodes only through a transitive operator (e.g. `>*`, `->*`, `>1,3`), there is typically no direct edge between them in the graph, and the exported cell will be empty.
+
 If multiple components match the requested edge type (i.e. share the same `(ctype, name)` but differ in namespace/layer), the annotation value is taken from the first component that has a value for the requested annotation key, ordered alphabetically by namespace/layer with the empty namespace first.
 
 ### Query Validation

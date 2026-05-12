@@ -234,48 +234,52 @@ mod tests {
 
     use super::*;
 
-    macro_rules! test_concurrency {
-        ($($method:ident),*$(,)?) => {
-            $(
-                mod $method {
-                    use super::*;
+    #[test]
+    fn get_or_load_when_called_concurrently_calls_load_only_once_per_field() {
+        const TEST_CORPUS: &str = "test_corpus";
 
-                    #[test]
-                    fn when_called_concurrently_calls_load_only_once() {
-                        const TEST_CORPUS: &str = "test_corpus";
+        let db_dir = tempfile::tempdir().unwrap();
+        fs::create_dir_all(db_dir.path().join(TEST_CORPUS)).unwrap();
 
-                        let db_dir = tempfile::tempdir().unwrap();
-                        fs::create_dir_all(db_dir.path().join(TEST_CORPUS)).unwrap();
+        let cache_storage = Arc::new(CacheStorage::from_db_dir(db_dir.path().into()));
+        let node_load_counter = Arc::new(AtomicUsize::new(0));
+        let edge_load_counter = Arc::new(AtomicUsize::new(0));
 
-                        let cache_storage = Arc::new(CacheStorage::from_db_dir(db_dir.path().into()));
-                        let load_counter = Arc::new(AtomicUsize::new(0));
+        let mut handles = Vec::new();
+        for _ in 0..2 {
+            handles.push(thread::spawn({
+                let cache_storage = Arc::clone(&cache_storage);
+                let node_load_counter = Arc::clone(&node_load_counter);
 
-                        let mut handles = Vec::new();
-                        for _ in 0..2 {
-                            handles.push(thread::spawn({
-                                let cache_storage = Arc::clone(&cache_storage);
-                                let load_counter = Arc::clone(&load_counter);
-
-                                move || {
-                                    cache_storage.$method(TEST_CORPUS, || {
-                                        load_counter.fetch_add(1, Ordering::Relaxed);
-                                        Ok::<_, io::Error>(Vec::new())
-                                    })
-                                    .unwrap();
-                                }
-                            }));
-                        }
-
-                        for handle in handles {
-                            handle.join().unwrap();
-                        }
-
-                        assert_eq!(load_counter.load(Ordering::Relaxed), 1);
-                    }
+                move || {
+                    cache_storage
+                        .get_node_anno_key_infos(TEST_CORPUS, || {
+                            node_load_counter.fetch_add(1, Ordering::Relaxed);
+                            Ok::<_, io::Error>(Vec::new())
+                        })
+                        .unwrap();
                 }
-            )*
-        }
-    }
+            }));
+            handles.push(thread::spawn({
+                let cache_storage = Arc::clone(&cache_storage);
+                let edge_load_counter = Arc::clone(&edge_load_counter);
 
-    test_concurrency![get_node_anno_key_infos, get_edge_anno_key_infos];
+                move || {
+                    cache_storage
+                        .get_edge_anno_key_infos(TEST_CORPUS, || {
+                            edge_load_counter.fetch_add(1, Ordering::Relaxed);
+                            Ok::<_, io::Error>(Vec::new())
+                        })
+                        .unwrap();
+                }
+            }));
+        }
+
+        for handle in handles {
+            handle.join().unwrap();
+        }
+
+        assert_eq!(node_load_counter.load(Ordering::Relaxed), 1);
+        assert_eq!(edge_load_counter.load(Ordering::Relaxed), 1);
+    }
 }

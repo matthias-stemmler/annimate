@@ -941,6 +941,11 @@ export const loadProject = async (params: {
             annoKey: { ns: NS_NODE, name: 'anno_1' },
           },
           {
+            type: 'anno_edge',
+            edgeType: { ctype: 'Dominance', name: 'component_0' },
+            annoKey: { ns: `${NS_EDGE}_d_0`, name: 'anno_1' },
+          },
+          {
             type: 'match_in_context',
             context: 5,
             contextRightOverride: 10,
@@ -973,6 +978,13 @@ export const loadProject = async (params: {
           type: 'anno_match',
           annoKey: { ns: NS_NODE, name: 'anno_1' },
           nodeRef: { index: 1, variables: ['2'] },
+        },
+        {
+          type: 'anno_edge',
+          edgeType: { ctype: 'Dominance', name: 'component_0' },
+          annoKey: { ns: `${NS_EDGE}_d_0`, name: 'anno_1' },
+          sourceNodeRef: { index: 0, variables: ['1'] },
+          targetNodeRef: { index: 1, variables: ['2'] },
         },
         {
           type: 'match_in_context',

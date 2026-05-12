@@ -115,9 +115,7 @@ export const useGetQueryValidationResultQueryData = <
     getQueryData(queryValidationResultQueryConfig(params));
 };
 
-export const segmentationsQueryConfig = (params: {
-  corpusNames: string[];
-}) => ({
+const segmentationsQueryConfig = (params: { corpusNames: string[] }) => ({
   queryKey: [QUERY_KEY_SEGMENTATIONS, params],
   queryFn: () => getSegmentations(params),
   slowTracking: {

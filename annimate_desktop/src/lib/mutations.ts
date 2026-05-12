@@ -27,10 +27,12 @@ import {
 } from '@/lib/api-types';
 import {
   QUERY_KEY_CORPORA,
+  QUERY_KEY_EXPORTABLE_EDGE_TYPES,
   QUERY_KEY_EXPORTABLE_NODE_ANNO_KEYS,
   QUERY_KEY_SEGMENTATIONS,
 } from '@/lib/queries';
 import {
+  QueryClient,
   useIsMutating,
   useMutation,
   useQueryClient,
@@ -47,6 +49,17 @@ export class CancellableOperationError extends Error {
 }
 
 const MUTATION_KEY_EXPORT_MATCHES = 'export-matches';
+
+const invalidateCorpusDerivedQueries = (queryClient: QueryClient) =>
+  Promise.all([
+    queryClient.invalidateQueries({
+      queryKey: [QUERY_KEY_EXPORTABLE_NODE_ANNO_KEYS],
+    }),
+    queryClient.invalidateQueries({
+      queryKey: [QUERY_KEY_EXPORTABLE_EDGE_TYPES],
+    }),
+    queryClient.invalidateQueries({ queryKey: [QUERY_KEY_SEGMENTATIONS] }),
+  ]);
 
 export const useAddCorporaToSetMutation = () => {
   const queryClient = useQueryClient();
@@ -130,12 +143,7 @@ export const useClearCacheMutation = () => {
   const mutation = useMutation({
     mutationFn: clearCache,
     // Also invalidate queries on error because a subset of the corpus caches may have been invalidated
-    onSettled: () => {
-      queryClient.invalidateQueries({
-        queryKey: [QUERY_KEY_EXPORTABLE_NODE_ANNO_KEYS],
-      });
-      queryClient.invalidateQueries({ queryKey: [QUERY_KEY_SEGMENTATIONS] });
-    },
+    onSettled: () => invalidateCorpusDerivedQueries(queryClient),
   });
 
   return { mutation };
@@ -164,10 +172,7 @@ export const useDeleteCorpusMutation = ({
     onSuccess: async () => {
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: [QUERY_KEY_CORPORA] }),
-        queryClient.invalidateQueries({
-          queryKey: [QUERY_KEY_EXPORTABLE_NODE_ANNO_KEYS],
-        }),
-        queryClient.invalidateQueries({ queryKey: [QUERY_KEY_SEGMENTATIONS] }),
+        invalidateCorpusDerivedQueries(queryClient),
       ]);
       await onSuccess?.();
     },
@@ -196,20 +201,12 @@ export const useDeleteCorpusSetMutation = ({
     },
     // Also invalidate query on error because a subset of the corpora may have been deleted
     onSettled: async (_data, _error, variables) => {
-      const invalidations = [
+      await Promise.all([
         queryClient.invalidateQueries({ queryKey: [QUERY_KEY_CORPORA] }),
-      ];
-      if (variables.deleteCorpora) {
-        invalidations.push(
-          queryClient.invalidateQueries({
-            queryKey: [QUERY_KEY_EXPORTABLE_NODE_ANNO_KEYS],
-          }),
-          queryClient.invalidateQueries({
-            queryKey: [QUERY_KEY_SEGMENTATIONS],
-          }),
-        );
-      }
-      await Promise.all(invalidations);
+        ...(variables.deleteCorpora
+          ? [invalidateCorpusDerivedQueries(queryClient)]
+          : []),
+      ]);
       await onSettled?.();
     },
   });
