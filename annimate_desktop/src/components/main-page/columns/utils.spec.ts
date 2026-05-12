@@ -10,8 +10,8 @@ import { describe, expect, test } from 'vitest';
 describe('utils', () => {
   test.each`
     annoKey                       | expectedValue
-    ${{ ns: 'ns', name: 'name' }} | ${'ns:name'}
-    ${{ ns: '', name: 'name' }}   | ${':name'}
+    ${{ ns: 'ns', name: 'name' }} | ${'{"ns":"ns","name":"name"}'}
+    ${{ ns: '', name: 'name' }}   | ${'{"ns":"","name":"name"}'}
   `('annoKeyToValue', (params: { annoKey: AnnoKey; expectedValue: string }) => {
     const value = annoKeyToValue(params.annoKey);
 
@@ -19,9 +19,9 @@ describe('utils', () => {
   });
 
   test.each`
-    value        | expectedAnnoKey
-    ${'ns:name'} | ${{ ns: 'ns', name: 'name' }}
-    ${':name'}   | ${{ ns: '', name: 'name' }}
+    value                          | expectedAnnoKey
+    ${'{"ns":"ns","name":"name"}'} | ${{ ns: 'ns', name: 'name' }}
+    ${'{"ns":"","name":"name"}'}   | ${{ ns: '', name: 'name' }}
   `('valueToAnnoKey', (params: { value: string; expectedAnnoKey: AnnoKey }) => {
     const value = valueToAnnoKey(params.value);
 
@@ -30,9 +30,9 @@ describe('utils', () => {
 
   test.each`
     edgeType                                | expectedValue
-    ${{ ctype: 'Dominance', name: '' }}     | ${'Dominance/'}
-    ${{ ctype: 'Dominance', name: 'name' }} | ${'Dominance/name'}
-    ${{ ctype: 'Pointing', name: 'name' }}  | ${'Pointing/name'}
+    ${{ ctype: 'Dominance', name: '' }}     | ${'{"ctype":"Dominance","name":""}'}
+    ${{ ctype: 'Dominance', name: 'name' }} | ${'{"ctype":"Dominance","name":"name"}'}
+    ${{ ctype: 'Pointing', name: 'name' }}  | ${'{"ctype":"Pointing","name":"name"}'}
   `(
     'edgeTypeToValue',
     (params: { edgeType: EdgeType; expectedValue: string }) => {
@@ -43,10 +43,10 @@ describe('utils', () => {
   );
 
   test.each`
-    value               | expectedEdgeType
-    ${'Dominance/'}     | ${{ ctype: 'Dominance', name: '' }}
-    ${'Dominance/name'} | ${{ ctype: 'Dominance', name: 'name' }}
-    ${'Pointing/name'}  | ${{ ctype: 'Pointing', name: 'name' }}
+    value                                    | expectedEdgeType
+    ${'{"ctype":"Dominance","name":""}'}     | ${{ ctype: 'Dominance', name: '' }}
+    ${'{"ctype":"Dominance","name":"name"}'} | ${{ ctype: 'Dominance', name: 'name' }}
+    ${'{"ctype":"Pointing","name":"name"}'}  | ${{ ctype: 'Pointing', name: 'name' }}
   `(
     'valueToEdgeType',
     (params: { value: string; expectedEdgeType: EdgeType }) => {

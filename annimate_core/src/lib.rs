@@ -115,7 +115,7 @@ impl Storage {
         })
     }
 
-    /// Preloads a corpus.
+    /// Preloads a corpus and warms the node/edge annotation key caches.
     pub fn preload_corpus(&self, corpus_name: &str) -> Result<(), AnnimateError> {
         self.corpus_storage.preload(corpus_name)?;
 

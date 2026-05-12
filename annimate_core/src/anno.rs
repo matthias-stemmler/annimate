@@ -270,6 +270,7 @@ impl From<ExportableEdgeComponentType> for AnnotationComponentType {
 
 /// Type (component type, component name) of an edge for which to export an annotation.
 #[derive(Clone, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct EdgeType {
     /// Component type.
     pub ctype: ExportableEdgeComponentType,
@@ -576,7 +577,7 @@ pub struct ExportableNodeAnnoKeys {
     node: Vec<ExportableAnnoKey>,
 }
 
-/// Information about which edge types and annotationk keys are available for export.
+/// Information about which edge types and annotation keys are available for export.
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ExportableEdgeType {

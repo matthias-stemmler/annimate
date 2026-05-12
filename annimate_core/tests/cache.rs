@@ -58,20 +58,72 @@ fn caching_exportable_edge_types() {
     let _ = fs::remove_dir_all(&db_dir);
 
     create_corpus(&db_dir, "test_corpus");
-    add_dominance_component(&db_dir, "test_corpus", "test_dominance");
-    add_dominance_edge_anno(&db_dir, "test_corpus", "test_dominance", "test_anno_1");
-
-    assert_eq!(
-        get_exportable_edge_types(&db_dir, "test_corpus"),
-        [("test_dominance".into(), vec!["test_anno_1".into()])]
+    add_component(
+        &db_dir,
+        "test_corpus",
+        &AnnotationComponentType::Dominance,
+        "test_dominance",
+    );
+    add_edge_anno(
+        &db_dir,
+        "test_corpus",
+        &AnnotationComponentType::Dominance,
+        "test_dominance",
+        "test_anno_d",
+    );
+    add_component(
+        &db_dir,
+        "test_corpus",
+        &AnnotationComponentType::Pointing,
+        "test_pointing",
+    );
+    add_edge_anno(
+        &db_dir,
+        "test_corpus",
+        &AnnotationComponentType::Pointing,
+        "test_pointing",
+        "test_anno_p",
     );
 
-    add_dominance_edge_anno(&db_dir, "test_corpus", "test_dominance_1", "test_anno_2");
-
-    // `test_anno_2` not included -> annotations are served from cache
     assert_eq!(
         get_exportable_edge_types(&db_dir, "test_corpus"),
-        [("test_dominance".into(), vec!["test_anno_1".into()]),]
+        [
+            (
+                "Dominance".into(),
+                "test_dominance".into(),
+                vec!["test_anno_d".into()],
+            ),
+            (
+                "Pointing".into(),
+                "test_pointing".into(),
+                vec!["test_anno_p".into()],
+            ),
+        ]
+    );
+
+    add_edge_anno(
+        &db_dir,
+        "test_corpus",
+        &AnnotationComponentType::Dominance,
+        "test_dominance_1",
+        "test_anno_extra",
+    );
+
+    // `test_anno_extra` not included -> annotations are served from cache
+    assert_eq!(
+        get_exportable_edge_types(&db_dir, "test_corpus"),
+        [
+            (
+                "Dominance".into(),
+                "test_dominance".into(),
+                vec!["test_anno_d".into()],
+            ),
+            (
+                "Pointing".into(),
+                "test_pointing".into(),
+                vec!["test_anno_p".into()],
+            ),
+        ]
     );
 
     delete_corpus(&db_dir, "test_corpus");
@@ -182,15 +234,6 @@ fn add_ordering_component(db_dir: &Path, corpus_name: &str, component_name: &str
     );
 }
 
-fn add_dominance_component(db_dir: &Path, corpus_name: &str, component_name: &str) {
-    add_component(
-        db_dir,
-        corpus_name,
-        &AnnotationComponentType::Dominance,
-        component_name,
-    );
-}
-
 fn add_component(
     db_dir: &Path,
     corpus_name: &str,
@@ -232,9 +275,10 @@ fn add_node_anno(db_dir: &Path, corpus_name: &str, anno_name: &str) {
         .unwrap();
 }
 
-fn add_dominance_edge_anno(
+fn add_edge_anno(
     db_dir: &Path,
     corpus_name: &str,
+    ctype: &AnnotationComponentType,
     component_name: &str,
     anno_name: &str,
 ) {
@@ -246,7 +290,7 @@ fn add_dominance_edge_anno(
             source_node: CORPUS_NODE_NAME.into(),
             target_node: OTHER_NODE_NAME.into(),
             layer: DEFAULT_NS.into(),
-            component_type: AnnotationComponentType::Dominance.to_string(),
+            component_type: ctype.to_string(),
             component_name: component_name.into(),
             anno_ns: DEFAULT_NS.into(),
             anno_name: anno_name.into(),
@@ -279,7 +323,10 @@ fn get_segmentations(db_dir: &Path, corpus_name: &str) -> Vec<String> {
     storage.segmentations(&[corpus_name]).unwrap()
 }
 
-fn get_exportable_edge_types(db_dir: &Path, corpus_name: &str) -> Vec<(String, Vec<String>)> {
+fn get_exportable_edge_types(
+    db_dir: &Path,
+    corpus_name: &str,
+) -> Vec<(String, String, Vec<String>)> {
     let storage = Storage::from_db_dir(db_dir.into()).unwrap();
     let exportable_edge_types: Vec<ExportableEdgeType> = serde_json::from_str(
         &serde_json::to_string(&storage.exportable_edge_types(&[corpus_name]).unwrap()).unwrap(),
@@ -290,6 +337,7 @@ fn get_exportable_edge_types(db_dir: &Path, corpus_name: &str) -> Vec<(String, V
         .into_iter()
         .map(|e| {
             (
+                e.edge_type.ctype,
                 e.edge_type.name,
                 e.anno_keys.into_iter().map(|e| e.display_name).collect(),
             )
@@ -313,6 +361,7 @@ struct ExportableEdgeType {
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct EdgeType {
+    ctype: String,
     name: String,
 }
 

@@ -117,7 +117,7 @@ const EdgeTypeSelect: FC<EdgeTypeSelectProps> = ({
                 'dark:data-[value=Dominance]:bg-ctype-dominance-800 dark:data-[value=Dominance]:text-ctype-dominance-100 dark:data-[value=Pointing]:bg-ctype-pointing-800 dark:data-[value=Pointing]:text-ctype-pointing-100',
                 'w-20 before:content-[attr(data-value)]',
                 edgeType.name !== '' &&
-                  '@max-3xs:w-8 @max-3xs:before:content-[attr(data-value-short)]',
+                  '@max-[14rem]:w-8 @max-[14rem]:before:content-[attr(data-value-short)]',
               )}
               data-value={edgeType.ctype}
               data-value-short={edgeType.ctype === 'Dominance' ? 'D' : 'P'}
