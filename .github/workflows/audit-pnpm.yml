@@ -31,5 +31,12 @@ jobs:
       - name: Enable corepack
         run: corepack enable
 
+      - name: Set up node
+        uses: actions/setup-node@v6
+        with:
+          cache: pnpm
+          cache-dependency-path: annimate_desktop/pnpm-lock.yaml
+          node-version-file: annimate_desktop/.nvmrc
+
       - name: Run audit
         run: pnpm audit --audit-level high

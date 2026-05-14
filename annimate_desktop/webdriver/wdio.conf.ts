@@ -37,7 +37,7 @@ export const config: WebdriverIO.Config = {
       'webdriver-version-override.json',
     );
 
-    spawnSync(
+    const result = spawnSync(
       'pnpm',
       ['tauri', 'build', '--debug', '--no-bundle', '--config', configFile],
       {
@@ -48,6 +48,9 @@ export const config: WebdriverIO.Config = {
         shell: true,
       },
     );
+    if (result.status !== 0) {
+      throw new Error(`tauri build failed with exit code ${result.status}`);
+    }
   },
 
   beforeSession: () => {
