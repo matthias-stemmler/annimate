@@ -47,6 +47,16 @@ export const ManagePage: FC = () => {
       </header>
 
       <CorporaSection
+        onCorpusSetDeleted={(name) => {
+          setSelectedCorpusSet((current) =>
+            current === name ? undefined : current,
+          );
+        }}
+        onCorpusSetRenamed={(oldName, newName) => {
+          setSelectedCorpusSet((current) =>
+            current === oldName ? newName : current,
+          );
+        }}
         onSelectCorpusSet={setSelectedCorpusSet}
         selectedCorpusSet={selectedCorpusSet}
       />

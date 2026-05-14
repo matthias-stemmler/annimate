@@ -11,6 +11,8 @@ import { useCorpora } from '@/lib/store';
 import { FC } from 'react';
 
 export type CorporaSectionProps = {
+  onCorpusSetDeleted?: (name: string) => void;
+  onCorpusSetRenamed?: (oldName: string, newName: string) => void;
   onSelectCorpusSet?: (corpusSet: string | undefined) => void;
   selectedCorpusSet: string | undefined;
 };
@@ -46,6 +48,8 @@ export const CorporaSection: FC<CorporaSectionProps> = (props) => {
         <CorpusSetList
           corpusCount={corpora.length}
           corpusSetsWithCount={corpusSetsWithCount}
+          onCorpusSetDeleted={props.onCorpusSetDeleted}
+          onCorpusSetRenamed={props.onCorpusSetRenamed}
           onSelectCorpusSet={props.onSelectCorpusSet}
           selectedCorpusSet={selectedCorpusSet}
         />
