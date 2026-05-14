@@ -4,11 +4,12 @@
   "description": "Capability for the main window",
   "windows": ["main"],
   "permissions": [
-    "core:default",
+    "core:event:allow-emit",
+    "core:path:allow-resolve-directory",
+    "core:resources:default",
     "dialog:allow-open",
     "dialog:allow-save",
-    "dialog:default",
-    "opener:default",
+    "opener:allow-reveal-item-in-dir",
     "process:allow-exit",
     "process:allow-restart",
     "updater:default",
@@ -18,6 +19,14 @@
       "allow": [
         {
           "path": "**/*"
+        }
+      ]
+    },
+    {
+      "identifier": "opener:allow-open-url",
+      "allow": [
+        {
+          "url": "https://**"
         }
       ]
     }
