@@ -58,7 +58,7 @@ Loading a project will discard your current configuration. In order to keep it f
 
 ## File Format
 
-Annimate project files use the `.anmt` file extension. While their main purpose is to be loaded into Annimate, they can also be opened using any standard text editor. The file format is human-readable and mostly self explaining, so that project files can be used for documentation purposes even when an installation of Annimate is not available.
+Annimate project files use the `.anmt` file extension. While their main purpose is to be loaded into Annimate, they can also be opened using any standard text editor. The file format is human-readable and mostly self-explanatory, so that project files can be used for documentation purposes even when an installation of Annimate is not available.
 
 > **Technical Note:** Annimate project files currently use the [TOML](https://toml.io/en/) file format. The details of the format are not guaranteed to remain stable across different versions of Annimate, but future versions will be backward compatible in the sense that they will still be able to read older project files.
 >

@@ -1,0 +1,31 @@
+# Annimate project file
+# https://github.com/matthias-stemmler/annimate
+
+format-version = 2
+
+[project]
+corpus-set = "GUM"
+corpora = ["GUM"]
+query = "pos=/V.*/ ->dep[func=/i?obj/] pos=/N.*/"
+query-language = "aql"
+export-format = "csv"
+
+[[project.columns]]
+type = "number"
+
+[[project.columns]]
+type = "match-annotation"
+annotation = { ns = "salt", name = "pos" }
+node-index = 0
+
+[[project.columns]]
+type = "match-annotation"
+annotation = { ns = "salt", name = "pos" }
+node-index = 1
+
+[[project.columns]]
+type = "edge-annotation"
+edge-type = { ctype = "Pointing", name = "dep" }
+annotation = { ns = "dep", name = "func" }
+source-node-index = 0
+target-node-index = 1

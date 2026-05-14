@@ -8,9 +8,14 @@ It is meant as a supplement to the ANNIS web interface and focuses on file expor
 >
 > It is based on the [graphANNIS](https://corpus-tools.org/graphannis/) library by Thomas Krause.
 
-Annimate can produce a CSV or an Excel file with one row per match, showing the matched nodes in their context in a KWIC (Key Word in Context) format as well as additional annotations of the matched nodes and metadata on the corpus and document levels. It is similar in functionality to a combination of the ANNIS `TextColumnExporter` and `CSVExporter`, but provides a friendlier user interface.
+Annimate can produce a CSV or an Excel file with one row per match, showing
+- the matched nodes in their context in a KWIC (Key Word in Context) format,
+- additional annotations of the matched nodes and the edges between them, and
+- metadata on the corpus and document levels.
 
-This User Guide explains the details on how to work with Annimate.
+It is similar in functionality to a combination of the ANNIS `TextColumnExporter` and `CSVExporter`, but provides a friendlier user interface.
+
+This User Guide explains how to work with Annimate.
 
 ## Table of Contents
 

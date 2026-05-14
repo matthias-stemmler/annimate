@@ -47,7 +47,7 @@ There are several ways to obtain corpus data:
    ![Screenshot showing "Import corpora from files" dialog](img/import-dialog.png)
 4. Wait until the import is finished, then click on "Continue".
    ![Screenshot showing finished import](img/import-continue.png)
-5. In the final step you can optionally add all imported corpora to a (new or existing) corpus set. Click on "OK" to finish the import.
+5. In the final step, you can optionally add all imported corpora to a (new or existing) corpus set. Click on "OK" to finish the import.
    ![Screenshot showing how to add imported corpora to a set](img/import-add-to-set.png)
 
 > **Note:** It is _not_ possible to keep two corpora of the same name imported at the same time. If you try to import a corpus with the same name as a corpus that was previously imported, the import will fail. This is true even if the old and new corpora are added to different sets.
@@ -61,14 +61,14 @@ While you can add corpora to sets directly when they are imported, it is also po
 On the left-hand side, you can either select "All corpora" or a specific corpus set:
 
 - When "All corpora" is selected, the right-hand side shows a list of all corpora. Here you can delete an individual corpus by clicking on the corresponding ![Trash](img/trash-2.svg) button and then clicking on "Delete" in the following dialog. The corpus will be deleted and removed from all sets.
-  ![Screenshot showing "Delete corpus" button"](img/manage-delete-corpus.png)
+  ![Screenshot showing "Delete corpus" button](img/manage-delete-corpus.png)
 - When a specific corpus set is selected, the right-hand side shows a list of all corpora with checkboxes, where the corpora belonging to the selected set are checked. Check or uncheck a corpus in order to add or remove it from the selected set, respectively.
-  ![Screenshot showing "Add corpus to set" button"](img/manage-add-corpus-to-set.png)
+  ![Screenshot showing "Add corpus to set" button](img/manage-add-corpus-to-set.png)
 
 In order to create a new corpus set, click on the "Add corpus set" button, enter a name, and click on "OK":
-![Screenshot showing "Add corpus set" button"](img/manage-add-corpus-set.png)
+![Screenshot showing "Add corpus set" button](img/manage-add-corpus-set.png)
 Then check all corpora that you want to add to the set:
-![Screenshot showing "Remove corpus from set" button"](img/manage-remove-corpus-from-set.png)
+![Screenshot showing "Remove corpus from set" button](img/manage-remove-corpus-from-set.png)
 
 You can also rename a set by clicking on the corresponding ![Pencil](img/pencil.svg) button or delete it by clicking on the corresponding ![Trash](img/trash-2.svg) button. When deleting a set, you can choose whether to only delete the set itself (keeping the corpora available under "All corpora" and in other sets they may be a part of), or to also delete all corpora of the set:
 ![Screenshot showing "Delete corpus set" dialog](img/manage-delete-corpus-set.png)

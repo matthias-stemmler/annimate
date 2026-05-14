@@ -30,7 +30,7 @@ Here, the items directly below `ReA 1.2` such as `DDD-AD-Benediktiner_Regel_1.2`
 
 Just like normal text nodes, corpus and document nodes can also have annotations. These are called _meta annotations_ because they usually contain metadata about a corpus or document such as `dialect`, `time` or `topic`. It depends on the corpus which meta annotations are present at the corpus or document levels.
 
-The "Corpus metadata" respectively "Document metadata" columns contain the value of the selected meta annotation for the corpus respectively document that each match is contained in.
+The "Corpus metadata" and "Document metadata" columns contain the value of the selected meta annotation for the corpus or document, respectively, that each match is contained in.
 
 The list under "Meta annotation" contains all meta annotations that are present in _any_ of the selected corpora at the corpus or document levels, respectively. Like for "Match annotation", annotations are disambiguated by showing their namespaces if necessary and ANNIS standard annotations are shown at the end under the "ANNIS" label (see [Match annotation](match-annotation.md) for details). For documents, the ANNIS standard annotation `doc` (or `annis:doc`) contains the document name such as `AB_AltbairischeBeichte`. As this annotation is always present for documents (in fact, the presence of this annotation is what technically _defines_ a document), it is especially useful in cases where there's no corpus-specific annotation containing the document name. For ReA, you may want to use the `text` annotation instead.
 
