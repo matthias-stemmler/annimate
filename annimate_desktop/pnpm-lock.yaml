@@ -184,8 +184,8 @@ catalogs:
       specifier: ^10.1.0
       version: 10.1.0
     react-resizable-panels:
-      specifier: ^4.11.0
-      version: 4.11.0
+      specifier: ^4.11.1
+      version: 4.11.1
     react-router:
       specifier: ^7.15.0
       version: 7.15.0
@@ -325,7 +325,7 @@ importers:
         version: 10.1.0(@types/react@19.2.14)(react@19.2.6)
       react-resizable-panels:
         specifier: 'catalog:'
-        version: 4.11.0(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
+        version: 4.11.1(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
       react-router:
         specifier: 'catalog:'
         version: 7.15.0(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
@@ -3940,8 +3940,8 @@ packages:
       '@types/react':
         optional: true
 
-  react-resizable-panels@4.11.0:
-    resolution: {integrity: sha512-LPk/AkFDGkg7SsbOyL93ojrE6E7lhrxxDwnYNjfmnSeI6BE7Sje6dB24PXgZk8DeugdeXNk1LO+ohRqIjhxiLw==}
+  react-resizable-panels@4.11.1:
+    resolution: {integrity: sha512-kA4w58V6wYdRLm2rg9pzroZwGlqBLul1FjMP0J8kqTo3zSHtjeH+LXmZaldCo6+HWqs1e5hOcPoajKXdOze37Q==}
     peerDependencies:
       react: ^18.0.0 || ^19.0.0
       react-dom: ^18.0.0 || ^19.0.0
@@ -8355,7 +8355,7 @@ snapshots:
     optionalDependencies:
       '@types/react': 19.2.14
 
-  react-resizable-panels@4.11.0(react-dom@19.2.6(react@19.2.6))(react@19.2.6):
+  react-resizable-panels@4.11.1(react-dom@19.2.6(react@19.2.6))(react@19.2.6):
     dependencies:
       react: 19.2.6
       react-dom: 19.2.6(react@19.2.6)
