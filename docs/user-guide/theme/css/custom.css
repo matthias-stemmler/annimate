@@ -1,0 +1,4 @@
+/* Hide the page-heading entries that mdBook injects into the sidebar at runtime. */
+#mdbook-sidebar .on-this-page {
+    display: none;
+}

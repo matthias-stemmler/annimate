@@ -52,6 +52,7 @@ The following column types are available. For details on each column type, refer
 - [Number](columns/number.md)
 - [Match in context](columns/match-in-context.md)
 - [Match annotation](columns/match-annotation.md)
+- [Edge annotation](columns/edge-annotation.md)
 - [Corpus/document metadata](columns/metadata.md)
 
 > **Note:** While each entry of the list will usually produce exactly one column, an entry of type "Match in context" will actually produce _multiple_ columns. See [Match in context](columns/match-in-context.md) for details.
@@ -61,7 +62,7 @@ The following column types are available. For details on each column type, refer
 On the lower right of the Annimate main screen, you can choose between one of two formats for the export:
 
 - **CSV**: This produces a `.csv` file containing a table in the _Comma-Separated Values_ format. This format is not specific to any particular software and can be imported into all spreadsheet tools (including Microsoft Excel) or even opened with a text editor.
-- **Excel**: This produces a `.xlsx` file containing an Excel workbook. Since it doesn't make use of advanced features of Microsoft Excel, it can also be opened with most other spreadsheet tools such as [LibreOffice Calc](https://www.libreoffice.org/discover/calc/).
+- **Excel**: This produces an `.xlsx` file containing an Excel workbook. Since it doesn't make use of advanced features of Microsoft Excel, it can also be opened with most other spreadsheet tools such as [LibreOffice Calc](https://www.libreoffice.org/discover/calc/).
 
 ![Screenshot showing export format selector](img/export-format.png)
 
@@ -74,13 +75,13 @@ In general, make sure that the following conditions are satisfied:
 - At least one corpus is selected.
 - A query has been entered and is valid (showing a green checkmark).
 - At least one column has been configured.
-- All configured columns have all their fields set to a value (Segmentation, Left/right context, Annotation, Query node, Meta annotation)
+- All configured columns have all their fields (e.g. annotation) set to a value.
 
 > **Note:** If you change the selection of corpora and/or the query _after_ you have already configured the columns, it can happen that a previously selected option is no longer available (e.g. for "Query node" if you change the query so that the selected node no longer exists). Then the selection is cleared and the "Export to ..." button becomes disabled. In this case, go through the list of columns again and make sure that all fields are filled.
 
 ![Screenshot showing "Export to file" dialog](img/export-run.png)
 
-When the export is finished, you will see a notification with shortcuts to open the folder containing the file in your system's File Explorer or to open the file directly in the program associated with `.csv` respectively `.xlsx` files on your system.
+When the export is finished, you will see a notification with shortcuts to open the folder containing the file in your system's File Explorer or to open the file directly in the program associated with `.csv` or `.xlsx` files on your system.
 
 ![Screenshot showing "Export finished" notification](img/export-finished.png)
 
@@ -97,15 +98,17 @@ In order to import a CSV file into Microsoft Excel, follow the steps in the [Exc
 
 #### Excel Files
 
-The `.xlsx` files produced by Annimate can be opened directly in Microsoft Excel or any other spreadsheet tool that supports the Excel file format. It contains two separate worksheets:
+The `.xlsx` files produced by Annimate can be opened directly in Microsoft Excel or any other spreadsheet tool that supports the Excel file format. They contain two separate worksheets:
 
-- **Data**: This contains the actual exported data. Note that it includes a header row, so the row number displayed by Excel is offset by one compared to the number of the match. In order to include the number of the match, add a ["Number" column](columns/number.md).
+- **Data**: This contains the actual exported data. Note that it includes a header row, so the row number displayed by Excel is one more than the number of the match. In order to include the number of the match, add a ["Number" column](columns/number.md).
 - **Information**: This contains some information about the export that helps you document and reproduce it:
   - The query
-  - The query language: "AQL latest" or "AQL (compatibility mode)" as described above
+  - The query language: "AQL (latest)" or "AQL (compatibility mode)" as described above
   - The list of corpora
   - Which version of Annimate was used to produce the export
 
 ## What's Next?
+
+In order to learn about the different types of columns, start with [Number](columns/number.md).
 
 In order to save and resume your work or collaborate with others, learn about [Working With Projects](projects.md).

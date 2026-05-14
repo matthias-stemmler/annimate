@@ -33,7 +33,7 @@ On Linux, Annimate comes in two different formats that you can choose from: an [
 
 ### AppImage
 
-The Annimate AppImage is a self-contained application bundle that includes all of its dependencies pre-bundled and runs on all common Linux distributions such as Ubuntu, Debian, openSUSE, RHEL, CentOS and Fedora without requiring a dedicated installation step. It can update itself automatically whenever a new version of Annimate becomes available.
+The Annimate AppImage is a self-contained application bundle that runs on all common Linux distributions such as Ubuntu, Debian, openSUSE, RHEL, CentOS and Fedora without requiring a dedicated installation step. It can update itself automatically whenever a new version of Annimate becomes available.
 
 In order to use the AppImage, go through the following steps:
 
@@ -44,7 +44,7 @@ In order to use the AppImage, go through the following steps:
    ```
 3. Afterwards, you can run Annimate by running the `.AppImage` file:
    ```shell
-    ./Annimate*.AppImage
+   ./Annimate*.AppImage
    ```
 
 #### Automatic updates
@@ -97,9 +97,9 @@ There are two different versions of the Application Bundle for different types o
 - Apple silicon processors (for newer Mac computers, starting from late 2020)
 - Intel processors (for older Mac computers)
 
-Check the [Apple Support](https://support.apple.com/en-us/116943) to find out which type of processor you have. Annimate requires a macOS version of 10.13 "High Sierra" or newer.
+Check the [Apple Support](https://support.apple.com/en-us/116943) to find out which type of processor you have. Annimate requires macOS 10.13 "High Sierra" or newer.
 
-> **Note:** As the Annimate Application Bundle is not signed by Apple, your system will set a "quarantine" attribute for the downloaded file. You will need to remove this attribute as described below. Otherwise you will see a message saying that "Annimate is damaged and can't be opened" when trying to start it.
+> **Note:** As the Annimate Application Bundle is not signed by Apple, your system will set a "quarantine" attribute on the downloaded file. You will need to remove this attribute as described below. Otherwise you will see a message saying that "Annimate is damaged and can't be opened" when trying to start it.
 
 In order to install Annimate, go through the following steps:
 
@@ -130,7 +130,7 @@ In order to install Annimate, go through the following steps:
 
    ![Screenshot of macOS terminal](img/macos-terminal.png)
 
-6. Afterwards you can run Annimate by navigating to the installation folder (here: `~/Applications`) and double-clicking on the `Annimate` app icon:
+6. Afterwards, you can run Annimate by navigating to the installation folder (here: `~/Applications`) and double-clicking on the `Annimate` app icon:
 
    ![Screenshot of macOS home folder](img/macos-home.png)
    ![Screenshot of macOS applications folder](img/macos-applications.png)

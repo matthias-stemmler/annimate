@@ -10,5 +10,6 @@ build-dir = "../../pages/user-guide"
 create-missing = false
 
 [output.html]
+additional-css = ["theme/css/custom.css"]
 git-repository-url = "https://github.com/matthias-stemmler/annimate"
 smart-punctuation = true

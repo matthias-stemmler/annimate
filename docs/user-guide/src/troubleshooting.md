@@ -23,7 +23,7 @@ If you see an error message like this when Annimate tries to install an update o
 this is because the current user has no permission to write to the folder containing the Annimate AppImage. To fix this, you may assign the necessary permissions by running
 
 ```shell
-chmod u+w <folder containing the .appimage file>
+chmod u+w <folder containing the .AppImage file>
 ```
 
 In any case, instead of letting Annimate update itself, you can alternatively just download and run the latest release.
@@ -34,7 +34,7 @@ In any case, instead of letting Annimate update itself, you can alternatively ju
 
 ### Match in context: Desired segmentation is not listed
 
-If your desired segmentation layer is not listed under "Segmentation" in a [Match in context](columns/match-in-context.md) box, this may be because not all of the selected corpora contain the segmentation. You can confirm this by selecting just a single corpus (try different ones from the list) and checking if the segmentation appears.
+If your desired segmentation layer is not listed under "Segmentation" in a [Match in context](columns/match-in-context.md) entry, this may be because not all of the selected corpora contain the segmentation. You can confirm this by selecting just a single corpus (try different ones from the list) and checking if the segmentation appears.
 
 To fix this, you may want to group your corpora differently, so that all corpora in a set contain the same segmentations. Alternatively, you can use different segmentations for different subsets of corpora by doing separate exports.
 
@@ -56,6 +56,12 @@ If the "Context" columns in your CSV or Excel file contain fewer segmentation no
 
 To fix this, increase the context size as needed.
 
+### Edge annotation: Column is empty
+
+If an [Edge annotation](columns/edge-annotation.md) column in your CSV or Excel file is empty, this may be because your query connects the source and target query nodes via a chain of edges rather than a direct edge. For instance, operators such as `>*` or `->dep*` may match chains of edges, but an "Edge annotation" column only considers direct edges from the source to the target node.
+
+To fix this, change the query so that the source and target nodes are connected by a direct edge operator (e.g. `>` or `->dep`).
+
 ### Corpus/document metadata: Column is empty
 
 If a [Corpus/document metadata](columns/metadata.md) column in your CSV or Excel file is empty, this may be because the selected meta annotation is present on a different level than you configured. For instance, you may have configured a "Document metadata" column, but the selected annotation may actually be present at the corpus level.
@@ -71,6 +77,6 @@ To fix this, hover over the blue information icon next to the button with your m
 - At least one corpus is selected.
 - A query has been entered and is valid (showing a green checkmark).
 - At least one column has been configured.
-- All configured columns have all their fields set to a value (Segmentation, Left/right context, Annotation, Query node, Meta annotation)
+- All configured columns have all their fields (e.g. annotation) set to a value.
 
 > **Note:** If you change the selection of corpora and/or the query _after_ you have already configured the columns, it can happen that a previously selected option is no longer available (e.g. for "Query node" if you change the query so that the selected node no longer exists). Then the selection is cleared and the "Export to ..." button becomes disabled. In this case, go through the list of columns again and make sure that all fields are filled.
