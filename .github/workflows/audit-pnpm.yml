@@ -34,8 +34,6 @@ jobs:
       - name: Set up node
         uses: actions/setup-node@v6
         with:
-          cache: pnpm
-          cache-dependency-path: annimate_desktop/pnpm-lock.yaml
           node-version-file: annimate_desktop/.nvmrc
 
       - name: Run audit
