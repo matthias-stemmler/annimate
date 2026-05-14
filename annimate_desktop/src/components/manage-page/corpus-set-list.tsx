@@ -24,6 +24,8 @@ import { FC, PropsWithChildren } from 'react';
 export type CorpusSetListProps = {
   corpusCount: number;
   corpusSetsWithCount: { corpusSet: string; corpusCount: number }[];
+  onCorpusSetDeleted?: (name: string) => void;
+  onCorpusSetRenamed?: (oldName: string, newName: string) => void;
   onSelectCorpusSet?: (value: string | undefined) => void;
   selectedCorpusSet: string | undefined;
 };
@@ -31,6 +33,8 @@ export type CorpusSetListProps = {
 export const CorpusSetList: FC<CorpusSetListProps> = ({
   corpusCount,
   corpusSetsWithCount,
+  onCorpusSetDeleted,
+  onCorpusSetRenamed,
   onSelectCorpusSet,
   selectedCorpusSet,
 }) => (
@@ -97,11 +101,15 @@ export const CorpusSetList: FC<CorpusSetListProps> = ({
                       </TooltipContent>
                     </Tooltip>
 
-                    <RenameCorpusSetTrigger corpusSet={corpusSet} />
+                    <RenameCorpusSetTrigger
+                      corpusSet={corpusSet}
+                      onCorpusSetRenamed={onCorpusSetRenamed}
+                    />
 
                     <DeleteCorpusSetTrigger
                       corpusCount={corpusCount}
                       corpusSet={corpusSet}
+                      onCorpusSetDeleted={onCorpusSetDeleted}
                     />
                   </div>
                 </SelectableRow>
@@ -165,10 +173,12 @@ const AddCorpusSetTrigger: FC<AddCorpusSetTriggerProps> = ({
 
 type RenameCorpusSetTriggerProps = {
   corpusSet: string;
+  onCorpusSetRenamed?: (oldName: string, newName: string) => void;
 };
 
 const RenameCorpusSetTrigger: FC<RenameCorpusSetTriggerProps> = ({
   corpusSet,
+  onCorpusSetRenamed,
 }) => {
   const [open, setOpen, key] = useDialogState();
   const {
@@ -194,6 +204,8 @@ const RenameCorpusSetTrigger: FC<RenameCorpusSetTriggerProps> = ({
         key={key}
         currentName={corpusSet}
         onConfirm={(newName) => {
+          // Before mutate: per-call onSuccess is silenced if this trigger unmounts before the mutation resolves.
+          onCorpusSetRenamed?.(corpusSet, newName);
           renameCorpusSet(
             { corpusSet, newCorpusSet: newName },
             {
@@ -223,11 +235,13 @@ const RenameCorpusSetTrigger: FC<RenameCorpusSetTriggerProps> = ({
 type DeleteCorpusSetTriggerProps = {
   corpusCount: number;
   corpusSet: string;
+  onCorpusSetDeleted?: (name: string) => void;
 };
 
 const DeleteCorpusSetTrigger: FC<DeleteCorpusSetTriggerProps> = ({
   corpusCount,
   corpusSet,
+  onCorpusSetDeleted,
 }) => {
   const [open, setOpen, key] = useDialogState();
   const {
@@ -257,6 +271,8 @@ const DeleteCorpusSetTrigger: FC<DeleteCorpusSetTriggerProps> = ({
         corpusCount={corpusCount}
         corpusSet={corpusSet}
         onConfirm={({ deleteCorpora }) => {
+          // Before mutate: per-call onSuccess is silenced if this trigger unmounts before the mutation resolves.
+          onCorpusSetDeleted?.(corpusSet);
           deleteCorpusSet(
             { corpusSet, deleteCorpora },
             {
