@@ -2,6 +2,15 @@ packages:
   - '.'
   - 'webdriver'
 
+allowBuilds:
+  '@tailwindcss/oxide': true
+  edgedriver: true
+  esbuild: true
+  geckodriver: true
+
+autoInstallPeers: false
+blockExoticSubdeps: true
+
 catalog:
   '@babel/core': ^7.29.0
   '@dnd-kit/core': ^6.3.1
@@ -56,7 +65,7 @@ catalog:
   eslint-plugin-react-hooks: ^7.1.1
   eslint-plugin-react-refresh: ^0.5.2
   jsdom: ^29.1.1
-  lucide-react: ^1.14.0
+  lucide-react: ^1.16.0
   prettier: ^3.8.3
   prettier-plugin-tailwindcss: ^0.8.0
   react: ^19.2.6
@@ -70,19 +79,10 @@ catalog:
   tsx: ^4.21.0
   typescript: ^6.0.3
   typescript-eslint: ^8.59.3
-  vite: ^8.0.12
+  vite: ^8.0.13
   vite-plugin-svgr: ^5.2.0
   vitest: ^4.1.6
   zustand: ^5.0.13
-
-allowBuilds:
-  '@tailwindcss/oxide': true
-  edgedriver: true
-  esbuild: true
-  geckodriver: true
-
-autoInstallPeers: false
-blockExoticSubdeps: true
 minimumReleaseAge: 1440
 
 overrides:
