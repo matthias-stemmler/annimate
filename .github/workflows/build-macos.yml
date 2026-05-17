@@ -45,7 +45,9 @@ jobs:
         working-directory: annimate_desktop
 
       - name: Build (pnpm)
-        run: pnpm tauri build --target ${{ env.TARGET }} --no-bundle
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_PRIVATE_KEY }}
+        run: pnpm tauri build --target ${{ env.TARGET }}
         working-directory: annimate_desktop
 
       - name: Upload artifact
@@ -53,7 +55,7 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: annimate-macos-${{ github.sha }}
-          path: target/${{ env.TARGET }}/release/Annimate
+          path: target/${{ env.TARGET }}/release/bundle/macos/Annimate.app.tar.gz
           if-no-files-found: error
 
       - name: Print download command
@@ -61,4 +63,4 @@ jobs:
           ARTIFACT_ID: ${{ steps.upload-artifact.outputs.artifact-id }}
         run: |
           echo 'To download, run the following command:'
-          echo "read -s \"TOKEN?Enter GitHub token: \" && curl -v -L -H \"Authorization: token \$TOKEN\" https://api.github.com/repos/matthias-stemmler/annimate/actions/artifacts/$ARTIFACT_ID/zip -o annimate.zip && unzip annimate.zip && rm annimate.zip"
+          echo "read -s \"TOKEN?Enter GitHub token: \" && curl -v -L -H \"Authorization: token \$TOKEN\" https://api.github.com/repos/matthias-stemmler/annimate/actions/artifacts/$ARTIFACT_ID/zip -o annimate.zip && unzip annimate.zip && rm annimate.zip && tar xzf Annimate.app.tar.gz && rm Annimate.app.tar.gz"
