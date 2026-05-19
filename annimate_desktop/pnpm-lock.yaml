@@ -205,7 +205,7 @@ catalogs:
       specifier: ^6.0.3
       version: 6.0.3
     typescript-eslint:
-      specifier: ^8.59.3
+      specifier: ^8.59.4
       version: 8.59.4
     vite:
       specifier: ^8.0.13
