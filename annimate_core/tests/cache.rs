@@ -15,9 +15,10 @@ fn caching_exportable_node_anno_keys_and_segmentations() {
     let db_dir = Path::new(DB_DIR).join("caching_exportable_node_anno_keys_and_segmentations");
     let _ = fs::remove_dir_all(&db_dir);
 
-    create_corpus(&db_dir, "test_corpus");
-    add_ordering_component(&db_dir, "test_corpus", "test_segmentation_1");
-    add_ordering_component(&db_dir, "test_corpus", "test_segmentation_2");
+    create_corpus(&db_dir, "test_corpus", |update| {
+        add_ordering_component_event(update, "test_segmentation_1");
+        add_ordering_component_event(update, "test_segmentation_2");
+    });
     add_node_anno(&db_dir, "test_corpus", "test_segmentation_1");
 
     assert_eq!(
@@ -42,7 +43,7 @@ fn caching_exportable_node_anno_keys_and_segmentations() {
     );
 
     delete_corpus(&db_dir, "test_corpus");
-    create_corpus(&db_dir, "test_corpus");
+    create_corpus(&db_dir, "test_corpus", |_| {});
 
     // No custom data -> cache has been cleared
     assert_eq!(
@@ -57,33 +58,26 @@ fn caching_exportable_edge_types() {
     let db_dir = Path::new(DB_DIR).join("caching_exportable_edge_types");
     let _ = fs::remove_dir_all(&db_dir);
 
-    create_corpus(&db_dir, "test_corpus");
-    add_component(
-        &db_dir,
-        "test_corpus",
-        &AnnotationComponentType::Dominance,
-        "test_dominance",
-    );
-    add_edge_anno(
-        &db_dir,
-        "test_corpus",
-        &AnnotationComponentType::Dominance,
-        "test_dominance",
-        "test_anno_d",
-    );
-    add_component(
-        &db_dir,
-        "test_corpus",
-        &AnnotationComponentType::Pointing,
-        "test_pointing",
-    );
-    add_edge_anno(
-        &db_dir,
-        "test_corpus",
-        &AnnotationComponentType::Pointing,
-        "test_pointing",
-        "test_anno_p",
-    );
+    create_corpus(&db_dir, "test_corpus", |update| {
+        add_component_event(
+            update,
+            &AnnotationComponentType::Dominance,
+            "test_dominance",
+        );
+        add_edge_anno_event(
+            update,
+            &AnnotationComponentType::Dominance,
+            "test_dominance",
+            "test_anno_d",
+        );
+        add_component_event(update, &AnnotationComponentType::Pointing, "test_pointing");
+        add_edge_anno_event(
+            update,
+            &AnnotationComponentType::Pointing,
+            "test_pointing",
+            "test_anno_p",
+        );
+    });
 
     assert_eq!(
         get_exportable_edge_types(&db_dir, "test_corpus"),
@@ -127,7 +121,7 @@ fn caching_exportable_edge_types() {
     );
 
     delete_corpus(&db_dir, "test_corpus");
-    create_corpus(&db_dir, "test_corpus");
+    create_corpus(&db_dir, "test_corpus", |_| {});
 
     // No custom data -> cache has been cleared
     assert_eq!(get_exportable_edge_types(&db_dir, "test_corpus"), []);
@@ -138,8 +132,9 @@ fn deleted_corpus_is_evicted_from_memory_cache() {
     let db_dir = Path::new(DB_DIR).join("deleted_corpus_is_evicted_from_memory_cache");
     let _ = fs::remove_dir_all(&db_dir);
 
-    create_corpus(&db_dir, "test_corpus");
-    add_ordering_component(&db_dir, "test_corpus", "test_segmentation");
+    create_corpus(&db_dir, "test_corpus", |update| {
+        add_ordering_component_event(update, "test_segmentation");
+    });
     add_node_anno(&db_dir, "test_corpus", "test_segmentation");
 
     let storage = Storage::from_db_dir(db_dir.clone()).unwrap();
@@ -171,8 +166,9 @@ fn corpus_name_encoding() {
         .collect();
 
     for corpus_name in corpus_names {
-        create_corpus(&db_dir, &corpus_name);
-        add_ordering_component(&db_dir, &corpus_name, "test_segmentation");
+        create_corpus(&db_dir, &corpus_name, |update| {
+            add_ordering_component_event(update, "test_segmentation");
+        });
         add_node_anno(&db_dir, &corpus_name, "test_segmentation");
 
         // No errors -> cache was created successfully
@@ -186,7 +182,7 @@ fn corpus_name_encoding() {
         );
 
         delete_corpus(&db_dir, &corpus_name);
-        create_corpus(&db_dir, &corpus_name);
+        create_corpus(&db_dir, &corpus_name, |_| {});
 
         // No custom data -> cache has been cleared, so it was created in the correct folder
         assert_eq!(
@@ -200,7 +196,14 @@ fn corpus_name_encoding() {
 const CORPUS_NODE_NAME: &str = "corpus-node";
 const OTHER_NODE_NAME: &str = "other-node";
 
-fn create_corpus(db_dir: &Path, corpus_name: &str) {
+// Edges must be added in the same `apply_update` call as the corpus nodes:
+// on Windows, edges added via a separate `CorpusStorage` instance opened on
+// the same directory are not seen by subsequent `CorpusStorage` instances.
+fn create_corpus(
+    db_dir: &Path,
+    corpus_name: &str,
+    add_extra_events: impl FnOnce(&mut GraphUpdate),
+) {
     let corpus_storage = graphannis::CorpusStorage::with_auto_cache_size(db_dir, true).unwrap();
 
     corpus_storage
@@ -220,29 +223,23 @@ fn create_corpus(db_dir: &Path, corpus_name: &str) {
             node_type: "node".into(),
         })
         .unwrap();
+
+    add_extra_events(&mut update);
+
     corpus_storage
         .apply_update(corpus_name, &mut update)
         .unwrap();
 }
 
-fn add_ordering_component(db_dir: &Path, corpus_name: &str, component_name: &str) {
-    add_component(
-        db_dir,
-        corpus_name,
-        &AnnotationComponentType::Ordering,
-        component_name,
-    );
+fn add_ordering_component_event(update: &mut GraphUpdate, component_name: &str) {
+    add_component_event(update, &AnnotationComponentType::Ordering, component_name);
 }
 
-fn add_component(
-    db_dir: &Path,
-    corpus_name: &str,
+fn add_component_event(
+    update: &mut GraphUpdate,
     ctype: &AnnotationComponentType,
     component_name: &str,
 ) {
-    let corpus_storage = graphannis::CorpusStorage::with_auto_cache_size(db_dir, true).unwrap();
-
-    let mut update = GraphUpdate::new();
     update
         .add_event(UpdateEvent::AddEdge {
             source_node: CORPUS_NODE_NAME.into(),
@@ -252,8 +249,25 @@ fn add_component(
             component_name: component_name.into(),
         })
         .unwrap();
-    corpus_storage
-        .apply_update(corpus_name, &mut update)
+}
+
+fn add_edge_anno_event(
+    update: &mut GraphUpdate,
+    ctype: &AnnotationComponentType,
+    component_name: &str,
+    anno_name: &str,
+) {
+    update
+        .add_event(UpdateEvent::AddEdgeLabel {
+            source_node: CORPUS_NODE_NAME.into(),
+            target_node: OTHER_NODE_NAME.into(),
+            layer: DEFAULT_NS.into(),
+            component_type: ctype.to_string(),
+            component_name: component_name.into(),
+            anno_ns: DEFAULT_NS.into(),
+            anno_name: anno_name.into(),
+            anno_value: "".into(),
+        })
         .unwrap();
 }
 
@@ -285,18 +299,7 @@ fn add_edge_anno(
     let corpus_storage = graphannis::CorpusStorage::with_auto_cache_size(db_dir, true).unwrap();
 
     let mut update = GraphUpdate::new();
-    update
-        .add_event(UpdateEvent::AddEdgeLabel {
-            source_node: CORPUS_NODE_NAME.into(),
-            target_node: OTHER_NODE_NAME.into(),
-            layer: DEFAULT_NS.into(),
-            component_type: ctype.to_string(),
-            component_name: component_name.into(),
-            anno_ns: DEFAULT_NS.into(),
-            anno_name: anno_name.into(),
-            anno_value: "".into(),
-        })
-        .unwrap();
+    add_edge_anno_event(&mut update, ctype, component_name, anno_name);
 
     corpus_storage
         .apply_update(corpus_name, &mut update)
