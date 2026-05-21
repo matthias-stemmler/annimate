@@ -2,6 +2,8 @@
 
 ## [Unreleased] - (release date)
 
+## [1.8.0] - 2026-05-21
+
 ### Added
 
 - Added a new column type "Edge annotation" for exporting annotations of edges between match nodes. See the User Guide for details.
@@ -169,7 +171,8 @@
 Initial version
 
 <!-- next-url -->
-[Unreleased]: https://github.com/matthias-stemmler/annimate/compare/v1.7.0...HEAD
+[Unreleased]: https://github.com/matthias-stemmler/annimate/compare/v1.8.0...HEAD
+[1.8.0]: https://github.com/matthias-stemmler/annimate/compare/v1.7.0...v1.8.0
 [1.7.0]: https://github.com/matthias-stemmler/annimate/compare/v1.6.0...v1.7.0
 [1.6.0]: https://github.com/matthias-stemmler/annimate/compare/v1.5.0...v1.6.0
 [1.5.0]: https://github.com/matthias-stemmler/annimate/compare/v1.4.0...v1.5.0
