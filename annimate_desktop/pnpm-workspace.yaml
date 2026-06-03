@@ -82,7 +82,7 @@ catalog:
   vite: ^8.0.13
   vite-plugin-svgr: ^5.2.0
   vitest: ^4.1.8
-  zustand: ^5.0.13
+  zustand: ^5.0.14
 minimumReleaseAge: 1440
 
 overrides:
