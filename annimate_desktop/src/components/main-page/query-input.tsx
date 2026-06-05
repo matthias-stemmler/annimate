@@ -93,7 +93,7 @@ export const QueryInput: FC = () => {
           <Tooltip delayDuration={isValid ? undefined : 0}>
             <TooltipTrigger
               asChild
-              className="absolute top-2 right-2 disabled:cursor-not-allowed disabled:opacity-70"
+              className="absolute top-2 right-4 disabled:cursor-not-allowed disabled:opacity-70"
               disabled={disabled}
               onMouseDown={(event) => {
                 event?.preventDefault();
