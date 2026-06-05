@@ -2,6 +2,10 @@
 
 ## [Unreleased] - (release date)
 
+### Changed
+
+- Queries longer than 400 characters are now supported.
+
 ## [1.8.0] - 2026-05-21
 
 ### Added

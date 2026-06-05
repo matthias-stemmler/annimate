@@ -44,17 +44,14 @@ validation_test! {
 
     valid_meta_quirks: "meta::doc=\"foo\"", AQLQuirksV3 => Ok(())
 
-    valid_max_length: "a".repeat(400).as_str(), AQL => Ok(())
+    // At the operator-count limit the complexity check passes, so graphANNIS runs and reports the
+    // actual syntax error (here the dangling trailing operator) rather than "Query is too complex".
+    invalid_max_operator_count: "a@".repeat(4096).as_str(), AQL =>
+        Err(("Unexpected end of query.", Some(((0, 8191), None))))
 
-     // add quotes because ä..ä would be an invalid token
-    valid_max_length_multibyte_char: &format!("\"{}\"", "ä".repeat(398)), AQL => Ok(())
-
-    invalid_exceeding_max_length: "a".repeat(401).as_str(), AQL =>
-        Err(("Query is too long (401 characters), must be at most 400 characters.", None))
-
-     // add quotes because ä..ä would be an invalid token
-    invalid_exceeding_max_length_multibyte_char: &format!("\"{}\"", "ä".repeat(399)), AQL =>
-        Err(("Query is too long (401 characters), must be at most 400 characters.", None))
+    // One operator over the limit is rejected by the complexity check before graphANNIS runs.
+    invalid_exceeding_max_operator_count: "a@".repeat(4097).as_str(), AQL =>
+        Err(("Query is too complex", None))
 
     invalid_syntax: "foo=", AQL =>
         Err(("Unexpected end of query.", Some(((0, 3), None))))
