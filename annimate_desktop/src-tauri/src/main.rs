@@ -16,15 +16,15 @@ use tauri::webview::PageLoadEvent;
 use tauri::{Manager, Webview};
 use tauri_plugin_window_state::{StateFlags, WindowExt};
 
-const THREAD_STACK_SIZE_MB: usize = 4;
+const THREAD_STACK_SIZE_MB: usize = 64;
 
 #[global_allocator]
 static GLOBAL: mimalloc::MiMalloc = mimalloc::MiMalloc;
 
 fn main() {
     // Use custom tokio runtime with larger stack size (default is 2 MB) to avoid stack overflows
-    // when validating queries. 4 MB is enough for worst-case queries of the maximal length of
-    // 400 characters.
+    // when validating queries. 64 MB is enough for worst-case queries of the maximal complexity
+    // (operator count) of 4096.
     let runtime = tokio::runtime::Builder::new_multi_thread()
         .thread_stack_size(THREAD_STACK_SIZE_MB * 1024 * 1024)
         .enable_all()

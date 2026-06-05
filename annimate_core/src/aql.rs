@@ -12,7 +12,7 @@ use tempfile::TempDir;
 
 use crate::error::AnnimateError;
 
-const MAX_QUERY_LEN_CHARS: usize = 400;
+const MAX_QUERY_OPERATOR_COUNT: usize = 4096;
 
 /// Storage for validating AQL queries.
 ///
@@ -62,8 +62,8 @@ impl ValidationStorage {
                 if aql_query.is_empty() {
                     Ok(())
                 } else {
-                    // Validate query length first to prevent stack overflow
-                    validate_query_length(aql_query).and_then(|_| {
+                    // Validate query complexity first to prevent stack overflow
+                    validate_query_complexity(aql_query).and_then(|_| {
                         self.corpus_storage
                             .validate_query(
                                 &[Self::VALIDATION_CORPUS_NAME],
@@ -100,8 +100,8 @@ pub(crate) fn query_nodes_valid(
         return Ok(Vec::new().into());
     }
 
-    // Validate query length first to prevent stack overflow
-    validate_query_length(aql_query)?;
+    // Validate query complexity first to prevent stack overflow
+    validate_query_complexity(aql_query)?;
 
     let mut node_descriptions = corpus_storage.node_descriptions(aql_query, query_language)?;
 
@@ -158,23 +158,102 @@ pub(crate) fn query_nodes_valid(
         .into())
 }
 
-/// Asserts that the query does not exceed a certain maximal length, to prevent stack overflows when
-/// parsing. The length is counted in characters (Unicode code points), not UTF-8 bytes, to account
-/// for multibyte characters, which do not pose a problem when parsing.
-fn validate_query_length(aql_query: &str) -> Result<(), GraphAnnisError> {
-    let len_chars = aql_query.chars().count();
-
-    if len_chars > MAX_QUERY_LEN_CHARS {
+/// Asserts that the query does not exceed a certain complexity, to prevent recursions within
+/// graphANNIS from overflowing the stack.
+///
+/// We use the number of operators as a measure of complexity. Reasoning:
+/// Recursion depth is bounded by the height of the AQL syntax tree, which is bounded by the number
+/// of operators (worst case: a single chain where the tree height equals the operator count).
+/// Transformations within graphANNIS such as the conversion to DNF blow up the tree *width*
+/// exponentially, but the tree height still scales linearly in the operator count.
+fn validate_query_complexity(aql_query: &str) -> Result<(), GraphAnnisError> {
+    if operator_count(aql_query) > MAX_QUERY_OPERATOR_COUNT {
         Err(GraphAnnisError::AQLSyntaxError(AQLError {
-            desc: format!(
-                "Query is too long ({} characters), must be at most {} characters.",
-                len_chars, MAX_QUERY_LEN_CHARS
-            ),
+            desc: "Query is too complex".into(),
             location: None,
         }))
     } else {
         Ok(())
     }
+}
+
+fn operator_count(aql_query: &str) -> usize {
+    const WORD_OPS: [&str; 5] = ["_ident_", "_o_", "_i_", "_l_", "_r_"];
+    const PUNC_OPS: [&str; 3] = ["_=_", "==", "!="];
+    const CHAR_OPS: [char; 6] = ['|', '&', '>', '.', '^', '@']; // `>` also covers `->`
+
+    let is_word_start = |c: char| c.is_ascii_alphabetic() || matches!(c, '_' | '%');
+    let is_word_inner = |c: char| c.is_ascii_alphanumeric() || matches!(c, '_' | '-' | '%');
+
+    let mut op_count = 0;
+    let mut rest = aql_query;
+
+    while !rest.is_empty() {
+        // string literal -> skip, no escapes possible
+        if let Some(after) = rest.strip_prefix('"') {
+            rest = after.find('"').map_or("", |end| &after[end + 1..]);
+            continue;
+        }
+
+        // regex literal -> skip, taking escapes into account
+        if let Some(mut body) = rest.strip_prefix('/') {
+            while !body.is_empty() {
+                if let Some(after) = body.strip_prefix('/') {
+                    // end of regex -> done
+                    body = after;
+                    break;
+                } else if let Some(after) = body.strip_prefix('\\') {
+                    // escape sequence -> skip
+                    body = after
+                        .chars()
+                        .next()
+                        .map_or("", |escape| &after[escape.len_utf8()..]);
+                } else {
+                    // any other character -> skip
+                    body = body.chars().next().map_or("", |c| &body[c.len_utf8()..]);
+                }
+            }
+
+            rest = body;
+            continue;
+        }
+
+        // multi-character punctuation, tried before identifiers so `_=_` isn't read as `_`
+        if let Some(after) = PUNC_OPS.iter().find_map(|op| rest.strip_prefix(op)) {
+            op_count += 1;
+            rest = after;
+            continue;
+        }
+
+        // we know `rest` is not empty, so this never actually breaks
+        let Some(c) = rest.chars().next() else {
+            break;
+        };
+
+        if is_word_start(c) {
+            // word -> count if it is an operator
+
+            // search after the first char so we always consume it, even if it isn't word-inner
+            let after_first = &rest[c.len_utf8()..];
+            let end = c.len_utf8()
+                + after_first
+                    .find(|ch| !is_word_inner(ch))
+                    .unwrap_or(after_first.len());
+            let (word, tail) = rest.split_at(end);
+            if WORD_OPS.contains(&word) {
+                op_count += 1;
+            }
+            rest = tail;
+        } else {
+            // single character -> count if it is an operator
+            if CHAR_OPS.contains(&c) {
+                op_count += 1;
+            }
+            rest = &rest[c.len_utf8()..];
+        }
+    }
+
+    op_count
 }
 
 /// Result of analyzing an AQL query.
@@ -398,91 +477,194 @@ static META_REGEX: LazyLock<Regex> = LazyLock::new(|| {
 mod tests {
     use super::*;
 
-    #[test]
-    fn line_column_index_from_line_column_ascii_single_line() {
-        assert_line_column_index("hello", (0, 1), (0, 0));
-        assert_line_column_index("hello", (0, 6), (0, 5));
-        assert_line_column_index("hello", (0, 7), (0, 5));
+    mod line_column_index_from_line_column {
+        use super::*;
+
+        #[test]
+        fn ascii_single_line() {
+            assert_line_column_index("hello", (0, 1), (0, 0));
+            assert_line_column_index("hello", (0, 6), (0, 5));
+            assert_line_column_index("hello", (0, 7), (0, 5));
+        }
+
+        #[test]
+        fn ascii_multi_line() {
+            assert_line_column_index("foo\nbar\nbaz", (0, 1), (0, 0));
+            assert_line_column_index("foo\nbar\nbaz", (1, 4), (1, 3));
+            assert_line_column_index("foo\nbar\nbaz", (2, 5), (2, 3));
+        }
+
+        #[test]
+        fn empty_string() {
+            assert_line_column_index("", (0, 1), (0, 0));
+        }
+
+        #[test]
+        fn multibyte_at_boundary() {
+            // 'é' is 2 bytes (0xC3 0xA9): h(0) é(1..3) l(3) l(4) o(5)
+            assert_line_column_index("héllo", (0, 2), (0, 1));
+            assert_line_column_index("héllo", (0, 4), (0, 2));
+            assert_line_column_index("héllo", (0, 7), (0, 5));
+
+            // '€' is 3 bytes (0xE2 0x82 0xAC): h(0) €(1..4) l(4) l(5) o(6)
+            assert_line_column_index("h€llo", (0, 2), (0, 1));
+            assert_line_column_index("h€llo", (0, 5), (0, 2));
+            assert_line_column_index("h€llo", (0, 8), (0, 5));
+
+            // '🎉' is 4 bytes (0xF0 0x9F 0x8E 0x89): h(0) 🎉(1..5) l(5) l(6) o(7)
+            assert_line_column_index("h🎉llo", (0, 2), (0, 1));
+            assert_line_column_index("h🎉llo", (0, 6), (0, 2));
+            assert_line_column_index("h🎉llo", (0, 9), (0, 5));
+        }
+
+        #[test]
+        fn multibyte_not_at_boundary_rounds_up() {
+            // Byte column 3 falls inside 'é' (bytes 1..3) and should round up to start of 'l'.
+            assert_line_column_index("héllo", (0, 3), (0, 2));
+
+            // Byte columns 3 and 4 fall inside '€' (bytes 1..4) and should round up to start of
+            // 'l'.
+            assert_line_column_index("h€llo", (0, 3), (0, 2));
+            assert_line_column_index("h€llo", (0, 4), (0, 2));
+
+            // Byte columns 3, 4, 5 fall inside '🎉' (bytes 1..5) and should round up to start of
+            // 'l'.
+            assert_line_column_index("h🎉llo", (0, 3), (0, 2));
+            assert_line_column_index("h🎉llo", (0, 4), (0, 2));
+            assert_line_column_index("h🎉llo", (0, 5), (0, 2));
+        }
+
+        #[test]
+        fn line_out_of_range_returns_end_of_string() {
+            assert_line_column_index("foo\nbar\nbaz", (3, 1), (2, 3));
+            assert_line_column_index("héllo", (1, 1), (0, 5));
+            assert_line_column_index("", (1, 1), (0, 0));
+        }
+
+        #[test]
+        fn column_out_of_range_returns_end_of_line() {
+            assert_line_column_index("foo\nbar\nbaz", (1, 5), (1, 3));
+            assert_line_column_index("héllo", (0, 7), (0, 5));
+        }
+
+        #[test]
+        fn column_zero_treated_as_start_of_line() {
+            assert_line_column_index("hello", (0, 0), (0, 0));
+            assert_line_column_index("foo\nbar\nbaz", (1, 0), (1, 0));
+            assert_line_column_index("", (0, 0), (0, 0));
+        }
+
+        #[test]
+        fn multibyte_on_earlier_line() {
+            // First line contains a 2-byte char, target is on second (ASCII) line - confirms
+            // multi-byte chars on earlier lines don't affect column counting on the target line.
+            assert_line_column_index("héllo\nfoo", (1, 2), (1, 1));
+        }
+
+        fn assert_line_column_index(
+            value: &str,
+            (line, column): (usize, usize),
+            expected: (usize, usize),
+        ) {
+            let index = LineColumnIndex::from_line_column(LineColumn { line, column }, value);
+            assert_eq!((index.line_index, index.column_index), expected);
+        }
     }
 
-    #[test]
-    fn line_column_index_from_line_column_ascii_multi_line() {
-        assert_line_column_index("foo\nbar\nbaz", (0, 1), (0, 0));
-        assert_line_column_index("foo\nbar\nbaz", (1, 4), (1, 3));
-        assert_line_column_index("foo\nbar\nbaz", (2, 5), (2, 3));
-    }
+    mod operator_count {
+        use super::*;
 
-    #[test]
-    fn line_column_index_from_line_column_empty_string() {
-        assert_line_column_index("", (0, 1), (0, 0));
-    }
+        #[test]
+        fn empty_query() {
+            assert_eq!(operator_count(""), 0);
+        }
 
-    #[test]
-    fn line_column_index_from_line_column_multibyte_at_boundary() {
-        // 'é' is 2 bytes (0xC3 0xA9): h(0) é(1..3) l(3) l(4) o(5)
-        assert_line_column_index("héllo", (0, 2), (0, 1));
-        assert_line_column_index("héllo", (0, 4), (0, 2));
-        assert_line_column_index("héllo", (0, 7), (0, 5));
+        #[test]
+        fn no_operator() {
+            assert_eq!(operator_count("a"), 0);
+        }
 
-        // '€' is 3 bytes (0xE2 0x82 0xAC): h(0) €(1..4) l(4) l(5) o(6)
-        assert_line_column_index("h€llo", (0, 2), (0, 1));
-        assert_line_column_index("h€llo", (0, 5), (0, 2));
-        assert_line_column_index("h€llo", (0, 8), (0, 5));
+        #[test]
+        fn single_word_operator() {
+            assert_eq!(operator_count("a _ident_ a"), 1);
+            assert_eq!(operator_count("a _o_ a"), 1);
+            assert_eq!(operator_count("a _i_ a"), 1);
+            assert_eq!(operator_count("a _l_ a"), 1);
+            assert_eq!(operator_count("a _r_ a"), 1);
+        }
 
-        // '🎉' is 4 bytes (0xF0 0x9F 0x8E 0x89): h(0) 🎉(1..5) l(5) l(6) o(7)
-        assert_line_column_index("h🎉llo", (0, 2), (0, 1));
-        assert_line_column_index("h🎉llo", (0, 6), (0, 2));
-        assert_line_column_index("h🎉llo", (0, 9), (0, 5));
-    }
+        #[test]
+        fn single_punctuation_operator() {
+            assert_eq!(operator_count("a _=_ a"), 1);
+            assert_eq!(operator_count("a == a"), 1);
+            assert_eq!(operator_count("a != a"), 1);
+        }
 
-    #[test]
-    fn line_column_index_from_line_column_multibyte_not_at_boundary_rounds_up() {
-        // Byte column 3 falls inside 'é' (bytes 1..3) and should round up to start of 'l'.
-        assert_line_column_index("héllo", (0, 3), (0, 2));
+        #[test]
+        fn single_character_operator() {
+            assert_eq!(operator_count("a | a"), 1);
+            assert_eq!(operator_count("a & a"), 1);
+            assert_eq!(operator_count("a > a"), 1);
+            assert_eq!(operator_count("a >* a"), 1);
+            assert_eq!(operator_count("a ->LABEL a"), 1);
+            assert_eq!(operator_count("a ->LABEL* a"), 1);
+            assert_eq!(operator_count("a . a"), 1);
+            assert_eq!(operator_count("a .* a"), 1);
+            assert_eq!(operator_count("a ^ a"), 1);
+            assert_eq!(operator_count("a ^* a"), 1);
+            assert_eq!(operator_count("a @ a"), 1);
+            assert_eq!(operator_count("a @* a"), 1);
+        }
 
-        // Byte columns 3 and 4 fall inside '€' (bytes 1..4) and should round up to start of 'l'.
-        assert_line_column_index("h€llo", (0, 3), (0, 2));
-        assert_line_column_index("h€llo", (0, 4), (0, 2));
+        #[test]
+        fn mutiple_operators() {
+            assert_eq!(operator_count("(a | b) & (c | d)"), 3);
+        }
 
-        // Byte columns 3, 4, 5 fall inside '🎉' (bytes 1..5) and should round up to start of 'l'.
-        assert_line_column_index("h🎉llo", (0, 3), (0, 2));
-        assert_line_column_index("h🎉llo", (0, 4), (0, 2));
-        assert_line_column_index("h🎉llo", (0, 5), (0, 2));
-    }
+        #[test]
+        fn operators_without_whitespace() {
+            assert_eq!(operator_count("a&_o_&b"), 3);
+            assert_eq!(operator_count("a.b.c"), 2);
+            assert_eq!(operator_count("%foo&bar"), 1);
+        }
 
-    #[test]
-    fn line_column_index_from_line_column_line_out_of_range_returns_end_of_string() {
-        assert_line_column_index("foo\nbar\nbaz", (3, 1), (2, 3));
-        assert_line_column_index("héllo", (1, 1), (0, 5));
-        assert_line_column_index("", (1, 1), (0, 0));
-    }
+        #[test]
+        fn string_and_regex_content_ignored() {
+            assert_eq!(operator_count(r#"pos="a&b|c" & tok"#), 1);
+            assert_eq!(operator_count(r#"pos=/a&b|c/ & tok"#), 1);
+            assert_eq!(operator_count(r#"pos=/a\/a&b|c/ & tok"#), 1);
+        }
 
-    #[test]
-    fn line_column_index_from_line_column_column_out_of_range_returns_end_of_line() {
-        assert_line_column_index("foo\nbar\nbaz", (1, 5), (1, 3));
-        assert_line_column_index("héllo", (0, 7), (0, 5));
-    }
+        #[test]
+        fn unterminated_string() {
+            assert_eq!(operator_count(r#"pos="a&b|c"#), 0);
+        }
 
-    #[test]
-    fn line_column_index_from_line_column_column_zero_treated_as_start_of_line() {
-        assert_line_column_index("hello", (0, 0), (0, 0));
-        assert_line_column_index("foo\nbar\nbaz", (1, 0), (1, 0));
-        assert_line_column_index("", (0, 0), (0, 0));
-    }
+        #[test]
+        fn unterminated_regex() {
+            assert_eq!(operator_count(r#"pos=/a&b|c"#), 0);
+        }
 
-    #[test]
-    fn line_column_index_from_line_column_multibyte_on_earlier_line() {
-        // First line contains a 2-byte char, target is on second (ASCII) line - confirms
-        // multi-byte chars on earlier lines don't affect column counting on the target line.
-        assert_line_column_index("héllo\nfoo", (1, 2), (1, 1));
-    }
+        #[test]
+        fn unterminated_regex_with_trailing_escape() {
+            assert_eq!(operator_count(r#"pos=/a\"#), 0);
+        }
 
-    fn assert_line_column_index(
-        value: &str,
-        (line, column): (usize, usize),
-        expected: (usize, usize),
-    ) {
-        let index = LineColumnIndex::from_line_column(LineColumn { line, column }, value);
-        assert_eq!((index.line_index, index.column_index), expected);
+        #[test]
+        fn non_operators_ignored() {
+            assert_eq!(operator_count(r#"a="b""#), 0);
+            assert_eq!(operator_count("a !. b"), 1);
+            assert_eq!(operator_count("node:arity=1,2"), 0);
+            assert_eq!(operator_count("my_o_anno"), 0);
+        }
+
+        #[test]
+        fn multibyte_characters() {
+            assert_eq!(operator_count("ä & ö"), 1);
+            assert_eq!(operator_count("ä&ö"), 1);
+            assert_eq!(operator_count("ä"), 0);
+            // multibyte char terminates a word operator -> `find` returns the right byte index
+            assert_eq!(operator_count("_o_ä"), 1);
+        }
     }
 }
