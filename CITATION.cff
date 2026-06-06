@@ -1,0 +1,46 @@
+cff-version: 1.2.0
+title: Annimate
+message: >-
+  If you use this software, please cite it using the metadata from this file.
+type: software
+authors:
+  - given-names: Matthias
+    family-names: Stemmler
+    email: matthias.stemmler@gmail.com
+repository-code: "https://github.com/matthias-stemmler/annimate"
+url: "https://matthias-stemmler.github.io/annimate/user-guide/"
+abstract: >-
+  Annimate (for ANNIS Match Exporter) is a tool for the convenient export of query results (matches) from the ANNIS system for linguistic corpora.
+
+  It is meant as a supplement to the ANNIS web interface and focuses on file export (as opposed to visualization) of the results of an ANNIS query.
+
+  Annimate is being developed by Matthias Stemmler in cooperation with the Lehrstuhl für Deutsche Sprachwissenschaft at the University of Augsburg.
+
+  It is based on the graphANNIS library by Thomas Krause.
+
+  Annimate can produce a CSV or an Excel file with one row per match, showing
+  - the matched nodes in their context in a KWIC (Key Word in Context) format,
+  - additional annotations of the matched nodes and the edges between them, and
+  - metadata on the corpus and document levels.
+
+  It is similar in functionality to a combination of the ANNIS TextColumnExporter and CSVExporter, but provides a friendlier user interface.
+keywords:
+  - corpus linguistics
+  - data export
+license: Apache-2.0
+version: 1.8.0
+date-released: "2026-05-21"
+references:
+  - authors:
+      - given-names: Matthias
+        family-names: Stemmler
+      - given-names: Sonja
+        family-names: Zeman
+        affiliation: Universität Augsburg
+    doi: 10.21248/idsopen.16.2026.72
+    journal: "Online-Only Publikationen Des Leibniz-Instituts für Deutsche Sprache"
+    scope: "Cite this paper if you want to reference the general concepts of the software."
+    title: "Annimate: Ein Tool zum Datenexport aus den historischen Referenzkorpora"
+    type: article
+    volume: 16
+    year: 2026
