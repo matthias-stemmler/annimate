@@ -1,0 +1,19 @@
+name: Validate CFF
+
+on:
+  pull_request:
+    paths:
+      - 'CITATION.cff'
+  workflow_dispatch:
+
+jobs:
+  validate:
+    name: Validate
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Validate CITATION.cff
+        uses: dieghernan/cff-validator@v5
