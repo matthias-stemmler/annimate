@@ -1,74 +1,40 @@
+/**
+ * Shared utility functions for the annimate desktop application.
+ *
+ * This module serves as a centralized re-export hub for utility
+ * functions organized by domain:
+ *
+ * - `text-position` — Text cursor/position calculation (code points ↔ graphemes)
+ * - `collection` — Array/collection transformation helpers (groupBy, uniq, filterEligible)
+ * - `formatting` — Value display formatting (formatPercentage)
+ *
+ * The `cn` function remains here as it is a UI-specific helper that
+ * bridges the clsx and tailwind-merge libraries — it does not belong
+ * to any of the above domains.
+ */
+
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
-const GRAPHEME_SEGMENTER = new Intl.Segmenter(undefined, {
-  granularity: 'grapheme',
-});
-const LOCALE = 'en-US';
-const PERCENTAGE_FORMAT = new Intl.NumberFormat(LOCALE, { style: 'percent' });
+// Re-export from domain modules for backward compatibility
+export {
+  lineColumnToCharacterIndex,
+  columnIndexCodePointsToGraphemes,
+} from './text-position/index';
 
+export { filterEligible, groupBy, uniq } from './collection/index';
+
+export { formatPercentage } from './formatting/index';
+
+/**
+ * Merges CSS class names using clsx and tailwind-merge.
+ *
+ * This function first passes all inputs through `clsx` to handle
+ * conditional class name logic (arrays, objects, falsy values),
+ * then passes the result through `twMerge` to intelligently resolve
+ * Tailwind CSS class conflicts (e.g., `cn('px-2', 'px-4')` → `'px-4'`).
+ *
+ * @param inputs - Class values in any format accepted by clsx
+ * @returns Merged class string with Tailwind conflicts resolved
+ */
 export const cn = (...inputs: ClassValue[]) => twMerge(clsx(inputs));
-
-export const formatPercentage = (value: number): string =>
-  PERCENTAGE_FORMAT.format(value);
-
-export const lineColumnToCharacterIndex = (
-  lineIndex: number,
-  columnIndex: number,
-  value: string,
-): number => {
-  const lines = value.split('\n');
-  const numCharsBeforeLine = lines
-    .slice(0, lineIndex)
-    .reduce((acc, line) => acc + line.length + '\n'.length, 0);
-
-  // `columnIndex` is in Unicode code points (per the Rust backend), but
-  // `setSelectionRange` expects UTF-16 code units. Spreading the line splits it
-  // into code points so non-BMP characters like emojis count as one column.
-  const columnOffset = [...(lines[lineIndex] ?? '')]
-    .slice(0, columnIndex)
-    .join('').length;
-
-  return numCharsBeforeLine + columnOffset;
-};
-
-// Converts a code-point-based column index (as produced by the Rust backend) to
-// a grapheme-cluster column index, so that displayed positions count the same
-// way the textarea moves the caret/selection on cursor keys.
-export const columnIndexCodePointsToGraphemes = (
-  line: string,
-  columnIndex: number,
-): number => {
-  const prefix = [...line].slice(0, columnIndex).join('');
-  return [...GRAPHEME_SEGMENTER.segment(prefix)].length;
-};
-
-export const filterEligible = <S, T>(
-  eligibleValues: S[] | undefined,
-  value: T | undefined,
-  compare: (a: S, b: T) => boolean,
-): S | undefined =>
-  value === undefined
-    ? undefined
-    : eligibleValues?.find((v) => compare(v, value));
-
-export const groupBy = <K, T>(
-  items: readonly T[],
-  getKey: (x: T) => K,
-): [K, T[]][] => {
-  const groups = new Map<K, T[]>();
-
-  for (const item of items) {
-    const key = getKey(item);
-    const members = groups.get(key);
-    if (members === undefined) {
-      groups.set(key, [item]);
-    } else {
-      members.push(item);
-    }
-  }
-
-  return [...groups];
-};
-
-export const uniq = <T>(items: readonly T[]): T[] => [...new Set(items)];

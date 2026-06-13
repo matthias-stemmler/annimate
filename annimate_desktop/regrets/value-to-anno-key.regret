@@ -1,0 +1,12 @@
+cluster: value-to-anno-key
+version: 1
+fingerprint: 5kcmm42
+captured: 2026-06-13T16:20:58.272Z
+watches: [valueToAnnoKey]
+entry: valueToAnnoKey
+stack: js
+fingerprintLevel: entry
+---
+INPUT  "{\"ns\":\"default_ns\",\"name\":\"pos\"}"
+OUTPUT {"ns":"default_ns","name":"pos"}
+HASH   5kcmm42

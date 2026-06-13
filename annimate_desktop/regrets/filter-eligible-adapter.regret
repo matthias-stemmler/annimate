@@ -1,0 +1,12 @@
+cluster: filter-eligible-adapter
+version: 1
+fingerprint: 4fg6q1w
+captured: 2026-06-13T16:20:58.269Z
+watches: [filterEligibleAdapter]
+entry: filterEligibleAdapter
+stack: js
+fingerprintLevel: entry
+---
+INPUT  {"eligibleValues":[1,2,3],"value":2,"compareType":"equality"}
+OUTPUT 2
+HASH   4fg6q1w

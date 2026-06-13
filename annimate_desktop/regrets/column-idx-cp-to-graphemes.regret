@@ -1,0 +1,12 @@
+cluster: column-idx-cp-to-graphemes
+version: 1
+fingerprint: 5x6smi8
+captured: 2026-06-13T16:20:58.268Z
+watches: [columnIndexCodePointsToGraphemes]
+entry: columnIndexCodePointsToGraphemes
+stack: js
+fingerprintLevel: entry
+---
+INPUT  ["hello",3]
+OUTPUT 3
+HASH   5x6smi8

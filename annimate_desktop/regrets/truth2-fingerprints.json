@@ -1,0 +1,79 @@
+{
+  "anno-key-to-value": {
+    "fingerprint": "5lj6cen",
+    "entry": "annoKeyToValue",
+    "stack": "js",
+    "fingerprintLevel": "entry",
+    "captured": "2026-06-13T16:20:58.272Z"
+  },
+  "column-idx-cp-to-graphemes": {
+    "fingerprint": "5x6smi8",
+    "entry": "columnIndexCodePointsToGraphemes",
+    "stack": "js",
+    "fingerprintLevel": "entry",
+    "captured": "2026-06-13T16:20:58.268Z"
+  },
+  "edge-type-to-value": {
+    "fingerprint": "gnnpg5z",
+    "entry": "edgeTypeToValue",
+    "stack": "js",
+    "fingerprintLevel": "entry",
+    "captured": "2026-06-13T16:20:58.273Z"
+  },
+  "filter-eligible-adapter": {
+    "fingerprint": "4fg6q1w",
+    "entry": "filterEligibleAdapter",
+    "stack": "js",
+    "fingerprintLevel": "entry",
+    "captured": "2026-06-13T16:20:58.269Z"
+  },
+  "find-eligible-query-node": {
+    "fingerprint": "1k0r3ut",
+    "entry": "findEligibleQueryNodeRefIndex",
+    "stack": "js",
+    "fingerprintLevel": "entry",
+    "captured": "2026-06-13T16:20:58.271Z"
+  },
+  "format-percentage": {
+    "fingerprint": "5dpznlq",
+    "entry": "formatPercentage",
+    "stack": "js",
+    "fingerprintLevel": "entry",
+    "captured": "2026-06-13T16:20:58.267Z"
+  },
+  "group-by-adapter": {
+    "fingerprint": "1gc5xws",
+    "entry": "groupByAdapter",
+    "stack": "js",
+    "fingerprintLevel": "entry",
+    "captured": "2026-06-13T16:20:58.270Z"
+  },
+  "line-column-to-char-index": {
+    "fingerprint": "1qx5rtj",
+    "entry": "lineColumnToCharacterIndex",
+    "stack": "js",
+    "fingerprintLevel": "entry",
+    "captured": "2026-06-13T16:20:58.268Z"
+  },
+  "uniq": {
+    "fingerprint": "1xru3hd",
+    "entry": "uniq",
+    "stack": "js",
+    "fingerprintLevel": "entry",
+    "captured": "2026-06-13T16:20:58.270Z"
+  },
+  "value-to-anno-key": {
+    "fingerprint": "5kcmm42",
+    "entry": "valueToAnnoKey",
+    "stack": "js",
+    "fingerprintLevel": "entry",
+    "captured": "2026-06-13T16:20:58.272Z"
+  },
+  "value-to-edge-type": {
+    "fingerprint": "68h0bi9",
+    "entry": "valueToEdgeType",
+    "stack": "js",
+    "fingerprintLevel": "entry",
+    "captured": "2026-06-13T16:20:58.274Z"
+  }
+}

@@ -1,0 +1,12 @@
+cluster: format-percentage
+version: 1
+fingerprint: 5dpznlq
+captured: 2026-06-13T16:20:58.267Z
+watches: [formatPercentage]
+entry: formatPercentage
+stack: js
+fingerprintLevel: entry
+---
+INPUT  0.5
+OUTPUT "50%"
+HASH   5dpznlq

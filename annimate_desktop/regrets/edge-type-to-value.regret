@@ -1,0 +1,12 @@
+cluster: edge-type-to-value
+version: 1
+fingerprint: gnnpg5z
+captured: 2026-06-13T16:20:58.273Z
+watches: [edgeTypeToValue]
+entry: edgeTypeToValue
+stack: js
+fingerprintLevel: entry
+---
+INPUT  {"ctype":"Dominance","name":"dep"}
+OUTPUT "{\"ctype\":\"Dominance\",\"name\":\"dep\"}"
+HASH   gnnpg5z

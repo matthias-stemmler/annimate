@@ -1,0 +1,136 @@
+{
+  "formatPercentage": {
+    "0": "0%",
+    "1": "100%",
+    "0.5": "50%",
+    "0.123": "12%",
+    "0.9999": "100%",
+    "0.003": "0%"
+  },
+  "lineColumnToCharacterIndex": {
+    "0,0,hello world": 0,
+    "1,0,line1\\nline2\\nline3": 6,
+    "0,5,hello": 5,
+    "2,3,ab\\ncd\\nefgh": 9,
+    "0,0,empty": 0
+  },
+  "columnIndexCodePointsToGraphemes": {
+    "hello,3": 3,
+    "abc,0": 0,
+    "empty,0": 0
+  },
+  "filterEligible": {
+    "[1,2,3],2,equality": 2,
+    "[a,b,c],b,equality": "b"
+  },
+  "groupBy": {
+    "[1,2,3,4,5],mod2": [
+      [
+        1,
+        [
+          1,
+          3,
+          5
+        ]
+      ],
+      [
+        0,
+        [
+          2,
+          4
+        ]
+      ]
+    ],
+    "[apple,avocado,banana,cherry],firstChar": [
+      [
+        "a",
+        [
+          "apple",
+          "avocado"
+        ]
+      ],
+      [
+        "b",
+        [
+          "banana"
+        ]
+      ],
+      [
+        "c",
+        [
+          "cherry"
+        ]
+      ]
+    ],
+    "[],identity": [],
+    "[1],identity": [
+      [
+        1,
+        [
+          1
+        ]
+      ]
+    ]
+  },
+  "uniq": {
+    "[1,2,2,3,3,3]": [
+      1,
+      2,
+      3
+    ],
+    "[a,b,a,c]": [
+      "a",
+      "b",
+      "c"
+    ],
+    "[]": [],
+    "[1]": [
+      1
+    ],
+    "[1,1,1,1]": [
+      1
+    ]
+  },
+  "findEligibleQueryNodeRefIndex": {
+    "x,y|z with x": 0,
+    "a|b with b": 1
+  },
+  "annoKeyToValue": {
+    "default_ns,pos": "{\"ns\":\"default_ns\",\"name\":\"pos\"}",
+    "empty,lemma": "{\"ns\":\"\",\"name\":\"lemma\"}",
+    "syntax,cat": "{\"ns\":\"syntax\",\"name\":\"cat\"}"
+  },
+  "valueToAnnoKey": {
+    "default_ns,pos": {
+      "ns": "default_ns",
+      "name": "pos"
+    },
+    "empty,lemma": {
+      "ns": "",
+      "name": "lemma"
+    },
+    "syntax,cat": {
+      "ns": "syntax",
+      "name": "cat"
+    }
+  },
+  "edgeTypeToValue": {
+    "Dominance,dep": "{\"ctype\":\"Dominance\",\"name\":\"dep\"}",
+    "Pointing,ref": "{\"ctype\":\"Pointing\",\"name\":\"ref\"}",
+    "Dominance,const": "{\"ctype\":\"Dominance\",\"name\":\"const\"}"
+  },
+  "valueToEdgeType": {
+    "Dominance,dep": {
+      "ctype": "Dominance",
+      "name": "dep"
+    },
+    "Pointing,ref": {
+      "ctype": "Pointing",
+      "name": "ref"
+    },
+    "Dominance,const": {
+      "ctype": "Dominance",
+      "name": "const"
+    }
+  }
+}

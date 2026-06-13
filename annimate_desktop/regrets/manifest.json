@@ -1,0 +1,163 @@
+{
+  "clusters": [
+    {
+      "id": "format-percentage",
+      "entry": "formatPercentage",
+      "watches": ["formatPercentage"],
+      "file": "dist/lib/utils.js",
+      "stack": "js",
+      "fingerprintLevel": "entry",
+      "description": "Formats a number as a percentage string using Intl.NumberFormat",
+      "inputs": [0.5, 0.123, 1, 0, 0.9999, 0.003]
+    },
+    {
+      "id": "line-column-to-char-index",
+      "entry": "lineColumnToCharacterIndex",
+      "watches": ["lineColumnToCharacterIndex"],
+      "file": "dist/lib/utils.js",
+      "stack": "js",
+      "fingerprintLevel": "entry",
+      "multiArgs": true,
+      "description": "Converts line:column position to absolute character index in a multiline string, handling Unicode code points",
+      "inputs": [
+        [0, 0, "hello world"],
+        [1, 0, "line1\nline2\nline3"],
+        [0, 5, "hello"],
+        [2, 3, "ab\ncd\nefgh"],
+        [0, 0, ""]
+      ]
+    },
+    {
+      "id": "column-idx-cp-to-graphemes",
+      "entry": "columnIndexCodePointsToGraphemes",
+      "watches": ["columnIndexCodePointsToGraphemes"],
+      "file": "dist/lib/utils.js",
+      "stack": "js",
+      "fingerprintLevel": "entry",
+      "multiArgs": true,
+      "description": "Converts a code-point-based column index to a grapheme-cluster column index for correct caret positioning",
+      "inputs": [
+        ["hello", 3],
+        ["abc", 0],
+        ["", 0]
+      ]
+    },
+    {
+      "id": "filter-eligible-adapter",
+      "entry": "filterEligibleAdapter",
+      "watches": ["filterEligibleAdapter"],
+      "file": "regrets/adapters/filter-eligible.mjs",
+      "stack": "js",
+      "fingerprintLevel": "entry",
+      "description": "Adapter for filterEligible - finds an eligible value matching a given value using a comparator",
+      "inputs": [
+        {"eligibleValues": [1, 2, 3], "value": 2, "compareType": "equality"},
+        {"eligibleValues": ["a", "b", "c"], "value": "b", "compareType": "equality"},
+        {"eligibleValues": [1, 2, 3], "value": null, "compareType": "equality"},
+        {"eligibleValues": [], "value": 1, "compareType": "equality"}
+      ]
+    },
+    {
+      "id": "group-by-adapter",
+      "entry": "groupByAdapter",
+      "watches": ["groupByAdapter"],
+      "file": "regrets/adapters/group-by-adapter.mjs",
+      "stack": "js",
+      "fingerprintLevel": "entry",
+      "description": "Adapter for groupBy - groups items by a key extractor function",
+      "inputs": [
+        {"items": [1, 2, 3, 4, 5], "keyType": "mod2"},
+        {"items": ["apple", "avocado", "banana", "cherry"], "keyType": "firstChar"},
+        {"items": [], "keyType": "identity"},
+        {"items": [1], "keyType": "identity"}
+      ]
+    },
+    {
+      "id": "uniq",
+      "entry": "uniq",
+      "watches": ["uniq"],
+      "file": "dist/lib/utils.js",
+      "stack": "js",
+      "fingerprintLevel": "entry",
+      "description": "Returns unique items from an array using Set deduplication",
+      "inputs": [
+        [1, 2, 2, 3, 3, 3],
+        ["a", "b", "a", "c"],
+        [],
+        [1],
+        [1, 1, 1, 1]
+      ]
+    },
+    {
+      "id": "find-eligible-query-node",
+      "entry": "findEligibleQueryNodeRefIndex",
+      "watches": ["findEligibleQueryNodeRefIndex"],
+      "file": "dist/lib/query-node-utils.js",
+      "stack": "js",
+      "fingerprintLevel": "entry",
+      "multiArgs": true,
+      "description": "Finds the index of an eligible query node ref that shares variables with the given node ref, preferring exact index match",
+      "inputs": [
+        [[{"index": 0, "variables": ["x", "y"]}, {"index": 1, "variables": ["z"]}], {"index": 0, "variables": ["x"]}],
+        [[{"index": 0, "variables": ["a"]}, {"index": 2, "variables": ["b"]}], {"index": 1, "variables": ["b"]}],
+        [[{"index": 0, "variables": ["x"]}], {"index": 5, "variables": ["y"]}]
+      ]
+    },
+    {
+      "id": "anno-key-to-value",
+      "entry": "annoKeyToValue",
+      "watches": ["annoKeyToValue"],
+      "file": "dist/columns/utils.js",
+      "stack": "js",
+      "fingerprintLevel": "entry",
+      "description": "Serializes an AnnoKey (namespace + name) to a JSON string for use as a select value",
+      "inputs": [
+        {"ns": "default_ns", "name": "pos"},
+        {"ns": "", "name": "lemma"},
+        {"ns": "syntax", "name": "cat"}
+      ]
+    },
+    {
+      "id": "value-to-anno-key",
+      "entry": "valueToAnnoKey",
+      "watches": ["valueToAnnoKey"],
+      "file": "dist/columns/utils.js",
+      "stack": "js",
+      "fingerprintLevel": "entry",
+      "description": "Deserializes a JSON string back to an AnnoKey object",
+      "inputs": [
+        "{\"ns\":\"default_ns\",\"name\":\"pos\"}",
+        "{\"ns\":\"\",\"name\":\"lemma\"}",
+        "{\"ns\":\"syntax\",\"name\":\"cat\"}"
+      ]
+    },
+    {
+      "id": "edge-type-to-value",
+      "entry": "edgeTypeToValue",
+      "watches": ["edgeTypeToValue"],
+      "file": "dist/columns/utils.js",
+      "stack": "js",
+      "fingerprintLevel": "entry",
+      "description": "Serializes an EdgeType (component type + name) to a JSON string for use as a select value",
+      "inputs": [
+        {"ctype": "Dominance", "name": "dep"},
+        {"ctype": "Pointing", "name": "ref"},
+        {"ctype": "Dominance", "name": "const"}
+      ]
+    },
+    {
+      "id": "value-to-edge-type",
+      "entry": "valueToEdgeType",
+      "watches": ["valueToEdgeType"],
+      "file": "dist/columns/utils.js",
+      "stack": "js",
+      "fingerprintLevel": "entry",
+      "description": "Deserializes a JSON string back to an EdgeType object",
+      "inputs": [
+        "{\"ctype\":\"Dominance\",\"name\":\"dep\"}",
+        "{\"ctype\":\"Pointing\",\"name\":\"ref\"}",
+        "{\"ctype\":\"Dominance\",\"name\":\"const\"}"
+      ]
+    }
+  ]
+}

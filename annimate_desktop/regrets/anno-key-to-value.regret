@@ -1,0 +1,12 @@
+cluster: anno-key-to-value
+version: 1
+fingerprint: 5lj6cen
+captured: 2026-06-13T16:20:58.272Z
+watches: [annoKeyToValue]
+entry: annoKeyToValue
+stack: js
+fingerprintLevel: entry
+---
+INPUT  {"ns":"default_ns","name":"pos"}
+OUTPUT "{\"ns\":\"default_ns\",\"name\":\"pos\"}"
+HASH   5lj6cen
