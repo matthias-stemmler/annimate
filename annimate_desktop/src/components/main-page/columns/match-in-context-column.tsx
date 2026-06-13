@@ -424,7 +424,7 @@ const QueryNodesSelectItem: FC<QueryNodesSelectItemProps> = ({
     <Label
       htmlFor={id}
       className={cn(
-        'flex items-center gap-2 overflow-hidden p-1 has-disabled:cursor-not-allowed has-disabled:opacity-70',
+        'flex min-w-0 flex-1 items-center gap-2 overflow-hidden p-1 has-disabled:cursor-not-allowed has-disabled:opacity-70',
         className,
       )}
     >

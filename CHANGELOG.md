@@ -5,6 +5,7 @@
 ### Changed
 
 - Queries longer than 400 characters are now supported.
+- Improved display of query nodes for queries with long variable names or query fragments, or with many alternatives.
 
 ## [1.8.0] - 2026-05-21
 

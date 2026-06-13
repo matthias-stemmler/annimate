@@ -16,14 +16,14 @@ const SelectTrigger: FC<ComponentProps<typeof SelectPrimitive.Trigger>> = ({
 }) => (
   <SelectPrimitive.Trigger
     className={cn(
-      'border-input bg-background ring-offset-background placeholder:text-muted-foreground focus:ring-ring flex h-10 w-full items-center justify-between rounded-md border px-3 py-2 text-sm focus:ring focus:ring-offset-1 focus:outline-hidden disabled:cursor-not-allowed disabled:opacity-50 [&>span]:truncate',
+      'border-input bg-background ring-offset-background placeholder:text-muted-foreground focus:ring-ring flex h-10 w-full items-center justify-between rounded-md border px-3 py-2 text-left text-sm focus:ring focus:ring-offset-1 focus:outline-hidden disabled:cursor-not-allowed disabled:opacity-50 [&>span]:min-w-0 [&>span]:flex-1 [&>span]:truncate',
       className,
     )}
     {...props}
   >
     {children}
     <SelectPrimitive.Icon asChild>
-      <ChevronDown className="size-4 opacity-50" />
+      <ChevronDown className="size-4 shrink-0 opacity-50" />
     </SelectPrimitive.Icon>
   </SelectPrimitive.Trigger>
 );
@@ -105,7 +105,7 @@ const SelectItem: FC<ComponentProps<typeof SelectPrimitive.Item>> = ({
 }) => (
   <SelectPrimitive.Item
     className={cn(
-      'focus:bg-accent focus:text-accent-foreground relative flex w-full cursor-default items-center rounded-sm py-1.5 pr-2 pl-8 text-sm outline-hidden select-none data-disabled:pointer-events-none data-disabled:opacity-50',
+      'focus:bg-accent focus:text-accent-foreground relative flex w-full cursor-default items-center rounded-sm py-1.5 pr-2 pl-8 text-sm outline-hidden select-none data-disabled:pointer-events-none data-disabled:opacity-50 [&>span:last-child]:min-w-0 [&>span:last-child]:flex-1',
       className,
     )}
     {...props}
