@@ -28,8 +28,8 @@ keywords:
   - corpus linguistics
   - data export
 license: Apache-2.0
-version: 1.8.0
-date-released: "2026-05-21"
+version: 1.8.1
+date-released: "2026-06-14"
 references:
   - authors:
       - given-names: Matthias
