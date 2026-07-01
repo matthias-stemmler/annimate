@@ -86,7 +86,7 @@ catalog:
 minimumReleaseAge: 1440
 
 overrides:
-  serialize-javascript@<7.0.5: '7.0.6'
+  serialize-javascript@<7.0.5: '7.0.7'
 
 strictDepBuilds: true
 verifyDepsBeforeRun: prompt
