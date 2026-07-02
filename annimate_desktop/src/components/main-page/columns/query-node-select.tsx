@@ -43,12 +43,10 @@ export const QueryNodeSelect: FC<QueryNodeSelectProps> = ({
           variables: group.map((n) => n.variable),
         });
       }}
-      options={nodes.map(
-        (group, i): SelectOption<`${number}`> => ({
-          caption: <QueryNodesDisplay queryNodes={group} />,
-          value: `${i}`,
-        }),
-      )}
+      options={nodes.map((group, i): SelectOption<`${number}`> => ({
+        caption: <QueryNodesDisplay queryNodes={group} />,
+        value: `${i}`,
+      }))}
       value={nodeRef === undefined ? undefined : `${nodeRef.index}`}
     />
   );
