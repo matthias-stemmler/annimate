@@ -109,8 +109,7 @@ export type ExportFormat = 'csv' | 'xlsx';
 export type QueryLanguage = 'AQL' | 'AQLQuirksV3';
 
 export type QueryNodesResult =
-  | { type: 'valid'; nodes: QueryNode[][] }
-  | { type: 'invalid' };
+  { type: 'valid'; nodes: QueryNode[][] } | { type: 'invalid' };
 
 export type QueryNode = {
   queryFragment: string;
@@ -123,8 +122,7 @@ export type QueryNodeRef = {
 };
 
 export type QueryValidationResult =
-  | { type: 'valid' }
-  | ({ type: 'invalid' } & QueryValidationError);
+  { type: 'valid' } | ({ type: 'invalid' } & QueryValidationError);
 
 export type QueryValidationError = {
   location: LineColumnRange | null;
@@ -183,8 +181,7 @@ export type FilesystemEntity = {
 };
 
 export type FilesystemEntityKind =
-  | { type: 'archive' }
-  | { type: 'corpus'; format: ImportFormat };
+  { type: 'archive' } | { type: 'corpus'; format: ImportFormat };
 
 export type ImportCorpusResult =
   | { type: 'imported'; name: string }
