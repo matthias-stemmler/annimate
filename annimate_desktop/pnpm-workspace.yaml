@@ -78,7 +78,7 @@ catalog:
   tailwindcss-animate: ^1.0.7
   tsx: ^4.22.4
   typescript: ^6.0.3
-  typescript-eslint: ^8.62.0
+  typescript-eslint: ^8.62.1
   vite: ^8.0.16
   vite-plugin-svgr: ^5.2.0
   vitest: ^4.1.9
