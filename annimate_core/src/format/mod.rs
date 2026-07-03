@@ -1,4 +1,4 @@
-use std::io::{Seek, Write};
+use std::io::Write;
 
 use csv::CsvExporter;
 use graphannis::corpusstorage::QueryLanguage;
@@ -64,7 +64,7 @@ where
     G: Fn() -> bool,
     I: ExactSizeIterator<Item = Result<Match, AnnimateError>>,
     S: AsRef<str>,
-    W: Write + Seek + Send,
+    W: Write + Send,
 {
     match export_format {
         ExportFormat::Csv(config) => CsvExporter::export(
@@ -107,5 +107,5 @@ trait Exporter {
         G: Fn() -> bool,
         I: ExactSizeIterator<Item = Result<Match, AnnimateError>>,
         S: AsRef<str>,
-        W: Write + Seek + Send;
+        W: Write + Send;
 }

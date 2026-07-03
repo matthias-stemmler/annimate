@@ -1,4 +1,4 @@
-use std::io::{Seek, Write};
+use std::io::Write;
 
 use graphannis::corpusstorage::QueryLanguage;
 use itertools::Itertools;
@@ -46,7 +46,7 @@ impl Exporter for XlsxExporter {
         G: Fn() -> bool,
         I: ExactSizeIterator<Item = Result<Match, AnnimateError>>,
         S: AsRef<str>,
-        W: Write + Seek + Send,
+        W: Write + Send,
     {
         let mut workbook = Workbook::new();
 

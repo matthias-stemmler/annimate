@@ -1,4 +1,4 @@
-use std::io::{Seek, Write};
+use std::io::Write;
 
 use super::table::{self, TableWriter};
 use super::{AnnoKeyFormats, Exporter, QueryInfo};
@@ -42,7 +42,7 @@ impl Exporter for CsvExporter {
         G: Fn() -> bool,
         I: ExactSizeIterator<Item = Result<Match, AnnimateError>>,
         S: AsRef<str>,
-        W: Write + Seek + Send,
+        W: Write + Send,
     {
         table::export(
             &config.columns,
