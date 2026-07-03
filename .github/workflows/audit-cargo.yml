@@ -21,3 +21,17 @@ jobs:
         uses: rustsec/audit-check@v2.0.0
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
+          # Temporary suppression of two quick-xml DoS advisories (fixed in
+          # >=0.41.0). The vulnerable versions come in only transitively, via
+          # plist (Tauri) and graphannis, neither of which has released on
+          # quick-xml 0.41+ yet, so there is nothing to bump to.
+          #
+          # Both advisories target a remote, unauthenticated attacker feeding
+          # untrusted XML to a server. Annimate is a local desktop app: the
+          # plist path parses Tauri's own bundle metadata, and the graphannis
+          # path parses corpus files the user chose to import themselves. There
+          # is no untrusted network-facing XML input, so the practical risk here
+          # is negligible.
+          #
+          # Remove once plist and graphannis update to quick-xml >=0.41.0.
+          ignore: RUSTSEC-2026-0194,RUSTSEC-2026-0195
