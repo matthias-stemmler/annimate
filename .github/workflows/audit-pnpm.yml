@@ -32,7 +32,7 @@ jobs:
         run: corepack enable
 
       - name: Set up node
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v7
         with:
           node-version-file: annimate_desktop/.nvmrc
 
