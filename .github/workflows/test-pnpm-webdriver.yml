@@ -22,7 +22,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest]
+        # `windows-latest` is disabled: WebView2 Runtime 150 broke the DevTools
+        # remote debugging endpoint for elevated apps, and GitHub runners run
+        # elevated. Last working runtime was 149.0.4022.98.
+        # https://github.com/MicrosoftEdge/WebView2Feedback/issues/5640
+        os: [ubuntu-latest]
 
     steps:
       - name: Checkout
