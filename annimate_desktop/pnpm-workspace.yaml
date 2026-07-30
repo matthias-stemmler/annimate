@@ -74,7 +74,7 @@ catalog:
   eslint: ^10.7.0
   eslint-plugin-react-hooks: ^7.1.1
   eslint-plugin-react-refresh: ^0.5.3
-  jsdom: ^29.1.1
+  jsdom: ^30.0.1
   lucide-react: ^1.27.0
   prettier: ^3.9.6
   prettier-plugin-tailwindcss: ^0.8.1
