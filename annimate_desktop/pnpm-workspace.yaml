@@ -56,8 +56,8 @@ catalog:
   '@testing-library/react': ^16.3.2
   '@types/babel__core': ^7.20.5
   '@types/node': ^25.9.5
-  '@types/react': ^19.2.17
-  '@types/react-dom': ^19.2.3
+  '@types/react': ^19.2.18
+  '@types/react-dom': ^19.2.4
   # Native TS 7 `tsc` for build/check; the `typescript` entry below stays on v6
   # until typescript-eslint supports v7: https://github.com/typescript-eslint/typescript-eslint/issues/12518
   '@typescript/native': 'npm:typescript@^7.0.2'
