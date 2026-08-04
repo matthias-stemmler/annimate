@@ -110,5 +110,5 @@ fn metadata() {
 
     storage.delete_corpus_set("Test set".into(), true).unwrap();
 
-    snapshot!("11_delete_corpus_set_with_corpora", storage);
+    snapshot!("12_delete_corpus_set_with_corpora", storage);
 }
