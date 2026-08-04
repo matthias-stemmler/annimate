@@ -130,22 +130,22 @@ catalogs:
       specifier: ^6.0.5
       version: 6.0.5
     '@wdio/cli':
-      specifier: ^9.30.0
+      specifier: ^9.30.1
       version: 9.30.1
     '@wdio/globals':
       specifier: ^9.29.1
       version: 9.29.1
     '@wdio/local-runner':
-      specifier: ^9.30.0
+      specifier: ^9.30.1
       version: 9.30.1
     '@wdio/mocha-framework':
-      specifier: ^9.30.0
+      specifier: ^9.30.1
       version: 9.30.1
     '@wdio/spec-reporter':
-      specifier: ^9.29.1
+      specifier: ^9.30.1
       version: 9.30.1
     '@wdio/types':
-      specifier: ^9.29.1
+      specifier: ^9.30.1
       version: 9.30.1
     babel-plugin-react-compiler:
       specifier: ^1.0.0
