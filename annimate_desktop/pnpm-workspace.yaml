@@ -8,13 +8,6 @@ allowBuilds:
   esbuild: true
   geckodriver: true
 
-auditConfig:
-  ignoreGhsas:
-    # brace-expansion 1.1.16/2.1.2 are the patched releases of their major lines,
-    # but the advisory range `<=5.0.7` flags them anyway. Only reachable through
-    # the wdio devDependencies of the `webdriver` package, not at runtime.
-    - GHSA-mh99-v99m-4gvg
-
 autoInstallPeers: false
 blockExoticSubdeps: true
 

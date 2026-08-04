@@ -29,10 +29,10 @@ export default defineConfig(async () => {
     resolve: {
       alias: {
         '@/lib/api': path.resolve(
-          __dirname,
+          import.meta.dirname,
           isMock ? './src/lib/__mocks__/api.ts' : './src/lib/api.ts',
         ),
-        '@': path.resolve(__dirname, './src'),
+        '@': path.resolve(import.meta.dirname, './src'),
       },
     },
     server: {
