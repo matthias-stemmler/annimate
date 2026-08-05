@@ -221,15 +221,15 @@ impl<'a, S> Query<'a, S> {
         };
 
         let corpus_count = corpus_names.len();
-        let mut match_ids = Vec::new();
+        let mut match_extras = Vec::new();
 
         for (corpus_index, corpus_name) in corpus_names.into_iter().enumerate() {
             error::cancel_if(&cancel_requested)?;
             on_corpora_searched(corpus_index);
 
-            match_ids.extend(
+            match_extras.extend(
                 self.corpus_storage
-                    .find(
+                    .find_extra(
                         SearchQuery {
                             corpus_names: &[corpus_name],
                             query: self.aql_query,
@@ -241,7 +241,7 @@ impl<'a, S> Query<'a, S> {
                         ResultOrder::Normal,
                     )?
                     .into_iter()
-                    .map(|match_id| (match_id, corpus_name)),
+                    .map(|match_extra| (match_extra, corpus_name)),
             );
         }
 
@@ -251,92 +251,95 @@ impl<'a, S> Query<'a, S> {
         // This loop could be parallelized, but that leads to a massive slowdown on Windows
         // due to high contention on the `RwLock` of the corpus cache used within graphANNIS.
         // On Linux there's a significant speedup, though.
-        Ok(match_ids.into_iter().map(move |(match_id, corpus_name)| {
-            let match_node_names = util::node_names_from_match(&match_id);
-            let first_match_node_name = match_node_names
-                .first()
-                .ok_or(AnnimateError::MatchWithoutNodes)?;
+        Ok(match_extras
+            .into_iter()
+            .map(move |(match_extra, corpus_name)| {
+                let match_node_names = util::node_names_from_match(&match_extra.match_id);
+                let first_match_node_name = match_node_names
+                    .first()
+                    .ok_or(AnnimateError::MatchWithoutNodes)?;
 
-            let corpus_node_name = name::get_corpus_node_name(first_match_node_name)?;
-            let doc_node_name = name::get_doc_node_name(first_match_node_name);
+                let corpus_node_name = name::get_corpus_node_name(first_match_node_name)?;
+                let doc_node_name = name::get_doc_node_name(first_match_node_name);
 
-            let mut annos = HashMap::new();
-            let mut texts = HashMap::new();
+                let mut annos = HashMap::new();
+                let mut texts = HashMap::new();
 
-            for d in &export_data {
-                match d {
-                    ExportData::Anno(anno) => match anno {
-                        ExportDataAnno::Corpus { anno_key } => {
-                            if let Some(value) = get_corpus_or_doc_anno(
-                                self.corpus_storage,
-                                corpus_name,
-                                &corpus_node_name,
-                                anno_key,
-                            )? {
-                                annos.insert(anno.clone(), value);
-                            }
-                        }
-                        ExportDataAnno::Document { anno_key } => {
-                            if let Some(value) = get_corpus_or_doc_anno(
-                                self.corpus_storage,
-                                corpus_name,
-                                doc_node_name,
-                                anno_key,
-                            )? {
-                                annos.insert(anno.clone(), value);
-                            }
-                        }
-                        ExportDataAnno::MatchNode { anno_key, index } => {
-                            if let Some(node_name) = match_node_names.get(*index)
-                                && let Some(value) = get_anno_with_overlapping_coverage(
+                for d in &export_data {
+                    match d {
+                        ExportData::Anno(anno) => match anno {
+                            ExportDataAnno::Corpus { anno_key } => {
+                                if let Some(value) = get_corpus_or_doc_anno(
                                     self.corpus_storage,
                                     corpus_name,
-                                    node_name,
+                                    &corpus_node_name,
                                     anno_key,
-                                )?
-                            {
-                                annos.insert(anno.clone(), value);
+                                )? {
+                                    annos.insert(anno.clone(), value);
+                                }
                             }
-                        }
-                        ExportDataAnno::Edge {
-                            edge_type,
-                            anno_key,
-                            source_node_index,
-                            target_node_index,
-                        } => {
-                            if let Some(source_node_name) = match_node_names.get(*source_node_index)
-                                && let Some(target_node_name) =
-                                    match_node_names.get(*target_node_index)
-                                && let Some(value) = get_edge_anno(
+                            ExportDataAnno::Document { anno_key } => {
+                                if let Some(value) = get_corpus_or_doc_anno(
                                     self.corpus_storage,
                                     corpus_name,
-                                    source_node_name,
-                                    target_node_name,
-                                    edge_type,
+                                    doc_node_name,
                                     anno_key,
-                                )?
-                            {
-                                annos.insert(anno.clone(), value);
+                                )? {
+                                    annos.insert(anno.clone(), value);
+                                }
                             }
+                            ExportDataAnno::MatchNode { anno_key, index } => {
+                                if let Some(node_name) = match_node_names.get(*index)
+                                    && let Some(value) = get_anno_with_overlapping_coverage(
+                                        self.corpus_storage,
+                                        corpus_name,
+                                        node_name,
+                                        anno_key,
+                                    )?
+                                {
+                                    annos.insert(anno.clone(), value);
+                                }
+                            }
+                            ExportDataAnno::Edge {
+                                edge_type,
+                                anno_key,
+                                source_node_index,
+                                target_node_index,
+                            } => {
+                                if let Some(source_node_name) =
+                                    match_node_names.get(*source_node_index)
+                                    && let Some(target_node_name) =
+                                        match_node_names.get(*target_node_index)
+                                    && let Some(value) = get_edge_anno(
+                                        self.corpus_storage,
+                                        corpus_name,
+                                        source_node_name,
+                                        target_node_name,
+                                        edge_type,
+                                        anno_key,
+                                    )?
+                                {
+                                    annos.insert(anno.clone(), value);
+                                }
+                            }
+                        },
+                        ExportData::Text(text) => {
+                            texts.insert(
+                                text.clone(),
+                                get_parts(
+                                    self.corpus_storage,
+                                    corpus_name,
+                                    match_node_names.clone(),
+                                    text,
+                                    segment_anno_keys.get(&text.segmentation).unwrap(),
+                                )?,
+                            );
                         }
-                    },
-                    ExportData::Text(text) => {
-                        texts.insert(
-                            text.clone(),
-                            get_parts(
-                                self.corpus_storage,
-                                corpus_name,
-                                match_node_names.clone(),
-                                text,
-                                segment_anno_keys.get(&text.segmentation).unwrap(),
-                            )?,
-                        );
                     }
                 }
-            }
 
-            Ok(Match { annos, texts })
-        }))
+                Ok(Match { annos, texts })
+            }))
     }
 }
 
