@@ -7,7 +7,7 @@ use std::sync::atomic::{AtomicBool, Ordering};
 
 use annimate_core::{
     AnnoKey, AnnoKeyOrDefault, Corpora, CsvExportConfig, EdgeType, ExportConfig, ExportData,
-    ExportDataAnno, ExportDataText, ExportStatusEvent, ExportableEdgeType, ExportableNodeAnnoKeys,
+    ExportDataText, ExportDataValue, ExportStatusEvent, ExportableEdgeType, ExportableNodeAnnoKeys,
     ImportStatusEvent, QueryAnalysisResult, QueryLanguage, QueryNode, QueryNodes,
     TableExportColumn, XlsxExportConfig,
 };
@@ -597,17 +597,17 @@ impl TryFrom<ExportColumn> for TableExportColumn {
         Ok(match export_column {
             ExportColumn::Number => TableExportColumn::Number,
             ExportColumn::AnnoCorpus { anno_key } => {
-                TableExportColumn::Data(ExportData::Anno(ExportDataAnno::Corpus {
+                TableExportColumn::Data(ExportData::Value(ExportDataValue::CorpusAnno {
                     anno_key: anno_key.ok_or(ConversionError)?,
                 }))
             }
             ExportColumn::AnnoDocument { anno_key } => {
-                TableExportColumn::Data(ExportData::Anno(ExportDataAnno::Document {
+                TableExportColumn::Data(ExportData::Value(ExportDataValue::DocumentAnno {
                     anno_key: anno_key.ok_or(ConversionError)?,
                 }))
             }
             ExportColumn::AnnoMatch { anno_key, node_ref } => {
-                TableExportColumn::Data(ExportData::Anno(ExportDataAnno::MatchNode {
+                TableExportColumn::Data(ExportData::Value(ExportDataValue::MatchNodeAnno {
                     anno_key: anno_key.ok_or(ConversionError)?,
                     index: node_ref.ok_or(ConversionError)?.index,
                 }))
@@ -617,7 +617,7 @@ impl TryFrom<ExportColumn> for TableExportColumn {
                 anno_key,
                 source_node_ref,
                 target_node_ref,
-            } => TableExportColumn::Data(ExportData::Anno(ExportDataAnno::Edge {
+            } => TableExportColumn::Data(ExportData::Value(ExportDataValue::EdgeAnno {
                 edge_type: edge_type.ok_or(ConversionError)?,
                 anno_key: anno_key.ok_or(ConversionError)?,
                 source_node_index: source_node_ref.ok_or(ConversionError)?.index,

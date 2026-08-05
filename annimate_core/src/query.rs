@@ -26,8 +26,8 @@ use crate::{AnnoKeyOrDefault, name};
 /// Configuration of data of a match to be exported.
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub enum ExportData {
-    /// An annotation of a node related to the match (single column).
-    Anno(ExportDataAnno),
+    /// A value related to the match (single column).
+    Value(ExportDataValue),
 
     /// Text of the match ("Match in context", possibly multiple columns).
     Text(ExportDataText),
@@ -36,28 +36,30 @@ pub enum ExportData {
 impl ExportData {
     pub(crate) fn node_indices(&self) -> &[usize] {
         match self {
-            ExportData::Anno(ExportDataAnno::MatchNode { index, .. }) => slice::from_ref(index),
+            ExportData::Value(ExportDataValue::MatchNodeAnno { index, .. }) => {
+                slice::from_ref(index)
+            }
             ExportData::Text(text) => text.primary_node_indices.as_deref().unwrap_or(&[]),
             _ => &[],
         }
     }
 }
 
-/// Configuration of an annotation of a node related to a match to be exported.
+/// Configuration of a value related to a match to be exported.
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
-pub enum ExportDataAnno {
+pub enum ExportDataValue {
     /// Annotation of the corpus the match belongs to.
-    Corpus {
+    CorpusAnno {
         /// Key of the annotation.
         anno_key: AnnoKey,
     },
     /// Annotation of the document the match belongs to.
-    Document {
+    DocumentAnno {
         /// Key of the annotation.
         anno_key: AnnoKey,
     },
     /// Annotation of one of the match nodes.
-    MatchNode {
+    MatchNodeAnno {
         /// Key of the annotation.
         anno_key: AnnoKey,
 
@@ -68,7 +70,7 @@ pub enum ExportDataAnno {
         index: usize,
     },
     /// Annotation of an edge between two of the match nodes.
-    Edge {
+    EdgeAnno {
         /// Type (component type, component name) of the edge.
         edge_type: EdgeType,
 
@@ -115,7 +117,7 @@ pub struct ExportDataText {
 
 #[derive(Debug, Clone)]
 pub(crate) struct Match {
-    pub(crate) annos: HashMap<ExportDataAnno, String>,
+    pub(crate) values: HashMap<ExportDataValue, String>,
     pub(crate) texts: HashMap<ExportDataText, Vec<TextPart>>,
 }
 
@@ -262,45 +264,45 @@ impl<'a, S> Query<'a, S> {
                 let corpus_node_name = name::get_corpus_node_name(first_match_node_name)?;
                 let doc_node_name = name::get_doc_node_name(first_match_node_name);
 
-                let mut annos = HashMap::new();
+                let mut values = HashMap::new();
                 let mut texts = HashMap::new();
 
                 for d in &export_data {
                     match d {
-                        ExportData::Anno(anno) => match anno {
-                            ExportDataAnno::Corpus { anno_key } => {
-                                if let Some(value) = get_corpus_or_doc_anno(
+                        ExportData::Value(value) => match value {
+                            ExportDataValue::CorpusAnno { anno_key } => {
+                                if let Some(anno) = get_corpus_or_doc_anno(
                                     self.corpus_storage,
                                     corpus_name,
                                     &corpus_node_name,
                                     anno_key,
                                 )? {
-                                    annos.insert(anno.clone(), value);
+                                    values.insert(value.clone(), anno);
                                 }
                             }
-                            ExportDataAnno::Document { anno_key } => {
-                                if let Some(value) = get_corpus_or_doc_anno(
+                            ExportDataValue::DocumentAnno { anno_key } => {
+                                if let Some(anno) = get_corpus_or_doc_anno(
                                     self.corpus_storage,
                                     corpus_name,
                                     doc_node_name,
                                     anno_key,
                                 )? {
-                                    annos.insert(anno.clone(), value);
+                                    values.insert(value.clone(), anno);
                                 }
                             }
-                            ExportDataAnno::MatchNode { anno_key, index } => {
+                            ExportDataValue::MatchNodeAnno { anno_key, index } => {
                                 if let Some(node_name) = match_node_names.get(*index)
-                                    && let Some(value) = get_anno_with_overlapping_coverage(
+                                    && let Some(anno) = get_anno_with_overlapping_coverage(
                                         self.corpus_storage,
                                         corpus_name,
                                         node_name,
                                         anno_key,
                                     )?
                                 {
-                                    annos.insert(anno.clone(), value);
+                                    values.insert(value.clone(), anno);
                                 }
                             }
-                            ExportDataAnno::Edge {
+                            ExportDataValue::EdgeAnno {
                                 edge_type,
                                 anno_key,
                                 source_node_index,
@@ -310,7 +312,7 @@ impl<'a, S> Query<'a, S> {
                                     match_node_names.get(*source_node_index)
                                     && let Some(target_node_name) =
                                         match_node_names.get(*target_node_index)
-                                    && let Some(value) = get_edge_anno(
+                                    && let Some(anno) = get_edge_anno(
                                         self.corpus_storage,
                                         corpus_name,
                                         source_node_name,
@@ -319,7 +321,7 @@ impl<'a, S> Query<'a, S> {
                                         anno_key,
                                     )?
                                 {
-                                    annos.insert(anno.clone(), value);
+                                    values.insert(value.clone(), anno);
                                 }
                             }
                         },
@@ -338,7 +340,7 @@ impl<'a, S> Query<'a, S> {
                     }
                 }
 
-                Ok(Match { annos, texts })
+                Ok(Match { values, texts })
             }))
     }
 }

@@ -10,22 +10,22 @@ info:
   export_columns:
     - Number
     - Data:
-        Anno:
-          MatchNode:
+        Value:
+          MatchNodeAnno:
             anno_key:
               - annis
               - tok
             index: 0
     - Data:
-        Anno:
-          MatchNode:
+        Value:
+          MatchNodeAnno:
             anno_key:
               - grammar
               - norm
             index: 0
     - Data:
-        Anno:
-          MatchNode:
+        Value:
+          MatchNodeAnno:
             anno_key:
               - structure
               - line

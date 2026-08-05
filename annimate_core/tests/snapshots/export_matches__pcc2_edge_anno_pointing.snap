@@ -10,22 +10,22 @@ info:
   export_columns:
     - Number
     - Data:
-        Anno:
-          MatchNode:
+        Value:
+          MatchNodeAnno:
             anno_key:
               - annis
               - tok
             index: 1
     - Data:
-        Anno:
-          MatchNode:
+        Value:
+          MatchNodeAnno:
             anno_key:
               - annis
               - tok
             index: 3
     - Data:
-        Anno:
-          Edge:
+        Value:
+          EdgeAnno:
             edge_type:
               - Pointing
               - dep

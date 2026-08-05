@@ -10,8 +10,8 @@ info:
   export_columns:
     - Number
     - Data:
-        Anno:
-          Edge:
+        Value:
+          EdgeAnno:
             edge_type:
               - Dominance
               - ""
@@ -21,8 +21,8 @@ info:
             source_node_index: 0
             target_node_index: 1
     - Data:
-        Anno:
-          Edge:
+        Value:
+          EdgeAnno:
             edge_type:
               - Dominance
               - edge
