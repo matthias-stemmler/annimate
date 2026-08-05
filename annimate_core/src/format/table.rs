@@ -9,7 +9,7 @@ use super::AnnoKeyFormats;
 use crate::anno::{self, AnnoKeyOrDefault};
 use crate::aql::QueryNode;
 use crate::error::{self, AnnimateError};
-use crate::query::{ExportData, ExportDataAnno, ExportDataText, Match, TextPart};
+use crate::query::{ExportData, ExportDataText, ExportDataValue, Match, TextPart};
 
 #[derive(Clone, Copy, Debug)]
 enum ColumnType {
@@ -96,10 +96,10 @@ where
 
     out.write_record(columns.iter().flat_map(|c| match c {
         TableExportColumn::Number => vec!["Number".into()],
-        TableExportColumn::Data(ExportData::Anno(ExportDataAnno::Corpus { anno_key })) => {
+        TableExportColumn::Data(ExportData::Value(ExportDataValue::CorpusAnno { anno_key })) => {
             vec![format!("Corpus {}", node_anno_key_format.display(anno_key))]
         }
-        TableExportColumn::Data(ExportData::Anno(ExportDataAnno::Document { anno_key })) => {
+        TableExportColumn::Data(ExportData::Value(ExportDataValue::DocumentAnno { anno_key })) => {
             if anno::is_doc_anno_key(anno_key) {
                 vec!["Document".into()]
             } else {
@@ -109,7 +109,7 @@ where
                 )]
             }
         }
-        TableExportColumn::Data(ExportData::Anno(ExportDataAnno::MatchNode {
+        TableExportColumn::Data(ExportData::Value(ExportDataValue::MatchNodeAnno {
             anno_key,
             index,
         })) => {
@@ -123,7 +123,7 @@ where
                 node_anno_key_format.display(anno_key)
             )]
         }
-        TableExportColumn::Data(ExportData::Anno(ExportDataAnno::Edge {
+        TableExportColumn::Data(ExportData::Value(ExportDataValue::EdgeAnno {
             edge_type,
             anno_key,
             source_node_index,
@@ -180,15 +180,15 @@ where
         }
     }))?;
 
-    for (i, Match { annos, texts }) in matches.into_iter().enumerate() {
+    for (i, Match { values, texts }) in matches.into_iter().enumerate() {
         error::cancel_if(&cancel_requested)?;
 
         out.write_record(columns.iter().flat_map(|c| match c {
             TableExportColumn::Number => vec![(i + 1).to_string()],
-            TableExportColumn::Data(ExportData::Anno(anno)) => {
+            TableExportColumn::Data(ExportData::Value(value)) => {
                 vec![
-                    annos
-                        .get(anno)
+                    values
+                        .get(value)
                         .map(|s| s.trim().to_string())
                         .unwrap_or_default(),
                 ]
@@ -403,8 +403,8 @@ mod tests {
 
     // Cannot use `super::*` due to a bug in rust-analyzer
     use super::{
-        AnnimateError, AnnoKeyFormats, AnnoKeyOrDefault, ExportData, ExportDataAnno,
-        ExportDataText, Match, TableExportColumn, TableWriter, TextPart, export,
+        AnnimateError, AnnoKeyFormats, AnnoKeyOrDefault, ExportData, ExportDataText,
+        ExportDataValue, Match, TableExportColumn, TableWriter, TextPart, export,
     };
     use crate::anno::AnnoKeyFormat;
 
@@ -426,7 +426,7 @@ mod tests {
                     primary_node_indices: None,
                 };
 
-                let export_data_anno_doc = ExportDataAnno::Document {
+                let export_data_value_doc_anno = ExportDataValue::DocumentAnno {
                     anno_key: AnnoKey {
                         ns: ANNIS_NS.into(),
                         name: "doc".into(),
@@ -435,7 +435,7 @@ mod tests {
 
                 let matches = [
                     $(Match {
-                        annos: [(export_data_anno_doc.clone(), $doc_name.into())].into(),
+                        values: [(export_data_value_doc_anno.clone(), $doc_name.into())].into(),
                         texts: [(text.clone(), [ $(export_test!(@expand_part $part)),* ].into())].into(),
                     }),*
                 ];
@@ -445,7 +445,7 @@ mod tests {
                 export(
                     &[
                         TableExportColumn::Number,
-                        TableExportColumn::Data(ExportData::Anno(export_data_anno_doc.clone())),
+                        TableExportColumn::Data(ExportData::Value(export_data_value_doc_anno.clone())),
                         TableExportColumn::Data(ExportData::Text(text.clone())),
                     ],
                     matches.into_iter().map(Ok),

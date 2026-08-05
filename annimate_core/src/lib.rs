@@ -43,7 +43,7 @@ pub use graphannis::graph::AnnoKey;
 pub use project::{
     Project, ProjectContext, ProjectExportColumn, ProjectExportFormat, load_project, save_project,
 };
-pub use query::{ExportData, ExportDataAnno, ExportDataText, QueryLanguage};
+pub use query::{ExportData, ExportDataText, ExportDataValue, QueryLanguage};
 pub use version::{VERSION_INFO, VersionInfo};
 
 use crate::anno::EdgeTypes;
