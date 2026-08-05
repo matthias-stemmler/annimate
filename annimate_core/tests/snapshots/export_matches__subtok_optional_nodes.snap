@@ -9,8 +9,8 @@ info:
   query_language: AQL
   export_columns:
     - Data:
-        Anno:
-          MatchNode:
+        Value:
+          MatchNodeAnno:
             anno_key:
               - grammar
               - lemma

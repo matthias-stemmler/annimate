@@ -10,14 +10,14 @@ info:
   export_columns:
     - Number
     - Data:
-        Anno:
-          Corpus:
+        Value:
+          CorpusAnno:
             anno_key:
               - ""
               - language
     - Data:
-        Anno:
-          Document:
+        Value:
+          DocumentAnno:
             anno_key:
               - annis
               - doc

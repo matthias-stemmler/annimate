@@ -4,7 +4,7 @@ use std::path::Path;
 
 use annimate_core::{
     AnnimateError, AnnoKey, AnnoKeyOrDefault, CsvExportConfig, EdgeType, ExportConfig, ExportData,
-    ExportDataAnno, ExportDataText, ExportFormat, ExportStatusEvent, ExportableEdgeComponentType,
+    ExportDataText, ExportDataValue, ExportFormat, ExportStatusEvent, ExportableEdgeComponentType,
     QueryLanguage, Storage, TableExportColumn,
 };
 use itertools::Itertools;
@@ -122,15 +122,15 @@ export_matches_test! {
         query_language: AQL,
         export_columns: [
             Number,
-            Data(Anno(TestExportDataAnno::MatchNode {
+            Data(Value(TestExportDataValue::MatchNodeAnno {
                 anno_key: ("annis", "tok"),
                 index: 0,
             })),
-            Data(Anno(TestExportDataAnno::MatchNode {
+            Data(Value(TestExportDataValue::MatchNodeAnno {
                 anno_key: ("grammar", "norm"),
                 index: 0,
             })),
-            Data(Anno(TestExportDataAnno::MatchNode {
+            Data(Value(TestExportDataValue::MatchNodeAnno {
                 anno_key: ("structure", "line"),
                 index: 0,
             })),
@@ -143,13 +143,13 @@ export_matches_test! {
         query_language: AQL,
         export_columns: [
             Number,
-            Data(Anno(TestExportDataAnno::Corpus {
+            Data(Value(TestExportDataValue::CorpusAnno {
                 anno_key: ("", "language"),
             })),
-            Data(Anno(TestExportDataAnno::Document {
+            Data(Value(TestExportDataValue::DocumentAnno {
                 anno_key: ("annis", "doc"),
             })),
-            Data(Anno(TestExportDataAnno::MatchNode {
+            Data(Value(TestExportDataValue::MatchNodeAnno {
                 anno_key: ("grammar", "lemma"),
                 index: 0,
             })),
@@ -169,13 +169,13 @@ export_matches_test! {
         query_language: AQL,
         export_columns: [
             Number,
-            Data(Anno(TestExportDataAnno::Corpus {
+            Data(Value(TestExportDataValue::CorpusAnno {
                 anno_key: ("", "language"),
             })),
-            Data(Anno(TestExportDataAnno::Document {
+            Data(Value(TestExportDataValue::DocumentAnno {
                 anno_key: ("annis", "doc"),
             })),
-            Data(Anno(TestExportDataAnno::MatchNode {
+            Data(Value(TestExportDataValue::MatchNodeAnno {
                 anno_key: ("grammar", "lemma"),
                 index: 0,
             })),
@@ -195,13 +195,13 @@ export_matches_test! {
         query_language: AQL,
         export_columns: [
             Number,
-            Data(Anno(TestExportDataAnno::Corpus {
+            Data(Value(TestExportDataValue::CorpusAnno {
                 anno_key: ("", "language"),
             })),
-            Data(Anno(TestExportDataAnno::Document {
+            Data(Value(TestExportDataValue::DocumentAnno {
                 anno_key: ("annis", "doc"),
             })),
-            Data(Anno(TestExportDataAnno::MatchNode {
+            Data(Value(TestExportDataValue::MatchNodeAnno {
                 anno_key: ("grammar", "lemma"),
                 index: 0,
             })),
@@ -221,13 +221,13 @@ export_matches_test! {
         query_language: AQL,
         export_columns: [
             Number,
-            Data(Anno(TestExportDataAnno::Corpus {
+            Data(Value(TestExportDataValue::CorpusAnno {
                 anno_key: ("", "language"),
             })),
-            Data(Anno(TestExportDataAnno::Document {
+            Data(Value(TestExportDataValue::DocumentAnno {
                 anno_key: ("annis", "doc"),
             })),
-            Data(Anno(TestExportDataAnno::MatchNode {
+            Data(Value(TestExportDataValue::MatchNodeAnno {
                 anno_key: ("grammar", "lemma"),
                 index: 0,
             })),
@@ -247,13 +247,13 @@ export_matches_test! {
         query_language: AQL,
         export_columns: [
             Number,
-            Data(Anno(TestExportDataAnno::Corpus {
+            Data(Value(TestExportDataValue::CorpusAnno {
                 anno_key: ("", "language"),
             })),
-            Data(Anno(TestExportDataAnno::Document {
+            Data(Value(TestExportDataValue::DocumentAnno {
                 anno_key: ("annis", "doc"),
             })),
-            Data(Anno(TestExportDataAnno::MatchNode {
+            Data(Value(TestExportDataValue::MatchNodeAnno {
                 anno_key: ("grammar", "lemma"),
                 index: 0,
             })),
@@ -273,17 +273,17 @@ export_matches_test! {
         query_language: AQL,
         export_columns: [
             Number,
-            Data(Anno(TestExportDataAnno::Corpus {
+            Data(Value(TestExportDataValue::CorpusAnno {
                 anno_key: ("", "language"),
             })),
-            Data(Anno(TestExportDataAnno::Document {
+            Data(Value(TestExportDataValue::DocumentAnno {
                 anno_key: ("annis", "doc"),
             })),
-            Data(Anno(TestExportDataAnno::MatchNode {
+            Data(Value(TestExportDataValue::MatchNodeAnno {
                 anno_key: ("grammar", "lemma"),
                 index: 0,
             })),
-            Data(Anno(TestExportDataAnno::MatchNode {
+            Data(Value(TestExportDataValue::MatchNodeAnno {
                 anno_key: ("grammar", "lemma"),
                 index: 1,
             })),
@@ -303,17 +303,17 @@ export_matches_test! {
         query_language: AQL,
         export_columns: [
             Number,
-            Data(Anno(TestExportDataAnno::Corpus {
+            Data(Value(TestExportDataValue::CorpusAnno {
                 anno_key: ("", "language"),
             })),
-            Data(Anno(TestExportDataAnno::Document {
+            Data(Value(TestExportDataValue::DocumentAnno {
                 anno_key: ("annis", "doc"),
             })),
-            Data(Anno(TestExportDataAnno::MatchNode {
+            Data(Value(TestExportDataValue::MatchNodeAnno {
                 anno_key: ("grammar", "pos"),
                 index: 0,
             })),
-            Data(Anno(TestExportDataAnno::MatchNode {
+            Data(Value(TestExportDataValue::MatchNodeAnno {
                 anno_key: ("grammar", "pos"),
                 index: 1,
             })),
@@ -347,7 +347,7 @@ export_matches_test! {
         aql_query: "norm? !.norm,3 norm",
         query_language: AQL,
         export_columns: [
-            Data(Anno(TestExportDataAnno::MatchNode {
+            Data(Value(TestExportDataValue::MatchNodeAnno {
                 anno_key: ("grammar", "lemma"),
                 index: 0,
             })),
@@ -367,10 +367,10 @@ export_matches_test! {
         query_language: AQL,
         export_columns: [
             Number,
-            Data(Anno(TestExportDataAnno::Corpus {
+            Data(Value(TestExportDataValue::CorpusAnno {
                 anno_key: ("", "language"),
             })),
-            Data(Anno(TestExportDataAnno::Document {
+            Data(Value(TestExportDataValue::DocumentAnno {
                 anno_key: ("annis", "doc"),
             })),
             Data(Text(TestExportDataText {
@@ -389,10 +389,10 @@ export_matches_test! {
         query_language: AQL,
         export_columns: [
             Number,
-            Data(Anno(TestExportDataAnno::Corpus {
+            Data(Value(TestExportDataValue::CorpusAnno {
                 anno_key: ("", "language"),
             })),
-            Data(Anno(TestExportDataAnno::Document {
+            Data(Value(TestExportDataValue::DocumentAnno {
                 anno_key: ("annis", "doc"),
             })),
             Data(Text(TestExportDataText {
@@ -411,13 +411,13 @@ export_matches_test! {
         query_language: AQL,
         export_columns: [
             Number,
-            Data(Anno(TestExportDataAnno::Edge {
+            Data(Value(TestExportDataValue::EdgeAnno {
                 edge_type: (Dominance, ""),
                 anno_key: ("tiger", "func"),
                 source_node_index: 0,
                 target_node_index: 1,
             })),
-            Data(Anno(TestExportDataAnno::Edge {
+            Data(Value(TestExportDataValue::EdgeAnno {
                 edge_type: (Dominance, "edge"),
                 anno_key: ("tiger", "func"),
                 source_node_index: 0,
@@ -432,15 +432,15 @@ export_matches_test! {
         query_language: AQL,
         export_columns: [
             Number,
-            Data(Anno(TestExportDataAnno::MatchNode {
+            Data(Value(TestExportDataValue::MatchNodeAnno {
                 anno_key: ("annis", "tok"),
                 index: 1,
             })),
-            Data(Anno(TestExportDataAnno::MatchNode {
+            Data(Value(TestExportDataValue::MatchNodeAnno {
                 anno_key: ("annis", "tok"),
                 index: 3,
             })),
-            Data(Anno(TestExportDataAnno::Edge {
+            Data(Value(TestExportDataValue::EdgeAnno {
                 edge_type: (Pointing, "dep"),
                 anno_key: ("dep", "func"),
                 source_node_index: 1,
@@ -455,13 +455,13 @@ export_matches_test! {
         query_language: AQL,
         export_columns: [
             Number,
-            Data(Anno(TestExportDataAnno::Corpus {
+            Data(Value(TestExportDataValue::CorpusAnno {
                 anno_key: ("", "language"),
             })),
-            Data(Anno(TestExportDataAnno::Document {
+            Data(Value(TestExportDataValue::DocumentAnno {
                 anno_key: ("annis", "doc"),
             })),
-            Data(Anno(TestExportDataAnno::MatchNode {
+            Data(Value(TestExportDataValue::MatchNodeAnno {
                 anno_key: ("exmaralda", "Inf-Stat"),
                 index: 1,
             })),
@@ -481,13 +481,13 @@ export_matches_test! {
         query_language: AQL,
         export_columns: [
             Number,
-            Data(Anno(TestExportDataAnno::Corpus {
+            Data(Value(TestExportDataValue::CorpusAnno {
                 anno_key: ("", "language"),
             })),
-            Data(Anno(TestExportDataAnno::Document {
+            Data(Value(TestExportDataValue::DocumentAnno {
                 anno_key: ("annis", "doc"),
             })),
-            Data(Anno(TestExportDataAnno::MatchNode {
+            Data(Value(TestExportDataValue::MatchNodeAnno {
                 anno_key: ("exmaralda", "Inf-Stat"),
                 index: 1,
             })),
@@ -663,23 +663,23 @@ enum TestTableExportColumn {
 
 #[derive(Clone, Serialize)]
 enum TestExportData {
-    Anno(TestExportDataAnno),
+    Value(TestExportDataValue),
     Text(TestExportDataText),
 }
 
 #[derive(Clone, Serialize)]
-enum TestExportDataAnno {
-    Corpus {
+enum TestExportDataValue {
+    CorpusAnno {
         anno_key: (&'static str, &'static str),
     },
-    Document {
+    DocumentAnno {
         anno_key: (&'static str, &'static str),
     },
-    MatchNode {
+    MatchNodeAnno {
         anno_key: (&'static str, &'static str),
         index: usize,
     },
-    Edge {
+    EdgeAnno {
         edge_type: (ExportableEdgeComponentType, &'static str),
         anno_key: (&'static str, &'static str),
         source_node_index: usize,
@@ -707,38 +707,38 @@ impl From<TestTableExportColumn> for TableExportColumn {
         match column {
             TestTableExportColumn::Number => TableExportColumn::Number,
             TestTableExportColumn::Data(data) => TableExportColumn::Data(match data {
-                TestExportData::Anno(TestExportDataAnno::Corpus {
+                TestExportData::Value(TestExportDataValue::CorpusAnno {
                     anno_key: (ns, name),
-                }) => ExportData::Anno(ExportDataAnno::Corpus {
+                }) => ExportData::Value(ExportDataValue::CorpusAnno {
                     anno_key: AnnoKey {
                         ns: ns.into(),
                         name: name.into(),
                     },
                 }),
-                TestExportData::Anno(TestExportDataAnno::Document {
+                TestExportData::Value(TestExportDataValue::DocumentAnno {
                     anno_key: (ns, name),
-                }) => ExportData::Anno(ExportDataAnno::Document {
+                }) => ExportData::Value(ExportDataValue::DocumentAnno {
                     anno_key: AnnoKey {
                         ns: ns.into(),
                         name: name.into(),
                     },
                 }),
-                TestExportData::Anno(TestExportDataAnno::MatchNode {
+                TestExportData::Value(TestExportDataValue::MatchNodeAnno {
                     anno_key: (ns, name),
                     index,
-                }) => ExportData::Anno(ExportDataAnno::MatchNode {
+                }) => ExportData::Value(ExportDataValue::MatchNodeAnno {
                     anno_key: AnnoKey {
                         ns: ns.into(),
                         name: name.into(),
                     },
                     index,
                 }),
-                TestExportData::Anno(TestExportDataAnno::Edge {
+                TestExportData::Value(TestExportDataValue::EdgeAnno {
                     edge_type: (ctype, component_name),
                     anno_key: (ns, anno_name),
                     source_node_index,
                     target_node_index,
-                }) => ExportData::Anno(ExportDataAnno::Edge {
+                }) => ExportData::Value(ExportDataValue::EdgeAnno {
                     edge_type: EdgeType {
                         ctype,
                         name: component_name.into(),
