@@ -147,6 +147,7 @@ pub(crate) fn query_nodes_valid(
             .entry(index_in_alternative)
             .or_insert_with(Vec::new)
             .push(QueryNode {
+                alternative: node.alternative,
                 query_fragment: node.query_fragment.clone(),
                 variable: node.variable.clone(),
             });
@@ -455,9 +456,13 @@ impl IntoIterator for QueryNodes {
 }
 
 /// A node of a query.
-#[derive(Debug, PartialEq, Serialize)]
+#[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct QueryNode {
+    /// Index of the alternative within the query the node belongs to.
+    #[serde(skip)]
+    pub(crate) alternative: usize,
+
     /// Fragment of the query defining the node.
     pub query_fragment: String,
 

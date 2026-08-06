@@ -2,7 +2,7 @@ use std::fs;
 use std::path::Path;
 
 use annimate_core::QueryLanguage::*;
-use annimate_core::{QueryNode, Storage};
+use annimate_core::Storage;
 
 const DB_DIR: &str = concat!(env!("CARGO_TARGET_TMPDIR"), "/tests/query_nodes/db");
 
@@ -17,20 +17,23 @@ macro_rules! query_nodes_test {
             let _ = fs::remove_dir_all(&db_dir);
             let storage = Storage::from_db_dir(db_dir).unwrap();
 
-            let actual: Vec<_> = storage
+            let actual: Vec<Vec<(String, String)>> = storage
                 .query_nodes($query, $query_language)
                 .unwrap()
                 .valid()
                 .unwrap()
                 .into_iter()
+                .map(|nodes| {
+                    nodes
+                        .into_iter()
+                        .map(|node| (node.variable, node.query_fragment))
+                        .collect()
+                })
                 .collect();
 
-            let expected: Vec<Vec<QueryNode>> = vec![$(
+            let expected: Vec<Vec<(String, String)>> = vec![$(
                 vec![$(
-                    QueryNode {
-                        query_fragment: $expected_frag.into(),
-                        variable: $expected_var.into(),
-                    }
+                    ($expected_var.into(), $expected_frag.into())
                 ),*]
             ),*];
 

@@ -9,7 +9,9 @@ use super::AnnoKeyFormats;
 use crate::anno::{self, AnnoKeyOrDefault};
 use crate::aql::QueryNode;
 use crate::error::{self, AnnimateError};
-use crate::query::{ExportData, ExportDataText, ExportDataValue, Match, TextPart};
+use crate::query::{
+    ExportData, ExportDataText, ExportDataValue, Match, QueryNodeProperty, TextPart,
+};
 
 #[derive(Clone, Copy, Debug)]
 enum ColumnType {
@@ -112,41 +114,52 @@ where
         TableExportColumn::Data(ExportData::Value(ExportDataValue::MatchNodeAnno {
             anno_key,
             index,
-        })) => {
-            vec![format!(
+        })) => vec![format!(
                 "{} {}",
                 format_query_nodes(
                     query_nodes
                         .get(*index)
-                        .expect("query node index should be valid")
+                        .expect("query node index should be valid"),
                 ),
-                node_anno_key_format.display(anno_key)
-            )]
-        }
+                node_anno_key_format.display(anno_key),
+            )],
         TableExportColumn::Data(ExportData::Value(ExportDataValue::EdgeAnno {
             edge_type,
             anno_key,
             source_node_index,
             target_node_index,
-        })) => {
-            vec![format!(
+        })) => vec![format!(
                 "{} {} {} {}",
                 format_query_nodes(
                     query_nodes
                         .get(*source_node_index)
-                        .expect("query node index should be valid")
+                        .expect("query node index should be valid"),
                 ),
                 edge_type.operator(),
                 format_query_nodes(
                     query_nodes
                         .get(*target_node_index)
-                        .expect("query node index should be valid")
+                        .expect("query node index should be valid"),
                 ),
                 edge_anno_key_format(edge_type)
                     .expect("edge type should be valid")
                     .display(anno_key),
-            )]
-        }
+            )],
+        TableExportColumn::Data(ExportData::Value(ExportDataValue::QueryNodeProperty {
+            property,
+            match_node_index,
+        })) => vec![format!(
+                "{} {}",
+                format_query_nodes(
+                    query_nodes
+                        .get(*match_node_index)
+                        .expect("query node index should be valid"),
+                ),
+                match property {
+                    QueryNodeProperty::Fragment => "query fragment",
+                    QueryNodeProperty::Variable => "query variable",
+                },
+            )],
         TableExportColumn::Data(ExportData::Text(text)) => {
             let max_match_parts = *max_match_parts_by_text.get(text).unwrap_or(&0);
             let column_types = ColumnTypes::new(max_match_parts, query_nodes.len(), text);
