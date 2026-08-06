@@ -5,7 +5,7 @@ use std::path::Path;
 use annimate_core::{
     AnnimateError, AnnoKey, AnnoKeyOrDefault, CsvExportConfig, EdgeType, ExportConfig, ExportData,
     ExportDataText, ExportDataValue, ExportFormat, ExportStatusEvent, ExportableEdgeComponentType,
-    QueryLanguage, Storage, TableExportColumn,
+    QueryLanguage, QueryNodeProperty, Storage, TableExportColumn,
 };
 use itertools::Itertools;
 use serde::Serialize;
@@ -42,6 +42,8 @@ macro_rules! export_matches_test {
                         use TestAnnoKeyOrDefault::*;
                         #[allow(unused_imports)]
                         use TestExportData::*;
+                        #[allow(unused_imports)]
+                        use TestQueryNodeProperty::*;
                         #[allow(unused_imports)]
                         use TestTableExportColumn::*;
 
@@ -133,6 +135,39 @@ export_matches_test! {
             Data(Value(TestExportDataValue::MatchNodeAnno {
                 anno_key: ("structure", "line"),
                 index: 0,
+            })),
+        ],
+    }
+    subtok_query_node_properties: {
+        corpus_paths: ["subtok.demo_relANNIS.zip"],
+        corpus_names: ["subtok.demo"],
+        aql_query: "var#norm=\"example\" | norm=\"subtokenized\" . norm=\"corpus\"",
+        query_language: AQL,
+        export_columns: [
+            Number,
+            Data(Value(TestExportDataValue::MatchNodeAnno {
+                anno_key: ("grammar", "norm"),
+                index: 0,
+            })),
+            Data(Value(TestExportDataValue::MatchNodeAnno {
+                anno_key: ("grammar", "norm"),
+                index: 1,
+            })),
+            Data(Value(TestExportDataValue::QueryNodeProperty {
+                property: Fragment,
+                match_node_index: 0,
+            })),
+            Data(Value(TestExportDataValue::QueryNodeProperty {
+                property: Variable,
+                match_node_index: 0,
+            })),
+            Data(Value(TestExportDataValue::QueryNodeProperty {
+                property: Fragment,
+                match_node_index: 1,
+            })),
+            Data(Value(TestExportDataValue::QueryNodeProperty {
+                property: Variable,
+                match_node_index: 1,
             })),
         ],
     }
@@ -685,6 +720,16 @@ enum TestExportDataValue {
         source_node_index: usize,
         target_node_index: usize,
     },
+    QueryNodeProperty {
+        property: TestQueryNodeProperty,
+        match_node_index: usize,
+    },
+}
+
+#[derive(Clone, Serialize)]
+enum TestQueryNodeProperty {
+    Fragment,
+    Variable,
 }
 
 #[derive(Clone, Serialize)]
@@ -749,6 +794,16 @@ impl From<TestTableExportColumn> for TableExportColumn {
                     },
                     source_node_index,
                     target_node_index,
+                }),
+                TestExportData::Value(TestExportDataValue::QueryNodeProperty {
+                    property,
+                    match_node_index,
+                }) => ExportData::Value(ExportDataValue::QueryNodeProperty {
+                    property: match property {
+                        TestQueryNodeProperty::Fragment => QueryNodeProperty::Fragment,
+                        TestQueryNodeProperty::Variable => QueryNodeProperty::Variable,
+                    },
+                    match_node_index,
                 }),
                 TestExportData::Text(TestExportDataText {
                     segmentation,

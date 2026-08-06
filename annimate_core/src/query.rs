@@ -1,6 +1,6 @@
 use std::collections::{HashMap, HashSet};
 use std::ops::Bound;
-use std::{iter, slice, vec};
+use std::{iter, vec};
 
 pub use graphannis::corpusstorage::QueryLanguage;
 use graphannis::corpusstorage::{ResultOrder, SearchQuery};
@@ -34,13 +34,22 @@ pub enum ExportData {
 }
 
 impl ExportData {
-    pub(crate) fn node_indices(&self) -> &[usize] {
+    pub(crate) fn node_indices(&self) -> Vec<usize> {
         match self {
+            ExportData::Value(ExportDataValue::CorpusAnno { .. }) => Vec::new(),
+            ExportData::Value(ExportDataValue::DocumentAnno { .. }) => Vec::new(),
             ExportData::Value(ExportDataValue::MatchNodeAnno { index, .. }) => {
-                slice::from_ref(index)
+                vec![*index]
             }
-            ExportData::Text(text) => text.primary_node_indices.as_deref().unwrap_or(&[]),
-            _ => &[],
+            ExportData::Value(ExportDataValue::EdgeAnno {
+                source_node_index,
+                target_node_index,
+                ..
+            }) => vec![*source_node_index, *target_node_index],
+            ExportData::Value(ExportDataValue::QueryNodeProperty {
+                match_node_index, ..
+            }) => vec![*match_node_index],
+            ExportData::Text(text) => text.primary_node_indices.clone().unwrap_or_default(),
         }
     }
 }
@@ -83,6 +92,28 @@ pub enum ExportDataValue {
         /// Index of the target node within the match.
         target_node_index: usize,
     },
+    /// Property of the query node corresponding to one of the match nodes.
+    QueryNodeProperty {
+        /// The property to export.
+        property: QueryNodeProperty,
+
+        /// Index of the matched node within the match for which to export a property of the
+        /// corresponding query node.
+        ///
+        /// This is numbered in the same way as [`ExportDataValue::MatchNodeAnno::index`].
+        match_node_index: usize,
+    },
+}
+
+/// A property of an AQL query node.
+#[derive(Clone, Debug, Eq, PartialEq, Hash)]
+pub enum QueryNodeProperty {
+    /// The query fragment of the node, e.g. for `a#tok="foo" . b#tok="bar"`, this could be
+    /// `tok="foo"`.
+    Fragment,
+
+    /// The variable name of the node, e.g. for `a#tok="foo" . b#tok="bar"`, this could be `a`.
+    Variable,
 }
 
 /// Configuration of the text of a match to be exported.
@@ -182,7 +213,7 @@ impl<'a, S> Query<'a, S> {
         export_data
             .iter()
             .flat_map(ExportData::node_indices)
-            .map(|&index| {
+            .map(|index| {
                 if index >= self.nodes.len() {
                     Err(AnnimateError::MatchNodeIndexOutOfBounds { index })
                 } else {
@@ -322,6 +353,30 @@ impl<'a, S> Query<'a, S> {
                                     )?
                                 {
                                     values.insert(value.clone(), anno);
+                                }
+                            }
+                            ExportDataValue::QueryNodeProperty {
+                                property,
+                                match_node_index,
+                            } => {
+                                if let Some(query_node) = self
+                                    .nodes
+                                    .get(*match_node_index)
+                                    .expect("query node index should be valid")
+                                    .iter()
+                                    .find(|node| node.alternative == match_extra.alternative)
+                                {
+                                    values.insert(
+                                        value.clone(),
+                                        match property {
+                                            QueryNodeProperty::Fragment => {
+                                                query_node.query_fragment.clone()
+                                            }
+                                            QueryNodeProperty::Variable => {
+                                                query_node.variable.clone()
+                                            }
+                                        },
+                                    );
                                 }
                             }
                         },
