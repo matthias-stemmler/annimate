@@ -169,8 +169,8 @@ catalogs:
       specifier: ^30.0.1
       version: 30.0.1
     lucide-react:
-      specifier: ^1.28.0
-      version: 1.28.0
+      specifier: ^1.30.0
+      version: 1.30.0
     prettier:
       specifier: ^3.9.6
       version: 3.9.6
@@ -316,7 +316,7 @@ importers:
         version: 2.1.1
       lucide-react:
         specifier: 'catalog:'
-        version: 1.28.0(react@19.2.8)
+        version: 1.30.0(react@19.2.8)
       react:
         specifier: 'catalog:'
         version: 19.2.8
@@ -3734,8 +3734,8 @@ packages:
     resolution: {integrity: sha512-jumlc0BIUrS3qJGgIkWZsyfAM7NCWiBcCDhnd+3NNM5KbBmLTgHVfWBcg6W+rLUsIpzpERPsvwUP7CckAQSOoA==}
     engines: {node: '>=12'}
 
-  lucide-react@1.28.0:
-    resolution: {integrity: sha512-fARAFJULsGuDDydjp6+6blekG/sBIM29TerzLjc9bQUKAcEfrSc4ZQKb25KRz4OMKd87cZTb5dgq0w/T6KufVg==}
+  lucide-react@1.30.0:
+    resolution: {integrity: sha512-tUIr2jXLbWpCkdtH8XP7P7YppM9ueWgTky99lpWDY6z5REs6B+O6ZQ3U5tHkUUY59ANyOv/PBcs8E4Fe3KO3eA==}
     peerDependencies:
       react: ^16.5.1 || ^17.0.0 || ^18.0.0 || ^19.0.0
 
@@ -8233,7 +8233,7 @@ snapshots:
 
   lru-cache@7.18.3: {}
 
-  lucide-react@1.28.0(react@19.2.8):
+  lucide-react@1.30.0(react@19.2.8):
     dependencies:
       react: 19.2.8
 
