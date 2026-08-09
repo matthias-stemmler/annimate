@@ -33,8 +33,8 @@ pub use anno::{
     ExportableNodeAnnoKeys,
 };
 pub use aql::{
-    LineColumnIndex, LineColumnRange, QueryAnalysisResult, QueryNode, QueryNodes,
-    QueryValidationError,
+    LineColumnIndex, LineColumnRange, QueryAnalysisResult, QueryNode, QueryNodeProperty,
+    QueryNodes, QueryValidationError,
 };
 pub use error::AnnimateError;
 pub use format::{CsvExportConfig, ExportFormat, TableExportColumn, XlsxExportConfig};
@@ -43,7 +43,7 @@ pub use graphannis::graph::AnnoKey;
 pub use project::{
     Project, ProjectContext, ProjectExportColumn, ProjectExportFormat, load_project, save_project,
 };
-pub use query::{ExportData, ExportDataText, ExportDataValue, QueryLanguage, QueryNodeProperty};
+pub use query::{ExportData, ExportDataText, ExportDataValue, QueryLanguage};
 pub use version::{VERSION_INFO, VersionInfo};
 
 use crate::anno::EdgeTypes;
