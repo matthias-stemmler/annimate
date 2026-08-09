@@ -4,11 +4,11 @@ use graphannis::corpusstorage::QueryLanguage;
 use itertools::Itertools;
 use rust_xlsxwriter::{DocProperties, Table, Workbook, Worksheet};
 
-use super::table::{self, TableWriter};
+use super::table::{self, TableExportColumn, TableWriter};
 use super::{AnnoKeyFormats, Exporter, QueryInfo};
 use crate::error::AnnimateError;
 use crate::query::{ExportData, Match};
-use crate::{TableExportColumn, VERSION_INFO};
+use crate::version::VERSION_INFO;
 
 #[derive(Debug)]
 pub(super) struct XlsxExporter;
