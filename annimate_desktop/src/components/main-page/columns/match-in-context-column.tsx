@@ -1,3 +1,4 @@
+import { SegmentationAnnoSelect } from '@/components/main-page/columns/anno-select';
 import {
   ColumnConfigGrid,
   ColumnConfigItem,
@@ -5,8 +6,8 @@ import {
 import { ColumnProps } from '@/components/main-page/columns/props';
 import { QueryNodesDisplay } from '@/components/main-page/columns/query-nodes-display';
 import {
-  annoKeyToValue,
-  valueToAnnoKey,
+  segmentationToValue,
+  valueToSegmentation,
 } from '@/components/main-page/columns/utils';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -15,11 +16,10 @@ import { ReorderList } from '@/components/ui/custom/reorder-list';
 import { Select } from '@/components/ui/custom/select';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { AnnoKey, QueryNode, QueryNodeRef } from '@/lib/api-types';
+import { QueryNode, QueryNodeRef } from '@/lib/api-types';
 import {
   CONTEXT_MAX,
   CONTEXT_MIN,
-  useExportableNodeAnnoKeys,
   useIsExporting,
   useQueryNodes,
   useSegmentations,
@@ -117,7 +117,7 @@ const SegmentationSelect: FC<SegmentationSelectProps> = ({
       disabled={disabled}
       id={id}
       loading={isPending}
-      onChange={(value) => onChange?.(value?.slice(1))}
+      onChange={(value) => onChange?.(valueToSegmentation(value))}
       options={(segmentations ?? []).map((s) => ({
         caption:
           s === '' ? (
@@ -125,9 +125,13 @@ const SegmentationSelect: FC<SegmentationSelectProps> = ({
           ) : (
             <span className="font-mono">{s}</span>
           ),
-        value: `:${s}`,
+        value: segmentationToValue(s),
       }))}
-      value={segmentation === undefined ? undefined : `:${segmentation}`}
+      value={
+        segmentation === undefined
+          ? undefined
+          : segmentationToValue(segmentation)
+      }
     />
   );
 };
@@ -218,85 +222,6 @@ const ContextInput: FC<ContextInputProps> = ({
         />
       </ColumnConfigItem>
     </div>
-  );
-};
-
-export type SegmentationAnnoSelectProps = {
-  annoKey: AnnoKey | 'default' | undefined;
-  id?: string;
-  onChange?: (annoKey: AnnoKey | 'default') => void;
-  segmentation: string | undefined;
-};
-
-export const SegmentationAnnoSelect: FC<SegmentationAnnoSelectProps> = ({
-  annoKey,
-  id,
-  onChange,
-  segmentation,
-}) => {
-  const {
-    data: exportableNodeAnnoKeys,
-    error,
-    isPending,
-  } = useExportableNodeAnnoKeys();
-  const isExporting = useIsExporting();
-  const disabled = isExporting;
-
-  if (error !== null) {
-    throw new Error(`Failed to load exportable annotations: ${error.message}`);
-  }
-
-  const exportableAnnoKeysForNode = exportableNodeAnnoKeys?.node ?? [];
-  const DEFAULT_VALUE = '-';
-
-  return (
-    <Select
-      className="h-8"
-      disabled={disabled}
-      id={id}
-      loading={isPending}
-      onChange={(value) =>
-        onChange?.(value === DEFAULT_VALUE ? 'default' : valueToAnnoKey(value))
-      }
-      options={[
-        {
-          groupKey: 'other',
-          groupItems: [
-            ...(segmentation === undefined
-              ? []
-              : [
-                  {
-                    caption: <span className="italic">Segmentation text</span>,
-                    value: DEFAULT_VALUE,
-                  },
-                ]),
-            ...exportableAnnoKeysForNode
-              .filter((e) => e.annoKey.ns !== 'annis')
-              .map(({ displayName, annoKey }) => ({
-                caption: <span className="font-mono">{displayName}</span>,
-                value: annoKeyToValue(annoKey),
-              })),
-          ],
-        },
-        {
-          groupKey: 'annis',
-          groupCaption: 'ANNIS',
-          groupItems: exportableAnnoKeysForNode
-            .filter((e) => e.annoKey.ns === 'annis')
-            .map(({ displayName, annoKey }) => ({
-              caption: <span className="font-mono">{displayName}</span>,
-              value: annoKeyToValue(annoKey),
-            })),
-        },
-      ]}
-      value={
-        annoKey === undefined
-          ? undefined
-          : annoKey === 'default'
-            ? DEFAULT_VALUE
-            : annoKeyToValue(annoKey)
-      }
-    />
   );
 };
 
