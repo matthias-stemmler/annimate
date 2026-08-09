@@ -7,11 +7,9 @@ use itertools::{Itertools, PutBack};
 
 use super::AnnoKeyFormats;
 use crate::anno::{self, AnnoKeyOrDefault};
-use crate::aql::QueryNode;
+use crate::aql::{QueryNode, QueryNodeProperty};
 use crate::error::{self, AnnimateError};
-use crate::query::{
-    ExportData, ExportDataText, ExportDataValue, Match, QueryNodeProperty, TextPart,
-};
+use crate::query::{ExportData, ExportDataText, ExportDataValue, Match, TextPart};
 
 #[derive(Clone, Copy, Debug)]
 enum ColumnType {

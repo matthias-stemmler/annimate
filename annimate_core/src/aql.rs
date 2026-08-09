@@ -470,6 +470,17 @@ pub struct QueryNode {
     pub variable: String,
 }
 
+/// A property of an AQL query node.
+#[derive(Clone, Debug, Eq, PartialEq, Hash)]
+pub enum QueryNodeProperty {
+    /// The query fragment of the node, e.g. for `a#tok="foo" . b#tok="bar"`, this could be
+    /// `tok="foo"`.
+    Fragment,
+
+    /// The variable name of the node, e.g. for `a#tok="foo" . b#tok="bar"`, this could be `a`.
+    Variable,
+}
+
 /// Regex to recognize legacy meta queries.
 ///
 /// Taken from [ANNIS](https://github.com/korpling/ANNIS/blob/9d75e92ddf99bf8cf2633750fd3ba4c4edaf3b51/src/main/resources/org/corpus_tools/annis/gui/components/codemirror/mode/aql/aql.js#L18).

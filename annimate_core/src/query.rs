@@ -17,7 +17,7 @@ use crate::anno::{
     self, DEFAULT_ORDERING_COMPONENT, EdgeType, GAP_ORDERING_COMPONENT, TOKEN_ANNO_KEY,
     get_anno_key_for_segmentation,
 };
-use crate::aql::{self, QueryNode};
+use crate::aql::{self, QueryNode, QueryNodeProperty};
 use crate::cache::CacheStorage;
 use crate::error::{self, AnnimateError};
 use crate::util::group_by;
@@ -103,17 +103,6 @@ pub enum ExportDataValue {
         /// This is numbered in the same way as [`ExportDataValue::MatchNodeAnno::index`].
         match_node_index: usize,
     },
-}
-
-/// A property of an AQL query node.
-#[derive(Clone, Debug, Eq, PartialEq, Hash)]
-pub enum QueryNodeProperty {
-    /// The query fragment of the node, e.g. for `a#tok="foo" . b#tok="bar"`, this could be
-    /// `tok="foo"`.
-    Fragment,
-
-    /// The variable name of the node, e.g. for `a#tok="foo" . b#tok="bar"`, this could be `a`.
-    Variable,
 }
 
 /// Configuration of the text of a match to be exported.
