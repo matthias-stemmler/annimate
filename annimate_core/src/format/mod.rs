@@ -5,9 +5,9 @@ use graphannis::corpusstorage::QueryLanguage;
 use xlsx::XlsxExporter;
 
 use crate::anno::{AnnoKeyFormat, EdgeType};
+use crate::aql::QueryNode;
 use crate::error::AnnimateError;
-use crate::query::Match;
-use crate::{ExportData, QueryNode};
+use crate::query::{ExportData, Match};
 
 mod csv;
 mod table;

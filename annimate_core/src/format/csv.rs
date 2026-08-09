@@ -1,8 +1,7 @@
 use std::io::Write;
 
-use super::table::{self, TableWriter};
+use super::table::{self, TableExportColumn, TableWriter};
 use super::{AnnoKeyFormats, Exporter, QueryInfo};
-use crate::TableExportColumn;
 use crate::error::AnnimateError;
 use crate::query::{ExportData, Match};
 

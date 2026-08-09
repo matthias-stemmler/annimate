@@ -21,9 +21,9 @@ use graphannis::corpusstorage::QueryLanguage;
 use graphannis::graph::AnnoKey;
 use serde::Deserialize;
 
-use crate::anno::AnnoKeyOrDefault;
-use crate::error::AnnimateReadFileError;
-use crate::{AnnimateError, EdgeType, ExportableEdgeComponentType, util};
+use crate::anno::{AnnoKeyOrDefault, EdgeType, ExportableEdgeComponentType};
+use crate::error::{AnnimateError, AnnimateReadFileError};
+use crate::util;
 
 const FILE_HEADER: &str =
     "# Annimate project file\n# https://github.com/matthias-stemmler/annimate\n\n";

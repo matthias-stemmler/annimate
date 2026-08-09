@@ -7,8 +7,8 @@ use std::{fs, io};
 
 use serde::{Deserialize, Serialize};
 
-use crate::error::AnnimateReadFileError;
-use crate::{AnnimateError, util};
+use crate::error::{AnnimateError, AnnimateReadFileError};
+use crate::util;
 
 pub(crate) struct MetadataStorage {
     path: PathBuf,

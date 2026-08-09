@@ -14,14 +14,14 @@ use graphannis_core::types::{AnnoKey, NodeID};
 use itertools::Itertools;
 
 use crate::anno::{
-    self, DEFAULT_ORDERING_COMPONENT, EdgeType, GAP_ORDERING_COMPONENT, TOKEN_ANNO_KEY,
-    get_anno_key_for_segmentation,
+    self, AnnoKeyOrDefault, DEFAULT_ORDERING_COMPONENT, EdgeType, GAP_ORDERING_COMPONENT,
+    TOKEN_ANNO_KEY, get_anno_key_for_segmentation,
 };
 use crate::aql::{self, QueryNode, QueryNodeProperty};
 use crate::cache::CacheStorage;
 use crate::error::{self, AnnimateError};
+use crate::name;
 use crate::util::group_by;
-use crate::{AnnoKeyOrDefault, name};
 
 /// Configuration of data of a match to be exported.
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]

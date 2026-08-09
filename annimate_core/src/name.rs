@@ -6,7 +6,7 @@ use graphannis::errors::GraphAnnisError;
 use graphannis_core::types::NodeID;
 use percent_encoding::{AsciiSet, CONTROLS};
 
-use crate::AnnimateError;
+use crate::error::AnnimateError;
 
 pub(crate) fn get_corpus_path(db_dir: &Path, corpus_name: &str) -> PathBuf {
     db_dir.join::<&str>(
