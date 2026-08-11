@@ -23,6 +23,9 @@ info:
           - 3
           - 4
           - 5
+    - QueryNodeProperty:
+        key: Variable
+        match_node_index: 6
   export_format: Csv
 ---
 # Annimate project file
@@ -47,3 +50,8 @@ target-node-index = 2
 type = "match-in-context"
 context = 20
 primary-node-indices = [3, 4, 5]
+
+[[project.columns]]
+type = "query-node-property"
+property = "variable"
+node-index = 6

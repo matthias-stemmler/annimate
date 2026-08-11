@@ -45,6 +45,9 @@ info:
           - 3
           - 4
           - 5
+    - QueryNodeProperty:
+        key: Fragment
+        match_node_index: 6
   export_format: Xlsx
 ---
 # Annimate project file
@@ -91,3 +94,8 @@ segmentation = "Test Segmentation"
 annotation = { ns = "ns5", name = "anno5" }
 context = { left = 5, right = 10 }
 primary-node-indices = [3, 4, 5]
+
+[[project.columns]]
+type = "query-node-property"
+property = "fragment"
+node-index = 6

@@ -7,7 +7,7 @@ use itertools::{Itertools, PutBack};
 
 use super::AnnoKeyFormats;
 use crate::anno::{self, AnnoKeyOrDefault};
-use crate::aql::{QueryNode, QueryNodeProperty};
+use crate::aql::{QueryNode, QueryNodePropertyKey};
 use crate::error::{self, AnnimateError};
 use crate::query::{ExportData, ExportDataText, ExportDataValue, Match, TextPart};
 
@@ -112,7 +112,8 @@ where
         TableExportColumn::Data(ExportData::Value(ExportDataValue::MatchNodeAnno {
             anno_key,
             index,
-        })) => vec![format!(
+        })) => {
+            vec![format!(
                 "{} {}",
                 format_query_nodes(
                     query_nodes
@@ -120,13 +121,15 @@ where
                         .expect("query node index should be valid"),
                 ),
                 node_anno_key_format.display(anno_key),
-            )],
+            )]
+        }
         TableExportColumn::Data(ExportData::Value(ExportDataValue::EdgeAnno {
             edge_type,
             anno_key,
             source_node_index,
             target_node_index,
-        })) => vec![format!(
+        })) => {
+            vec![format!(
                 "{} {} {} {}",
                 format_query_nodes(
                     query_nodes
@@ -142,22 +145,25 @@ where
                 edge_anno_key_format(edge_type)
                     .expect("edge type should be valid")
                     .display(anno_key),
-            )],
+            )]
+        }
         TableExportColumn::Data(ExportData::Value(ExportDataValue::QueryNodeProperty {
-            property,
+            key,
             match_node_index,
-        })) => vec![format!(
+        })) => {
+            vec![format!(
                 "{} {}",
                 format_query_nodes(
                     query_nodes
                         .get(*match_node_index)
                         .expect("query node index should be valid"),
                 ),
-                match property {
-                    QueryNodeProperty::Fragment => "query fragment",
-                    QueryNodeProperty::Variable => "query variable",
+                match key {
+                    QueryNodePropertyKey::Fragment => "query fragment",
+                    QueryNodePropertyKey::Variable => "query variable",
                 },
-            )],
+            )]
+        }
         TableExportColumn::Data(ExportData::Text(text)) => {
             let max_match_parts = *max_match_parts_by_text.get(text).unwrap_or(&0);
             let column_types = ColumnTypes::new(max_match_parts, query_nodes.len(), text);

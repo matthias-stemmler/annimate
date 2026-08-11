@@ -3,7 +3,7 @@ use std::path::Path;
 
 use annimate_core::{
     AnnoKey, AnnoKeyOrDefault, EdgeType, ExportableEdgeComponentType, Project, ProjectContext,
-    ProjectExportColumn, ProjectExportFormat, QueryLanguage,
+    ProjectExportColumn, ProjectExportFormat, ProjectQueryNodePropertyKey, QueryLanguage,
 };
 use serde::Serialize;
 
@@ -39,6 +39,8 @@ macro_rules! project_test {
                     use TestProjectContext::*;
                     #[allow(unused_imports)]
                     use TestProjectExportColumn::*;
+                    #[allow(unused_imports)]
+                    use TestProjectQueryNodePropertyKey::*;
 
                     vec![$($export_column,)*]
                 },
@@ -157,6 +159,10 @@ project_test! {
                 anno_key: None,
                 context: Symmetric(20),
                 primary_node_indices: &[],
+            },
+            QueryNodeProperty {
+                key: Variable,
+                match_node_index: None,
             },
         ],
         export_format: Csv,
@@ -286,6 +292,7 @@ project_test! {
                 context: Symmetric(20),
                 primary_node_indices: &[3, 4, 5],
             },
+            QueryNodeProperty { key: Variable, match_node_index: Some(6) },
         ],
         export_format: Csv,
     }
@@ -326,6 +333,7 @@ project_test! {
                 context: Asymmetric { left: 5, right: 10 },
                 primary_node_indices: &[3, 4, 5],
             },
+            QueryNodeProperty { key: Fragment, match_node_index: Some(6) }
         ],
         export_format: Xlsx,
     }
@@ -390,6 +398,10 @@ enum TestProjectExportColumn {
         context: TestProjectContext,
         primary_node_indices: &'static [u32],
     },
+    QueryNodeProperty {
+        key: TestProjectQueryNodePropertyKey,
+        match_node_index: Option<u32>,
+    },
 }
 
 #[derive(Clone, Serialize)]
@@ -402,6 +414,12 @@ enum TestAnnoKeyOrDefault {
 enum TestProjectContext {
     Symmetric(u32),
     Asymmetric { left: u32, right: u32 },
+}
+
+#[derive(Clone, Serialize)]
+enum TestProjectQueryNodePropertyKey {
+    Fragment,
+    Variable,
 }
 
 #[derive(Clone, Serialize)]
@@ -495,6 +513,13 @@ impl From<TestProjectExportColumn> for ProjectExportColumn {
                 context: context.into(),
                 primary_node_indices: primary_node_indices.into(),
             },
+            TestProjectExportColumn::QueryNodeProperty {
+                key,
+                match_node_index,
+            } => ProjectExportColumn::QueryNodeProperty {
+                key: key.into(),
+                match_node_index,
+            },
         }
     }
 }
@@ -506,6 +531,15 @@ impl From<TestProjectContext> for ProjectContext {
             TestProjectContext::Asymmetric { left, right } => {
                 ProjectContext::Asymmetric { left, right }
             }
+        }
+    }
+}
+
+impl From<TestProjectQueryNodePropertyKey> for ProjectQueryNodePropertyKey {
+    fn from(test_project_query_node_property_key: TestProjectQueryNodePropertyKey) -> Self {
+        match test_project_query_node_property_key {
+            TestProjectQueryNodePropertyKey::Fragment => ProjectQueryNodePropertyKey::Fragment,
+            TestProjectQueryNodePropertyKey::Variable => ProjectQueryNodePropertyKey::Variable,
         }
     }
 }

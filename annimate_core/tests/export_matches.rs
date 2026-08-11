@@ -5,7 +5,7 @@ use std::path::Path;
 use annimate_core::{
     AnnimateError, AnnoKey, AnnoKeyOrDefault, CsvExportConfig, EdgeType, ExportConfig, ExportData,
     ExportDataText, ExportDataValue, ExportFormat, ExportStatusEvent, ExportableEdgeComponentType,
-    QueryLanguage, QueryNodeProperty, Storage, TableExportColumn,
+    QueryLanguage, QueryNodePropertyKey, Storage, TableExportColumn,
 };
 use itertools::Itertools;
 use serde::Serialize;
@@ -43,7 +43,7 @@ macro_rules! export_matches_test {
                         #[allow(unused_imports)]
                         use TestExportData::*;
                         #[allow(unused_imports)]
-                        use TestQueryNodeProperty::*;
+                        use TestQueryNodePropertyKey::*;
                         #[allow(unused_imports)]
                         use TestTableExportColumn::*;
 
@@ -154,19 +154,19 @@ export_matches_test! {
                 index: 1,
             })),
             Data(Value(TestExportDataValue::QueryNodeProperty {
-                property: Fragment,
+                key: Fragment,
                 match_node_index: 0,
             })),
             Data(Value(TestExportDataValue::QueryNodeProperty {
-                property: Variable,
+                key: Variable,
                 match_node_index: 0,
             })),
             Data(Value(TestExportDataValue::QueryNodeProperty {
-                property: Fragment,
+                key: Fragment,
                 match_node_index: 1,
             })),
             Data(Value(TestExportDataValue::QueryNodeProperty {
-                property: Variable,
+                key: Variable,
                 match_node_index: 1,
             })),
         ],
@@ -721,13 +721,13 @@ enum TestExportDataValue {
         target_node_index: usize,
     },
     QueryNodeProperty {
-        property: TestQueryNodeProperty,
+        key: TestQueryNodePropertyKey,
         match_node_index: usize,
     },
 }
 
 #[derive(Clone, Serialize)]
-enum TestQueryNodeProperty {
+enum TestQueryNodePropertyKey {
     Fragment,
     Variable,
 }
@@ -796,13 +796,10 @@ impl From<TestTableExportColumn> for TableExportColumn {
                     target_node_index,
                 }),
                 TestExportData::Value(TestExportDataValue::QueryNodeProperty {
-                    property,
+                    key,
                     match_node_index,
                 }) => ExportData::Value(ExportDataValue::QueryNodeProperty {
-                    property: match property {
-                        TestQueryNodeProperty::Fragment => QueryNodeProperty::Fragment,
-                        TestQueryNodeProperty::Variable => QueryNodeProperty::Variable,
-                    },
+                    key: key.into(),
                     match_node_index,
                 }),
                 TestExportData::Text(TestExportDataText {
@@ -827,6 +824,15 @@ impl From<TestTableExportColumn> for TableExportColumn {
                     primary_node_indices: primary_node_indices.map(Into::into),
                 }),
             }),
+        }
+    }
+}
+
+impl From<TestQueryNodePropertyKey> for QueryNodePropertyKey {
+    fn from(test_query_node_property_key: TestQueryNodePropertyKey) -> Self {
+        match test_query_node_property_key {
+            TestQueryNodePropertyKey::Fragment => QueryNodePropertyKey::Fragment,
+            TestQueryNodePropertyKey::Variable => QueryNodePropertyKey::Variable,
         }
     }
 }

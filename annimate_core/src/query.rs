@@ -17,7 +17,7 @@ use crate::anno::{
     self, AnnoKeyOrDefault, DEFAULT_ORDERING_COMPONENT, EdgeType, GAP_ORDERING_COMPONENT,
     TOKEN_ANNO_KEY, get_anno_key_for_segmentation,
 };
-use crate::aql::{self, QueryNode, QueryNodeProperty};
+use crate::aql::{self, QueryNode, QueryNodePropertyKey};
 use crate::cache::CacheStorage;
 use crate::error::{self, AnnimateError};
 use crate::name;
@@ -94,8 +94,8 @@ pub enum ExportDataValue {
     },
     /// Property of the query node corresponding to one of the match nodes.
     QueryNodeProperty {
-        /// The property to export.
-        property: QueryNodeProperty,
+        /// The key of the property to export.
+        key: QueryNodePropertyKey,
 
         /// Index of the matched node within the match for which to export a property of the
         /// corresponding query node.
@@ -345,7 +345,7 @@ impl<'a, S> Query<'a, S> {
                                 }
                             }
                             ExportDataValue::QueryNodeProperty {
-                                property,
+                                key,
                                 match_node_index,
                             } => {
                                 if let Some(query_node) = self
@@ -357,11 +357,11 @@ impl<'a, S> Query<'a, S> {
                                 {
                                     values.insert(
                                         value.clone(),
-                                        match property {
-                                            QueryNodeProperty::Fragment => {
+                                        match key {
+                                            QueryNodePropertyKey::Fragment => {
                                                 query_node.query_fragment.clone()
                                             }
-                                            QueryNodeProperty::Variable => {
+                                            QueryNodePropertyKey::Variable => {
                                                 query_node.variable.clone()
                                             }
                                         },

@@ -97,11 +97,18 @@ pub enum ProjectExportColumn {
         #[serde(default)]
         primary_node_indices: Vec<u32>,
     },
+    #[serde(rename = "query-node-property")]
+    QueryNodeProperty {
+        #[serde(rename = "property")]
+        key: ProjectQueryNodePropertyKey,
+        #[serde(rename = "node-index")]
+        match_node_index: Option<u32>,
+    },
 }
 
 /// Context configuration for a "match in context" column as configured in a project.
 #[derive(Debug, Deserialize)]
-#[serde(rename_all = "kebab-case", rename_all_fields = "kebab-case", untagged)]
+#[serde(rename_all_fields = "kebab-case", untagged)]
 pub enum ProjectContext {
     /// Same context size on both sides.
     Symmetric(u32),
@@ -116,12 +123,23 @@ pub enum ProjectContext {
     },
 }
 
+/// Query node property key as configured in a project.
+///
+/// See [`crate::aql::QueryNodePropertyKey`].
+#[allow(missing_docs)]
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "kebab-case")]
+pub enum ProjectQueryNodePropertyKey {
+    Fragment,
+    Variable,
+}
+
 /// Export format as configured in a project.
 ///
 /// See [`crate::format::ExportFormat`].
 #[allow(missing_docs)]
 #[derive(Debug, Deserialize)]
-#[serde(rename_all = "kebab-case", rename_all_fields = "kebab-case")]
+#[serde(rename_all = "kebab-case")]
 pub enum ProjectExportFormat {
     Csv,
     Xlsx,
@@ -357,6 +375,21 @@ fn to_string_pretty(project_file: ProjectFile) -> String {
                                 .map(i64::from)
                                 .collect::<toml_edit::Value>()
                                 .into();
+                        }
+                    }
+                    ProjectExportColumn::QueryNodeProperty {
+                        key,
+                        match_node_index,
+                    } => {
+                        table["type"] = "query-node-property".into();
+
+                        table["property"] = match key {
+                            ProjectQueryNodePropertyKey::Fragment => "fragment".into(),
+                            ProjectQueryNodePropertyKey::Variable => "variable".into(),
+                        };
+
+                        if let Some(match_node_index) = match_node_index {
+                            table["node-index"] = i64::from(match_node_index).into();
                         }
                     }
                 };
