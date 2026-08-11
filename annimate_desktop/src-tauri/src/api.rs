@@ -351,6 +351,7 @@ pub(crate) async fn load_project(
                                 segmentation,
                             }
                         }
+                        annimate_core::ProjectExportColumn::QueryNodeProperty { .. } => todo!(),
                     })
                 })
                 .try_collect()?,

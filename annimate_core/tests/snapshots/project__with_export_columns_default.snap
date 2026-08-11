@@ -25,6 +25,9 @@ info:
         context:
           Symmetric: 20
         primary_node_indices: []
+    - QueryNodeProperty:
+        key: Variable
+        match_node_index: ~
   export_format: Csv
 ---
 # Annimate project file
@@ -54,3 +57,7 @@ type = "edge-annotation"
 [[project.columns]]
 type = "match-in-context"
 context = 20
+
+[[project.columns]]
+type = "query-node-property"
+property = "variable"
