@@ -2,6 +2,10 @@
 
 ## [Unreleased] - (release date)
 
+### Added
+
+- Added a "Query node" section at the end of the options under "Annotation" for "Match annotation" columns, which can be used to export the query fragment or the variable of the selected query node instead of one of its annotations. For queries with multiple alternatives, this tells you which alternative applied for each match. See the User Guide for details.
+
 ### Changed
 
 - The download files for macOS now include the version number in their names, as on the other platforms.
