@@ -6,6 +6,7 @@ on:
 
 env:
   RUSTFLAGS: --deny warnings
+  RUSTDOCFLAGS: --deny warnings
 
 jobs:
   check:
@@ -24,7 +25,7 @@ jobs:
           libwebkit2gtk-4.1-dev
 
       - name: Create dist dir
-        # This prevents Tauri macros from panicking during `cargo clippy`
+        # This prevents Tauri macros from panicking during `cargo clippy` and `cargo doc`
         run: mkdir annimate_desktop/dist
 
       - name: Install stable toolchain
@@ -37,3 +38,6 @@ jobs:
 
       - name: Run Clippy
         run: cargo clippy --locked --all-features --all-targets
+
+      - name: Build documentation
+        run: cargo doc --locked --all-features --no-deps --document-private-items
