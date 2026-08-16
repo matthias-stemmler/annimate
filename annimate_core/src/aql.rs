@@ -471,7 +471,8 @@ pub struct QueryNode {
 }
 
 /// Key of a property of an AQL query node.
-#[derive(Clone, Debug, Eq, PartialEq, Hash)]
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Hash, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub enum QueryNodePropertyKey {
     /// The query fragment of the node, e.g. for `a#tok="foo" . b#tok="bar"`, this could be
     /// `tok="foo"`.

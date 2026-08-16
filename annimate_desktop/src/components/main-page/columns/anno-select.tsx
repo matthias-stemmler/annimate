@@ -1,12 +1,19 @@
 import {
   annoKeyOrDefaultToValue,
+  annoKeyOrQueryNodePropertyKeyToValue,
   annoKeyToValue,
   valueToAnnoKey,
   valueToAnnoKeyOrDefault,
+  valueToAnnoKeyOrQueryNodePropertyKey,
 } from '@/components/main-page/columns/utils';
-import { Select, SelectOption } from '@/components/ui/custom/select';
+import {
+  Select,
+  SelectOption,
+  SelectOptionGroup,
+} from '@/components/ui/custom/select';
 import {
   AnnoKey,
+  AnnoKeyOrQueryNodePropertyKey,
   EdgeType,
   ExportableAnnoKey,
   ExportableNodeAnnoKeyCategory,
@@ -80,11 +87,69 @@ export const NodeAnnoSelect: FC<NodeAnnoSelectProps> = ({
 
   return (
     <AnnoSelectBase
+      fromAnnoKey={(annoKey) => annoKey}
       fromValue={valueToAnnoKey}
       id={id}
       onChange={onChange}
       toValue={annoKeyToValue}
       value={annoKey}
+      {...annoKeysProps}
+    />
+  );
+};
+
+export type MatchNodeAnnoSelectProps = {
+  annoKeyOrQueryNodePropertyKey: AnnoKeyOrQueryNodePropertyKey | undefined;
+  id?: string;
+  onChange?: (
+    annoKeyOrQueryNodePropertyKey: AnnoKeyOrQueryNodePropertyKey,
+  ) => void;
+};
+
+export const MatchNodeAnnoSelect: FC<MatchNodeAnnoSelectProps> = ({
+  annoKeyOrQueryNodePropertyKey,
+  id,
+  onChange,
+}) => {
+  const annoKeysProps = useNodeAnnoKeys('node');
+
+  return (
+    <AnnoSelectBase<AnnoKeyOrQueryNodePropertyKey>
+      fromAnnoKey={(key) => ({ type: 'anno_key', key })}
+      fromValue={valueToAnnoKeyOrQueryNodePropertyKey}
+      id={id}
+      onChange={onChange}
+      toValue={annoKeyOrQueryNodePropertyKeyToValue}
+      trailingOptionGroups={
+        // Query node properties act like annotations that every corpus has.
+        // They are a niche feature, so avoid offering them as the only options,
+        // which would be confusing e.g. when no corpus is selected.
+        annoKeysProps.exportableAnnoKeys.length === 0
+          ? []
+          : [
+              {
+                groupKey: 'query',
+                groupCaption: 'Query node',
+                groupItems: [
+                  {
+                    caption: <span className="italic">Fragment</span>,
+                    value: annoKeyOrQueryNodePropertyKeyToValue({
+                      type: 'query_node_property_key',
+                      key: 'fragment',
+                    }),
+                  },
+                  {
+                    caption: <span className="italic">Variable</span>,
+                    value: annoKeyOrQueryNodePropertyKeyToValue({
+                      type: 'query_node_property_key',
+                      key: 'variable',
+                    }),
+                  },
+                ],
+              },
+            ]
+      }
+      value={annoKeyOrQueryNodePropertyKey}
       {...annoKeysProps}
     />
   );
@@ -107,6 +172,7 @@ export const EdgeAnnoSelect: FC<EdgeAnnoSelectProps> = ({
 
   return (
     <AnnoSelectBase
+      fromAnnoKey={(annoKey) => annoKey}
       fromValue={valueToAnnoKey}
       id={id}
       onChange={onChange}
@@ -134,6 +200,7 @@ export const SegmentationAnnoSelect: FC<SegmentationAnnoSelectProps> = ({
 
   return (
     <AnnoSelectBase
+      fromAnnoKey={(annoKey) => annoKey}
       fromValue={valueToAnnoKeyOrDefault}
       id={id}
       leadingOptions={
@@ -157,24 +224,28 @@ export const SegmentationAnnoSelect: FC<SegmentationAnnoSelectProps> = ({
 type AnnoSelectBaseProps<T> = {
   disabled: boolean;
   exportableAnnoKeys: ExportableAnnoKey[];
+  fromAnnoKey: (annoKey: AnnoKey) => T;
   fromValue: (value: string) => T;
   id?: string;
   isPending: boolean;
   leadingOptions?: SelectOption<string>[];
   onChange?: (value: T) => void;
-  toValue: (value: T | AnnoKey) => string;
+  toValue: (value: T) => string;
+  trailingOptionGroups?: SelectOptionGroup<string>[];
   value: T | undefined;
 };
 
 const AnnoSelectBase = <T,>({
   disabled,
   exportableAnnoKeys,
+  fromAnnoKey,
   fromValue,
   id,
   isPending,
   leadingOptions = [],
   onChange,
   toValue,
+  trailingOptionGroups = [],
   value,
 }: AnnoSelectBaseProps<T>) => {
   return (
@@ -193,7 +264,7 @@ const AnnoSelectBase = <T,>({
               .filter((e) => e.annoKey.ns !== 'annis')
               .map(({ displayName, annoKey }) => ({
                 caption: <span className="font-mono">{displayName}</span>,
-                value: toValue(annoKey),
+                value: toValue(fromAnnoKey(annoKey)),
               })),
           ],
         },
@@ -204,9 +275,10 @@ const AnnoSelectBase = <T,>({
             .filter((e) => e.annoKey.ns === 'annis')
             .map(({ displayName, annoKey }) => ({
               caption: <span className="font-mono">{displayName}</span>,
-              value: toValue(annoKey),
+              value: toValue(fromAnnoKey(annoKey)),
             })),
         },
+        ...trailingOptionGroups,
       ]}
       value={value === undefined ? undefined : toValue(value)}
     />

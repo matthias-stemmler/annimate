@@ -938,7 +938,17 @@ export const loadProject = async (params: {
           },
           {
             type: 'anno_match',
-            annoKey: { ns: NS_NODE, name: 'anno_1' },
+            annoKeyOrQueryNodePropertyKey: {
+              type: 'anno_key',
+              key: { ns: NS_NODE, name: 'anno_1' },
+            },
+          },
+          {
+            type: 'anno_match',
+            annoKeyOrQueryNodePropertyKey: {
+              type: 'query_node_property_key',
+              key: 'fragment',
+            },
           },
           {
             type: 'anno_edge',
@@ -947,6 +957,7 @@ export const loadProject = async (params: {
           },
           {
             type: 'match_in_context',
+            annoKey: 'default',
             context: 5,
             contextRightOverride: 10,
             primaryNodeRefs: [],
@@ -976,8 +987,19 @@ export const loadProject = async (params: {
         { type: 'anno_document', annoKey: { ns: NS_DOCUMENT, name: 'anno_1' } },
         {
           type: 'anno_match',
-          annoKey: { ns: NS_NODE, name: 'anno_1' },
+          annoKeyOrQueryNodePropertyKey: {
+            type: 'anno_key',
+            key: { ns: NS_NODE, name: 'anno_1' },
+          },
           nodeRef: { index: 1, variables: ['2'] },
+        },
+        {
+          type: 'anno_match',
+          annoKeyOrQueryNodePropertyKey: {
+            type: 'query_node_property_key',
+            key: 'fragment',
+          },
+          nodeRef: { index: 0, variables: ['1'] },
         },
         {
           type: 'anno_edge',
@@ -988,6 +1010,7 @@ export const loadProject = async (params: {
         },
         {
           type: 'match_in_context',
+          annoKey: 'default',
           context: 5,
           contextRightOverride: 10,
           primaryNodeRefs: [

@@ -26,22 +26,22 @@ info:
     - Data:
         Value:
           QueryNodeProperty:
-            key: Fragment
+            query_node_property_key: Fragment
             match_node_index: 0
     - Data:
         Value:
           QueryNodeProperty:
-            key: Variable
+            query_node_property_key: Variable
             match_node_index: 0
     - Data:
         Value:
           QueryNodeProperty:
-            key: Fragment
+            query_node_property_key: Fragment
             match_node_index: 1
     - Data:
         Value:
           QueryNodeProperty:
-            key: Variable
+            query_node_property_key: Variable
             match_node_index: 1
 ---
 Number,#2|#var norm,#3 norm,#2|#var query fragment,#2|#var query variable,#3 query fragment,#3 query variable

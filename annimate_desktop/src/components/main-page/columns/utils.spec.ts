@@ -1,14 +1,20 @@
 import {
   annoKeyOrDefaultToValue,
+  annoKeyOrQueryNodePropertyKeyToValue,
   annoKeyToValue,
   edgeTypeToValue,
   segmentationToValue,
   valueToAnnoKey,
   valueToAnnoKeyOrDefault,
+  valueToAnnoKeyOrQueryNodePropertyKey,
   valueToEdgeType,
   valueToSegmentation,
 } from '@/components/main-page/columns/utils';
-import { AnnoKey, EdgeType } from '@/lib/api-types';
+import {
+  AnnoKey,
+  AnnoKeyOrQueryNodePropertyKey,
+  EdgeType,
+} from '@/lib/api-types';
 import { describe, expect, test } from 'vitest';
 
 describe('utils', () => {
@@ -81,6 +87,55 @@ describe('utils', () => {
   `('valueToAnnoKeyOrDefault throws', (params: { value: string }) => {
     expect(() => valueToAnnoKeyOrDefault(params.value)).toThrow();
   });
+
+  test.each`
+    annoKeyOrQueryNodePropertyKey                            | expectedValue
+    ${{ type: 'anno_key', key: { ns: 'ns', name: 'name' } }} | ${'anno-key:{"ns":"ns","name":"name"}'}
+    ${{ type: 'query_node_property_key', key: 'fragment' }}  | ${'query-node-property-key:"fragment"'}
+    ${{ type: 'query_node_property_key', key: 'variable' }}  | ${'query-node-property-key:"variable"'}
+  `(
+    'annoKeyOrQueryNodePropertyKeyToValue',
+    (params: {
+      annoKeyOrQueryNodePropertyKey: AnnoKeyOrQueryNodePropertyKey;
+      expectedValue: string;
+    }) => {
+      const value = annoKeyOrQueryNodePropertyKeyToValue(
+        params.annoKeyOrQueryNodePropertyKey,
+      );
+
+      expect(value).toEqual(params.expectedValue);
+    },
+  );
+
+  test.each`
+    value                                   | expectedAnnoKeyOrQueryNodePropertyKey
+    ${'anno-key:{"ns":"ns","name":"name"}'} | ${{ type: 'anno_key', key: { ns: 'ns', name: 'name' } }}
+    ${'query-node-property-key:"fragment"'} | ${{ type: 'query_node_property_key', key: 'fragment' }}
+    ${'query-node-property-key:"variable"'} | ${{ type: 'query_node_property_key', key: 'variable' }}
+  `(
+    'valueToAnnoKeyOrQueryNodePropertyKey',
+    (params: {
+      value: string;
+      expectedAnnoKeyOrQueryNodePropertyKey: AnnoKeyOrQueryNodePropertyKey;
+    }) => {
+      const value = valueToAnnoKeyOrQueryNodePropertyKey(params.value);
+
+      expect(value).toEqual(params.expectedAnnoKeyOrQueryNodePropertyKey);
+    },
+  );
+
+  test.each`
+    value
+    ${'no-separator'}
+    ${'edge-type:{"ctype":"Dominance","name":""}'}
+  `(
+    'valueToAnnoKeyOrQueryNodePropertyKey throws',
+    (params: { value: string }) => {
+      expect(() =>
+        valueToAnnoKeyOrQueryNodePropertyKey(params.value),
+      ).toThrow();
+    },
+  );
 
   test.each`
     edgeType                                | expectedValue

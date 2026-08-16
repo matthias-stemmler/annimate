@@ -1,5 +1,6 @@
 import {
   AnnoKey,
+  AnnoKeyOrQueryNodePropertyKey,
   Corpora,
   Corpus,
   EdgeType,
@@ -77,8 +78,8 @@ export type ExportColumnUpdate =
       type: 'anno_match';
       payload:
         | {
-            type: 'update_anno_key';
-            annoKey: AnnoKey;
+            type: 'update_anno_key_or_query_node_property_key';
+            annoKeyOrQueryNodePropertyKey: AnnoKeyOrQueryNodePropertyKey;
           }
         | {
             type: 'update_node_ref';
@@ -211,7 +212,7 @@ const createExportColumn = (type: ExportColumnType): ExportColumn => {
     case 'anno_match':
       return {
         type: 'anno_match',
-        annoKey: undefined,
+        annoKeyOrQueryNodePropertyKey: undefined,
         nodeRef: undefined,
       };
 
@@ -451,10 +452,11 @@ const toExportColumns = (
         case 'anno_match':
           return {
             ...column,
-            annoKey: filterEligibleAnnoKey(
-              exportableNodeAnnoKeys?.node,
-              column.annoKey,
-            ),
+            annoKeyOrQueryNodePropertyKey:
+              filterEligibleAnnoKeyOrQueryNodePropertyKey(
+                exportableNodeAnnoKeys?.node,
+                column.annoKeyOrQueryNodePropertyKey,
+              ),
             nodeRef: findEligibleQueryNodeRef(
               toNodeRefs(queryNodes),
               column.nodeRef,
@@ -531,6 +533,26 @@ const filterEligibleAnnoKey = (
     annoKey,
     (e, a) => e.annoKey.ns === a.ns && e.annoKey.name === a.name,
   )?.annoKey;
+
+const filterEligibleAnnoKeyOrQueryNodePropertyKey = (
+  exportableAnnoKeys: ExportableAnnoKey[] | undefined,
+  annoKeyOrQueryNodePropertyKey: AnnoKeyOrQueryNodePropertyKey | undefined,
+): AnnoKeyOrQueryNodePropertyKey | undefined => {
+  if (annoKeyOrQueryNodePropertyKey?.type === 'query_node_property_key') {
+    // Query node properties act like annotations that every corpus has,
+    // so they are eligible whenever there is any eligible annotation
+    return exportableAnnoKeys === undefined || exportableAnnoKeys.length === 0
+      ? undefined
+      : annoKeyOrQueryNodePropertyKey;
+  }
+
+  const annoKey = filterEligibleAnnoKey(
+    exportableAnnoKeys,
+    annoKeyOrQueryNodePropertyKey?.key,
+  );
+
+  return annoKey === undefined ? undefined : { type: 'anno_key', key: annoKey };
+};
 
 const filterEligibleEdgeType = (
   exportableEdgeTypes: ExportableEdgeType[] | undefined,
@@ -732,7 +754,7 @@ const getExportColumnImpediments = (exportColumn: ExportColumn): string[] => {
       break;
 
     case 'anno_match':
-      if (exportColumn.annoKey === undefined) {
+      if (exportColumn.annoKeyOrQueryNodePropertyKey === undefined) {
         impediments.push('No annotation selected');
       }
       if (exportColumn.nodeRef === undefined) {
@@ -939,6 +961,13 @@ export const useUpdateExportColumn = (): ((
     switch (true) {
       case payload.type === 'update_anno_key': {
         update(id, type, () => ({ annoKey: payload.annoKey }));
+        return;
+      }
+
+      case payload.type === 'update_anno_key_or_query_node_property_key': {
+        update(id, type, () => ({
+          annoKeyOrQueryNodePropertyKey: payload.annoKeyOrQueryNodePropertyKey,
+        }));
         return;
       }
 

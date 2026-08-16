@@ -26,7 +26,7 @@ info:
           Symmetric: 20
         primary_node_indices: []
     - QueryNodeProperty:
-        key: Variable
+        query_node_property_key: variable
         match_node_index: ~
   export_format: Csv
 ---

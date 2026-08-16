@@ -1,6 +1,12 @@
-import { AnnoKey, EdgeType } from '@/lib/api-types';
+import {
+  AnnoKey,
+  AnnoKeyOrQueryNodePropertyKey,
+  EdgeType,
+  QueryNodePropertyKey,
+} from '@/lib/api-types';
 
 const TAG_ANNO_KEY = 'anno-key';
+const TAG_QUERY_NODE_PROPERTY_KEY = 'query-node-property-key';
 const TAG_EDGE_TYPE = 'edge-type';
 const TAG_SEGMENTATION = 'segmentation';
 const TAG_DEFAULT = 'default';
@@ -27,6 +33,33 @@ export const valueToAnnoKeyOrDefault = (value: string): AnnoKey | 'default' => {
 
   if (tag === TAG_ANNO_KEY) {
     return payload as AnnoKey;
+  }
+
+  throw new Error(`Unexpected tag in tagged value: ${value}`);
+};
+
+export const annoKeyOrQueryNodePropertyKeyToValue = ({
+  type,
+  key,
+}: AnnoKeyOrQueryNodePropertyKey): string =>
+  type === 'anno_key'
+    ? annoKeyToValue(key)
+    : toTaggedValue(TAG_QUERY_NODE_PROPERTY_KEY, key);
+
+export const valueToAnnoKeyOrQueryNodePropertyKey = (
+  value: string,
+): AnnoKeyOrQueryNodePropertyKey => {
+  const { tag, payload } = fromTaggedValue(value);
+
+  if (tag === TAG_ANNO_KEY) {
+    return { type: 'anno_key', key: payload as AnnoKey };
+  }
+
+  if (tag === TAG_QUERY_NODE_PROPERTY_KEY) {
+    return {
+      type: 'query_node_property_key',
+      key: payload as QueryNodePropertyKey,
+    };
   }
 
   throw new Error(`Unexpected tag in tagged value: ${value}`);

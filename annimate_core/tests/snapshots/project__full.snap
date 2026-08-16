@@ -46,7 +46,7 @@ info:
           - 4
           - 5
     - QueryNodeProperty:
-        key: Fragment
+        query_node_property_key: fragment
         match_node_index: 6
   export_format: Xlsx
 ---

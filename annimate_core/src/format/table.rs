@@ -148,7 +148,7 @@ where
             )]
         }
         TableExportColumn::Data(ExportData::Value(ExportDataValue::QueryNodeProperty {
-            key,
+            query_node_property_key,
             match_node_index,
         })) => {
             vec![format!(
@@ -158,7 +158,7 @@ where
                         .get(*match_node_index)
                         .expect("query node index should be valid"),
                 ),
-                match key {
+                match query_node_property_key {
                     QueryNodePropertyKey::Fragment => "query fragment",
                     QueryNodePropertyKey::Variable => "query variable",
                 },
