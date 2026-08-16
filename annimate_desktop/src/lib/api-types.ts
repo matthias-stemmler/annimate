@@ -51,6 +51,18 @@ export type AnnoKey = {
   name: string;
 };
 
+export type QueryNodePropertyKey = 'fragment' | 'variable';
+
+export type AnnoKeyOrQueryNodePropertyKey =
+  | {
+      type: 'anno_key';
+      key: AnnoKey;
+    }
+  | {
+      type: 'query_node_property_key';
+      key: QueryNodePropertyKey;
+    };
+
 export type Project = {
   corpusSet: string;
   spec: ExportSpec;
@@ -78,7 +90,7 @@ export type ExportColumn =
     }
   | {
       type: 'anno_match';
-      annoKey?: AnnoKey;
+      annoKeyOrQueryNodePropertyKey?: AnnoKeyOrQueryNodePropertyKey;
       nodeRef?: QueryNodeRef;
     }
   | {

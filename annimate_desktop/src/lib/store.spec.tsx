@@ -2,6 +2,7 @@ import { StoreProvider } from '@/components/store-provider';
 import {
   AnnoKey,
   EdgeType,
+  ExportColumn,
   ExportColumnType,
   ExportableEdgeType,
   ExportableNodeAnnoKeys,
@@ -231,8 +232,19 @@ describe('store', () => {
                 },
                 {
                   type: 'anno_match',
-                  annoKey: ANNO_KEY_NODE,
+                  annoKeyOrQueryNodePropertyKey: {
+                    type: 'anno_key',
+                    key: ANNO_KEY_NODE,
+                  },
                   nodeRef: { index: 1, variables: ['2'] },
+                },
+                {
+                  type: 'anno_match',
+                  annoKeyOrQueryNodePropertyKey: {
+                    type: 'query_node_property_key',
+                    key: 'fragment',
+                  },
+                  nodeRef: { index: 0, variables: ['1'] },
                 },
                 {
                   type: 'anno_edge',
@@ -725,7 +737,7 @@ describe('store', () => {
     });
   });
 
-  test('selecting anno_match export column data', async () => {
+  test('selecting anno_match export column data with annotation', async () => {
     const { result } = renderHook(
       () => ({
         addExportColumn: useAddExportColumn(),
@@ -751,8 +763,11 @@ describe('store', () => {
     result.current.updateExportColumn(3, {
       type: 'anno_match',
       payload: {
-        type: 'update_anno_key',
-        annoKey: ANNO_KEY_NODE,
+        type: 'update_anno_key_or_query_node_property_key',
+        annoKeyOrQueryNodePropertyKey: {
+          type: 'anno_key',
+          key: ANNO_KEY_NODE,
+        },
       },
     });
     result.current.updateExportColumn(3, {
@@ -767,7 +782,10 @@ describe('store', () => {
       expect(result.current.exportColumns).toContainEqual({
         id: 3,
         type: 'anno_match',
-        annoKey: ANNO_KEY_NODE,
+        annoKeyOrQueryNodePropertyKey: {
+          type: 'anno_key',
+          key: ANNO_KEY_NODE,
+        },
         nodeRef: { index: 0, variables: ['1'] },
       } satisfies ExportColumnItem);
     });
@@ -775,8 +793,11 @@ describe('store', () => {
     result.current.updateExportColumn(3, {
       type: 'anno_match',
       payload: {
-        type: 'update_anno_key',
-        annoKey: ANNO_KEY_UNKNOWN,
+        type: 'update_anno_key_or_query_node_property_key',
+        annoKeyOrQueryNodePropertyKey: {
+          type: 'anno_key',
+          key: ANNO_KEY_UNKNOWN,
+        },
       },
     });
     result.current.updateExportColumn(3, {
@@ -791,7 +812,7 @@ describe('store', () => {
       expect(result.current.exportColumns).toContainEqual({
         id: 3,
         type: 'anno_match',
-        annoKey: undefined,
+        annoKeyOrQueryNodePropertyKey: undefined,
         nodeRef: { index: 0, variables: ['1'] },
       } satisfies ExportColumnItem);
     });
@@ -799,8 +820,11 @@ describe('store', () => {
     result.current.updateExportColumn(3, {
       type: 'anno_match',
       payload: {
-        type: 'update_anno_key',
-        annoKey: ANNO_KEY_NODE,
+        type: 'update_anno_key_or_query_node_property_key',
+        annoKeyOrQueryNodePropertyKey: {
+          type: 'anno_key',
+          key: ANNO_KEY_NODE,
+        },
       },
     });
     result.current.updateExportColumn(3, {
@@ -815,7 +839,106 @@ describe('store', () => {
       expect(result.current.exportColumns).toContainEqual({
         id: 3,
         type: 'anno_match',
-        annoKey: ANNO_KEY_NODE,
+        annoKeyOrQueryNodePropertyKey: {
+          type: 'anno_key',
+          key: ANNO_KEY_NODE,
+        },
+        nodeRef: undefined,
+      } satisfies ExportColumnItem);
+    });
+  });
+
+  test('selecting anno_match export column data with query node property', async () => {
+    const { result } = renderHook(
+      () => ({
+        addExportColumn: useAddExportColumn(),
+        exportColumns: useExportColumnItems(),
+        setAqlQuery: useSetAqlQuery(),
+        toggleCorpus: useToggleCorpus(),
+        updateExportColumn: useUpdateExportColumn(),
+      }),
+      { wrapper: Wrapper },
+    );
+
+    result.current.toggleCorpus('a');
+    result.current.setAqlQuery('valid');
+    result.current.addExportColumn('anno_match');
+
+    await waitFor(() => {
+      expect(result.current.exportColumns).toContainEqual({
+        id: 3,
+        type: 'anno_match',
+      } satisfies ExportColumnItem);
+    });
+
+    result.current.updateExportColumn(3, {
+      type: 'anno_match',
+      payload: {
+        type: 'update_anno_key_or_query_node_property_key',
+        annoKeyOrQueryNodePropertyKey: {
+          type: 'query_node_property_key',
+          key: 'fragment',
+        },
+      },
+    });
+    result.current.updateExportColumn(3, {
+      type: 'anno_match',
+      payload: {
+        type: 'update_node_ref',
+        nodeRef: { index: 0, variables: ['1'] },
+      },
+    });
+
+    await waitFor(() => {
+      expect(result.current.exportColumns).toContainEqual({
+        id: 3,
+        type: 'anno_match',
+        annoKeyOrQueryNodePropertyKey: {
+          type: 'query_node_property_key',
+          key: 'fragment',
+        },
+        nodeRef: { index: 0, variables: ['1'] },
+      } satisfies ExportColumnItem);
+    });
+
+    result.current.toggleCorpus('a');
+
+    await waitFor(() => {
+      expect(result.current.exportColumns).toContainEqual({
+        id: 3,
+        type: 'anno_match',
+        annoKeyOrQueryNodePropertyKey: undefined,
+        nodeRef: { index: 0, variables: ['1'] },
+      } satisfies ExportColumnItem);
+    });
+
+    result.current.toggleCorpus('a');
+    result.current.updateExportColumn(3, {
+      type: 'anno_match',
+      payload: {
+        type: 'update_anno_key_or_query_node_property_key',
+        annoKeyOrQueryNodePropertyKey: {
+          type: 'query_node_property_key',
+          key: 'variable',
+        },
+      },
+    });
+    result.current.updateExportColumn(3, {
+      type: 'anno_match',
+      payload: {
+        type: 'update_node_ref',
+        nodeRef: { index: 0, variables: ['3'] },
+      },
+    });
+
+    await waitFor(() => {
+      expect(result.current.exportColumns).toContainEqual({
+        id: 3,
+        type: 'anno_match',
+        annoKeyOrQueryNodePropertyKey: {
+          type: 'query_node_property_key',
+          key: 'variable',
+        },
         nodeRef: undefined,
       } satisfies ExportColumnItem);
     });
@@ -1240,8 +1363,9 @@ describe('store', () => {
           'Column 3: No meta annotation selected',
           'Column 4: No meta annotation selected',
           'Column 5: No annotation selected',
-          'Column 6: No edge type selected',
           'Column 6: No annotation selected',
+          'Column 7: No edge type selected',
+          'Column 7: No annotation selected',
         ],
       },
     },
@@ -1253,8 +1377,9 @@ describe('store', () => {
         impediments: [
           'Query is empty',
           'Column 5: No query node selected',
-          'Column 6: No source query node selected',
-          'Column 6: No target query node selected',
+          'Column 6: No query node selected',
+          'Column 7: No source query node selected',
+          'Column 7: No target query node selected',
         ],
       },
     },
@@ -1266,8 +1391,9 @@ describe('store', () => {
         impediments: [
           'Query is invalid',
           'Column 5: No query node selected',
-          'Column 6: No source query node selected',
-          'Column 6: No target query node selected',
+          'Column 6: No query node selected',
+          'Column 7: No source query node selected',
+          'Column 7: No target query node selected',
         ],
       },
     },
@@ -1280,6 +1406,7 @@ describe('store', () => {
         c.removeExportColumn(4);
         c.removeExportColumn(5);
         c.removeExportColumn(6);
+        c.removeExportColumn(7);
       },
       expectedPreflight: {
         canExport: false,
@@ -1371,8 +1498,11 @@ describe('store', () => {
       result.current.updateExportColumn(5, {
         type: 'anno_match',
         payload: {
-          type: 'update_anno_key',
-          annoKey: ANNO_KEY_NODE,
+          type: 'update_anno_key_or_query_node_property_key',
+          annoKeyOrQueryNodePropertyKey: {
+            type: 'anno_key',
+            key: ANNO_KEY_NODE,
+          },
         },
       });
       result.current.updateExportColumn(5, {
@@ -1382,29 +1512,47 @@ describe('store', () => {
           nodeRef: { index: 0, variables: ['1'] },
         },
       });
-      result.current.addExportColumn('anno_edge');
+      result.current.addExportColumn('anno_match');
       result.current.updateExportColumn(6, {
+        type: 'anno_match',
+        payload: {
+          type: 'update_anno_key_or_query_node_property_key',
+          annoKeyOrQueryNodePropertyKey: {
+            type: 'query_node_property_key',
+            key: 'fragment',
+          },
+        },
+      });
+      result.current.updateExportColumn(6, {
+        type: 'anno_match',
+        payload: {
+          type: 'update_node_ref',
+          nodeRef: { index: 0, variables: ['1'] },
+        },
+      });
+      result.current.addExportColumn('anno_edge');
+      result.current.updateExportColumn(7, {
         type: 'anno_edge',
         payload: {
           type: 'update_edge_type',
           edgeType: EDGE_TYPE,
         },
       });
-      result.current.updateExportColumn(6, {
+      result.current.updateExportColumn(7, {
         type: 'anno_edge',
         payload: {
           type: 'update_anno_key',
           annoKey: ANNO_KEY_EDGE,
         },
       });
-      result.current.updateExportColumn(6, {
+      result.current.updateExportColumn(7, {
         type: 'anno_edge',
         payload: {
           type: 'update_source_node_ref',
           sourceNodeRef: { index: 0, variables: ['1'] },
         },
       });
-      result.current.updateExportColumn(6, {
+      result.current.updateExportColumn(7, {
         type: 'anno_edge',
         payload: {
           type: 'update_target_node_ref',
@@ -1480,8 +1628,11 @@ describe('store', () => {
     result.current.updateExportColumn(5, {
       type: 'anno_match',
       payload: {
-        type: 'update_anno_key',
-        annoKey: ANNO_KEY_NODE,
+        type: 'update_anno_key_or_query_node_property_key',
+        annoKeyOrQueryNodePropertyKey: {
+          type: 'anno_key',
+          key: ANNO_KEY_NODE,
+        },
       },
     });
     result.current.updateExportColumn(5, {
@@ -1492,29 +1643,48 @@ describe('store', () => {
       },
     });
 
-    result.current.addExportColumn('anno_edge');
+    result.current.addExportColumn('anno_match');
     result.current.updateExportColumn(6, {
+      type: 'anno_match',
+      payload: {
+        type: 'update_anno_key_or_query_node_property_key',
+        annoKeyOrQueryNodePropertyKey: {
+          type: 'query_node_property_key',
+          key: 'fragment',
+        },
+      },
+    });
+    result.current.updateExportColumn(6, {
+      type: 'anno_match',
+      payload: {
+        type: 'update_node_ref',
+        nodeRef: { index: 0, variables: ['1'] },
+      },
+    });
+
+    result.current.addExportColumn('anno_edge');
+    result.current.updateExportColumn(7, {
       type: 'anno_edge',
       payload: {
         type: 'update_edge_type',
         edgeType: EDGE_TYPE,
       },
     });
-    result.current.updateExportColumn(6, {
+    result.current.updateExportColumn(7, {
       type: 'anno_edge',
       payload: {
         type: 'update_anno_key',
         annoKey: ANNO_KEY_EDGE,
       },
     });
-    result.current.updateExportColumn(6, {
+    result.current.updateExportColumn(7, {
       type: 'anno_edge',
       payload: {
         type: 'update_source_node_ref',
         sourceNodeRef: { index: 0, variables: ['1'] },
       },
     });
-    result.current.updateExportColumn(6, {
+    result.current.updateExportColumn(7, {
       type: 'anno_edge',
       payload: {
         type: 'update_target_node_ref',
@@ -1541,10 +1711,10 @@ describe('store', () => {
         aqlQuery: 'valid',
         queryLanguage: 'AQLQuirksV3',
         exportColumns: [
-          expect.objectContaining({
+          exportColumnContaining({
             type: 'number',
           }),
-          expect.objectContaining({
+          exportColumnContaining({
             type: 'match_in_context',
             annoKey: 'default',
             context: 20,
@@ -1556,20 +1726,31 @@ describe('store', () => {
             secondaryNodeRefs: [],
             segmentation: 'segmentation',
           }),
-          expect.objectContaining({
+          exportColumnContaining({
             type: 'anno_corpus',
             annoKey: ANNO_KEY_CORPUS,
           }),
-          expect.objectContaining({
+          exportColumnContaining({
             type: 'anno_document',
             annoKey: ANNO_KEY_DOCUMENT,
           }),
-          expect.objectContaining({
+          exportColumnContaining({
             type: 'anno_match',
-            annoKey: ANNO_KEY_NODE,
+            annoKeyOrQueryNodePropertyKey: {
+              type: 'anno_key',
+              key: ANNO_KEY_NODE,
+            },
             nodeRef: { index: 0, variables: ['1'] },
           }),
-          expect.objectContaining({
+          exportColumnContaining({
+            type: 'anno_match',
+            annoKeyOrQueryNodePropertyKey: {
+              type: 'query_node_property_key',
+              key: 'fragment',
+            },
+            nodeRef: { index: 0, variables: ['1'] },
+          }),
+          exportColumnContaining({
             type: 'anno_edge',
             edgeType: EDGE_TYPE,
             annoKey: ANNO_KEY_EDGE,
@@ -1635,11 +1816,23 @@ describe('store', () => {
         {
           id: 7,
           type: 'anno_match',
-          annoKey: ANNO_KEY_NODE,
+          annoKeyOrQueryNodePropertyKey: {
+            type: 'anno_key',
+            key: ANNO_KEY_NODE,
+          },
           nodeRef: { index: 1, variables: ['2'] },
         },
         {
           id: 8,
+          type: 'anno_match',
+          annoKeyOrQueryNodePropertyKey: {
+            type: 'query_node_property_key',
+            key: 'fragment',
+          },
+          nodeRef: { index: 0, variables: ['1'] },
+        },
+        {
+          id: 9,
           type: 'anno_edge',
           edgeType: EDGE_TYPE,
           annoKey: ANNO_KEY_EDGE,
@@ -1736,8 +1929,11 @@ describe('store', () => {
     result.current.updateExportColumn(5, {
       type: 'anno_match',
       payload: {
-        type: 'update_anno_key',
-        annoKey: ANNO_KEY_NODE,
+        type: 'update_anno_key_or_query_node_property_key',
+        annoKeyOrQueryNodePropertyKey: {
+          type: 'anno_key',
+          key: ANNO_KEY_NODE,
+        },
       },
     });
     result.current.updateExportColumn(5, {
@@ -1748,29 +1944,48 @@ describe('store', () => {
       },
     });
 
-    result.current.addExportColumn('anno_edge');
+    result.current.addExportColumn('anno_match');
     result.current.updateExportColumn(6, {
+      type: 'anno_match',
+      payload: {
+        type: 'update_anno_key_or_query_node_property_key',
+        annoKeyOrQueryNodePropertyKey: {
+          type: 'query_node_property_key',
+          key: 'fragment',
+        },
+      },
+    });
+    result.current.updateExportColumn(6, {
+      type: 'anno_match',
+      payload: {
+        type: 'update_node_ref',
+        nodeRef: { index: 0, variables: ['1'] },
+      },
+    });
+
+    result.current.addExportColumn('anno_edge');
+    result.current.updateExportColumn(7, {
       type: 'anno_edge',
       payload: {
         type: 'update_edge_type',
         edgeType: EDGE_TYPE,
       },
     });
-    result.current.updateExportColumn(6, {
+    result.current.updateExportColumn(7, {
       type: 'anno_edge',
       payload: {
         type: 'update_anno_key',
         annoKey: ANNO_KEY_EDGE,
       },
     });
-    result.current.updateExportColumn(6, {
+    result.current.updateExportColumn(7, {
       type: 'anno_edge',
       payload: {
         type: 'update_source_node_ref',
         sourceNodeRef: { index: 1, variables: ['2'] },
       },
     });
-    result.current.updateExportColumn(6, {
+    result.current.updateExportColumn(7, {
       type: 'anno_edge',
       payload: {
         type: 'update_target_node_ref',
@@ -1797,8 +2012,8 @@ describe('store', () => {
           aqlQuery: 'valid',
           queryLanguage: 'AQLQuirksV3',
           exportColumns: [
-            expect.objectContaining({ type: 'number' }),
-            expect.objectContaining({
+            exportColumnContaining({ type: 'number' }),
+            exportColumnContaining({
               type: 'match_in_context',
               annoKey: 'default',
               context: 5,
@@ -1807,20 +2022,31 @@ describe('store', () => {
               secondaryNodeRefs: [{ index: 0, variables: ['1'] }],
               segmentation: 'segmentation',
             }),
-            expect.objectContaining({
+            exportColumnContaining({
               type: 'anno_corpus',
               annoKey: ANNO_KEY_CORPUS,
             }),
-            expect.objectContaining({
+            exportColumnContaining({
               type: 'anno_document',
               annoKey: ANNO_KEY_DOCUMENT,
             }),
-            expect.objectContaining({
+            exportColumnContaining({
               type: 'anno_match',
-              annoKey: ANNO_KEY_NODE,
+              annoKeyOrQueryNodePropertyKey: {
+                type: 'anno_key',
+                key: ANNO_KEY_NODE,
+              },
               nodeRef: { index: 1, variables: ['2'] },
             }),
-            expect.objectContaining({
+            exportColumnContaining({
+              type: 'anno_match',
+              annoKeyOrQueryNodePropertyKey: {
+                type: 'query_node_property_key',
+                key: 'fragment',
+              },
+              nodeRef: { index: 0, variables: ['1'] },
+            }),
+            exportColumnContaining({
               type: 'anno_edge',
               edgeType: EDGE_TYPE,
               annoKey: ANNO_KEY_EDGE,
@@ -1833,4 +2059,7 @@ describe('store', () => {
       },
     });
   });
+
+  const exportColumnContaining = (exportColumn: ExportColumn) =>
+    expect.objectContaining(exportColumn);
 });

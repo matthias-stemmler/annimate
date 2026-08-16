@@ -24,7 +24,7 @@ info:
           - 4
           - 5
     - QueryNodeProperty:
-        key: Variable
+        query_node_property_key: variable
         match_node_index: 6
   export_format: Csv
 ---

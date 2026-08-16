@@ -154,19 +154,19 @@ export_matches_test! {
                 index: 1,
             })),
             Data(Value(TestExportDataValue::QueryNodeProperty {
-                key: Fragment,
+                query_node_property_key: Fragment,
                 match_node_index: 0,
             })),
             Data(Value(TestExportDataValue::QueryNodeProperty {
-                key: Variable,
+                query_node_property_key: Variable,
                 match_node_index: 0,
             })),
             Data(Value(TestExportDataValue::QueryNodeProperty {
-                key: Fragment,
+                query_node_property_key: Fragment,
                 match_node_index: 1,
             })),
             Data(Value(TestExportDataValue::QueryNodeProperty {
-                key: Variable,
+                query_node_property_key: Variable,
                 match_node_index: 1,
             })),
         ],
@@ -721,7 +721,7 @@ enum TestExportDataValue {
         target_node_index: usize,
     },
     QueryNodeProperty {
-        key: TestQueryNodePropertyKey,
+        query_node_property_key: TestQueryNodePropertyKey,
         match_node_index: usize,
     },
 }
@@ -796,10 +796,10 @@ impl From<TestTableExportColumn> for TableExportColumn {
                     target_node_index,
                 }),
                 TestExportData::Value(TestExportDataValue::QueryNodeProperty {
-                    key,
+                    query_node_property_key,
                     match_node_index,
                 }) => ExportData::Value(ExportDataValue::QueryNodeProperty {
-                    key: key.into(),
+                    query_node_property_key: query_node_property_key.into(),
                     match_node_index,
                 }),
                 TestExportData::Text(TestExportDataText {

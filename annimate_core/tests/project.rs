@@ -3,7 +3,7 @@ use std::path::Path;
 
 use annimate_core::{
     AnnoKey, AnnoKeyOrDefault, EdgeType, ExportableEdgeComponentType, Project, ProjectContext,
-    ProjectExportColumn, ProjectExportFormat, ProjectQueryNodePropertyKey, QueryLanguage,
+    ProjectExportColumn, ProjectExportFormat, QueryLanguage, QueryNodePropertyKey,
 };
 use serde::Serialize;
 
@@ -34,13 +34,13 @@ macro_rules! project_test {
                     #[allow(unused_imports)]
                     use ExportableEdgeComponentType::*;
                     #[allow(unused_imports)]
+                    use QueryNodePropertyKey::*;
+                    #[allow(unused_imports)]
                     use TestAnnoKeyOrDefault::*;
                     #[allow(unused_imports)]
                     use TestProjectContext::*;
                     #[allow(unused_imports)]
                     use TestProjectExportColumn::*;
-                    #[allow(unused_imports)]
-                    use TestProjectQueryNodePropertyKey::*;
 
                     vec![$($export_column,)*]
                 },
@@ -161,7 +161,7 @@ project_test! {
                 primary_node_indices: &[],
             },
             QueryNodeProperty {
-                key: Variable,
+                query_node_property_key: Variable,
                 match_node_index: None,
             },
         ],
@@ -292,7 +292,7 @@ project_test! {
                 context: Symmetric(20),
                 primary_node_indices: &[3, 4, 5],
             },
-            QueryNodeProperty { key: Variable, match_node_index: Some(6) },
+            QueryNodeProperty { query_node_property_key: Variable, match_node_index: Some(6) },
         ],
         export_format: Csv,
     }
@@ -333,7 +333,7 @@ project_test! {
                 context: Asymmetric { left: 5, right: 10 },
                 primary_node_indices: &[3, 4, 5],
             },
-            QueryNodeProperty { key: Fragment, match_node_index: Some(6) }
+            QueryNodeProperty { query_node_property_key: Fragment, match_node_index: Some(6) }
         ],
         export_format: Xlsx,
     }
@@ -399,7 +399,7 @@ enum TestProjectExportColumn {
         primary_node_indices: &'static [u32],
     },
     QueryNodeProperty {
-        key: TestProjectQueryNodePropertyKey,
+        query_node_property_key: QueryNodePropertyKey,
         match_node_index: Option<u32>,
     },
 }
@@ -414,12 +414,6 @@ enum TestAnnoKeyOrDefault {
 enum TestProjectContext {
     Symmetric(u32),
     Asymmetric { left: u32, right: u32 },
-}
-
-#[derive(Clone, Serialize)]
-enum TestProjectQueryNodePropertyKey {
-    Fragment,
-    Variable,
 }
 
 #[derive(Clone, Serialize)]
@@ -514,10 +508,10 @@ impl From<TestProjectExportColumn> for ProjectExportColumn {
                 primary_node_indices: primary_node_indices.into(),
             },
             TestProjectExportColumn::QueryNodeProperty {
-                key,
+                query_node_property_key,
                 match_node_index,
             } => ProjectExportColumn::QueryNodeProperty {
-                key: key.into(),
+                query_node_property_key,
                 match_node_index,
             },
         }
@@ -531,15 +525,6 @@ impl From<TestProjectContext> for ProjectContext {
             TestProjectContext::Asymmetric { left, right } => {
                 ProjectContext::Asymmetric { left, right }
             }
-        }
-    }
-}
-
-impl From<TestProjectQueryNodePropertyKey> for ProjectQueryNodePropertyKey {
-    fn from(test_project_query_node_property_key: TestProjectQueryNodePropertyKey) -> Self {
-        match test_project_query_node_property_key {
-            TestProjectQueryNodePropertyKey::Fragment => ProjectQueryNodePropertyKey::Fragment,
-            TestProjectQueryNodePropertyKey::Variable => ProjectQueryNodePropertyKey::Variable,
         }
     }
 }

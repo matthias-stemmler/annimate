@@ -8,8 +8,8 @@ use std::sync::atomic::{AtomicBool, Ordering};
 use annimate_core::{
     AnnoKey, AnnoKeyOrDefault, Corpora, CsvExportConfig, EdgeType, ExportConfig, ExportData,
     ExportDataText, ExportDataValue, ExportStatusEvent, ExportableEdgeType, ExportableNodeAnnoKeys,
-    ImportStatusEvent, QueryAnalysisResult, QueryLanguage, QueryNode, QueryNodes,
-    TableExportColumn, XlsxExportConfig,
+    ImportStatusEvent, QueryAnalysisResult, QueryLanguage, QueryNode, QueryNodePropertyKey,
+    QueryNodes, TableExportColumn, XlsxExportConfig,
 };
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
@@ -298,7 +298,8 @@ pub(crate) async fn load_project(
                             anno_key,
                             node_index,
                         } => ExportColumn::AnnoMatch {
-                            anno_key,
+                            anno_key_or_query_node_property_key: anno_key
+                                .map(|key| AnnoKeyOrQueryNodePropertyKey::AnnoKey { key }),
                             node_ref: node_index.map(try_get_query_node_ref).transpose()?,
                         },
                         annimate_core::ProjectExportColumn::AnnoEdge {
@@ -351,7 +352,17 @@ pub(crate) async fn load_project(
                                 segmentation,
                             }
                         }
-                        annimate_core::ProjectExportColumn::QueryNodeProperty { .. } => todo!(),
+                        annimate_core::ProjectExportColumn::QueryNodeProperty {
+                            query_node_property_key,
+                            match_node_index,
+                        } => ExportColumn::AnnoMatch {
+                            anno_key_or_query_node_property_key: Some(
+                                AnnoKeyOrQueryNodePropertyKey::QueryNodePropertyKey {
+                                    key: query_node_property_key,
+                                },
+                            ),
+                            node_ref: match_node_index.map(try_get_query_node_ref).transpose()?,
+                        },
                     })
                 })
                 .try_collect()?,
@@ -401,10 +412,29 @@ pub(crate) async fn save_project(project: Project, output_file: PathBuf) -> Resu
                     ExportColumn::AnnoDocument { anno_key } => {
                         annimate_core::ProjectExportColumn::AnnoDocument { anno_key }
                     }
-                    ExportColumn::AnnoMatch { anno_key, node_ref } => {
-                        annimate_core::ProjectExportColumn::AnnoMatch {
-                            anno_key,
-                            node_index: node_ref.map(to_node_index).transpose()?,
+                    ExportColumn::AnnoMatch {
+                        anno_key_or_query_node_property_key,
+                        node_ref,
+                    } => {
+                        let node_index = node_ref.map(to_node_index).transpose()?;
+
+                        match anno_key_or_query_node_property_key {
+                            None => annimate_core::ProjectExportColumn::AnnoMatch {
+                                anno_key: None,
+                                node_index,
+                            },
+                            Some(AnnoKeyOrQueryNodePropertyKey::AnnoKey { key }) => {
+                                annimate_core::ProjectExportColumn::AnnoMatch {
+                                    anno_key: Some(key),
+                                    node_index,
+                                }
+                            }
+                            Some(AnnoKeyOrQueryNodePropertyKey::QueryNodePropertyKey { key }) => {
+                                annimate_core::ProjectExportColumn::QueryNodeProperty {
+                                    query_node_property_key: key,
+                                    match_node_index: node_index,
+                                }
+                            }
                         }
                     }
                     ExportColumn::AnnoEdge {
@@ -557,7 +587,7 @@ pub(crate) enum ExportColumn {
     },
     AnnoMatch {
         #[serde(skip_serializing_if = "Option::is_none")]
-        anno_key: Option<AnnoKey>,
+        anno_key_or_query_node_property_key: Option<AnnoKeyOrQueryNodePropertyKey>,
         #[serde(skip_serializing_if = "Option::is_none")]
         node_ref: Option<QueryNodeRef>,
     },
@@ -584,6 +614,17 @@ pub(crate) enum ExportColumn {
     },
 }
 
+// Query node properties are a niche feature, so rather than giving them their own
+// column type as in `annimate_core`, the UI offers them as additional options of the
+// match-annotation column. An `AnnoMatch` column therefore maps to either
+// `AnnoMatch` or `QueryNodeProperty` on the core side.
+#[derive(Deserialize, Serialize)]
+#[serde(tag = "type", rename_all = "snake_case")]
+pub(crate) enum AnnoKeyOrQueryNodePropertyKey {
+    AnnoKey { key: AnnoKey },
+    QueryNodePropertyKey { key: QueryNodePropertyKey },
+}
+
 #[derive(Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub(crate) struct QueryNodeRef {
@@ -607,11 +648,29 @@ impl TryFrom<ExportColumn> for TableExportColumn {
                     anno_key: anno_key.ok_or(ConversionError)?,
                 }))
             }
-            ExportColumn::AnnoMatch { anno_key, node_ref } => {
-                TableExportColumn::Data(ExportData::Value(ExportDataValue::MatchNodeAnno {
-                    anno_key: anno_key.ok_or(ConversionError)?,
-                    index: node_ref.ok_or(ConversionError)?.index,
-                }))
+            ExportColumn::AnnoMatch {
+                anno_key_or_query_node_property_key,
+                node_ref,
+            } => {
+                let index = node_ref.ok_or(ConversionError)?.index;
+
+                match anno_key_or_query_node_property_key {
+                    None => return Err(ConversionError),
+                    Some(AnnoKeyOrQueryNodePropertyKey::AnnoKey { key }) => {
+                        TableExportColumn::Data(ExportData::Value(ExportDataValue::MatchNodeAnno {
+                            anno_key: key,
+                            index,
+                        }))
+                    }
+                    Some(AnnoKeyOrQueryNodePropertyKey::QueryNodePropertyKey { key }) => {
+                        TableExportColumn::Data(ExportData::Value(
+                            ExportDataValue::QueryNodeProperty {
+                                query_node_property_key: key,
+                                match_node_index: index,
+                            },
+                        ))
+                    }
+                }
             }
             ExportColumn::AnnoEdge {
                 edge_type,

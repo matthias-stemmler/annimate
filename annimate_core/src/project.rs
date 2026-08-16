@@ -22,6 +22,7 @@ use graphannis::graph::AnnoKey;
 use serde::Deserialize;
 
 use crate::anno::{AnnoKeyOrDefault, EdgeType, ExportableEdgeComponentType};
+use crate::aql::QueryNodePropertyKey;
 use crate::error::{AnnimateError, AnnimateReadFileError};
 use crate::util;
 
@@ -100,7 +101,7 @@ pub enum ProjectExportColumn {
     #[serde(rename = "query-node-property")]
     QueryNodeProperty {
         #[serde(rename = "property")]
-        key: ProjectQueryNodePropertyKey,
+        query_node_property_key: QueryNodePropertyKey,
         #[serde(rename = "node-index")]
         match_node_index: Option<u32>,
     },
@@ -121,17 +122,6 @@ pub enum ProjectContext {
         /// Context size on the right.
         right: u32,
     },
-}
-
-/// Query node property key as configured in a project.
-///
-/// See [`crate::aql::QueryNodePropertyKey`].
-#[allow(missing_docs)]
-#[derive(Debug, Deserialize)]
-#[serde(rename_all = "kebab-case")]
-pub enum ProjectQueryNodePropertyKey {
-    Fragment,
-    Variable,
 }
 
 /// Export format as configured in a project.
@@ -378,14 +368,14 @@ fn to_string_pretty(project_file: ProjectFile) -> String {
                         }
                     }
                     ProjectExportColumn::QueryNodeProperty {
-                        key,
+                        query_node_property_key,
                         match_node_index,
                     } => {
                         table["type"] = "query-node-property".into();
 
-                        table["property"] = match key {
-                            ProjectQueryNodePropertyKey::Fragment => "fragment".into(),
-                            ProjectQueryNodePropertyKey::Variable => "variable".into(),
+                        table["property"] = match query_node_property_key {
+                            QueryNodePropertyKey::Fragment => "fragment".into(),
+                            QueryNodePropertyKey::Variable => "variable".into(),
                         };
 
                         if let Some(match_node_index) = match_node_index {
