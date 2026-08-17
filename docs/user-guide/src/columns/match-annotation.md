@@ -39,10 +39,28 @@ In a match for this query, the nodes matched by `#1` and `#2` are never the same
 
 Of course, in the example you can achieve the same by just selecting the query node `#2 inflection=/.*GEN.*/` instead, but it is especially useful when you want to export an annotation that is not mentioned explicitly in the query. For instance, say you want to export the `lemma` annotation of the genitive node. Then you can select `lemma` and either `#1 pos=/N.*/` or `#2 inflection=/.*GEN.*/` and you will get a result despite the fact that neither of the two matched nodes actually has a value for `lemma`. This is because there is another node which is not mentioned in the query, whose token coverage overlaps (in fact, coincides with) that of `#1` and `#2` and which has a value for `lemma`.
 
-Note that when your query is an "or" query with multiple alternatives, for technical reasons Annimate doesn't know which of the alternatives actually applied for any particular match. This is why the list under "Query node" may show multiple nodes grouped in one entry. For instance, for the query
+Note that when your query is an "or" query with multiple alternatives, the list under "Query node" may show multiple nodes grouped in one entry. This is because a column is configured once for the entire export, while which alternative applies may differ from one match to another. For instance, for the query
 
 ```
 pos=/N.*/ | pos=/V.*/
 ```
 
 you will just see a single entry showing `#1 pos=/N.*/` and `#2 pos=/V.*/` next to each other. The export for each match will then contain the selected annotation either for `#1` or for `#2`, depending on which alternative applied for that particular match.
+
+There may be cases where, instead of exporting an annotation of the selected node, you want to know directly which of the nodes shown next to each other actually applied for a particular match. To support this, the list under "Annotation" contains two additional entries at the end, shown under the "Query node" label: _Fragment_ and _Variable_. Unlike the other entries, these do not depend on the corpus data, so they are available for any selection of corpora, as long as the list contains at least one annotation. When you select _Fragment_, the column will contain the fragment of the query applying to the selected node. In the example above, this would be either `pos=/N.*/` or `pos=/V.*/`, depending on which alternative applied. When you select _Variable_, the column will contain the corresponding variable name, for example `1` or `2`.
+
+Note that the AQL syntax allows you to use your own variable names rather than the numerical variable names `1`, `2`, etc. that are assigned automatically. For instance, for the query
+
+```
+noun#pos=/N.*/ | verb#pos=/V.*/
+```
+
+the variable name would be `noun` or `verb`, depending on the alternative.
+
+Finally, note that not every entry under "Query node" has a node in every alternative. For instance, for the query
+
+```
+pos=/N.*/ | pos=/V.*/ . pos=/A.*/
+```
+
+the list shows a first entry with `#1 pos=/N.*/` and `#2 pos=/V.*/` next to each other, but a second entry with only `#3 pos=/A.*/`, which is part of the second alternative alone. Whenever the first alternative applies for a match, a column referring to that second entry will be empty. This is true for annotations as well as for _Fragment_ and _Variable_.
