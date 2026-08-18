@@ -8,7 +8,7 @@ pre-release-replacements = [
     { file = "../../CITATION.cff", search = "^version: \\d+\\.\\d+\\.\\d+$", replace = "version: {{version}}", exactly = 1 },
     { file = "../../CITATION.cff", search = "date-released: \"\\d{4}-\\d{2}-\\d{2}\"", replace = "date-released: \"{{date}}\"", exactly = 1 },
     { file = "../../README.md", search = "\\/v\\d+\\.\\d+\\.\\d+\\/", replace = "/v{{version}}/", exactly = 5 },
-    { file = "../../README.md", search = "Annimate_\\d+\\.\\d+\\.\\d+", replace = "Annimate_{{version}}", exactly = 6 },
+    { file = "../../README.md", search = "Annimate_\\d+\\.\\d+\\.\\d+", replace = "Annimate_{{version}}", exactly = 10 },
     { file = "../../docs/user-guide/src/installation.md", search = "\\/v\\d+\\.\\d+\\.\\d+\\/", replace = "/v{{version}}/", exactly = 5 },
-    { file = "../../docs/user-guide/src/installation.md", search = "Annimate_\\d+\\.\\d+\\.\\d+", replace = "Annimate_{{version}}", exactly = 6 },
+    { file = "../../docs/user-guide/src/installation.md", search = "Annimate_\\d+\\.\\d+\\.\\d+", replace = "Annimate_{{version}}", exactly = 10 },
 ]
