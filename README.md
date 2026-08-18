@@ -29,13 +29,13 @@ Annimate is available as a desktop application for Windows, Linux and macOS. The
 > [!IMPORTANT]
 > Please read the [Installation](https://matthias-stemmler.github.io/annimate/user-guide/installation.html) section of the User Guide before installing, especially on macOS.
 
-| Operating system | Format         | Installation required? | Auto-updates supported? | Download link                      |
-| ---------------- | -------------- | ---------------------- | ----------------------- | ---------------------------------- |
-| Windows          | Installer      | ➕                     | ✅                      | [Annimate_1.8.1_x64-setup.exe][1]  |
-| Linux            | AppImage       | ➖                     | ✅                      | [Annimate_1.8.1_amd64.AppImage][2] |
-| Linux            | Debian package | ➕                     | ✅                      | [Annimate_1.8.1_amd64.deb][3]      |
-| macOS (silicon)  | App Bundle     | ➕                     | ✅                      | [Annimate_aarch64.app.tar.gz][4]   |
-| macOS (Intel)    | App Bundle     | ➕                     | ✅                      | [Annimate_x64.app.tar.gz][5]       |
+| Operating system | Format         | Installation required? | Auto-updates supported? | Download link                          |
+| ---------------- | -------------- | ---------------------- | ----------------------- | -------------------------------------- |
+| Windows          | Installer      | ➕                     | ✅                      | [Annimate_1.8.1_x64-setup.exe][1]      |
+| Linux            | AppImage       | ➖                     | ✅                      | [Annimate_1.8.1_amd64.AppImage][2]     |
+| Linux            | Debian package | ➕                     | ✅                      | [Annimate_1.8.1_amd64.deb][3]          |
+| macOS (silicon)  | App Bundle     | ➕                     | ✅                      | [Annimate_1.8.1_aarch64.app.tar.gz][4] |
+| macOS (Intel)    | App Bundle     | ➕                     | ✅                      | [Annimate_1.8.1_x64.app.tar.gz][5]     |
 
 For a list of previous releases, see the [releases page](https://github.com/matthias-stemmler/annimate/releases).
 
@@ -62,8 +62,8 @@ Licensed under the Apache License, Version 2.0 (see [LICENSE](LICENSE) or https:
 [1]: https://github.com/matthias-stemmler/annimate/releases/download/v1.8.1/Annimate_1.8.1_x64-setup.exe
 [2]: https://github.com/matthias-stemmler/annimate/releases/download/v1.8.1/Annimate_1.8.1_amd64.AppImage
 [3]: https://github.com/matthias-stemmler/annimate/releases/download/v1.8.1/Annimate_1.8.1_amd64.deb
-[4]: https://github.com/matthias-stemmler/annimate/releases/download/v1.8.1/Annimate_aarch64.app.tar.gz
-[5]: https://github.com/matthias-stemmler/annimate/releases/download/v1.8.1/Annimate_x64.app.tar.gz
+[4]: https://github.com/matthias-stemmler/annimate/releases/download/v1.8.1/Annimate_1.8.1_aarch64.app.tar.gz
+[5]: https://github.com/matthias-stemmler/annimate/releases/download/v1.8.1/Annimate_1.8.1_x64.app.tar.gz
 
 [^1]:
     **Krause, Thomas & Zeldes, Amir** (2016):

@@ -104,8 +104,8 @@ Check the [Apple Support](https://support.apple.com/en-us/116943) to find out wh
 In order to install Annimate, go through the following steps:
 
 1. Download the `.tar.gz` file from GitHub:
-   - [Annimate_aarch64.app.tar.gz][4] for Apple silicon processors
-   - [Annimate_x64.app.tar.gz][5] for Intel processors
+   - [Annimate_1.8.1_aarch64.app.tar.gz][4] for Apple silicon processors
+   - [Annimate_1.8.1_x64.app.tar.gz][5] for Intel processors
 2. Double-click on the `.tar.gz` file in your `Downloads` folder to extract it:
    ![Screenshot of macOS archive file](img/macos-archive.png)
 
@@ -157,8 +157,8 @@ For reference, you can find the most recent and all previous releases of Annimat
 [1]: https://github.com/matthias-stemmler/annimate/releases/download/v1.8.1/Annimate_1.8.1_x64-setup.exe
 [2]: https://github.com/matthias-stemmler/annimate/releases/download/v1.8.1/Annimate_1.8.1_amd64.AppImage
 [3]: https://github.com/matthias-stemmler/annimate/releases/download/v1.8.1/Annimate_1.8.1_amd64.deb
-[4]: https://github.com/matthias-stemmler/annimate/releases/download/v1.8.1/Annimate_aarch64.app.tar.gz
-[5]: https://github.com/matthias-stemmler/annimate/releases/download/v1.8.1/Annimate_x64.app.tar.gz
+[4]: https://github.com/matthias-stemmler/annimate/releases/download/v1.8.1/Annimate_1.8.1_aarch64.app.tar.gz
+[5]: https://github.com/matthias-stemmler/annimate/releases/download/v1.8.1/Annimate_1.8.1_x64.app.tar.gz
 
 ## What's Next?
 
