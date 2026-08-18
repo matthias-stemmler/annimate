@@ -2,6 +2,10 @@
 
 ## [Unreleased] - (release date)
 
+### Changed
+
+- The download files for macOS now include the version number in their names, as on the other platforms.
+
 ## [1.8.1] - 2026-06-14
 
 ### Changed
