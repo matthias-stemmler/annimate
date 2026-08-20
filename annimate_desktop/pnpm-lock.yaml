@@ -226,7 +226,7 @@ catalogs:
 overrides:
   '@puppeteer/browsers@<3.0.2': 3.2.1
   deepmerge-ts@<8.0.0: 8.0.1
-  nanoid@<3.3.18: 3.3.18
+  nanoid@<3.3.18: 6.0.1
   serialize-javascript@<7.0.5: 7.1.0
 
 importers:
@@ -3848,9 +3848,9 @@ packages:
     resolution: {integrity: sha512-WWdIxpyjEn+FhQJQQv9aQAYlHoNVdzIzUySNV1gHUPDSdZJ3yZn7pAAbQcV7B56Mvu881q9FZV+0Vx2xC44VWA==}
     engines: {node: ^18.17.0 || >=20.5.0}
 
-  nanoid@3.3.18:
-    resolution: {integrity: sha512-DTg4MJbGMWkfi6VZFdNt2/caMbQy4Ou+Op/hJQvGEWcnVfoA1QA+xzRKAzw9jD6+GVOOeYr/mIcuDSdug6F6+w==}
-    engines: {node: ^10 || ^12 || ^13.7 || ^14 || >=15.0.1}
+  nanoid@6.0.1:
+    resolution: {integrity: sha512-3wVS3i51pE2pi1k5FFL/95BGfVS0kSsvDVuGXHOtxox/TywUmtgq+3qiTOTbs9J7KfHaXPiN171k/A6dBnaXFw==}
+    engines: {node: ^22 || ^24 || >=26}
     hasBin: true
 
   natural-compare@1.4.0:
@@ -8403,7 +8403,7 @@ snapshots:
 
   mute-stream@2.0.0: {}
 
-  nanoid@3.3.18: {}
+  nanoid@6.0.1: {}
 
   natural-compare@1.4.0: {}
 
@@ -8556,7 +8556,7 @@ snapshots:
 
   postcss@8.5.25:
     dependencies:
-      nanoid: 3.3.18
+      nanoid: 6.0.1
       picocolors: 1.1.1
       source-map-js: 1.2.1
 
