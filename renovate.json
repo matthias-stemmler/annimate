@@ -42,6 +42,12 @@
       "groupSlug": "npm-dev-non-major"
     },
     {
+      "matchManagers": ["npm"],
+      "matchDepTypes": ["overrides"],
+      "enabled": false,
+      "description": "Overrides are security floor pins that have done their job once they are at the fixed version, so there is no reason to keep them current"
+    },
+    {
       "matchPackageNames": ["graphannis", "graphannis-core"],
       "groupName": "graphANNIS monorepo",
       "groupSlug": "graphannis-monorepo"
