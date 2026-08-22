@@ -62,7 +62,7 @@ The following column types are available. For details on each column type, refer
 On the lower right of the Annimate main screen, you can choose between one of two formats for the export:
 
 - **CSV**: This produces a `.csv` file containing a table in the _Comma-Separated Values_ format. This format is not specific to any particular software and can be imported into all spreadsheet tools (including Microsoft Excel) or even opened with a text editor.
-- **Excel**: This produces an `.xlsx` file containing an Excel workbook. Since it doesn't make use of advanced features of Microsoft Excel, it can also be opened with most other spreadsheet tools such as [LibreOffice Calc](https://www.libreoffice.org/discover/calc/).
+- **Excel**: This produces an `.xlsx` file containing an Excel workbook. Since it doesn't make use of advanced features of Microsoft Excel, it can also be opened with most other spreadsheet tools such as [LibreOffice Calc](https://www.libreoffice.org/).
 
 ![Screenshot showing export format selector](img/export-format.png)
 
@@ -94,7 +94,7 @@ The `.csv` files produced by Annimate are human-readable and can be opened with 
 - **Delimiter**: Comma
 - **Includes header row**: Yes
 
-In order to import a CSV file into Microsoft Excel, follow the steps in the [Excel documentation](https://support.microsoft.com/en-us/office/import-or-export-text-txt-or-csv-files-5250ac4c-663c-47ce-937b-339e391393ba). We recommend the approach documented under "Import a text file by connecting to it" (not "Import a text file by opening it in Excel") since it gives you more control over how Excel interprets the data.
+In order to import a CSV file into Microsoft Excel, follow the steps in the [Excel documentation](https://support.microsoft.com/en-US/Excel/get-started/import-or-export-text-txt-or-csv-files). We recommend the approach documented under "Import a text file by connecting to it" (not "Import a text file by opening it in Excel") since it gives you more control over how Excel interprets the data.
 
 #### Excel Files
 
