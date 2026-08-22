@@ -31,11 +31,11 @@ Annimate is available as a desktop application for Windows, Linux and macOS. The
 
 | Operating system | Format         | Installation required? | Auto-updates supported? | Download link                          |
 | ---------------- | -------------- | ---------------------- | ----------------------- | -------------------------------------- |
-| Windows          | Installer      | ➕                     | ✅                      | [Annimate_1.8.1_x64-setup.exe][1]      |
-| Linux            | AppImage       | ➖                     | ✅                      | [Annimate_1.8.1_amd64.AppImage][2]     |
-| Linux            | Debian package | ➕                     | ✅                      | [Annimate_1.8.1_amd64.deb][3]          |
-| macOS (silicon)  | App Bundle     | ➕                     | ✅                      | [Annimate_1.8.1_aarch64.app.tar.gz][4] |
-| macOS (Intel)    | App Bundle     | ➕                     | ✅                      | [Annimate_1.8.1_x64.app.tar.gz][5]     |
+| Windows          | Installer      | ➕                     | ✅                      | [Annimate_1.9.0_x64-setup.exe][1]      |
+| Linux            | AppImage       | ➖                     | ✅                      | [Annimate_1.9.0_amd64.AppImage][2]     |
+| Linux            | Debian package | ➕                     | ✅                      | [Annimate_1.9.0_amd64.deb][3]          |
+| macOS (silicon)  | App Bundle     | ➕                     | ✅                      | [Annimate_1.9.0_aarch64.app.tar.gz][4] |
+| macOS (Intel)    | App Bundle     | ➕                     | ✅                      | [Annimate_1.9.0_x64.app.tar.gz][5]     |
 
 For a list of previous releases, see the [releases page](https://github.com/matthias-stemmler/annimate/releases).
 
@@ -59,11 +59,11 @@ See [CHANGELOG.md](CHANGELOG.md)
 
 Licensed under the Apache License, Version 2.0 (see [LICENSE](LICENSE) or https://www.apache.org/licenses/LICENSE-2.0)
 
-[1]: https://github.com/matthias-stemmler/annimate/releases/download/v1.8.1/Annimate_1.8.1_x64-setup.exe
-[2]: https://github.com/matthias-stemmler/annimate/releases/download/v1.8.1/Annimate_1.8.1_amd64.AppImage
-[3]: https://github.com/matthias-stemmler/annimate/releases/download/v1.8.1/Annimate_1.8.1_amd64.deb
-[4]: https://github.com/matthias-stemmler/annimate/releases/download/v1.8.1/Annimate_1.8.1_aarch64.app.tar.gz
-[5]: https://github.com/matthias-stemmler/annimate/releases/download/v1.8.1/Annimate_1.8.1_x64.app.tar.gz
+[1]: https://github.com/matthias-stemmler/annimate/releases/download/v1.9.0/Annimate_1.9.0_x64-setup.exe
+[2]: https://github.com/matthias-stemmler/annimate/releases/download/v1.9.0/Annimate_1.9.0_amd64.AppImage
+[3]: https://github.com/matthias-stemmler/annimate/releases/download/v1.9.0/Annimate_1.9.0_amd64.deb
+[4]: https://github.com/matthias-stemmler/annimate/releases/download/v1.9.0/Annimate_1.9.0_aarch64.app.tar.gz
+[5]: https://github.com/matthias-stemmler/annimate/releases/download/v1.9.0/Annimate_1.9.0_x64.app.tar.gz
 
 [^1]:
     **Krause, Thomas & Zeldes, Amir** (2016):
