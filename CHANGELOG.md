@@ -2,6 +2,8 @@
 
 ## [Unreleased] - (release date)
 
+## [1.9.0] - 2026-08-22
+
 ### Added
 
 - Added a "Query node" section at the end of the options under "Annotation" for "Match annotation" columns, which can be used to export the query fragment or the variable of the selected query node instead of one of its annotations. For queries with multiple alternatives, this tells you which alternative applied for each match. See the User Guide for details.
@@ -186,7 +188,8 @@
 Initial version
 
 <!-- next-url -->
-[Unreleased]: https://github.com/matthias-stemmler/annimate/compare/v1.8.1...HEAD
+[Unreleased]: https://github.com/matthias-stemmler/annimate/compare/v1.9.0...HEAD
+[1.9.0]: https://github.com/matthias-stemmler/annimate/compare/v1.8.1...v1.9.0
 [1.8.1]: https://github.com/matthias-stemmler/annimate/compare/v1.8.0...v1.8.1
 [1.8.0]: https://github.com/matthias-stemmler/annimate/compare/v1.7.0...v1.8.0
 [1.7.0]: https://github.com/matthias-stemmler/annimate/compare/v1.6.0...v1.7.0
