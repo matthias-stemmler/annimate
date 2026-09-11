@@ -62,8 +62,8 @@ tauri-plugin-window-state = "2.4.1"
 tempfile = "3.27.0"
 thiserror = "2.0.20"
 tokio = "1.53.1"
-toml = "1.1.4"
-toml_edit = "0.25.13"
+toml = "1.1.6"
+toml_edit = "0.25.15"
 zip = "8.6.0"
 
 [profile.release]
