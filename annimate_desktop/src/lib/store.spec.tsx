@@ -312,7 +312,6 @@ describe('store', () => {
   afterEach(() => {
     cleanup();
     clearMocks();
-    vi.clearAllMocks();
   });
 
   test('selecting corpus sets and corpora', async () => {
