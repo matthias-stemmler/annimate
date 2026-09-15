@@ -45,7 +45,7 @@ catalog:
   '@tauri-apps/plugin-process': ^2.3.1
   '@tauri-apps/plugin-updater': ^2.11.0
   '@tauri-apps/plugin-window-state': ^2.4.1
-  '@testing-library/dom': ^10.4.1
+  '@testing-library/dom': ^10.4.2
   '@testing-library/react': ^16.3.3
   '@types/babel__core': ^7.20.5
   '@types/node': ^25.9.6
@@ -55,10 +55,10 @@ catalog:
   # until typescript-eslint supports v7: https://github.com/typescript-eslint/typescript-eslint/issues/12518
   '@typescript/native': 'npm:typescript@^7.0.2'
   '@vitejs/plugin-react': ^6.1.1
-  '@wdio/cli': ^9.31.7
+  '@wdio/cli': ^9.31.9
   '@wdio/globals': ^9.31.3
-  '@wdio/local-runner': ^9.31.7
-  '@wdio/mocha-framework': ^9.31.7
+  '@wdio/local-runner': ^9.31.9
+  '@wdio/mocha-framework': ^9.31.9
   '@wdio/spec-reporter': ^9.31.2
   '@wdio/types': ^9.31.2
   babel-plugin-react-compiler: ^1.0.0
@@ -66,9 +66,9 @@ catalog:
   clsx: ^2.1.1
   eslint: ^10.10.0
   eslint-plugin-react-hooks: ^7.1.1
-  eslint-plugin-react-refresh: ^0.5.6
+  eslint-plugin-react-refresh: ^0.5.7
   jsdom: ^30.0.1
-  lucide-react: ^1.45.0
+  lucide-react: ^1.46.0
   prettier: ^3.9.6
   prettier-plugin-tailwindcss: ^0.8.1
   react: ^19.3.0
@@ -76,7 +76,7 @@ catalog:
   react-markdown: ^10.1.0
   react-resizable-panels: ^4.12.4
   react-router: ^8.3.1
-  tailwind-merge: ^3.6.0
+  tailwind-merge: ^3.7.0
   tailwindcss: ^4.3.3
   tailwindcss-animate: ^1.0.7
   tsx: ^4.23.13
