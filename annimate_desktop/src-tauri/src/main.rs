@@ -36,9 +36,7 @@ fn main() {
     tauri::async_runtime::set(runtime.handle().clone());
 
     tauri::Builder::default()
-        .plugin(tauri_plugin_dialog::init())
-        .plugin(tauri_plugin_opener::init())
-        .plugin(tauri_plugin_process::init())
+        // Must be registered first, see https://v2.tauri.app/plugin/single-instance/
         .plugin(tauri_plugin_single_instance::init(|app, _, _| {
             // In case this instance is terminated because another instance is already running,
             // focus the main window of the running instance (ignoring errors, because this is not
@@ -47,6 +45,9 @@ fn main() {
                 let _ = window.set_focus();
             }
         }))
+        .plugin(tauri_plugin_dialog::init())
+        .plugin(tauri_plugin_opener::init())
+        .plugin(tauri_plugin_process::init())
         .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(
             tauri_plugin_window_state::Builder::new()
