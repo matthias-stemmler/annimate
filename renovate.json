@@ -38,7 +38,9 @@
     {
       "matchPackageNames": ["tauri", "tauri-*", "@tauri-apps/**"],
       "groupName": "Tauri monorepo",
-      "groupSlug": "tauri-monorepo"
+      "groupSlug": "tauri-monorepo",
+      "minimumReleaseAge": "1440 minutes",
+      "description": "Crates and NPM packages must be updated together, so hold back the crates as long as the NPM packages"
     },
     {
       "matchPackageNames": ["toml", "toml_edit"],
