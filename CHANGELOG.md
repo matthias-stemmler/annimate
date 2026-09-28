@@ -2,6 +2,10 @@
 
 ## [Unreleased] - (release date)
 
+### Fixed
+
+- The Linux AppImage now also starts when it is run in a sandbox such as Firejail.
+
 ## [1.9.0] - 2026-08-22
 
 ### Added
