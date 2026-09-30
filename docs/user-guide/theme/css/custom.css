@@ -2,3 +2,9 @@
 #mdbook-sidebar .on-this-page {
     display: none;
 }
+
+/* mdBook >= 0.5.4 wraps images in a block-level label for its zoom feature,
+   which breaks inline icons out of their paragraphs. */
+.content .checkbox-label {
+    display: inline;
+}
