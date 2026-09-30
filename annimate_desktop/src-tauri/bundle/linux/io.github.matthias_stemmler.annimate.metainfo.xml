@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>io.github.matthias_stemmler.annimate</id>
+  <name>Annimate</name>
+  <summary>Your Friendly ANNIS Match Exporter</summary>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>Apache-2.0</project_license>
+  <description>
+    <p>
+      Annimate (for ANNIS Match Exporter) is a tool for the convenient export of query results (matches) from the ANNIS system for linguistic corpora.
+    </p>
+    <p>
+      It is meant as a supplement to the ANNIS web interface and focuses on file export (as opposed to visualization) of the results of an ANNIS query.
+    </p>
+    <p>Annimate can produce a CSV or an Excel file with one row per match, showing</p>
+    <ul>
+      <li>the matched nodes in their context in a KWIC (Key Word in Context) format,</li>
+      <li>additional annotations of the matched nodes and the edges between them, and</li>
+      <li>metadata on the corpus and document levels.</li>
+    </ul>
+    <p>
+      It is similar in functionality to a combination of the ANNIS TextColumnExporter and CSVExporter, but provides a friendlier user interface.
+    </p>
+  </description>
+  <launchable type="desktop-id">Annimate.desktop</launchable>
+  <url type="homepage">https://github.com/matthias-stemmler/annimate</url>
+  <url type="help">https://matthias-stemmler.github.io/annimate/user-guide/</url>
+  <url type="bugtracker">https://github.com/matthias-stemmler/annimate/issues</url>
+  <url type="vcs-browser">https://github.com/matthias-stemmler/annimate</url>
+  <screenshots>
+    <screenshot type="default">
+      <caption>The main window with a query, selected corpora and export columns</caption>
+      <image>https://raw.githubusercontent.com/matthias-stemmler/annimate/v1.9.1/docs/readme/images/screenshot.png</image>
+    </screenshot>
+  </screenshots>
+</component>
