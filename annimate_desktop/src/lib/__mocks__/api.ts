@@ -186,14 +186,17 @@ const IMPORT_CORPORA: MockImportCorpus[] = [
   },
 ];
 
-Object.defineProperty(window, '__ANNIMATE__', {
-  value: {
-    versionInfo: {
-      annimateVersion: '<mock>',
-      graphannisVersion: '<mock>',
+// When running in Tauri, the real value has already been injected and cannot be redefined
+if (!('__ANNIMATE__' in window)) {
+  Object.defineProperty(window, '__ANNIMATE__', {
+    value: {
+      versionInfo: {
+        annimateVersion: '<mock>',
+        graphannisVersion: '<mock>',
+      },
     },
-  },
-});
+  });
+}
 
 const getMatchCountForCorpus = (corpusName: string): number => {
   switch (corpusName) {
