@@ -8,47 +8,35 @@ import { defineConfig } from 'vite';
 import svgr from 'vite-plugin-svgr';
 
 // https://vitejs.dev/config/
-export default defineConfig(async () => {
-  const isMock = !!process.env.VITE_MOCK;
-
-  if (isMock) {
-    console.log('--- Running in mock mode ---');
-  }
-
-  return {
-    build: {
-      chunkSizeWarningLimit: 1024,
+export default defineConfig({
+  build: {
+    chunkSizeWarningLimit: 1024,
+  },
+  clearScreen: false,
+  plugins: [
+    react(),
+    babel({ presets: [reactCompilerPreset()] }),
+    svgr(),
+    tailwindcss(),
+  ],
+  resolve: {
+    alias: {
+      '@': path.resolve(import.meta.dirname, './src'),
     },
-    clearScreen: false,
-    plugins: [
-      react(),
-      babel({ presets: [reactCompilerPreset()] }),
-      svgr(),
-      tailwindcss(),
-    ],
-    resolve: {
-      alias: {
-        '@/lib/api': path.resolve(
-          import.meta.dirname,
-          isMock ? './src/lib/__mocks__/api.ts' : './src/lib/api.ts',
-        ),
-        '@': path.resolve(import.meta.dirname, './src'),
-      },
+  },
+  server: {
+    port: 1420,
+    strictPort: true,
+    watch: {
+      ignored: ['**/src-tauri/**'],
     },
-    server: {
-      port: 1420,
-      strictPort: true,
-      watch: {
-        ignored: ['**/src-tauri/**'],
-      },
+  },
+  test: {
+    environment: 'jsdom',
+    include: ['src/**/*.{test,spec}.?(c|m)[jt]s?(x)'],
+    sequence: {
+      shuffle: true,
     },
-    test: {
-      environment: 'jsdom',
-      include: ['src/**/*.{test,spec}.?(c|m)[jt]s?(x)'],
-      sequence: {
-        shuffle: true,
-      },
-      setupFiles: ['src/setup-tests.ts'],
-    },
-  };
+    setupFiles: ['src/setup-tests.ts'],
+  },
 });

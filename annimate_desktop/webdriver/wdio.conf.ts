@@ -1,4 +1,5 @@
 import { spawn, spawnSync, type ChildProcess } from 'node:child_process';
+import { createRequire } from 'node:module';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -29,23 +30,27 @@ export const config: WebdriverIO.Config = {
   },
 
   onPrepare: () => {
+    const desktopDir = path.resolve(__dirname, '..');
+
     // Pretend old version to test the update mechanism
     // Note that the version shown in the About dialog is still taken from `Cargo.toml` via annimate_core
     const configFile = path.resolve(
-      __dirname,
-      '..',
-      'webdriver-version-override.json',
+      desktopDir,
+      'src-tauri',
+      'tauri.conf.webdriver.json',
     );
 
+    const tauriCli = createRequire(
+      path.resolve(desktopDir, 'package.json'),
+    ).resolve('@tauri-apps/cli/tauri.js');
+
     const result = spawnSync(
-      'pnpm',
-      ['tauri', 'build', '--debug', '--no-bundle', '--config', configFile],
+      process.execPath,
+      [tauriCli, 'build', '--debug', '--no-bundle', '--config', configFile],
       {
-        cwd: path.resolve(__dirname, '..'),
+        cwd: desktopDir,
         env: { ...process.env, NODE_ENV: 'production' },
         stdio: 'inherit',
-        // Required on Windows where `pnpm` is a batch file, not a native executable
-        shell: true,
       },
     );
     if (result.status !== 0) {

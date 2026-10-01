@@ -38,9 +38,10 @@ export default defineConfig(
     ignores: ['dist/**', 'src-tauri/**'],
   },
 
-  // Disallow imports without '@/*' and from '@tauri-apps/*'
+  // Disallow imports without '@/*' and from '@tauri-apps/*' in app code
   // (with exceptions, see below)
   {
+    files: ['src/**'],
     rules: {
       'no-restricted-imports': [
         'error',

@@ -1,8 +1,8 @@
 // Mock version of api.ts
 // This enables testing of the app in a real browser without Tauri
 //
-// Enable by setting the `VITE_MOCK` environment variable
-// Use these values for testing special cases:
+// Run with `pnpm dev:mock` (browser) or `pnpm tauri:dev:mock` (Tauri window)
+// Set the `VITE_MOCK` environment variable to test special cases:
 // - `VITE_MOCK=update`: Update available
 // - `VITE_MOCK=update-fail-fetch`: Cannot fetch update
 // - `VITE_MOCK=update-fail-download`: Cannot download update
