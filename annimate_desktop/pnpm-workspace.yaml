@@ -8,6 +8,12 @@ allowBuilds:
   esbuild: true
   geckodriver: true
 
+auditConfig:
+  ignoreGhsas:
+    # braces via @wdio/mocha-framework > mocha@10 > chokidar@3, no patched version exists;
+    # remove once @wdio/mocha-framework v10 (mocha 12, chokidar 5) is stable
+    - GHSA-vfj7-8cjw-p6xm
+
 autoInstallPeers: false
 blockExoticSubdeps: true
 
@@ -92,8 +98,6 @@ minimumReleaseAge: 1440
 
 overrides:
   '@puppeteer/browsers@<3.0.2': '3.2.1'
-  deepmerge-ts@<8.0.0: '8.0.1'
-  nanoid@<3.3.18: '3.3.18'
   serialize-javascript@<7.0.5: '7.1.0'
 
 strictDepBuilds: true

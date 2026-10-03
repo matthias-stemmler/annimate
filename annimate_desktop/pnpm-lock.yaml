@@ -225,8 +225,6 @@ catalogs:
 
 overrides:
   '@puppeteer/browsers@<3.0.2': 3.2.1
-  deepmerge-ts@<8.0.0: 8.0.1
-  nanoid@<3.3.18: 3.3.18
   serialize-javascript@<7.0.5: 7.1.0
 
 importers:
@@ -1926,9 +1924,6 @@ packages:
     resolution: {integrity: sha512-e1TZmDCQnWIfiDVryIHeA6Idj+Lfx1hORLOhXS/l5wcgvtVD4yYqbTDl378sGQKIi2cSgb0TEMC9cKK8GGoJEw==}
     peerDependencies:
       react: ^18 || ^19
-
-  '@tauri-apps/api@2.12.0':
-    resolution: {integrity: sha512-fUSxFX8VABYe9W9K5ROdEaKVkNUFRcMSRofjruvaxztXA+I0XnQHcYHF8m/a6iExRUxsUf0HsFWhPBuH9IgzJw==}
 
   '@tauri-apps/api@2.12.1':
     resolution: {integrity: sha512-DeyFHa3wynpyoqTDikDEDGTJIq4LQ5USfolQGRmGIWT6JMADyxZBTDa5cAdT3tDg73rUXufPaCwN7aXBos4OnQ==}
@@ -6269,8 +6264,6 @@ snapshots:
       '@tanstack/query-core': 5.104.0
       react: 19.3.0
 
-  '@tauri-apps/api@2.12.0': {}
-
   '@tauri-apps/api@2.12.1': {}
 
   '@tauri-apps/cli-darwin-arm64@2.12.1':
@@ -6322,7 +6315,7 @@ snapshots:
 
   '@tauri-apps/plugin-dialog@2.8.1':
     dependencies:
-      '@tauri-apps/api': 2.12.0
+      '@tauri-apps/api': 2.12.1
 
   '@tauri-apps/plugin-opener@2.7.0':
     dependencies:
