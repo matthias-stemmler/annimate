@@ -53,7 +53,8 @@ See [CHANGELOG.md](CHANGELOG.md)
 
 ## Further Materials
 
-61\. Jahrestagung des Leibniz-Instituts für Deutsche Sprache "Deutsch im Wandel", [Methodenmesse](https://www.ids-mannheim.de/aktuell/veranstaltungen/tagungen/2025/methodenmesse/) am 12. März 2025, Congress Center Rosengarten Mannheim: [Poster](docs/readme/documents/2025-ids-methodenmesse-poster.pdf), [Abstract](https://www.ids-mannheim.de/fileadmin/aktuell/Jahrestagungen/2025/Methodenmesse/3_Annimate.pdf) (in German)
+- Digitale Forschungsdaten in der germanistischen Sprachgeschichtsforschung, [Pre-Conference-Workshop zur GGSG-Jahrestagung 2026](https://www.uni-due.de/imperia/md/content/germanistik/gillmann/workshop_forschungsdatenmanagement_ggsg2026.pdf), 6. Oktober 2026, Universität Duisburg-Essen, Campus Essen: [Poster](docs/readme/documents/2026-ggsg-preconference-poster.pdf) (in German)
+- 61\. Jahrestagung des Leibniz-Instituts für Deutsche Sprache "Deutsch im Wandel", [Methodenmesse](https://www.ids-mannheim.de/aktuell/veranstaltungen/tagungen/2025/methodenmesse/) am 12. März 2025, Congress Center Rosengarten Mannheim: [Poster](docs/readme/documents/2025-ids-methodenmesse-poster.pdf), [Abstract](https://www.ids-mannheim.de/fileadmin/aktuell/Jahrestagungen/2025/Methodenmesse/3_Annimate.pdf) (in German)
 
 ## License
 
