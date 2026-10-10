@@ -85,8 +85,8 @@ catalogs:
       specifier: ^5.104.1
       version: 5.104.1
     '@tauri-apps/api':
-      specifier: ^2.12.1
-      version: 2.12.1
+      specifier: ^2.12.2
+      version: 2.12.2
     '@tauri-apps/cli':
       specifier: ^2.12.1
       version: 2.12.1
@@ -100,8 +100,8 @@ catalogs:
       specifier: ^2.4.0
       version: 2.4.0
     '@tauri-apps/plugin-updater':
-      specifier: ^2.13.1
-      version: 2.13.1
+      specifier: ^2.13.2
+      version: 2.13.2
     '@tauri-apps/plugin-window-state':
       specifier: ^2.5.0
       version: 2.5.0
@@ -289,7 +289,7 @@ importers:
         version: 5.104.1(react@19.3.0)
       '@tauri-apps/api':
         specifier: 'catalog:'
-        version: 2.12.1
+        version: 2.12.2
       '@tauri-apps/plugin-dialog':
         specifier: 'catalog:'
         version: 2.8.1
@@ -301,7 +301,7 @@ importers:
         version: 2.4.0
       '@tauri-apps/plugin-updater':
         specifier: 'catalog:'
-        version: 2.13.1
+        version: 2.13.2
       '@tauri-apps/plugin-window-state':
         specifier: 'catalog:'
         version: 2.5.0
@@ -1917,6 +1917,9 @@ packages:
   '@tauri-apps/api@2.12.1':
     resolution: {integrity: sha512-DeyFHa3wynpyoqTDikDEDGTJIq4LQ5USfolQGRmGIWT6JMADyxZBTDa5cAdT3tDg73rUXufPaCwN7aXBos4OnQ==}
 
+  '@tauri-apps/api@2.12.2':
+    resolution: {integrity: sha512-cr0FYEsbSQIeEuIIoC8bwdiHW3YlziMYOZ0j3R7F6kkIHSVrrZnV6CSjv/VQvFoyuERGxFc8NMtLJDXi5wYOYg==}
+
   '@tauri-apps/cli-darwin-arm64@2.12.1':
     resolution: {integrity: sha512-8bMnbpJ2jKO/ufrOPL65EMHC3ptw7fzeraoQkwibyfGLqIl+UCWsC0152kmNbW6r9NvVQduXqAZF5mH1QgTWhw==}
     engines: {node: '>= 10'}
@@ -2002,8 +2005,8 @@ packages:
   '@tauri-apps/plugin-process@2.4.0':
     resolution: {integrity: sha512-GddrmsSLAYrLa/yTXlXK/YRDzUgYeeOnUXTbiyvJWkmI424RmDPD3FVLeqcon7rv6O6ZfhBilcrHWnSo7o6hIQ==}
 
-  '@tauri-apps/plugin-updater@2.13.1':
-    resolution: {integrity: sha512-+STDzJ0sdQLImjc63zkv6Nncimqeo6jyCWoTQtbSwgGLNj1qbP9I6LC4p5R5ocBk3gNKAZs6i/AJz0jxysytiw==}
+  '@tauri-apps/plugin-updater@2.13.2':
+    resolution: {integrity: sha512-ekGlOBis1gztzDVuLAI54p0117BJXzFiHzYlcq3slC0LKKsHNy6TvnIdcl9g5DLuGOnViVT6EShdQczCM50SZQ==}
 
   '@tauri-apps/plugin-window-state@2.5.0':
     resolution: {integrity: sha512-ySI/32fpC1ZTslIZ00/wf9HujyDnkG3OPL16uuLjG53y1hTgjIJ9G2VPuOL1IV8GVr3xeF6lnr6h2T73HuGXow==}
@@ -6142,6 +6145,8 @@ snapshots:
 
   '@tauri-apps/api@2.12.1': {}
 
+  '@tauri-apps/api@2.12.2': {}
+
   '@tauri-apps/cli-darwin-arm64@2.12.1':
     optional: true
 
@@ -6191,23 +6196,23 @@ snapshots:
 
   '@tauri-apps/plugin-dialog@2.8.1':
     dependencies:
-      '@tauri-apps/api': 2.12.1
+      '@tauri-apps/api': 2.12.2
 
   '@tauri-apps/plugin-opener@2.7.0':
     dependencies:
-      '@tauri-apps/api': 2.12.1
+      '@tauri-apps/api': 2.12.2
 
   '@tauri-apps/plugin-process@2.4.0':
     dependencies:
-      '@tauri-apps/api': 2.12.1
+      '@tauri-apps/api': 2.12.2
 
-  '@tauri-apps/plugin-updater@2.13.1':
+  '@tauri-apps/plugin-updater@2.13.2':
     dependencies:
       '@tauri-apps/api': 2.12.1
 
   '@tauri-apps/plugin-window-state@2.5.0':
     dependencies:
-      '@tauri-apps/api': 2.12.1
+      '@tauri-apps/api': 2.12.2
 
   '@testing-library/dom@10.4.2':
     dependencies:
