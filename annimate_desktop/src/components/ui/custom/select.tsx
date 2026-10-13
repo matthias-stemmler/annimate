@@ -54,7 +54,9 @@ export const Select = <T extends string>({
   return (
     <SelectUi
       disabled={disabled || loading || allOptions.length === 0}
-      onValueChange={onChange}
+      onValueChange={
+        onChange === undefined ? undefined : (value) => onChange(value as T)
+      }
       value={value ?? ''}
     >
       <SelectTrigger
