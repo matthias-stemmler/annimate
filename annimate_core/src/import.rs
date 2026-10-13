@@ -390,7 +390,9 @@ where
             }
             None => on_progress(&format!(
                 "skipping zip entry with unsafe path: {}",
-                entry.name(),
+                entry
+                    .name()
+                    .unwrap_or_else(|_| String::from_utf8_lossy(entry.name_raw())),
             )),
         }
     }
