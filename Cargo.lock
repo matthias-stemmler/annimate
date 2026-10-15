@@ -931,7 +931,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d045de693cb712d0b22c6a64be5b953f67b3ce00ab5ad3dd5d8b441886ab8e1a"
 dependencies = [
  "quote",
- "syn 2.0.119",
+ "syn 3.0.5",
 ]
 
 [[package]]
@@ -1879,9 +1879,9 @@ dependencies = [
 
 [[package]]
 name = "graphannis"
-version = "4.2.0"
+version = "4.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c56c2002ec503e4ffdafa8ff33b8a273adffdb1fd0208a28021aba8a38aa0786"
+checksum = "002e31560b2d10eb25494f47143632e998f0a201c1b76c3bd873fe4686860d43"
 dependencies = [
  "boolean_expression",
  "csv",
@@ -1921,9 +1921,9 @@ dependencies = [
 
 [[package]]
 name = "graphannis-core"
-version = "4.2.0"
+version = "4.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5a50b9b04b15ccaab865fcf9ab24ddfd83b509b6cb72b5e349aa9d2c73d136a5"
+checksum = "ddb5e7fc0bf3a02eb6c4aa04e461af1cfe1a0d3e9216c8c79f473ee928b78e4e"
 dependencies = [
  "binary-layout 4.0.2",
  "bincode",
@@ -5168,7 +5168,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "32497e9a4c7b38532efcdebeef879707aa9f794296a4f0244f6f69e9bc8574bd"
 dependencies = [
  "fastrand",
- "getrandom 0.3.4",
+ "getrandom 0.4.3",
  "once_cell",
  "rustix",
  "windows-sys 0.61.2",
