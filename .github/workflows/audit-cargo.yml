@@ -33,4 +33,14 @@ jobs:
           # unwinding is caught; graphannis only uses NodeID and
           # (NodeID, NodeID) keys, which do not implement Drop at all.
           # Remove once graphannis updates to lru >=0.18.2.
-          ignore: RUSTSEC-2026-0194,RUSTSEC-2026-0195,RUSTSEC-2026-0253
+          #
+          # RUSTSEC-2026-0367, RUSTSEC-2026-0368, RUSTSEC-2026-0369: Three zip
+          # advisories about symlinks and Unix permission bits during
+          # extraction, fixed in >=9.0.0. Reachable via graphannis, which
+          # declares ^8.5.1, and tauri-plugin-updater, which declares ^4, so
+          # there is nothing to bump to. graphannis never calls extract() but
+          # copies entries into plain files via enclosed_name(), so no symlinks
+          # or permissions are applied; tauri-plugin-updater only extracts on
+          # Windows, and only signature-verified update archives. Remove once
+          # both update to zip >=9.0.0.
+          ignore: RUSTSEC-2026-0194,RUSTSEC-2026-0195,RUSTSEC-2026-0253,RUSTSEC-2026-0367,RUSTSEC-2026-0368,RUSTSEC-2026-0369
