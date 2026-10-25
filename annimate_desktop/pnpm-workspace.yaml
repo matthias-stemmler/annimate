@@ -92,3 +92,10 @@ minimumReleaseAge: 1440
 
 strictDepBuilds: true
 verifyDepsBeforeRun: prompt
+
+overrides:
+  # GHSA-rj75-hqrm-r3gf: A postcss-selector-parser CPU exhaustion advisory,
+  # fixed in >=7.1.6. Only reachable via @tailwindcss/typography, which pins
+  # exactly 6.0.10. The built CSS is byte-identical with 7.x. Remove once
+  # @tailwindcss/typography updates to postcss-selector-parser >=7.1.6.
+  postcss-selector-parser@6.0.10: ^7.1.6
