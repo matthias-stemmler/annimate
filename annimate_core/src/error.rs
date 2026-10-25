@@ -46,8 +46,9 @@ pub enum AnnimateError {
     },
 
     /// Failed to write XLSX workbook
+    // Boxed to keep `AnnimateError` below Clippy's `result_large_err` threshold
     #[error("Failed to write XLSX workbook: {0}")]
-    FailedToWriteXlsxWorkbook(#[from] XlsxError),
+    FailedToWriteXlsxWorkbook(#[source] Box<XlsxError>),
 
     /// Match node index out of bounds.
     #[error("Match node index {index} out of bounds")]
@@ -107,6 +108,12 @@ impl AnnimateError {
 impl From<GraphAnnisCoreError> for AnnimateError {
     fn from(err: GraphAnnisCoreError) -> Self {
         GraphAnnisError::Core(err).into()
+    }
+}
+
+impl From<XlsxError> for AnnimateError {
+    fn from(err: XlsxError) -> Self {
+        Self::FailedToWriteXlsxWorkbook(Box::new(err))
     }
 }
 
