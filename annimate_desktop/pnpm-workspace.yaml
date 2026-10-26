@@ -74,7 +74,7 @@ catalog:
   react: ^19.3.1
   react-dom: ^19.3.1
   react-markdown: ^10.1.0
-  react-resizable-panels: ^4.14.8
+  react-resizable-panels: ^4.15.0
   react-router: ^8.5.0
   tailwind-merge: ^3.7.0
   tailwindcss: ^4.3.3
