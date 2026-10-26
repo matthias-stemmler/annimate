@@ -187,8 +187,8 @@ catalogs:
       specifier: ^10.1.0
       version: 10.1.0
     react-resizable-panels:
-      specifier: ^4.14.8
-      version: 4.14.8
+      specifier: ^4.15.0
+      version: 4.15.0
     react-router:
       specifier: ^8.5.0
       version: 8.5.0
@@ -328,7 +328,7 @@ importers:
         version: 10.1.0(@types/react@19.3.0)(react@19.3.1)(supports-color@8.1.1)
       react-resizable-panels:
         specifier: 'catalog:'
-        version: 4.14.8(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
+        version: 4.15.0(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
       react-router:
         specifier: 'catalog:'
         version: 8.5.0(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
@@ -3980,8 +3980,8 @@ packages:
       '@types/react':
         optional: true
 
-  react-resizable-panels@4.14.8:
-    resolution: {integrity: sha512-kVot7JCIZct85ZY87vww95R7tI25VSTjHpEAIIy2YcsOtbtwG6l1+vDD6TCYgmgE/JSp0ADqNooHn97Y6dMOFw==}
+  react-resizable-panels@4.15.0:
+    resolution: {integrity: sha512-DRjF1E8QHg4j5n6RcpxDoeP0C15T0w+dlEE9eyooGCwOE8rPPxfXt4OfhJjEuezzCG/JjRwh5ZHLVkakUJF+dA==}
     peerDependencies:
       react: ^18.0.0 || ^19.0.0
       react-dom: ^18.0.0 || ^19.0.0
@@ -8239,7 +8239,7 @@ snapshots:
     optionalDependencies:
       '@types/react': 19.3.0
 
-  react-resizable-panels@4.14.8(react-dom@19.3.1(react@19.3.1))(react@19.3.1):
+  react-resizable-panels@4.15.0(react-dom@19.3.1(react@19.3.1))(react@19.3.1):
     dependencies:
       react: 19.3.1
       react-dom: 19.3.1(react@19.3.1)
