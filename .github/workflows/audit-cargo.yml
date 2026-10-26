@@ -43,4 +43,12 @@ jobs:
           # or permissions are applied; tauri-plugin-updater only extracts on
           # Windows, and only signature-verified update archives. Remove once
           # both update to zip >=9.0.0.
-          ignore: RUSTSEC-2026-0194,RUSTSEC-2026-0195,RUSTSEC-2026-0253,RUSTSEC-2026-0367,RUSTSEC-2026-0368,RUSTSEC-2026-0369
+          #
+          # RUSTSEC-2026-0391, RUSTSEC-2026-0398, RUSTSEC-2026-0403: Three
+          # zstd/zstd-safe advisories, fixed in zstd >=0.14.3 and zstd-safe
+          # >=8.2.0. The old versions are only reachable via graphannis through
+          # zip ^8, which declares zstd ^0.13, so there is nothing to bump to.
+          # zip never uses with_context, and enables zstd without default
+          # features, so the seekable and legacy code paths of the other two
+          # are not compiled in. Remove once graphannis updates to zip >=9.0.0.
+          ignore: RUSTSEC-2026-0194,RUSTSEC-2026-0195,RUSTSEC-2026-0253,RUSTSEC-2026-0367,RUSTSEC-2026-0368,RUSTSEC-2026-0369,RUSTSEC-2026-0391,RUSTSEC-2026-0398,RUSTSEC-2026-0403
