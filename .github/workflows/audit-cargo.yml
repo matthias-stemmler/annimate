@@ -51,4 +51,14 @@ jobs:
           # zip never uses with_context, and enables zstd without default
           # features, so the seekable and legacy code paths of the other two
           # are not compiled in. Remove once graphannis updates to zip >=9.0.0.
-          ignore: RUSTSEC-2026-0194,RUSTSEC-2026-0195,RUSTSEC-2026-0253,RUSTSEC-2026-0367,RUSTSEC-2026-0368,RUSTSEC-2026-0369,RUSTSEC-2026-0391,RUSTSEC-2026-0398,RUSTSEC-2026-0403
+          #
+          # RUSTSEC-2026-0395 to RUSTSEC-2026-0397, RUSTSEC-2026-0399 to
+          # RUSTSEC-2026-0402, RUSTSEC-2026-0404 to RUSTSEC-2026-0406: Ten more
+          # zstd-safe unsoundness advisories, fixed in >=8.2.0. Same path as
+          # above, so there is nothing to bump to. zstd-safe 7 is built with
+          # only the std feature, so the experimental, zstdmt, seekable and
+          # zdict_builder code paths of eight of them are not compiled in. zstd
+          # never calls OutBuffer::around_pos, and zip only uses streaming
+          # encoders and decoders, never one-shot calls on the same context.
+          # Remove once graphannis updates to zip >=9.0.0.
+          ignore: RUSTSEC-2026-0194,RUSTSEC-2026-0195,RUSTSEC-2026-0253,RUSTSEC-2026-0367,RUSTSEC-2026-0368,RUSTSEC-2026-0369,RUSTSEC-2026-0391,RUSTSEC-2026-0395,RUSTSEC-2026-0396,RUSTSEC-2026-0397,RUSTSEC-2026-0398,RUSTSEC-2026-0399,RUSTSEC-2026-0400,RUSTSEC-2026-0401,RUSTSEC-2026-0402,RUSTSEC-2026-0403,RUSTSEC-2026-0404,RUSTSEC-2026-0405,RUSTSEC-2026-0406
