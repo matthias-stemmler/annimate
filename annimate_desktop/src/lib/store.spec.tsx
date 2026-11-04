@@ -46,7 +46,7 @@ import { arrayMove } from '@dnd-kit/sortable';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { clearMocks, mockIPC, mockWindows } from '@tauri-apps/api/mocks';
 import { cleanup, renderHook, waitFor } from '@testing-library/react';
-import { FC, PropsWithChildren } from 'react';
+import { FC, PropsWithChildren, useState } from 'react';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 
 describe('store', () => {
@@ -81,10 +81,13 @@ describe('store', () => {
   };
 
   const Wrapper: FC<PropsWithChildren> = ({ children }) => {
-    const queryClient = new QueryClient({
-      queryCache: new SlowTrackingQueryCache(),
-      defaultOptions: { queries: { retry: false } },
-    });
+    const [queryClient] = useState(
+      () =>
+        new QueryClient({
+          queryCache: new SlowTrackingQueryCache(),
+          defaultOptions: { queries: { retry: false } },
+        }),
+    );
 
     return (
       <QueryClientProvider client={queryClient}>
