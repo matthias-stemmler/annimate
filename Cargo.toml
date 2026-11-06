@@ -64,7 +64,7 @@ thiserror = "2.0.21"
 tokio = "1.54.0"
 toml = "1.2.0"
 toml_edit = "0.25.18"
-zip = "9.3.0"
+zip = "9.4.1"
 
 [profile.release]
 codegen-units = 1
