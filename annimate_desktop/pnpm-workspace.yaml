@@ -88,6 +88,7 @@ catalog:
   zustand: ^5.0.16
 
 catalogPrune: true
+# Keep in sync with minimumReleaseAge in renovate.json
 minimumReleaseAge: 1440
 
 strictDepBuilds: true
