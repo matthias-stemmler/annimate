@@ -1,7 +1,7 @@
 use std::cell::{Cell, RefCell};
 use std::fs::{self, File};
-use std::io;
 use std::path::{Path, PathBuf};
+use std::{assert_matches, io};
 
 use annimate_core::{AnnimateError, ImportStatusEvent, Storage};
 use zip::write::SimpleFileOptions;
@@ -162,7 +162,7 @@ fn import_cancelled_before_corpora_collected() {
         || true,
     );
 
-    assert!(matches!(result, Err(AnnimateError::Cancelled)));
+    assert_matches!(result, Err(AnnimateError::Cancelled));
     assert_eq!(storage.corpora().unwrap().corpus_count(), 0);
 }
 

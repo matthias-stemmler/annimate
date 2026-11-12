@@ -1,6 +1,6 @@
 #![allow(clippy::too_many_arguments)]
 
-use std::marker::PhantomData;
+use std::mem::DropGuard;
 use std::path::PathBuf;
 use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
@@ -14,7 +14,7 @@ use annimate_core::{
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 use tauri::ipc::Channel;
-use tauri::{EventId, Listener, Runtime, WebviewWindow, Window};
+use tauri::{Listener, WebviewWindow, Window};
 
 use crate::error::{ConversionError, Error};
 use crate::state::AppState;
@@ -88,14 +88,14 @@ pub(crate) async fn export_matches(
     tauri::async_runtime::spawn_blocking(move || {
         let cancel_requested = Arc::new(AtomicBool::new(false));
 
-        let _guard = EventHandlerGuard::new(
-            &window,
+        let _guard = DropGuard::new(
             window.once("export_cancel_requested", {
                 let cancel_requested = Arc::clone(&cancel_requested);
                 move |_| {
                     cancel_requested.store(true, Ordering::Relaxed);
                 }
             }),
+            |event_id| window.unlisten(event_id),
         );
 
         storage.export_matches(
@@ -215,14 +215,14 @@ pub(crate) async fn import_corpora(
     tauri::async_runtime::spawn_blocking(move || {
         let cancel_requested = Arc::new(AtomicBool::new(false));
 
-        let _guard = EventHandlerGuard::new(
-            &window,
+        let _guard = DropGuard::new(
             window.once("import_cancel_requested", {
                 let cancel_requested = Arc::clone(&cancel_requested);
                 move |_| {
                     cancel_requested.store(true, Ordering::Relaxed);
                 }
             }),
+            |event_id| window.unlisten(event_id),
         );
 
         let corpus_names = storage.import_corpora(
@@ -258,16 +258,14 @@ pub(crate) async fn load_project(
         storage
             .query_nodes(&project.aql_query, project.query_language)?
             .valid()
-            .map(|query_nodes| query_nodes.into())
-            .unwrap_or_default()
+            .map_or_default(|query_nodes| query_nodes.into())
     };
 
     let get_query_node_ref = |index| QueryNodeRef {
         index,
         variables: query_nodes
             .get(index)
-            .map(|nodes| nodes.iter().map(|node| node.variable.clone()).collect())
-            .unwrap_or_default(),
+            .map_or_default(|nodes| nodes.iter().map(|node| node.variable.clone()).collect()),
     };
 
     let try_get_query_node_ref = |index: u32| -> Result<QueryNodeRef, ConversionError> {
@@ -711,39 +709,4 @@ impl TryFrom<ExportColumn> for TableExportColumn {
 pub(crate) enum ExportFormat {
     Csv,
     Xlsx,
-}
-
-#[derive(Debug)]
-struct EventHandlerGuard<'a, R, T>
-where
-    R: Runtime,
-    T: Listener<R>,
-{
-    listener: &'a T,
-    event_id: EventId,
-    _runtime: PhantomData<R>,
-}
-
-impl<'a, R, T> EventHandlerGuard<'a, R, T>
-where
-    R: Runtime,
-    T: Listener<R>,
-{
-    fn new(listener: &'a T, event_id: EventId) -> Self {
-        Self {
-            listener,
-            event_id,
-            _runtime: PhantomData,
-        }
-    }
-}
-
-impl<R, T> Drop for EventHandlerGuard<'_, R, T>
-where
-    R: Runtime,
-    T: Listener<R>,
-{
-    fn drop(&mut self) {
-        self.listener.unlisten(self.event_id);
-    }
 }

@@ -203,12 +203,7 @@ where
         out.write_record(columns.iter().flat_map(|c| match c {
             TableExportColumn::Number => vec![(i + 1).to_string()],
             TableExportColumn::Data(ExportData::Value(value)) => {
-                vec![
-                    values
-                        .get(value)
-                        .map(|s| s.trim().to_string())
-                        .unwrap_or_default(),
-                ]
+                vec![values.get(value).map_or_default(|s| s.trim().to_string())]
             }
             TableExportColumn::Data(ExportData::Text(text)) => {
                 let max_match_parts = *max_match_parts_by_text.get(text).unwrap_or(&0);

@@ -205,13 +205,10 @@ fn operator_count(aql_query: &str) -> usize {
                     break;
                 } else if let Some(after) = body.strip_prefix('\\') {
                     // escape sequence -> skip
-                    body = after
-                        .chars()
-                        .next()
-                        .map_or("", |escape| &after[escape.len_utf8()..]);
+                    body = &after[after.ceil_char_boundary(1)..];
                 } else {
                     // any other character -> skip
-                    body = body.chars().next().map_or("", |c| &body[c.len_utf8()..]);
+                    body = &body[body.ceil_char_boundary(1)..];
                 }
             }
 
