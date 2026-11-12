@@ -1,0 +1,3 @@
+[registry]
+# Keep in sync with minimumReleaseAge in renovate.json
+global-min-publish-age = "1440 minutes"
