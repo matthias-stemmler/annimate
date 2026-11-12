@@ -26,7 +26,7 @@ jobs:
         # remote debugging endpoint for elevated apps, and GitHub runners run
         # elevated. Last working runtime was 149.0.4022.98.
         # https://github.com/MicrosoftEdge/WebView2Feedback/issues/5640
-        os: [ubuntu-latest]
+        os: [ubuntu-24.04]
 
     steps:
       - name: Checkout
