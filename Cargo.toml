@@ -8,17 +8,12 @@ authors = ["Matthias Stemmler <matthias.stemmler@gmail.com>"]
 edition = "2024"
 readme = "README.md"
 repository = "https://github.com/matthias-stemmler/annimate"
-rust-version = "1.90"
+rust-version = "1.100"
 license = "Apache-2.0"
 publish = false
 
-[workspace.lints.rust]
-elided_lifetimes_in_paths = "deny"
-unreachable_pub = "deny"
-unsafe_code = "deny"
-unused_import_braces = "deny"
-unused_lifetimes = "deny"
-unused_qualifications = "deny"
+[workspace.lints.cargo]
+unused_dependencies = "deny"
 
 [workspace.lints.clippy]
 all = { level = "deny", priority = -1 }
@@ -28,6 +23,14 @@ needless_pass_by_value = "deny"
 semicolon_if_nothing_returned = "deny"
 unnecessary_wraps = "deny"
 use_debug = "deny"
+
+[workspace.lints.rust]
+elided_lifetimes_in_paths = "deny"
+unreachable_pub = "deny"
+unsafe_code = "deny"
+unused_import_braces = "deny"
+unused_lifetimes = "deny"
+unused_qualifications = "deny"
 
 [workspace.lints.rustdoc]
 bare_urls = "deny"

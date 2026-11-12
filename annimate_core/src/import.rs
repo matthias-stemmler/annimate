@@ -272,7 +272,7 @@ impl ScopedPath {
                     .strip_prefix(extracted_archive_path.temp_dir.path())
                     .unwrap();
 
-                if relative_path == Path::new("") {
+                if relative_path.is_empty() {
                     Path::new(MAIN_SEPARATOR_STR)
                 } else {
                     relative_path

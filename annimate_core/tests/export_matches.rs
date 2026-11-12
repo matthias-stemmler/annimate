@@ -1,6 +1,6 @@
 use std::cell::Cell;
-use std::fs;
 use std::path::Path;
+use std::{assert_matches, fs};
 
 use annimate_core::{
     AnnimateError, AnnoKey, AnnoKeyOrDefault, CsvExportConfig, EdgeType, ExportConfig, ExportData,
@@ -632,7 +632,7 @@ fn export_cancelled_before_matches_found() {
         || true,
     );
 
-    assert!(matches!(result, Err(AnnimateError::Cancelled)));
+    assert_matches!(result, Err(AnnimateError::Cancelled));
     assert!(!output_file.try_exists().unwrap());
 }
 
@@ -677,7 +677,7 @@ fn export_cancelled_after_matches_found() {
         || cancel_requested.get(),
     );
 
-    assert!(matches!(result, Err(AnnimateError::Cancelled)));
+    assert_matches!(result, Err(AnnimateError::Cancelled));
     assert!(!output_file.try_exists().unwrap());
 }
 
