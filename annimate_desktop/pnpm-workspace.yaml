@@ -95,6 +95,17 @@ strictDepBuilds: true
 verifyDepsBeforeRun: prompt
 
 overrides:
+  # GHSA-3g3m-2fjr-6pw4: A glob AbortSignal cancellation bypass advisory,
+  # fixed in >=14.0.2. Only reachable via mocha (through
+  # @wdio/mocha-framework), which requires ^13. Dev-only (WebDriver tests).
+  # Remove once mocha updates to glob >=14.0.2.
+  glob@>=9.0.0 <14.0.2: ^14.0.2
+  # GHSA-g3hv-75wg-m249: A minimatch globparts amplification DoS advisory,
+  # fixed in >=11.0.1. Only reachable via eslint, mocha, glob,
+  # @typescript-eslint/typescript-estree and readdir-glob, which require ^10.
+  # Dev-only (linting, WebDriver tests). Remove once they update to
+  # minimatch >=11.0.1.
+  minimatch@>=7.0.0 <11.0.1: ^11.0.1
   # GHSA-rj75-hqrm-r3gf: A postcss-selector-parser CPU exhaustion advisory,
   # fixed in >=7.1.6. Only reachable via @tailwindcss/typography, which pins
   # exactly 6.0.10. The built CSS is byte-identical with 7.x. Remove once
