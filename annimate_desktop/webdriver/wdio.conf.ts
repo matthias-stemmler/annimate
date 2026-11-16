@@ -49,7 +49,14 @@ export const config: WebdriverIO.Config = {
       [tauriCli, 'build', '--debug', '--no-bundle', '--config', configFile],
       {
         cwd: desktopDir,
-        env: { ...process.env, NODE_ENV: 'production' },
+        env: {
+          ...process.env,
+          NODE_ENV: 'production',
+          // WebdriverIO adds its tsx loader to NODE_OPTIONS, which would then
+          // also apply to the Vite build and break `import.meta.resolve` in
+          // `@vitejs/plugin-react`'s React Compiler preset
+          NODE_OPTIONS: undefined,
+        },
         stdio: 'inherit',
       },
     );
