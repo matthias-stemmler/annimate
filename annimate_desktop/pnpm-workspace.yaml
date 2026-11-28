@@ -12,7 +12,7 @@ autoInstallPeers: false
 blockExoticSubdeps: true
 
 catalog:
-  '@babel/core': ^8.1.2
+  '@babel/core': ^8.1.3
   '@dnd-kit/core': ^6.3.1
   '@dnd-kit/modifiers': ^9.0.0
   '@dnd-kit/sortable': ^10.0.0
@@ -33,11 +33,11 @@ catalog:
   '@radix-ui/react-tabs': ^1.2.1
   '@radix-ui/react-toast': ^1.3.1
   '@radix-ui/react-tooltip': ^1.4.1
-  '@rolldown/plugin-babel': ^0.3.1
+  '@rolldown/plugin-babel': ^0.3.2
   '@tailwindcss/typography': ^0.5.20
   '@tailwindcss/vite': ^4.3.5
-  '@tanstack/eslint-plugin-query': ^5.107.1
-  '@tanstack/react-query': ^5.107.1
+  '@tanstack/eslint-plugin-query': ^5.108.4
+  '@tanstack/react-query': ^5.108.4
   '@tauri-apps/api': ^2.12.4
   '@tauri-apps/cli': ^2.12.4
   '@tauri-apps/plugin-dialog': ^2.8.4
@@ -48,8 +48,8 @@ catalog:
   '@testing-library/dom': ^10.4.2
   '@testing-library/react': ^16.3.3
   '@types/babel__core': ^7.20.5
-  '@types/node': ^26.6.6
-  '@types/react': ^19.3.0
+  '@types/node': ^26.6.11
+  '@types/react': ^19.3.3
   '@types/react-dom': ^19.3.0
   # Native TS 7 `tsc` for build/check; the `typescript` entry below stays on v6
   # until typescript-eslint supports v7: https://github.com/typescript-eslint/typescript-eslint/issues/12518
@@ -68,23 +68,23 @@ catalog:
   eslint-plugin-react-hooks: ^7.1.1
   eslint-plugin-react-refresh: ^0.5.8
   jsdom: ^31.0.1
-  lucide-react: ^1.73.0
+  lucide-react: ^1.82.0
   prettier: ^3.10.1
   prettier-plugin-tailwindcss: ^0.8.1
   react: ^19.3.1
   react-dom: ^19.3.1
   react-markdown: ^10.1.0
-  react-resizable-panels: ^4.24.0
-  react-router: ^8.5.1
-  tailwind-merge: ^3.7.0
+  react-resizable-panels: ^4.25.0
+  react-router: ^8.5.3
+  tailwind-merge: ^3.7.1
   tailwindcss: ^4.3.5
   tailwindcss-animate: ^1.0.7
   tsx: ^4.23.15
   typescript: 'npm:@typescript/typescript6@^6.0.2'
-  typescript-eslint: ^8.72.2
+  typescript-eslint: ^8.74.0
   vite: ^8.3.8
   vite-plugin-svgr: ^5.2.0
-  vitest: ^5.1.0
+  vitest: ^5.1.2
   zustand: ^5.1.0
 
 catalogPrune: true
